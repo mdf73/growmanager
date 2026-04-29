@@ -1,1 +1,1 @@
-init: premier commit GrowManager - setup Git, .gitignore, .env.example
+chore: intégration wiki Obsidian dans le repo - wiki/ ajouté, .obsidian/ ignoré
