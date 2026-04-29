@@ -1,7 +1,18 @@
-feat: export CSV PlanCulture + bulk stock entry + stats fix
+docs: définition roadmap V3 — 8 features planifiées
 
-- backend/routers/plan_culture.py: GET /{plan_id}/export/csv — export CSV du plan (breeder, variété, type, floraison, nb plantes, taille pot, nb pots estimé)
-- backend/routers/cultures.py: close_culture appelle _maybe_archive_culture → cultures clôturées manuellement désormais archivées dans HistoriqueCulture si toutes les plantes sont terminées
-- frontend/api/planCulture.ts: planCultureAPI.exportCSV(planId) — déclenche le téléchargement du CSV
-- frontend/pages/PlanCulture.tsx: bouton CSV (Download icon) à côté de "Lancer cette culture"
-- frontend/components/NouveauStockModal.tsx: bouton "+ Nouveau" — sauvegarde et réinitialise le formulaire pour saisie multiple enchaînée
+Roadmap V3 complète définie et documentée :
+
+Features planifiées :
+1. Gestion des coûts de culture (électricité + engrais + graines → €/g par récolte)
+2. Multi-utilisateur & déploiement communautaire (auth JWT, isolation données)
+3. Docker multi-plateforme (configs serveur Linux & Windows + nginx + HTTPS)
+4. Refonte page Paramétrage (accordéons thématiques, migration des listes hardcodées)
+5. Page Consommation (tracking vapo Volcano/Dynavap, stats jour/semaine/mois/an)
+6. Mode Dark (Tailwind darkMode: 'class', toggle persistant localStorage)
+7. Galerie photos (table Photo, liaisons plant/culture, lightbox, upload + caméra)
+8. Application Android native (Capacitor recommandé vs TWA, @capacitor/camera)
+
+Fichiers modifiés :
+- wiki/roadmap.md — V3 features ajoutées (8 sections détaillées)
+- wiki/index.md — référence roadmap_v3.docx + date mise à jour
+- Documentation/roadmap_v3.docx — compte rendu détaillé 8 features (nouveau)
