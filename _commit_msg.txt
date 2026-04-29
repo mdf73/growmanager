@@ -1,0 +1,1 @@
+init: premier commit GrowManager - setup Git, .gitignore, .env.example
