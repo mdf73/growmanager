@@ -1,0 +1,388 @@
+"""Routers pour les extractions Rosin et Hash"""
+from datetime import date as dt_date
+from typing import Optional
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+from app.database import get_db
+from app.models import RosinExtraction, HashExtraction, Stock, Variete
+from app.schemas.extraction import (
+    RosinExtractionCreate,
+    RosinExtractionRead,
+    HashExtractionCreate,
+    HashExtractionRead,
+    ExtractionStats,
+)
+
+router = APIRouter(prefix="/api", tags=["extractions"])
+
+
+# ── helpers ──────────────────────────────────────────────────────────────────
+
+def _enrich_rosin(extraction: RosinExtraction, db: Session) -> RosinExtractionRead:
+    """Enrichit une extraction avec le nom de variété depuis le stock source."""
+    variete_nom = None
+    if extraction.id_stock_source:
+        stock = db.query(Stock).filter(Stock.id_stock == extraction.id_stock_source).first()
+        if stock and stock.id_variete:
+            variete = db.query(Variete).filter(Variete.id_variete == stock.id_variete).first()
+            if variete:
+                variete_nom = variete.nom_variete
+    # Fallback sur nom_variete_extract si pas de FK
+    if not variete_nom:
+        variete_nom = extraction.nom_variete_extract
+
+    def _f(v) -> Optional[float]:
+        return float(v) if v is not None else None
+
+    return RosinExtractionRead(
+        id_rosinextraction=extraction.id_rosinextraction,
+        id_bocal=extraction.id_bocal,
+        id_rosinbag=extraction.id_rosinbag,
+        id_press=extraction.id_press,
+        id_stock_source=extraction.id_stock_source,
+        nom_variete_extract=extraction.nom_variete_extract,
+        date_rosinextraction=extraction.date_rosinextraction,
+        temperature_extraction=extraction.temperature_extraction,
+        maillage=extraction.maillage,
+        duree_preheat=extraction.duree_preheat,
+        duree_extraction=extraction.duree_extraction,
+        sac_1_poids=_f(extraction.sac_1_poids),
+        sac_2_poids=_f(extraction.sac_2_poids),
+        sac_3_poids=_f(extraction.sac_3_poids),
+        sac_4_poids=_f(extraction.sac_4_poids),
+        quantite_utilisee=float(extraction.quantite_utilisee),
+        presse_1_poids=_f(extraction.presse_1_poids),
+        presse_2_poids=_f(extraction.presse_2_poids),
+        presse_3_poids=_f(extraction.presse_3_poids),
+        presse_4_poids=_f(extraction.presse_4_poids),
+        quantite_extraite=float(extraction.quantite_extraite),
+        info_rosinextraction=extraction.info_rosinextraction,
+        variete_nom=variete_nom,
+    )
+
+
+# ═══════════════════════════ Rosin Extraction ════════════════════════════════
+
+@router.get("/rosin", response_model=list[RosinExtractionRead])
+def get_rosin_extractions(db: Session = Depends(get_db)):
+    """Récupère toutes les extractions rosin, enrichies avec variete_nom."""
+    extractions = (
+        db.query(RosinExtraction)
+        .order_by(RosinExtraction.date_rosinextraction.desc())
+        .all()
+    )
+    return [_enrich_rosin(e, db) for e in extractions]
+
+
+@router.get("/rosin/stats", response_model=ExtractionStats)
+def get_rosin_stats(db: Session = Depends(get_db)):
+    """Statistiques d'extraction rosin."""
+    extractions = db.query(RosinExtraction).all()
+
+    if not extractions:
+        return ExtractionStats(
+            ratio_moyen_rosin=0.0,
+            total_presse_g=0.0,
+            total_extrait_rosin_g=0.0,
+            total_extrait_hash_g=0.0,
+            nombre_extractions=0,
+        )
+
+    total_presse = sum(float(e.quantite_utilisee or 0) for e in extractions)
+    total_extrait_rosin = sum(float(e.quantite_extraite or 0) for e in extractions)
+
+    hash_extractions = db.query(HashExtraction).all()
+    total_extrait_hash = sum(float(e.quantite_extraite or 0) for e in hash_extractions)
+
+    ratio_moyen = (total_extrait_rosin / total_presse * 100) if total_presse > 0 else 0
+
+    return ExtractionStats(
+        ratio_moyen_rosin=ratio_moyen,
+        total_presse_g=total_presse,
+        total_extrait_rosin_g=total_extrait_rosin,
+        total_extrait_hash_g=total_extrait_hash,
+        nombre_extractions=len(extractions),
+    )
+
+
+@router.post("/rosin", response_model=RosinExtractionRead)
+def create_rosin_extraction(
+    extraction: RosinExtractionCreate, db: Session = Depends(get_db)
+):
+    """
+    Crée une extraction rosin.
+    - Déduit quantite_utilisee du stock source
+    - Crée une nouvelle entrée Stock (type Rosin) avec quantite_extraite
+    """
+    # ── Vérifier le stock source ──────────────────────────────────────────
+    stock_source = None
+    if extraction.id_stock_source:
+        stock_source = db.query(Stock).filter(
+            Stock.id_stock == extraction.id_stock_source
+        ).first()
+        if not stock_source:
+            raise HTTPException(status_code=404, detail="Stock source introuvable")
+        if float(stock_source.quantite_stock) < extraction.quantite_utilisee:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Stock insuffisant : {float(stock_source.quantite_stock):.1f}g disponibles"
+            )
+
+    # ── Créer l'extraction ────────────────────────────────────────────────
+    db_extraction = RosinExtraction(
+        id_bocal=extraction.id_bocal,
+        id_rosinbag=extraction.id_rosinbag,
+        id_press=extraction.id_press,
+        id_stock_source=extraction.id_stock_source,
+        nom_variete_extract=extraction.nom_variete_extract,
+        date_rosinextraction=extraction.date_rosinextraction,
+        temperature_extraction=extraction.temperature_extraction,
+        maillage=extraction.maillage,
+        duree_preheat=extraction.duree_preheat,
+        duree_extraction=extraction.duree_extraction,
+        sac_1_poids=extraction.sac_1_poids,
+        sac_2_poids=extraction.sac_2_poids,
+        sac_3_poids=extraction.sac_3_poids,
+        sac_4_poids=extraction.sac_4_poids,
+        quantite_utilisee=extraction.quantite_utilisee,
+        presse_1_poids=extraction.presse_1_poids,
+        presse_2_poids=extraction.presse_2_poids,
+        presse_3_poids=extraction.presse_3_poids,
+        presse_4_poids=extraction.presse_4_poids,
+        quantite_extraite=extraction.quantite_extraite,
+        info_rosinextraction=extraction.info_rosinextraction,
+    )
+    db.add(db_extraction)
+
+    # ── Déduire du stock source ───────────────────────────────────────────
+    if stock_source:
+        stock_source.quantite_stock = float(stock_source.quantite_stock) - extraction.quantite_utilisee
+        # Clôture automatique si stock épuisé → libère le bocal
+        if float(stock_source.quantite_stock) <= 0:
+            stock_source.quantite_stock = 0
+            if stock_source.date_fin_stock is None:
+                stock_source.date_fin_stock = dt_date.today()
+
+    # ── Déterminer le type de rosin depuis la source ──────────────────────
+    type_rosin = None
+    if stock_source:
+        src_type = (stock_source.type_stock or "").lower()
+        if "hash" in src_type:
+            type_rosin = "Hash Rosin"
+        else:
+            type_rosin = "Flower Rosin"
+
+    # ── Créer l'entrée Rosin dans le stock ────────────────────────────────
+    rosin_stock = Stock(
+        id_variete=stock_source.id_variete if stock_source else None,
+        type_stock="Rosin",
+        sous_type_stock=stock_source.sous_type_stock if stock_source else None,
+        lampe_type=stock_source.lampe_type if stock_source else None,
+        engrais_type=stock_source.engrais_type if stock_source else None,
+        type_rosin=type_rosin,
+        maillage=extraction.maillage,
+        date_stock=extraction.date_rosinextraction,
+        quantite_stock=extraction.quantite_extraite,
+    )
+    db.add(rosin_stock)
+
+    db.commit()
+    db.refresh(db_extraction)
+    return _enrich_rosin(db_extraction, db)
+
+
+@router.delete("/rosin/{extraction_id}", status_code=204)
+def delete_rosin_extraction(extraction_id: int, db: Session = Depends(get_db)):
+    """Supprime une extraction rosin (ne restaure pas le stock)."""
+    db_extraction = db.query(RosinExtraction).filter(
+        RosinExtraction.id_rosinextraction == extraction_id
+    ).first()
+    if not db_extraction:
+        raise HTTPException(status_code=404, detail="Extraction introuvable")
+    db.delete(db_extraction)
+    db.commit()
+
+
+# ═══════════════════════════ Hash Extraction ═════════════════════════════════
+
+def _enrich_hash(extraction: HashExtraction, db: Session) -> HashExtractionRead:
+    """Enrichit une extraction hash avec le nom de variété."""
+    variete_nom = None
+    # Priorité : variété liée au stock source, puis id_variete direct, puis nom libre
+    if extraction.id_stock_source:
+        stock = db.query(Stock).filter(Stock.id_stock == extraction.id_stock_source).first()
+        if stock and stock.id_variete:
+            variete = db.query(Variete).filter(Variete.id_variete == stock.id_variete).first()
+            if variete:
+                variete_nom = variete.nom_variete
+    if not variete_nom and extraction.id_variete:
+        variete = db.query(Variete).filter(Variete.id_variete == extraction.id_variete).first()
+        if variete:
+            variete_nom = variete.nom_variete
+    if not variete_nom:
+        variete_nom = extraction.nom_variete_hash
+
+    def _f(v) -> Optional[float]:
+        return float(v) if v is not None else None
+
+    return HashExtractionRead(
+        id_hashextraction=extraction.id_hashextraction,
+        id_variete=extraction.id_variete,
+        id_iceobag=extraction.id_iceobag,
+        id_stock_source=extraction.id_stock_source,
+        nom_variete_hash=extraction.nom_variete_hash,
+        date_hashextraction=extraction.date_hashextraction,
+        type_extraction=extraction.type_extraction,
+        duree_polinator=extraction.duree_polinator,
+        passages=extraction.passages,
+        sacs=extraction.sacs,
+        quantite_utilisee=_f(extraction.quantite_utilisee) or 0.0,
+        quantite_extraite=_f(extraction.quantite_extraite) or 0.0,
+        info_hashextraction=extraction.info_hashextraction,
+        variete_nom=variete_nom,
+    )
+
+
+@router.get("/hash", response_model=list[HashExtractionRead])
+def get_hash_extractions(db: Session = Depends(get_db)):
+    """Récupère toutes les extractions hash, enrichies avec variete_nom."""
+    extractions = db.query(HashExtraction).order_by(HashExtraction.date_hashextraction.desc()).all()
+    return [_enrich_hash(e, db) for e in extractions]
+
+
+@router.get("/hash/stats")
+def get_hash_stats(db: Session = Depends(get_db)):
+    """Statistiques d'extraction hash."""
+    extractions = db.query(HashExtraction).all()
+    if not extractions:
+        return {"nombre_extractions": 0, "total_entree_g": 0.0, "total_hash_g": 0.0, "ratio_moyen": 0.0}
+    total_entree = sum(float(e.quantite_utilisee or 0) for e in extractions)
+    total_hash   = sum(float(e.quantite_extraite or 0) for e in extractions)
+    ratio_moyen  = (total_hash / total_entree * 100) if total_entree > 0 else 0
+    return {
+        "nombre_extractions": len(extractions),
+        "total_entree_g": total_entree,
+        "total_hash_g": total_hash,
+        "ratio_moyen": ratio_moyen,
+    }
+
+
+@router.post("/hash", response_model=HashExtractionRead)
+def create_hash_extraction(
+    extraction: HashExtractionCreate, db: Session = Depends(get_db)
+):
+    """
+    Crée une extraction hash (Polinator ou Ice-o-lator).
+    - Déduit quantite_utilisee du stock source
+    - Polinator → crée 1 entrée Stock "Hash Polinator"
+    - Ice-o-lator → crée 1 entrée Stock par maillage utilisé
+    """
+    # ── Vérifier le stock source ──────────────────────────────────────────
+    stock_source = None
+    if extraction.id_stock_source:
+        stock_source = db.query(Stock).filter(
+            Stock.id_stock == extraction.id_stock_source
+        ).first()
+        if not stock_source:
+            raise HTTPException(status_code=404, detail="Stock source introuvable")
+        if float(stock_source.quantite_stock) < extraction.quantite_utilisee:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Stock insuffisant : {float(stock_source.quantite_stock):.1f}g disponibles"
+            )
+
+    # ── Résoudre id_variete depuis le stock source ────────────────────────
+    id_variete = extraction.id_variete
+    if not id_variete and stock_source and stock_source.id_variete:
+        id_variete = stock_source.id_variete
+
+    # ── Résoudre le nom de variété pour nommer les stocks ─────────────────
+    variete_nom_stock = None
+    if id_variete:
+        variete_obj = db.query(Variete).filter(Variete.id_variete == id_variete).first()
+        if variete_obj:
+            variete_nom_stock = variete_obj.nom_variete
+    if not variete_nom_stock:
+        variete_nom_stock = extraction.nom_variete_hash or "Hash"
+
+    # ── Déterminer le type_hash automatiquement selon le type d'extraction ─
+    src_type = (stock_source.type_stock or "").lower() if stock_source else ""
+    if extraction.type_extraction == "Polinator":
+        auto_type_hash = "Pollinator"
+    elif extraction.type_extraction == "Ice-o-lator":
+        auto_type_hash = "Ice-o-Lator WPFF" if "wpff" in src_type else "Ice-O-Lator Dry"
+    else:
+        auto_type_hash = None
+
+    # ── Créer l'extraction ────────────────────────────────────────────────
+    db_extraction = HashExtraction(
+        id_variete=id_variete,
+        id_iceobag=extraction.id_iceobag,
+        id_stock_source=extraction.id_stock_source,
+        nom_variete_hash=extraction.nom_variete_hash,
+        date_hashextraction=extraction.date_hashextraction,
+        type_extraction=extraction.type_extraction,
+        duree_polinator=extraction.duree_polinator,
+        passages=extraction.passages,
+        sacs=extraction.sacs,
+        quantite_utilisee=extraction.quantite_utilisee,
+        quantite_extraite=extraction.quantite_extraite,
+        info_hashextraction=extraction.info_hashextraction,
+    )
+    db.add(db_extraction)
+
+    # ── Déduire du stock source ───────────────────────────────────────────
+    if stock_source:
+        stock_source.quantite_stock = float(stock_source.quantite_stock) - extraction.quantite_utilisee
+        # Clôture automatique si stock épuisé → libère le bocal
+        if float(stock_source.quantite_stock) <= 0:
+            stock_source.quantite_stock = 0
+            if stock_source.date_fin_stock is None:
+                stock_source.date_fin_stock = dt_date.today()
+
+    # ── Créer les entrées de stock hash ───────────────────────────────────
+    stock_kwargs = dict(
+        id_variete=id_variete,
+        date_stock=extraction.date_hashextraction,
+        sous_type_stock=stock_source.sous_type_stock if stock_source else None,
+        lampe_type=stock_source.lampe_type if stock_source else None,
+        engrais_type=stock_source.engrais_type if stock_source else None,
+    )
+
+    if extraction.type_extraction == "Polinator":
+        db.add(Stock(
+            type_stock="Hash",
+            quantite_stock=extraction.quantite_extraite,
+            maillage="120µ",
+            type_hash=auto_type_hash,
+            **stock_kwargs
+        ))
+
+    elif extraction.type_extraction == "Ice-o-lator" and extraction.sacs:
+        for sac in extraction.sacs:
+            maillage = sac.get("maillage", "")
+            poids    = float(sac.get("poids", 0) or 0)
+            if poids > 0:
+                db.add(Stock(
+                    type_stock="Hash",
+                    quantite_stock=poids,
+                    maillage=maillage,
+                    type_hash=auto_type_hash,
+                    **stock_kwargs
+                ))
+
+    db.commit()
+    db.refresh(db_extraction)
+    return _enrich_hash(db_extraction, db)
+
+
+@router.delete("/hash/{extraction_id}", status_code=204)
+def delete_hash_extraction(extraction_id: int, db: Session = Depends(get_db)):
+    """Supprime une extraction hash."""
+    db_extraction = db.query(HashExtraction).filter(
+        HashExtraction.id_hashextraction == extraction_id
+    ).first()
+    if not db_extraction:
+        raise HTTPException(status_code=404, detail="Extraction hash introuvable")
+    db.delete(db_extraction)
+    db.commit()

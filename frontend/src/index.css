@@ -1,0 +1,75 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Impression ──────────────────────────────────────────────────────────── */
+@media print {
+  /* Masquer toute l'interface (sidebar, header, nav mobile, boutons, wizard) */
+  aside,
+  header,
+  nav,
+  .no-print {
+    display: none !important;
+  }
+
+  /* Réinitialiser le layout pour l'impression */
+  html, body, #root {
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  .flex.h-screen {
+    display: block !important;
+    height: auto !important;
+  }
+
+  /* Zone de contenu principale : pleine largeur */
+  main {
+    overflow: visible !important;
+    padding: 0 !important;
+  }
+
+  main > div {
+    padding: 0 !important;
+    max-width: 100% !important;
+  }
+
+  /* Masquer tout sauf la zone d'impression */
+  body > * { display: none !important; }
+  #root     { display: block !important; }
+
+  /* Afficher uniquement la zone print */
+  .print-zone {
+    display: block !important;
+    position: static !important;
+    padding: 24px !important;
+    font-family: Arial, sans-serif !important;
+    font-size: 12pt !important;
+    color: #000 !important;
+  }
+
+  /* Empêcher la coupure des lignes d'ingrédients */
+  .print-row {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  /* Masquer les éléments non pertinents dans la page */
+  .space-y-6 > *:not(.print-zone) {
+    display: none !important;
+  }
+}

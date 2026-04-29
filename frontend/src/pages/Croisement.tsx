@@ -1,0 +1,910 @@
+import { useState, useMemo } from 'react'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import {
+  Plus, X, Dna, FlaskConical, Trash2, Edit3, Sparkles,
+  Calendar, AlertTriangle, Clock, CheckCircle2, Leaf,
+} from 'lucide-react'
+import {
+  croisementAPI,
+  Croisement, CroisementCreate, RecolteGrainesInput,
+  Pollen, PollenCreate,
+  TypeCroisement, StatutCroisement, MethodePollinisation,
+  QualiteGraines, StockagePollen,
+} from '../api/croisement'
+import { varieteAPI, Variete } from '../api/varietes'
+import LoadingSpinner from '../components/LoadingSpinner'
+import EmptyState from '../components/EmptyState'
+
+// ── Constantes UI ─────────────────────────────────────────────────────────────
+
+const TYPES_CROISEMENT: { value: TypeCroisement; label: string; desc: string }[] = [
+  { value: 'F1',         label: 'F1',         desc: 'Première génération (parent A × parent B)' },
+  { value: 'F2',         label: 'F2',         desc: 'F1 × F1 (seconde génération)' },
+  { value: 'BX',         label: 'BX',         desc: 'Backcross (F1 × un des parents)' },
+  { value: 'S1',         label: 'S1',         desc: 'Selfing (femelle reversée × elle-même)' },
+  { value: 'IBL',        label: 'IBL',        desc: 'Lignée stabilisée (plusieurs générations)' },
+  { value: 'polyhybrid', label: 'Polyhybride', desc: 'Croisement complexe multi-parents' },
+]
+
+const METHODES: { value: MethodePollinisation; label: string }[] = [
+  { value: 'plante_entiere', label: 'Plante entière' },
+  { value: 'branche_isolee', label: 'Branche isolée (ensachée)' },
+  { value: 'pinceau',        label: 'Pinceau (fleur par fleur)' },
+]
+
+const STATUT_META: Record<StatutCroisement, { label: string; color: string; icon: any }> = {
+  planifie:   { label: 'Planifié',     color: 'bg-gray-100 text-gray-700',       icon: Calendar },
+  pollinise:  { label: 'Pollinisé',    color: 'bg-blue-100 text-blue-700',       icon: Sparkles },
+  maturation: { label: 'Maturation',   color: 'bg-amber-100 text-amber-700',     icon: Clock },
+  recolte:    { label: 'Récolté',      color: 'bg-green-100 text-green-700',     icon: CheckCircle2 },
+  echec:      { label: 'Échec',        color: 'bg-red-100 text-red-700',         icon: AlertTriangle },
+}
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
+function fmtDate(d?: string) {
+  if (!d) return '—'
+  return new Date(d).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' })
+}
+
+function daysUntil(d?: string): number | null {
+  if (!d) return null
+  const diff = new Date(d).getTime() - Date.now()
+  return Math.ceil(diff / 86400000)
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+//  MODAL — Nouveau croisement
+// ════════════════════════════════════════════════════════════════════════════
+
+interface NouveauCroisementModalProps {
+  varietes: Variete[]
+  pollenStock: Pollen[]
+  onClose: () => void
+}
+
+function NouveauCroisementModal({ varietes, pollenStock, onClose }: NouveauCroisementModalProps) {
+  const qc = useQueryClient()
+  const [step, setStep] = useState(1)
+  const [peremode, setPereMode] = useState<'pollen' | 'direct'>('direct')
+
+  const [form, setForm] = useState<CroisementCreate>({
+    nom_croisement: '',
+    type_croisement: 'F1',
+    pere_reverse: false,
+    statut: 'planifie',
+  })
+
+  const createMut = useMutation({
+    mutationFn: (data: CroisementCreate) => croisementAPI.create(data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['croisements'] })
+      qc.invalidateQueries({ queryKey: ['pollen'] })
+      onClose()
+    },
+  })
+
+  const mereNom = varietes.find(v => v.id_variete === form.id_variete_mere)?.nom_variete
+  const pereNom = peremode === 'pollen'
+    ? pollenStock.find(p => p.id_pollen === form.id_pollen)?.nom_pollen
+    : varietes.find(v => v.id_variete === form.id_variete_pere)?.nom_variete
+
+  // Auto-nom
+  const autoNom = mereNom && pereNom
+    ? `${mereNom} × ${pereNom}${form.type_croisement && form.type_croisement !== 'F1' ? ` ${form.type_croisement}` : ' F1'}`
+    : ''
+
+  const canNext1 = !!form.id_variete_mere && (
+    (peremode === 'pollen' && !!form.id_pollen) ||
+    (peremode === 'direct' && !!form.id_variete_pere)
+  )
+  const canSubmit = !!(form.nom_croisement || autoNom) && !!form.type_croisement
+
+  const handleSubmit = () => {
+    const payload: CroisementCreate = {
+      ...form,
+      nom_croisement: form.nom_croisement || autoNom,
+    }
+    // Nettoyer : ne pas envoyer l'id inverse au mode choisi
+    if (peremode === 'pollen') {
+      payload.id_variete_pere = undefined
+      payload.pheno_pere = undefined
+    } else {
+      payload.id_pollen = undefined
+      payload.quantite_pollen_utilisee_g = undefined
+    }
+    createMut.mutate(payload)
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between">
+          <h2 className="text-lg font-semibold flex items-center gap-2">
+            <Dna size={20} className="text-grow-600" /> Nouveau croisement
+            <span className="text-sm text-gray-400 font-normal">— étape {step}/3</span>
+          </h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-700"><X size={20} /></button>
+        </div>
+
+        <div className="p-6 space-y-5">
+          {/* ── Étape 1 : Parents ───────────────────────────────── */}
+          {step === 1 && (
+            <>
+              <div>
+                <h3 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
+                  <Leaf size={16} className="text-pink-500" /> Parent mère (porteuse de graines)
+                </h3>
+                <div className="space-y-2">
+                  <select
+                    value={form.id_variete_mere || ''}
+                    onChange={e => setForm({ ...form, id_variete_mere: Number(e.target.value) || undefined })}
+                    className="w-full rounded border-gray-300 px-3 py-2 text-sm"
+                  >
+                    <option value="">— Choisir une variété —</option>
+                    {varietes.map(v => <option key={v.id_variete} value={v.id_variete}>{v.nom_variete}</option>)}
+                  </select>
+                  <input
+                    type="text"
+                    placeholder="Pheno (ex : pheno #3)"
+                    value={form.pheno_mere || ''}
+                    onChange={e => setForm({ ...form, pheno_mere: e.target.value })}
+                    className="w-full rounded border-gray-300 px-3 py-2 text-sm"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <h3 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
+                  <Sparkles size={16} className="text-blue-500" /> Parent père (pollen)
+                </h3>
+
+                <div className="flex gap-2 mb-3">
+                  <button
+                    type="button"
+                    onClick={() => setPereMode('direct')}
+                    className={`flex-1 px-3 py-2 rounded text-sm font-medium ${peremode === 'direct' ? 'bg-grow-600 text-white' : 'bg-gray-100 text-gray-700'}`}
+                  >
+                    Saisie directe (variété)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPereMode('pollen')}
+                    className={`flex-1 px-3 py-2 rounded text-sm font-medium ${peremode === 'pollen' ? 'bg-grow-600 text-white' : 'bg-gray-100 text-gray-700'}`}
+                  >
+                    Depuis stock pollen ({pollenStock.length})
+                  </button>
+                </div>
+
+                {peremode === 'direct' && (
+                  <div className="space-y-2">
+                    <select
+                      value={form.id_variete_pere || ''}
+                      onChange={e => setForm({ ...form, id_variete_pere: Number(e.target.value) || undefined })}
+                      className="w-full rounded border-gray-300 px-3 py-2 text-sm"
+                    >
+                      <option value="">— Choisir une variété —</option>
+                      {varietes.map(v => <option key={v.id_variete} value={v.id_variete}>{v.nom_variete}</option>)}
+                    </select>
+                    <input
+                      type="text"
+                      placeholder="Pheno / origine (ex : mâle Zkittlez ami X)"
+                      value={form.pheno_pere || ''}
+                      onChange={e => setForm({ ...form, pheno_pere: e.target.value })}
+                      className="w-full rounded border-gray-300 px-3 py-2 text-sm"
+                    />
+                    <label className="flex items-center gap-2 text-sm">
+                      <input
+                        type="checkbox"
+                        checked={form.pere_reverse || false}
+                        onChange={e => setForm({ ...form, pere_reverse: e.target.checked })}
+                      />
+                      Femelle reversée (STS) — pollen féminisé
+                    </label>
+                  </div>
+                )}
+
+                {peremode === 'pollen' && (
+                  <div className="space-y-2">
+                    {pollenStock.length === 0 ? (
+                      <div className="text-sm text-gray-500 italic p-3 bg-gray-50 rounded">
+                        Aucun pollen en stock. Bascule vers "Saisie directe" ou ajoute du pollen dans l'onglet "Stock pollen".
+                      </div>
+                    ) : (
+                      <>
+                        <select
+                          value={form.id_pollen || ''}
+                          onChange={e => setForm({ ...form, id_pollen: Number(e.target.value) || undefined })}
+                          className="w-full rounded border-gray-300 px-3 py-2 text-sm"
+                        >
+                          <option value="">— Choisir du pollen —</option>
+                          {pollenStock.filter(p => p.actif).map(p => (
+                            <option key={p.id_pollen} value={p.id_pollen}>
+                              {p.nom_pollen}
+                              {p.nom_variete_source && ` (${p.nom_variete_source})`}
+                              {p.reverse && ' — reversé'}
+                              {p.quantite_restante_g != null && ` — ${p.quantite_restante_g}g dispo`}
+                            </option>
+                          ))}
+                        </select>
+                        <input
+                          type="number"
+                          step="0.001"
+                          placeholder="Quantité pollen utilisée (g) — optionnel"
+                          value={form.quantite_pollen_utilisee_g || ''}
+                          onChange={e => setForm({ ...form, quantite_pollen_utilisee_g: Number(e.target.value) || undefined })}
+                          className="w-full rounded border-gray-300 px-3 py-2 text-sm"
+                        />
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+
+          {/* ── Étape 2 : Type & Pollinisation ──────────────────────── */}
+          {step === 2 && (
+            <>
+              <div>
+                <label className="block text-sm font-medium mb-1">Type de croisement</label>
+                <div className="grid grid-cols-2 gap-2">
+                  {TYPES_CROISEMENT.map(t => (
+                    <button
+                      key={t.value}
+                      type="button"
+                      onClick={() => setForm({ ...form, type_croisement: t.value })}
+                      className={`text-left px-3 py-2 rounded border text-sm ${form.type_croisement === t.value ? 'border-grow-600 bg-grow-50' : 'border-gray-200'}`}
+                    >
+                      <div className="font-medium">{t.label}</div>
+                      <div className="text-xs text-gray-500">{t.desc}</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Date de pollinisation</label>
+                  <input
+                    type="date"
+                    value={form.date_pollinisation || ''}
+                    onChange={e => setForm({ ...form, date_pollinisation: e.target.value || undefined })}
+                    className="w-full rounded border-gray-300 px-3 py-2 text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Méthode</label>
+                  <select
+                    value={form.methode || ''}
+                    onChange={e => setForm({ ...form, methode: (e.target.value as MethodePollinisation) || undefined })}
+                    className="w-full rounded border-gray-300 px-3 py-2 text-sm"
+                  >
+                    <option value="">— Choisir —</option>
+                    {METHODES.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">Zone pollinisée</label>
+                <input
+                  type="text"
+                  placeholder="Ex : 2 branches du bas, plante entière…"
+                  value={form.zone_pollinisee || ''}
+                  onChange={e => setForm({ ...form, zone_pollinisee: e.target.value })}
+                  className="w-full rounded border-gray-300 px-3 py-2 text-sm"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">Statut initial</label>
+                <select
+                  value={form.statut || 'planifie'}
+                  onChange={e => setForm({ ...form, statut: e.target.value as StatutCroisement })}
+                  className="w-full rounded border-gray-300 px-3 py-2 text-sm"
+                >
+                  <option value="planifie">Planifié</option>
+                  <option value="pollinise">Pollinisé (déjà fait)</option>
+                  <option value="maturation">Maturation en cours</option>
+                </select>
+              </div>
+            </>
+          )}
+
+          {/* ── Étape 3 : Nom & Notes ───────────────────────────────── */}
+          {step === 3 && (
+            <>
+              <div>
+                <label className="block text-sm font-medium mb-1">Nom du croisement</label>
+                <input
+                  type="text"
+                  placeholder={autoNom || 'Nom de ce croisement'}
+                  value={form.nom_croisement}
+                  onChange={e => setForm({ ...form, nom_croisement: e.target.value })}
+                  className="w-full rounded border-gray-300 px-3 py-2 text-sm"
+                />
+                {autoNom && !form.nom_croisement && (
+                  <p className="text-xs text-gray-500 mt-1">Suggestion : <button className="text-grow-600 underline" onClick={() => setForm({ ...form, nom_croisement: autoNom })}>{autoNom}</button></p>
+                )}
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Notes</label>
+                <textarea
+                  rows={4}
+                  value={form.notes || ''}
+                  onChange={e => setForm({ ...form, notes: e.target.value })}
+                  className="w-full rounded border-gray-300 px-3 py-2 text-sm"
+                  placeholder="Observations, objectifs, contexte…"
+                />
+              </div>
+              <div className="bg-gray-50 rounded p-3 text-sm">
+                <div className="font-medium text-gray-700 mb-1">Récap</div>
+                <div className="text-gray-600">
+                  <div>♀ {mereNom || '—'}{form.pheno_mere ? ` (${form.pheno_mere})` : ''}</div>
+                  <div>♂ {pereNom || '—'}{form.pheno_pere ? ` (${form.pheno_pere})` : ''}{form.pere_reverse ? ' — reversé' : ''}</div>
+                  <div>Type : {form.type_croisement}</div>
+                  <div>Pollinisation : {fmtDate(form.date_pollinisation)}</div>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+
+        <div className="sticky bottom-0 bg-white border-t px-6 py-3 flex justify-between">
+          <button onClick={onClose} className="px-4 py-2 text-sm text-gray-600">Annuler</button>
+          <div className="flex gap-2">
+            {step > 1 && (
+              <button onClick={() => setStep(step - 1)} className="px-4 py-2 text-sm border rounded">Retour</button>
+            )}
+            {step < 3 ? (
+              <button
+                onClick={() => setStep(step + 1)}
+                disabled={step === 1 && !canNext1}
+                className="px-4 py-2 text-sm bg-grow-600 text-white rounded disabled:opacity-50"
+              >
+                Suivant
+              </button>
+            ) : (
+              <button
+                onClick={handleSubmit}
+                disabled={!canSubmit || createMut.isPending}
+                className="px-4 py-2 text-sm bg-grow-600 text-white rounded disabled:opacity-50"
+              >
+                {createMut.isPending ? 'Création…' : 'Créer le croisement'}
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+//  MODAL — Finaliser la récolte de graines
+// ════════════════════════════════════════════════════════════════════════════
+
+function RecolteModal({ croisement, onClose }: { croisement: Croisement; onClose: () => void }) {
+  const qc = useQueryClient()
+  const [data, setData] = useState<RecolteGrainesInput>({
+    date_recolte_graines: new Date().toISOString().slice(0, 10),
+    nb_graines: 0,
+    qualite_graines: 'bonne',
+    creer_variete: true,
+    creer_packgraine: true,
+  })
+
+  const mut = useMutation({
+    mutationFn: () => croisementAPI.finaliserRecolte(croisement.id_croisement, data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['croisements'] })
+      qc.invalidateQueries({ queryKey: ['varietes'] })
+      qc.invalidateQueries({ queryKey: ['catalogue'] })
+      onClose()
+    },
+  })
+
+  return (
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-xl max-w-lg w-full">
+        <div className="border-b px-6 py-4 flex items-center justify-between">
+          <h2 className="text-lg font-semibold flex items-center gap-2">
+            <Sparkles size={20} className="text-green-600" /> Récolter les graines
+          </h2>
+          <button onClick={onClose}><X size={20} /></button>
+        </div>
+        <div className="p-6 space-y-4">
+          <div className="text-sm text-gray-600 bg-gray-50 rounded p-3">
+            Croisement : <span className="font-medium text-gray-900">{croisement.nom_croisement}</span>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium mb-1">Date récolte</label>
+              <input
+                type="date"
+                value={data.date_recolte_graines}
+                onChange={e => setData({ ...data, date_recolte_graines: e.target.value })}
+                className="w-full rounded border-gray-300 px-3 py-2 text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Nombre de graines</label>
+              <input
+                type="number"
+                value={data.nb_graines}
+                onChange={e => setData({ ...data, nb_graines: Number(e.target.value) })}
+                className="w-full rounded border-gray-300 px-3 py-2 text-sm"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium mb-1">Qualité</label>
+              <select
+                value={data.qualite_graines}
+                onChange={e => setData({ ...data, qualite_graines: e.target.value as QualiteGraines })}
+                className="w-full rounded border-gray-300 px-3 py-2 text-sm"
+              >
+                <option value="bonne">Bonne (mature, foncée)</option>
+                <option value="moyenne">Moyenne</option>
+                <option value="immature">Immature (vertes/pâles)</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Poids total (g)</label>
+              <input
+                type="number"
+                step="0.01"
+                value={data.poids_graines_g || ''}
+                onChange={e => setData({ ...data, poids_graines_g: Number(e.target.value) || undefined })}
+                className="w-full rounded border-gray-300 px-3 py-2 text-sm"
+              />
+            </div>
+          </div>
+
+          <div className="border-t pt-4 space-y-2">
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={data.creer_variete}
+                onChange={e => setData({ ...data, creer_variete: e.target.checked })}
+              />
+              Créer la <span className="font-medium">Variété</span> "{croisement.nom_croisement}" dans le catalogue
+            </label>
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={data.creer_packgraine}
+                onChange={e => setData({ ...data, creer_packgraine: e.target.checked })}
+              />
+              Créer un <span className="font-medium">Pack de graines maison</span> ({data.nb_graines} graines)
+            </label>
+          </div>
+        </div>
+        <div className="border-t px-6 py-3 flex justify-end gap-2">
+          <button onClick={onClose} className="px-4 py-2 text-sm text-gray-600">Annuler</button>
+          <button
+            onClick={() => mut.mutate()}
+            disabled={mut.isPending || !data.nb_graines}
+            className="px-4 py-2 text-sm bg-grow-600 text-white rounded disabled:opacity-50"
+          >
+            {mut.isPending ? 'Enregistrement…' : 'Finaliser'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+//  MODAL — Nouveau pollen
+// ════════════════════════════════════════════════════════════════════════════
+
+function NouveauPollenModal({ varietes, onClose }: { varietes: Variete[]; onClose: () => void }) {
+  const qc = useQueryClient()
+  const [data, setData] = useState<PollenCreate>({
+    nom_pollen: '',
+    reverse: false,
+    stockage: 'congelateur',
+    date_collecte: new Date().toISOString().slice(0, 10),
+  })
+
+  const mut = useMutation({
+    mutationFn: () => croisementAPI.createPollen(data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['pollen'] })
+      onClose()
+    },
+  })
+
+  return (
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-xl max-w-lg w-full">
+        <div className="border-b px-6 py-4 flex items-center justify-between">
+          <h2 className="text-lg font-semibold flex items-center gap-2">
+            <FlaskConical size={20} className="text-grow-600" /> Collecter du pollen
+          </h2>
+          <button onClick={onClose}><X size={20} /></button>
+        </div>
+        <div className="p-6 space-y-3">
+          <div>
+            <label className="block text-sm font-medium mb-1">Nom du lot</label>
+            <input
+              type="text"
+              placeholder="Ex : Gelato mâle #3 — avril 2026"
+              value={data.nom_pollen}
+              onChange={e => setData({ ...data, nom_pollen: e.target.value })}
+              className="w-full rounded border-gray-300 px-3 py-2 text-sm"
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium mb-1">Variété source</label>
+              <select
+                value={data.id_variete_source || ''}
+                onChange={e => setData({ ...data, id_variete_source: Number(e.target.value) || undefined })}
+                className="w-full rounded border-gray-300 px-3 py-2 text-sm"
+              >
+                <option value="">— Inconnue —</option>
+                {varietes.map(v => <option key={v.id_variete} value={v.id_variete}>{v.nom_variete}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Pheno</label>
+              <input
+                type="text"
+                value={data.pheno_source || ''}
+                onChange={e => setData({ ...data, pheno_source: e.target.value })}
+                className="w-full rounded border-gray-300 px-3 py-2 text-sm"
+              />
+            </div>
+          </div>
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={data.reverse || false}
+              onChange={e => setData({ ...data, reverse: e.target.checked })}
+            />
+            Femelle reversée (STS) — pollen féminisé
+          </label>
+          <div className="grid grid-cols-3 gap-3">
+            <div>
+              <label className="block text-sm font-medium mb-1">Date collecte</label>
+              <input
+                type="date"
+                value={data.date_collecte || ''}
+                onChange={e => setData({ ...data, date_collecte: e.target.value || undefined })}
+                className="w-full rounded border-gray-300 px-3 py-2 text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Quantité (g)</label>
+              <input
+                type="number"
+                step="0.001"
+                value={data.quantite_initiale_g || ''}
+                onChange={e => setData({ ...data, quantite_initiale_g: Number(e.target.value) || undefined })}
+                className="w-full rounded border-gray-300 px-3 py-2 text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Stockage</label>
+              <select
+                value={data.stockage || ''}
+                onChange={e => setData({ ...data, stockage: (e.target.value as StockagePollen) || undefined })}
+                className="w-full rounded border-gray-300 px-3 py-2 text-sm"
+              >
+                <option value="ambiant">Ambiant (~1 mois)</option>
+                <option value="frigo">Frigo (~6 mois)</option>
+                <option value="congelateur">Congélateur (~18 mois)</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Notes</label>
+            <textarea
+              rows={2}
+              value={data.notes || ''}
+              onChange={e => setData({ ...data, notes: e.target.value })}
+              className="w-full rounded border-gray-300 px-3 py-2 text-sm"
+            />
+          </div>
+        </div>
+        <div className="border-t px-6 py-3 flex justify-end gap-2">
+          <button onClick={onClose} className="px-4 py-2 text-sm text-gray-600">Annuler</button>
+          <button
+            onClick={() => mut.mutate()}
+            disabled={!data.nom_pollen || mut.isPending}
+            className="px-4 py-2 text-sm bg-grow-600 text-white rounded disabled:opacity-50"
+          >
+            {mut.isPending ? '…' : 'Enregistrer'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+//  PAGE PRINCIPALE
+// ════════════════════════════════════════════════════════════════════════════
+
+export default function CroisementPage() {
+  const [tab, setTab] = useState<'croisements' | 'pollen'>('croisements')
+  const [showNewCroisement, setShowNewCroisement] = useState(false)
+  const [showNewPollen, setShowNewPollen] = useState(false)
+  const [recolteCroisement, setRecolteCroisement] = useState<Croisement | null>(null)
+  const [statutFilter, setStatutFilter] = useState<StatutCroisement | 'all'>('all')
+  const qc = useQueryClient()
+
+  const { data: croisements = [], isLoading: loadingC } = useQuery<Croisement[]>({
+    queryKey: ['croisements'],
+    queryFn: async () => (await croisementAPI.list()).data,
+  })
+  const { data: pollen = [], isLoading: loadingP } = useQuery<Pollen[]>({
+    queryKey: ['pollen'],
+    queryFn: async () => (await croisementAPI.listPollen()).data,
+  })
+  const { data: varietes = [] } = useQuery<Variete[]>({
+    queryKey: ['varietes'],
+    queryFn: async () => (await varieteAPI.getAll()).data,
+  })
+
+  const filtered = useMemo(() => {
+    if (statutFilter === 'all') return croisements
+    return croisements.filter(c => c.statut === statutFilter)
+  }, [croisements, statutFilter])
+
+  const deleteCroisementMut = useMutation({
+    mutationFn: (id: number) => croisementAPI.delete(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['croisements'] }),
+  })
+  const deletePollenMut = useMutation({
+    mutationFn: (id: number) => croisementAPI.deletePollen(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['pollen'] }),
+  })
+
+  const updateStatutMut = useMutation({
+    mutationFn: ({ id, statut }: { id: number; statut: StatutCroisement }) =>
+      croisementAPI.update(id, { statut }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['croisements'] }),
+  })
+
+  return (
+    <div className="p-6 max-w-7xl mx-auto">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+            <Dna className="text-grow-600" /> Croisements
+          </h1>
+          <p className="text-sm text-gray-500 mt-1">
+            Gère tes croisements maison, la collecte de pollen et les graines produites.
+          </p>
+        </div>
+        <button
+          onClick={() => tab === 'croisements' ? setShowNewCroisement(true) : setShowNewPollen(true)}
+          className="flex items-center gap-2 px-4 py-2 bg-grow-600 text-white rounded-lg text-sm font-medium hover:bg-grow-700"
+        >
+          <Plus size={16} />
+          {tab === 'croisements' ? 'Nouveau croisement' : 'Collecter du pollen'}
+        </button>
+      </div>
+
+      {/* Tabs */}
+      <div className="border-b border-gray-200 mb-6">
+        <div className="flex gap-6">
+          <button
+            onClick={() => setTab('croisements')}
+            className={`pb-3 px-1 text-sm font-medium border-b-2 transition ${tab === 'croisements' ? 'border-grow-600 text-grow-700' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+          >
+            <Dna size={14} className="inline mr-1" /> Croisements ({croisements.length})
+          </button>
+          <button
+            onClick={() => setTab('pollen')}
+            className={`pb-3 px-1 text-sm font-medium border-b-2 transition ${tab === 'pollen' ? 'border-grow-600 text-grow-700' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+          >
+            <FlaskConical size={14} className="inline mr-1" /> Stock pollen ({pollen.length})
+          </button>
+        </div>
+      </div>
+
+      {/* ── Onglet Croisements ─────────────────────────────── */}
+      {tab === 'croisements' && (
+        <>
+          {/* Filtre statut */}
+          <div className="flex gap-1 mb-4 text-xs">
+            {(['all', 'planifie', 'pollinise', 'maturation', 'recolte', 'echec'] as const).map(s => (
+              <button
+                key={s}
+                onClick={() => setStatutFilter(s)}
+                className={`px-3 py-1.5 rounded-full ${statutFilter === s ? 'bg-grow-600 text-white' : 'bg-gray-100 text-gray-600'}`}
+              >
+                {s === 'all' ? `Tous (${croisements.length})` : STATUT_META[s].label}
+                {s !== 'all' && ` (${croisements.filter(c => c.statut === s).length})`}
+              </button>
+            ))}
+          </div>
+
+          {loadingC ? <LoadingSpinner /> : filtered.length === 0 ? (
+            <EmptyState
+              icon={Dna}
+              title="Aucun croisement"
+              description="Clique sur 'Nouveau croisement' pour démarrer ton premier breeding."
+            />
+          ) : (
+            <div className="grid gap-3 md:grid-cols-2">
+              {filtered.map(c => {
+                const meta = STATUT_META[c.statut]
+                const StatutIcon = meta.icon
+                return (
+                  <div key={c.id_croisement} className="border rounded-lg p-4 bg-white hover:shadow-sm transition">
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-gray-900">{c.nom_croisement}</h3>
+                        <div className="text-xs text-gray-500 mt-0.5">
+                          {c.type_croisement && <span className="inline-block px-1.5 py-0.5 bg-gray-100 rounded text-[10px] font-semibold mr-2">{c.type_croisement}</span>}
+                          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold ${meta.color}`}>
+                            <StatutIcon size={10} /> {meta.label}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex gap-1">
+                        <button
+                          onClick={() => {
+                            if (confirm(`Supprimer "${c.nom_croisement}" ?`)) deleteCroisementMut.mutate(c.id_croisement)
+                          }}
+                          className="p-1 text-gray-400 hover:text-red-600"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="text-sm text-gray-600 space-y-1 mt-2">
+                      <div>♀ <span className="font-medium">{c.nom_variete_mere || '—'}</span>{c.pheno_mere && <span className="text-gray-400"> · {c.pheno_mere}</span>}</div>
+                      <div>♂ <span className="font-medium">{c.nom_variete_pere || c.nom_pollen || '—'}</span>{c.pheno_pere && <span className="text-gray-400"> · {c.pheno_pere}</span>}{c.pere_reverse && <span className="ml-1 px-1 py-0.5 bg-pink-50 text-pink-600 rounded text-[9px] font-semibold">FEM</span>}</div>
+                    </div>
+
+                    <div className="mt-3 pt-3 border-t text-xs text-gray-500 flex justify-between items-center">
+                      <div>
+                        <Calendar size={11} className="inline mr-1" />
+                        Pollinisé : {fmtDate(c.date_pollinisation)}
+                        {c.nb_graines != null && (
+                          <span className="ml-3">
+                            <Sparkles size={11} className="inline mr-1" />
+                            {c.nb_graines} graines
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Actions de cycle */}
+                    <div className="mt-3 flex flex-wrap gap-1">
+                      {c.statut === 'planifie' && (
+                        <button
+                          onClick={() => updateStatutMut.mutate({ id: c.id_croisement, statut: 'pollinise' })}
+                          className="px-2 py-1 text-xs bg-blue-50 text-blue-700 rounded hover:bg-blue-100"
+                        >
+                          → Marquer pollinisé
+                        </button>
+                      )}
+                      {c.statut === 'pollinise' && (
+                        <button
+                          onClick={() => updateStatutMut.mutate({ id: c.id_croisement, statut: 'maturation' })}
+                          className="px-2 py-1 text-xs bg-amber-50 text-amber-700 rounded hover:bg-amber-100"
+                        >
+                          → Passer en maturation
+                        </button>
+                      )}
+                      {(c.statut === 'pollinise' || c.statut === 'maturation') && (
+                        <button
+                          onClick={() => setRecolteCroisement(c)}
+                          className="px-2 py-1 text-xs bg-green-50 text-green-700 rounded hover:bg-green-100 font-medium"
+                        >
+                          🌱 Récolter les graines
+                        </button>
+                      )}
+                      {c.statut !== 'echec' && c.statut !== 'recolte' && (
+                        <button
+                          onClick={() => updateStatutMut.mutate({ id: c.id_croisement, statut: 'echec' })}
+                          className="px-2 py-1 text-xs bg-red-50 text-red-600 rounded hover:bg-red-100"
+                        >
+                          Échec
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </>
+      )}
+
+      {/* ── Onglet Stock pollen ────────────────────────────── */}
+      {tab === 'pollen' && (
+        <>
+          {loadingP ? <LoadingSpinner /> : pollen.length === 0 ? (
+            <EmptyState
+              icon={FlaskConical}
+              title="Aucun pollen en stock"
+              description="Enregistre la collecte d'un nouveau lot pour commencer."
+            />
+          ) : (
+            <div className="bg-white border rounded-lg overflow-hidden">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50 text-xs text-gray-600 uppercase">
+                  <tr>
+                    <th className="px-3 py-2 text-left">Nom</th>
+                    <th className="px-3 py-2 text-left">Variété</th>
+                    <th className="px-3 py-2 text-left">Collecte</th>
+                    <th className="px-3 py-2 text-left">Stockage</th>
+                    <th className="px-3 py-2 text-right">Qté restante</th>
+                    <th className="px-3 py-2 text-left">Péremption</th>
+                    <th className="px-3 py-2 text-center">Statut</th>
+                    <th className="px-3 py-2"></th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y">
+                  {pollen.map(p => {
+                    const d = daysUntil(p.date_peremption)
+                    const alerte = d != null && d < 30 && !p.perime
+                    return (
+                      <tr key={p.id_pollen} className={!p.actif ? 'opacity-50' : ''}>
+                        <td className="px-3 py-2">
+                          <div className="font-medium text-gray-900">{p.nom_pollen}</div>
+                          {p.reverse && <span className="text-[10px] px-1 py-0.5 bg-pink-100 text-pink-700 rounded font-semibold">FEM (reverse)</span>}
+                        </td>
+                        <td className="px-3 py-2 text-gray-600">
+                          {p.nom_variete_source || '—'}
+                          {p.pheno_source && <div className="text-xs text-gray-400">{p.pheno_source}</div>}
+                        </td>
+                        <td className="px-3 py-2 text-gray-600">{fmtDate(p.date_collecte)}</td>
+                        <td className="px-3 py-2 text-gray-600">{p.stockage || '—'}</td>
+                        <td className="px-3 py-2 text-right text-gray-600">
+                          {p.quantite_restante_g != null ? `${p.quantite_restante_g}g` : '—'}
+                          {p.quantite_initiale_g != null && p.quantite_restante_g != null && p.quantite_initiale_g > 0 && (
+                            <div className="text-[10px] text-gray-400">/ {p.quantite_initiale_g}g</div>
+                          )}
+                        </td>
+                        <td className="px-3 py-2 text-gray-600">
+                          {fmtDate(p.date_peremption)}
+                          {alerte && <div className="text-[10px] text-amber-600 font-semibold">dans {d}j</div>}
+                          {p.perime && <div className="text-[10px] text-red-600 font-semibold">Périmé</div>}
+                        </td>
+                        <td className="px-3 py-2 text-center">
+                          {p.epuise ? <span className="text-[10px] px-2 py-0.5 bg-gray-100 text-gray-600 rounded">Épuisé</span> :
+                           p.perime ? <span className="text-[10px] px-2 py-0.5 bg-red-100 text-red-700 rounded">Périmé</span> :
+                           <span className="text-[10px] px-2 py-0.5 bg-green-100 text-green-700 rounded">Actif</span>}
+                        </td>
+                        <td className="px-3 py-2 text-right">
+                          <button
+                            onClick={() => {
+                              if (confirm(`Supprimer "${p.nom_pollen}" ?`)) deletePollenMut.mutate(p.id_pollen)
+                            }}
+                            className="p-1 text-gray-400 hover:text-red-600"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </>
+      )}
+
+      {/* Modals */}
+      {showNewCroisement && <NouveauCroisementModal varietes={varietes} pollenStock={pollen} onClose={() => setShowNewCroisement(false)} />}
+      {showNewPollen && <NouveauPollenModal varietes={varietes} onClose={() => setShowNewPollen(false)} />}
+      {recolteCroisement && <RecolteModal croisement={recolteCroisement} onClose={() => setRecolteCroisement(null)} />}
+    </div>
+  )
+}

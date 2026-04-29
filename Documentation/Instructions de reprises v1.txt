@@ -1,0 +1,141 @@
+## 🔧 Technical Checkpoint — GrowManager
+
+---
+
+### 1. Focus Actuel
+- **Page "Préparation de culture"** (`/plan-culture`) — nouvelle page complète livrée
+- **Culture page** — 4 changements implémentés (récolte global, multi-buts, sol vivant, plantes externes)
+
+---
+
+### 2. État du Code — Dernières modifications majeures
+
+**Backend**
+- `models/all_models.py` — ajout `PlanCulture` + `PlanCultureVariete` (en fin de fichier)
+- `models/__init__.py` — export des 2 nouveaux modèles
+- `schemas/plan_culture.py` — NOUVEAU fichier (PlanCultureCreate/Read, PlanVarieteCreate/Read, NbPotsResult)
+- `routers/plan_culture.py` — NOUVEAU fichier (CRUD plans + variétés, `/utils/nb-pots`, `/utils/catalogue` — routes utils en PREMIER pour éviter conflit `/{plan_id}`)
+- `main.py` — import + `app.include_router(plan_culture.router)` ajouté
+- `routers/cultures.py` — `_handle_action_effects` : case `recolte` étendu pour `global_culture=True` (boucle sur tous les plants actifs)
+- `schemas/culture.py` — `PlantExterneCreate` ajouté, `graines_selection` rendu optionnel (`= []`)
+- `routers/cultures.py` — `create_culture` : gestion `mode_externe`, culture créée en `sechage_curing`, boucle `plantes_externes`
+
+**Frontend**
+- `api/planCulture.ts` — NOUVEAU fichier (types + planCultureAPI)
+- `pages/PlanCulture.tsx` — NOUVEAU fichier (liste plans, config espace/pots, tableau variétés, catalogue filtrable, alertes flo)
+- `App.tsx` — route `/plan-culture` + import `PlanCulture`
+- `Layout.tsx` — import `ClipboardList`, item "Préparer une culture" dans groupe Culture, `/plan-culture` dans `culturePaths`
+- `components/culture/NouvellerCultureModal.tsx` — toggle interne/externe, multi-buts (`selectedButs: string[]`), sol vivant sans recette step1, step2 externe (séchage/curing)
+- `api/cultures.ts` — `PlantExterneCreate` interface, `plantes_externes?` dans `CultureCreate`
+
+---
+
+### 3. Contexte technique critique
+
+- **Formule pots** : `nb_pots = round(surface_m2 × 20.8 × volume_l^(-0.59))` — calibrée sur données utilisateur (120×120cm)
+- **Routes FastAPI** : les routes statiques (`/utils/...`) DOIVENT être déclarées **avant** `/{plan_id}` dans le router
+- **`origine` Plant** : enum MySQL `('graine','bouture','clone')` — les plantes externes utilisent `origine='graine'` + infos dans `notes` (pas de migration nécessaire)
+- **Culture externe** : statut `sechage_curing` dès création, pas de conflit avec règle "1 culture active/espace"
+- **Multi-buts** : stocké comma-separated dans `but_culture VARCHAR(100)` — pas de migration
+- **Tables auto-créées** au restart via `Base.metadata.create_all()` dans `run_migrations()`
+
+---
+
+### 4. Problèmes en cours / TODO immédiats
+
+- [ ] **Restart backend requis** pour créer `PlanCulture` + `PlanCultureVariete` en BDD : `docker-compose restart backend`
+- [ ] **`but_culture` display** dans Culture.tsx pas encore mis à jour pour parser le comma-separated (affiché brut pour l'instant)
+- [ ] **Page Culture** — action Récolte globale : le frontend envoie bien `global_culture=true` mais à confirmer que l'`ActionModal` le transmet correctement pour `type_action='recolte'`
+- [ ] **PlanCulture** — bouton "Lancer la culture" pas encore implémenté (pré-remplissage de `NouvellerCultureModal` depuis un plan)
+- [ ] **Import/Export CSV** du plan non implémenté (demandé mais déprioritisé)
+
+---
+
+### 5. Instruction de reprise
+
+> **Nouvelle session** : Ouvre Cowork et pointe sur le dossier `growmanager`. Les priorités sont :
+> 1. Vérifier que le restart backend a bien créé les tables (tester `/api/plan-culture/`)
+> 2. Implémenter le bouton **"🚀 Lancer la culture"** sur la page PlanCulture → pré-remplit `NouvellerCultureModal` avec les variétés + nb_plantes du plan
+> 3. Mettre à jour l'affichage `but_culture` dans Culture.tsx pour splitter et afficher des chips multi-buts
+
+---
+
+## 📄 CLAUDE.md
+
+```markdown
+# GrowManager — CLAUDE.md
+
+## Stack technique
+- **Frontend** : React 18 + TypeScript + Vite + Tailwind CSS + React Query
+- **Backend** : FastAPI + SQLAlchemy 2.0 + PyMySQL
+- **DB** : MySQL (Docker) — `growmanager-db-1`
+- **Containers** : `growmanager-backend-1` (port 8000), `growmanager-frontend-1` (port 5173)
+
+## Commandes utiles
+```bash
+docker-compose restart backend   # après modifs backend
+docker-compose restart frontend  # après modifs frontend (rare, Vite HMR)
+docker-compose logs -f backend   # voir les erreurs Python
+```
+
+## Architecture des fichiers clés
+```
+backend/app/
+  models/all_models.py      # TOUS les modèles SQLAlchemy
+  models/__init__.py        # exports — METTRE À JOUR à chaque nouveau modèle
+  routers/                  # un fichier par domaine
+  schemas/                  # schemas Pydantic par domaine
+  main.py                   # run_migrations() + include_router()
+
+frontend/src/
+  api/                      # clients Axios typés (1 fichier par domaine)
+  pages/                    # pages principales
+  components/               # composants réutilisables
+  components/culture/       # composants spécifiques culture
+```
+
+## Règles importantes
+
+### Backend
+- **Nouvelles tables** → ajouter dans `all_models.py` ET `models/__init__.py`
+- **Nouvelles colonnes** → ajouter dans `run_migrations()` avec pattern `INFORMATION_SCHEMA`
+- **Routes FastAPI** → déclarer les routes statiques (`/utils/...`) AVANT `/{id}` dans chaque router
+- **Migrations DB** → pas d'Alembic, utiliser `ALTER TABLE ... ADD COLUMN IF NOT EXISTS` via `INFORMATION_SCHEMA`
+
+### Frontend
+- **Couleur brand** → `grow-600` (Tailwind custom)
+- **React Query** → invalider avec `qc.invalidateQueries({ queryKey: [...] })` après mutations
+- **Hooks** → jamais dans switch/case, toujours au top niveau du composant
+
+## Modèles DB — état actuel (tables principales)
+| Table | Description |
+|---|---|
+| `Culture` | Session de culture (active/sechage_curing/terminee) |
+| `Plant` | Plante individuelle (statut: germination→curing) |
+| `ActionCalendrier` | Journal d'actions par plante/culture |
+| `PlanCulture` | Plan préparation future culture *(nouveau)* |
+| `PlanCultureVariete` | Lignes du plan (pack graine + nb + pot) *(nouveau)* |
+| `EspaceCulture` | Espaces de culture avec surface_m2 |
+| `PackGraine` | Lot de graines acheté |
+| `Graine` | Graine individuelle (utilisee=True quand plantée) |
+| `Stock` | Stock de produits (fleur, hash, rosin…) |
+| `TemperatureLog` | Données capteurs Govee |
+
+## Formule calcul pots
+```python
+nb_pots = round(surface_m2 * 20.8 * volume_l ** -0.59)
+# Calibrée sur : 120x120cm → [30×1L, 14×5.5L, 12×11L, 9×16L, 4×35L, 3×50L]
+```
+
+## Statuts Plant
+`germination → veg → floraison → sechage → curing → prete | recolte | abandonne`
+
+## Statuts Culture
+`active → sechage_curing → terminee`
+
+## TODO en attente
+- Bouton "Lancer la culture" depuis PlanCulture (pré-remplir NouvellerCultureModal)
+- Affichage multi-buts (comma-split) dans Culture.tsx
+- Vérifier ActionModal pour récolte global_culture=true
+- Export CSV plan de culture
+```

@@ -1,0 +1,7 @@
+docker exec -it growmanager-db-1 mysql -u root -p growmanager
+
+USE growmanager;
+SET FOREIGN_KEY_CHECKS = 0;
+TRUNCATE TABLE HistoriquePlant;
+TRUNCATE TABLE HistoriqueCulture;
+SET FOREIGN_KEY_CHECKS = 1;
