@@ -92,6 +92,19 @@ export const planCultureAPI = {
   removeVariete: (planId: number, pvId: number) =>
     client.delete(`/plan-culture/${planId}/varietes/${pvId}`),
 
+  // Export CSV
+  exportCSV: (planId: number) => {
+    // Déclenche le téléchargement directement (pas d'axios — on veut un vrai download)
+    const baseUrl = (client.defaults.baseURL || '').replace(/\/$/, '')
+    const url = `${baseUrl}/plan-culture/${planId}/export/csv`
+    const a = document.createElement('a')
+    a.href = url
+    a.download = ''
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+  },
+
   // Calcul pots
   calcNbPots: (surface_m2: number, taille_pot_l: number) =>
     client.get<{ nb_pots_recommande: number }>('/plan-culture/utils/nb-pots', {

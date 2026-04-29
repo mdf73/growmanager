@@ -1,1 +1,7 @@
-docs: ajout README.md
+feat: export CSV PlanCulture + bulk stock entry + stats fix
+
+- backend/routers/plan_culture.py: GET /{plan_id}/export/csv — export CSV du plan (breeder, variété, type, floraison, nb plantes, taille pot, nb pots estimé)
+- backend/routers/cultures.py: close_culture appelle _maybe_archive_culture → cultures clôturées manuellement désormais archivées dans HistoriqueCulture si toutes les plantes sont terminées
+- frontend/api/planCulture.ts: planCultureAPI.exportCSV(planId) — déclenche le téléchargement du CSV
+- frontend/pages/PlanCulture.tsx: bouton CSV (Download icon) à côté de "Lancer cette culture"
+- frontend/components/NouveauStockModal.tsx: bouton "+ Nouveau" — sauvegarde et réinitialise le formulaire pour saisie multiple enchaînée

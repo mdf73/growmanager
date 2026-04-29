@@ -1,9 +1,12 @@
 """Router Plan de culture — préparation d'une future session"""
+import csv
+import io
 import logging
 import math
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -198,6 +201,54 @@ def create_plan(payload: PlanCultureCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(plan)
     return _enrich_plan(plan, db)
+
+
+@router.get("/{plan_id}/export/csv")
+def export_plan_csv(plan_id: int, db: Session = Depends(get_db)):
+    """Exporte le plan de culture en CSV (breeder, variété, type, floraison, nb plantes, taille pot, nb pots estimé)."""
+    plan = db.query(PlanCulture).filter(PlanCulture.id_plan == plan_id).first()
+    if not plan:
+        raise HTTPException(status_code=404, detail="Plan introuvable")
+
+    enriched = _enrich_plan(plan, db)
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+
+    writer.writerow(["Breeder", "Variété", "Type", "Floraison (j)", "Nb plantes", "Taille pot (L)", "Nb pots estimé"])
+
+    for v in enriched["varietes"]:
+        nb_pots = ""
+        if enriched.get("surface_m2") and v.get("taille_pot_l"):
+            nb_pots = _calc_nb_pots(enriched["surface_m2"], v["taille_pot_l"])
+
+        flo_min = v.get("duree_flo_min")
+        flo_max = v.get("duree_flo_max")
+        if flo_min and flo_max:
+            flo = f"{flo_min}–{flo_max}"
+        elif flo_min or flo_max:
+            flo = str(flo_min or flo_max)
+        else:
+            flo = ""
+
+        writer.writerow([
+            v.get("nom_breeder") or "",
+            v.get("nom_variete") or "",
+            v.get("type_graine") or "",
+            flo,
+            v["nb_plantes"],
+            v.get("taille_pot_l") or "",
+            nb_pots,
+        ])
+
+    output.seek(0)
+    nom_fichier = f"plan_{plan.nom.replace(' ', '_').replace('/', '-')}.csv"
+
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv; charset=utf-8",
+        headers={"Content-Disposition": f'attachment; filename="{nom_fichier}"'},
+    )
 
 
 @router.get("/{plan_id}", response_model=PlanCultureRead)

@@ -1171,6 +1171,8 @@ def close_culture(culture_id: int, db: Session = Depends(get_db)):
     culture.statut = "terminee"
     culture.date_fin = date.today()
     db.commit()
+    # Tenter d'archiver dans HistoriqueCulture si toutes les plantes sont terminées
+    _maybe_archive_culture(culture, db)
     db.refresh(culture)
     return _enrich_culture(culture, db)
 

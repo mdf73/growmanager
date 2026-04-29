@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react'
-import { Plus, Trash2, AlertTriangle, X, Search, ChevronUp, ChevronDown, ChevronsUpDown, Rocket, ChevronLeft, ChevronRight, CalendarDays, Scissors } from 'lucide-react'
+import { Plus, Trash2, AlertTriangle, X, Search, ChevronUp, ChevronDown, ChevronsUpDown, Rocket, ChevronLeft, ChevronRight, CalendarDays, Scissors, Download } from 'lucide-react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { planCultureAPI, PlanCulture, PlanVariete } from '../api/planCulture'
@@ -921,9 +921,17 @@ function EspaceSection({ espace, plans }: EspaceSectionProps) {
 
             <PlanTable plan={selectedPlan} />
 
-            {/* Bouton lancer */}
+            {/* Bouton lancer + export CSV */}
             {selectedPlan.varietes.length > 0 && (
-              <div className="mt-4 flex justify-end">
+              <div className="mt-4 flex items-center justify-end gap-2">
+                <button
+                  onClick={() => planCultureAPI.exportCSV(selectedPlan.id_plan)}
+                  className="flex items-center gap-1.5 px-3 py-2 border border-gray-300 text-gray-600 rounded-lg text-sm hover:bg-gray-50 transition-colors"
+                  title="Exporter en CSV"
+                >
+                  <Download size={14} />
+                  CSV
+                </button>
                 <button
                   onClick={() => setShowLancerModal(true)}
                   className="flex items-center gap-2 px-4 py-2.5 bg-green-600 text-white rounded-lg font-medium text-sm hover:bg-green-700 active:scale-95 transition-all shadow-sm"

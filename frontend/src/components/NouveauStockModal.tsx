@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { X, Loader2, Save } from 'lucide-react'
+import { X, Loader2, Save, Plus } from 'lucide-react'
 import { stockAPI, Stock, BocalDisponible } from '../api/stock'
 import { varieteAPI, Variete } from '../api/varietes'
 import { useParametreListe } from '../api/parametres'
@@ -51,6 +51,8 @@ export default function NouveauStockModal({ editStock, onClose }: NouveauStockMo
     date_stock:        editStock?.date_stock        ?? today(),
   })
 
+  const [saveAndNewMode, setSaveAndNewMode] = useState(false)
+
   const isEdit = !!editStock
   const isHash  = form.type_stock === 'Hash'
   const isRosin = form.type_stock === 'Rosin'
@@ -94,7 +96,19 @@ export default function NouveauStockModal({ editStock, onClose }: NouveauStockMo
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['stock'] })
-      onClose()
+      if (saveAndNewMode) {
+        // Réinitialise le formulaire en gardant le type et les infos culture
+        setForm(f => ({
+          ...f,
+          id_variete:        undefined,
+          id_materiel_bocal: undefined,
+          quantite_stock:    '',
+          date_stock:        today(),
+        }))
+        setSaveAndNewMode(false)
+      } else {
+        onClose()
+      }
     },
   })
 
@@ -282,12 +296,22 @@ export default function NouveauStockModal({ editStock, onClose }: NouveauStockMo
           <button onClick={onClose} className="px-4 py-2 border border-gray-300 text-gray-600 text-sm rounded-lg hover:bg-gray-50">
             Annuler
           </button>
+          {!isEdit && (
+            <button
+              onClick={() => { setSaveAndNewMode(true); save.mutate() }}
+              disabled={save.isPending || !canSave}
+              className="flex items-center gap-2 px-4 py-2 border border-grow-500 text-grow-700 text-sm rounded-lg hover:bg-grow-50 disabled:opacity-50"
+            >
+              {save.isPending && saveAndNewMode ? <Loader2 size={15} className="animate-spin" /> : <Plus size={15} />}
+              + Nouveau
+            </button>
+          )}
           <button
-            onClick={() => save.mutate()}
+            onClick={() => { setSaveAndNewMode(false); save.mutate() }}
             disabled={save.isPending || !canSave}
             className="flex items-center gap-2 px-4 py-2 bg-grow-600 text-white text-sm rounded-lg hover:bg-grow-700 disabled:opacity-50"
           >
-            {save.isPending ? <Loader2 size={15} className="animate-spin" /> : <Save size={15} />}
+            {save.isPending && !saveAndNewMode ? <Loader2 size={15} className="animate-spin" /> : <Save size={15} />}
             {isEdit ? 'Enregistrer' : 'Ajouter'}
           </button>
         </div>
