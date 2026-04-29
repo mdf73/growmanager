@@ -1,1 +1,1 @@
-chore: intégration wiki Obsidian dans le repo - wiki/ ajouté, .obsidian/ ignoré
+docs: ajout README.md
