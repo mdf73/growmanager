@@ -214,4 +214,76 @@ def remove_plant_from_session(id_session: int, id_plant_sechage: int, db: Sessio
         PlantSechage.id_session_sechage == id_session,
     ).first()
     if not ps:
-        
+        raise HTTPException(404, "Entrée de séchage introuvable")
+    db.delete(ps)
+    db.commit()
+    return {"ok": True}
+
+
+# ── WPFF (Whole Plant Fresh Frozen) ──────────────────────────────────────────
+
+class WpffPayload(BaseModel):
+    poids_g: Optional[float] = None  # optionnel
+    date_action: Optional[str] = None  # format YYYY-MM-DD, défaut = aujourd'hui
+
+
+@router.post("/plants/{id_plant}/wpff")
+def passer_en_wpff(id_plant: int, payload: WpffPayload, db: Session = Depends(get_db)):
+    """
+    Passe une plante en séchage directement en WPFF (congélateur) :
+    - Statut plant → 'wpff'
+    - Crée une entrée Stock type_stock='WPFF'
+    - Log une ActionCalendrier type_action='wpff'
+    - Clôt la session de séchage associée si elle existe
+    """
+    plant = db.query(Plant).filter(Plant.id_plant == id_plant).first()
+    if not plant:
+        raise HTTPException(404, "Plante introuvable")
+    if plant.statut != "sechage":
+        raise HTTPException(400, f"La plante est en statut '{plant.statut}', elle doit être en 'sechage' pour passer en WPFF")
+
+    today = date.today()
+    action_date = date.fromisoformat(payload.date_action) if payload.date_action else today
+
+    # Récupérer id_variete via graine
+    id_variete = None
+    if plant.id_graine:
+        graine = db.query(Graine).filter(Graine.id_graine == plant.id_graine).first()
+        if graine:
+            id_variete = graine.id_variete
+
+    # 1. Changer le statut de la plante
+    plant.statut = "wpff"
+
+    # 2. Clore la session de séchage associée (date_fin_sechage sur PlantSechage)
+    ps = db.query(PlantSechage).filter(
+        PlantSechage.id_plant == id_plant,
+        PlantSechage.date_fin_sechage.is_(None),
+    ).first()
+    if ps:
+        ps.date_fin_sechage = action_date
+        if payload.poids_g:
+            ps.poids_sec_g = payload.poids_g
+
+    # 3. Créer l'entrée Stock WPFF
+    stock = Stock(
+        id_variete=id_variete,
+        type_stock="WPFF",
+        date_stock=action_date,
+        quantite_stock=payload.poids_g or 0.0,
+    )
+    db.add(stock)
+
+    # 4. Logger l'action dans le calendrier
+    action = ActionCalendrier(
+        id_culture=plant.id_culture,
+        id_plant=plant.id_plant,
+        date_action=action_date,
+        type_action="wpff",
+        parametres={"poids_g": payload.poids_g} if payload.poids_g else {},
+    )
+    db.add(action)
+
+    db.commit()
+    db.refresh(stock)
+    return {"ok": True, "id_stock": stock.id_stock, "quantite_g": stock.quantite_stock}

@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 from app.database import Base, engine
-from app.routers import breeders, varietes, graines, cultures, stock, extractions, dashboard, fournisseurs, import_export, historique_culture, materiel, parametre, engrais, recette_engrais, recette_tco, recette_lso, recette_reamendement, recette_arrosage, recette_fermentation, suivi_sol_vivant, espaces, capteurs, plan_culture, preparation_substrat, notation_variete, vaporisateur, sechage, curing, croisement
+from app.routers import breeders, varietes, graines, cultures, stock, extractions, dashboard, fournisseurs, import_export, historique_culture, materiel, parametre, engrais, recette_engrais, recette_tco, recette_lso, recette_reamendement, recette_arrosage, recette_fermentation, suivi_sol_vivant, espaces, capteurs, plan_culture, preparation_substrat, notation_variete, vaporisateur, sechage, curing, croisement, app_settings
 from app.services.govee_poller import start_poller
 
 # Création de l'application FastAPI
@@ -162,12 +162,13 @@ def run_migrations():
 
 run_migrations()
 
-# Seeding des valeurs par défaut des listes paramétrables
+# Seeding des valeurs par défaut des listes paramétrables + app settings
 from app.database import SessionLocal as _SessionLocal
 def seed_parametres():
     db = _SessionLocal()
     try:
         parametre.seed_defaults(db)
+        app_settings.seed_defaults(db)
     finally:
         db.close()
 
@@ -203,6 +204,7 @@ app.include_router(vaporisateur.router)
 app.include_router(sechage.router)
 app.include_router(curing.router)
 app.include_router(croisement.router)
+app.include_router(app_settings.router)
 
 # Démarrage du poller Govee (si APScheduler installé)
 start_poller(app)

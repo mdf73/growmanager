@@ -7,15 +7,14 @@ if not exist "_commit_msg.txt" (
     exit /b 1
 )
 
-set /p MSG=<_commit_msg.txt
 echo.
 echo === Commit en cours ===
-echo %MSG%
+type _commit_msg.txt
 echo =======================
 echo.
 
 git add .
-git commit -m "%MSG%"
+git commit -F "_commit_msg.txt"
 del "_commit_msg.txt"
 git push
 

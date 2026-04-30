@@ -1,11 +1,18 @@
-feat: WPFF — Whole Plant Fresh Frozen depuis l'onglet Séchage
+feat: Feature 4 — Refonte page Paramétrage (V3)
 
-- Backend: POST /api/sechage/plants/{id_plant}/wpff
-  - Statut plant → wpff, crée Stock type WPFF (poids optionnel)
-  - Log ActionCalendrier type wpff
-  - Clôt la session de séchage associée
-  - Statut wpff reconnu comme terminal dans cultures.py (statuts_finis)
+Backend:
+- Nouveau modèle AppSettings (table clé/valeur pour paramètres uniques)
+- Nouveau router /api/app-settings (GET all, GET by key, PUT upsert)
+- Seed automatique : prix_kwh (0.18 €) + devise (EUR)
+- LISTE_DEFAULTS enrichi : types_stock, sous_types_stock, types_rosin,
+  lampes_stock, maillages_iceolator, maillages_rosin
+- main.py : import + include_router app_settings + seed au démarrage
 
-- Frontend: bouton ❄️ WPFF dans SechageCuring (séchage uniquement)
-  - Modal WpffModal avec champ poids optionnel + date
-  - sechageAPI.wpff() dans api/sechage.ts
+Frontend:
+- Nouveau fichier api/appSettings.ts + hook useAppSetting
+- Parametrage.tsx : section "Économique" (prix kWh + devise, édition inline)
+- Parametrage.tsx : 4 nouvelles sections Stock (Types, Hash/Rosin, Maillages, Lampes)
+- NouveauStockModal : TYPES_STOCK, SOUS_TYPES, MAILLAGES, TYPES_ROSIN,
+  LAMPES, ENGRAIS_OPTS remplacés par useParametreListe (fallbacks statiques conservés)
+- NouvelleExtractionModal : MAILLAGES → useParametreListe('maillages_rosin')
+- NouvelleHashModal : MAILLAGES_ICEOLATOR → useParametreListe('maillages_iceolator')

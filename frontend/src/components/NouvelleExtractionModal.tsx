@@ -3,8 +3,9 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { X, Plus, Trash2, Loader2, AlertTriangle } from 'lucide-react'
 import { rosinAPI } from '../api/stock'
 import type { Stock } from '../api/stock'
+import { useParametreListe } from '../api/parametres'
 
-const MAILLAGES = ['25µ', '36µ', '45µ', '72µ', '90µ', '120µ', '160µ', '220µ']
+const MAILLAGES_FB = ['25µ', '36µ', '45µ', '72µ', '90µ', '120µ', '160µ', '220µ']
 
 interface Props {
   stocks: Stock[]
@@ -13,6 +14,8 @@ interface Props {
 
 export default function NouvelleExtractionModal({ stocks, onClose }: Props) {
   const qc = useQueryClient()
+  const { values: maillagesParam } = useParametreListe('maillages_rosin')
+  const MAILLAGES = maillagesParam.length > 0 ? maillagesParam : MAILLAGES_FB
   const today = new Date().toISOString().split('T')[0]
 
   // ── Formulaire ────────────────────────────────────────────────────────────

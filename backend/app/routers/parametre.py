@@ -37,8 +37,14 @@ LISTE_DEFAULTS: dict[str, list[str]] = {
     "bocal_fermetures":  ["Couvercle à vis", "Bail clasp (Le Parfait)", "Mason Jar", "Flip-top", "Autre"],
     "bocal_couleurs":    ["Clair", "Ambré", "Teinté"],
     "bocal_usages":      ["Curing", "Stockage longue durée", "Fermentation", "Infusion", "Autre"],
-    # Stock — types de hash
-    "types_hash": ["Ice-O-Lator Dry", "Ice-o-Lator WPFF", "Dry", "FingerHash", "Pollinator", "Static"],
+    # Stock — types & maillages
+    "types_hash":       ["Ice-O-Lator Dry", "Ice-o-Lator WPFF", "Dry", "FingerHash", "Pollinator", "Static"],
+    "types_stock":      ["Fleur", "Trim", "WPFF", "Hash", "Rosin", "Autre"],
+    "sous_types_stock": ["Indoor", "Outdoor"],
+    "types_rosin":      ["Flower Rosin", "Hash Rosin"],
+    "lampes_stock":     ["LED Crescience 500W", "LED Crescience 110W", "LED MarsHydro 135W", "Soleil"],
+    "maillages_iceolator": ["15µ", "25µ", "45µ", "73µ", "90µ", "160µ", "190µ", "220µ"],
+    "maillages_rosin":     ["25µ", "36µ", "45µ", "72µ", "90µ", "120µ", "160µ", "220µ"],
     # Recettes
     "periodes_recette": ["Veg", "Early Flo", "Flo", "Late Flo", "Maturation", "Flush"],
     "types_lso": ["Substrat de base", "Super soil", "Mix transplantation", "Top dress", "Correctif"],

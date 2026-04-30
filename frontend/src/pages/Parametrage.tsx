@@ -2,10 +2,11 @@ import { useState, useEffect, useCallback } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Plus, Trash2, Pencil, Check, X, Settings, ChevronDown, ChevronUp, ExternalLink,
          Thermometer, Wifi, WifiOff, RefreshCw, Save, Mail, Eye, EyeOff, AlertCircle,
-         CheckCircle2, Loader2, Database, Download, Upload, UploadCloud } from 'lucide-react'
+         CheckCircle2, Loader2, Database, Download, Upload, UploadCloud, Euro } from 'lucide-react'
 import apiClient from '../api/client'
 import { parametresAPI } from '../api/parametres'
 import type { ParametreValeur } from '../api/parametres'
+import { useAppSetting } from '../api/appSettings'
 import { breederAPI } from '../api/breeders'
 import type { Breeder } from '../api/breeders'
 import { varieteAPI } from '../api/varietes'
@@ -52,11 +53,32 @@ const SECTIONS = [
     ],
   },
 
-  // ── Stock ─────────────────────────────────────────────────────────────────────
+  // ── Stock & Extraction ────────────────────────────────────────────────────────
   {
-    titre: 'Stock — Hash',
+    titre: 'Stock — Types',
     listes: [
-      { nom: 'types_hash', label: 'Types de hash' },
+      { nom: 'types_stock',      label: 'Types de stock (Fleur, Hash, Rosin…)' },
+      { nom: 'sous_types_stock', label: 'Sous-types (Indoor, Outdoor…)' },
+    ],
+  },
+  {
+    titre: 'Stock — Hash & Rosin',
+    listes: [
+      { nom: 'types_hash',   label: 'Types de hash' },
+      { nom: 'types_rosin',  label: 'Types de rosin' },
+    ],
+  },
+  {
+    titre: 'Stock — Maillages',
+    listes: [
+      { nom: 'maillages_iceolator', label: 'Maillages Ice-O-Lator (µ)' },
+      { nom: 'maillages_rosin',     label: 'Maillages Rosin bags (µ)' },
+    ],
+  },
+  {
+    titre: 'Stock — Lampes & Engrais',
+    listes: [
+      { nom: 'lampes_stock', label: 'Lampes (pour étiquetage stock)' },
     ],
   },
 
@@ -1284,6 +1306,131 @@ function GmailImportSection({
   )
 }
 
+// ── Section Économique (prix kWh, devise) ─────────────────────────────────────
+
+function AppSettingsSection() {
+  const prixKwh = useAppSetting('prix_kwh')
+  const devise  = useAppSetting('devise')
+
+  const [editingKwh,   setEditingKwh]   = useState(false)
+  const [editingDevise, setEditingDevise] = useState(false)
+  const [valKwh,   setValKwh]   = useState('')
+  const [valDevise, setValDevise] = useState('')
+  const [savedKwh,   setSavedKwh]   = useState(false)
+  const [savedDevise, setSavedDevise] = useState(false)
+
+  const startEditKwh = () => { setValKwh(prixKwh.value ?? ''); setEditingKwh(true); setSavedKwh(false) }
+  const startEditDevise = () => { setValDevise(devise.value ?? ''); setEditingDevise(true); setSavedDevise(false) }
+
+  const saveKwh = async () => {
+    if (!valKwh.trim()) return
+    await prixKwh.update(valKwh.trim())
+    setEditingKwh(false)
+    setSavedKwh(true)
+    setTimeout(() => setSavedKwh(false), 2000)
+  }
+
+  const saveDevise = async () => {
+    if (!valDevise.trim()) return
+    await devise.update(valDevise.trim())
+    setEditingDevise(false)
+    setSavedDevise(true)
+    setTimeout(() => setSavedDevise(false), 2000)
+  }
+
+  return (
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+      <div className="px-6 py-4 border-b border-gray-100 bg-grow-50 flex items-center gap-3">
+        <div className="p-2 bg-grow-100 rounded-lg">
+          <Euro size={18} className="text-grow-700" />
+        </div>
+        <div>
+          <h2 className="text-base font-semibold text-gray-800">Économique</h2>
+          <p className="text-xs text-gray-400 mt-0.5">Paramètres utilisés pour le calcul des coûts de culture</p>
+        </div>
+      </div>
+      <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+
+        {/* Prix kWh */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-gray-700">Prix du kWh (€)</label>
+          <p className="text-xs text-gray-400">Utilisé pour calculer le coût électrique de chaque culture.</p>
+          {editingKwh ? (
+            <div className="flex items-center gap-2">
+              <input
+                type="number" step="0.01" min="0"
+                value={valKwh}
+                onChange={e => setValKwh(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') saveKwh(); if (e.key === 'Escape') setEditingKwh(false) }}
+                className="w-32 text-sm border border-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-grow-400 focus:outline-none"
+                autoFocus
+              />
+              <span className="text-sm text-gray-500">€/kWh</span>
+              <button onClick={saveKwh} disabled={prixKwh.isPending}
+                className="p-1.5 text-grow-600 hover:bg-grow-50 rounded-lg transition-colors">
+                {prixKwh.isPending ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
+              </button>
+              <button onClick={() => setEditingKwh(false)}
+                className="p-1.5 text-gray-400 hover:bg-gray-100 rounded-lg transition-colors">
+                <X size={14} />
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-3">
+              <span className="text-lg font-semibold text-gray-800">
+                {prixKwh.value ? `${prixKwh.value} €/kWh` : <span className="text-gray-400 text-sm font-normal">Non renseigné</span>}
+              </span>
+              {savedKwh && <span className="text-xs text-grow-600 flex items-center gap-1"><CheckCircle2 size={12} /> Enregistré</span>}
+              <button onClick={startEditKwh}
+                className="flex items-center gap-1 text-xs text-gray-400 hover:text-grow-600 px-2 py-1 hover:bg-grow-50 rounded-lg transition-colors">
+                <Pencil size={12} /> Modifier
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Devise */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-gray-700">Devise</label>
+          <p className="text-xs text-gray-400">Symbole affiché dans les coûts (EUR, USD, CHF…).</p>
+          {editingDevise ? (
+            <div className="flex items-center gap-2">
+              <input
+                type="text" maxLength={10}
+                value={valDevise}
+                onChange={e => setValDevise(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') saveDevise(); if (e.key === 'Escape') setEditingDevise(false) }}
+                className="w-24 text-sm border border-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-grow-400 focus:outline-none"
+                autoFocus
+              />
+              <button onClick={saveDevise} disabled={devise.isPending}
+                className="p-1.5 text-grow-600 hover:bg-grow-50 rounded-lg transition-colors">
+                {devise.isPending ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
+              </button>
+              <button onClick={() => setEditingDevise(false)}
+                className="p-1.5 text-gray-400 hover:bg-gray-100 rounded-lg transition-colors">
+                <X size={14} />
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-3">
+              <span className="text-lg font-semibold text-gray-800">
+                {devise.value || <span className="text-gray-400 text-sm font-normal">Non renseigné</span>}
+              </span>
+              {savedDevise && <span className="text-xs text-grow-600 flex items-center gap-1"><CheckCircle2 size={12} /> Enregistré</span>}
+              <button onClick={startEditDevise}
+                className="flex items-center gap-1 text-xs text-gray-400 hover:text-grow-600 px-2 py-1 hover:bg-grow-50 rounded-lg transition-colors">
+                <Pencil size={12} /> Modifier
+              </button>
+            </div>
+          )}
+        </div>
+
+      </div>
+    </div>
+  )
+}
+
 // ── Section Backup ────────────────────────────────────────────────────────────
 
 function BackupSection() {
@@ -1506,6 +1653,9 @@ export default function ParametragePage() {
           </p>
         </div>
       </div>
+
+      {/* Économique — prix kWh, devise */}
+      <AppSettingsSection />
 
       {/* Sauvegarde & Restauration */}
       <BackupSection />

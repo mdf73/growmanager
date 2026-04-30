@@ -10,21 +10,31 @@ interface NouveauStockModalProps {
   onClose: () => void
 }
 
-const TYPES_STOCK   = ['Fleur', 'Trim', 'WPFF', 'Hash', 'Rosin', 'Autre']
-const SOUS_TYPES    = ['Indoor', 'Outdoor']
-const LAMPES        = ['LED Crescience 500W', 'LED Crescience 110 W', 'LED MarsHydro 135W', 'Soleil']
-const ENGRAIS_OPTS  = ['LSO', 'Aptus', 'Autre']
-const MAILLAGES     = ['15µ', '25µ', '45µ', '73µ', '90µ', '120µ', '160µ', '190µ', '220µ']
-const TYPES_ROSIN   = ['Flower Rosin', 'Hash Rosin']
-
 // Types qui n'ont pas de lampe/engrais
 const NO_CULTURE_INFO = ['Hash', 'Rosin', 'WPFF']
+
+// Fallbacks statiques si les paramètres ne sont pas encore chargés
+const TYPES_STOCK_FB  = ['Fleur', 'Trim', 'WPFF', 'Hash', 'Rosin', 'Autre']
+const SOUS_TYPES_FB   = ['Indoor', 'Outdoor']
 
 const today = () => new Date().toISOString().split('T')[0]
 
 export default function NouveauStockModal({ editStock, onClose }: NouveauStockModalProps) {
   const queryClient = useQueryClient()
-  const { values: typesHash } = useParametreListe('types_hash')
+  const { values: typesHash }       = useParametreListe('types_hash')
+  const { values: typesStockParam } = useParametreListe('types_stock')
+  const { values: sousTypesParam }  = useParametreListe('sous_types_stock')
+  const { values: maillagesParam }  = useParametreListe('maillages_iceolator')
+  const { values: typesRosinParam } = useParametreListe('types_rosin')
+  const { values: lampesParam }     = useParametreListe('lampes_stock')
+  const { values: engraisParam }    = useParametreListe('engrais')
+
+  const TYPES_STOCK = typesStockParam.length > 0 ? typesStockParam : TYPES_STOCK_FB
+  const SOUS_TYPES  = sousTypesParam.length  > 0 ? sousTypesParam  : SOUS_TYPES_FB
+  const MAILLAGES   = maillagesParam.length  > 0 ? maillagesParam  : ['15µ', '25µ', '45µ', '73µ', '90µ', '160µ', '190µ', '220µ']
+  const TYPES_ROSIN = typesRosinParam.length > 0 ? typesRosinParam : ['Flower Rosin', 'Hash Rosin']
+  const LAMPES      = lampesParam.length     > 0 ? lampesParam     : ['LED Crescience 500W', 'Soleil']
+  const ENGRAIS_OPTS = engraisParam.length   > 0 ? engraisParam    : ['LSO', 'Aptus', 'Autre']
 
   const { data: varietes = [] } = useQuery<Variete[]>({
     queryKey: ['varietes'],

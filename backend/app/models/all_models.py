@@ -1415,3 +1415,13 @@ class Croisement(Base):
     variete_resultat = relationship("Variete", foreign_keys=[id_variete_resultat])
     pollen           = relationship("Pollen", back_populates="croisements")
     packgraine_resultat = relationship("PackGraine", foreign_keys=[id_packgraine_resultat])
+
+
+class AppSettings(Base):
+    """Paramètres applicatifs clé/valeur (valeurs uniques, ex: prix kWh)."""
+    __tablename__ = "AppSettings"
+
+    id     = Column(Integer, primary_key=True, autoincrement=True)
+    cle    = Column(String(100), nullable=False, unique=True)
+    valeur = Column(String(500), nullable=True)
+    label  = Column(String(200), nullable=True)   # libellé affiché dans l'UI

@@ -1523,4 +1523,6 @@ def get_stats(culture_id: int, db: Session = Depends(get_db)):
     return {
         "hauteurs": hauteurs,
         "arrosages": arrosages,
-        "intensites_lampe": inten
+        "intensites_lampe": intensites,
+        "nb_actions_total": len(actions),
+    }

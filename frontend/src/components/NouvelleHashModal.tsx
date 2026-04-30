@@ -3,10 +3,11 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { X, Loader2, AlertTriangle, Plus, Trash2 } from 'lucide-react'
 import { hashAPI, stockAPI } from '../api/stock'
 import type { Stock } from '../api/stock'
+import { useParametreListe } from '../api/parametres'
 
-// ── Constantes ─────────────────────────────────────────────────────────────
-const MAILLAGES_ICEOLATOR = ['15µ', '25µ', '45µ', '73µ', '90µ', '160µ', '190µ', '220µ']
-const MAILLAGE_POLINATOR  = '120µ'
+// ── Fallbacks statiques ─────────────────────────────────────────────────────
+const MAILLAGES_ICEOLATOR_FB = ['15µ', '25µ', '45µ', '73µ', '90µ', '160µ', '190µ', '220µ']
+const MAILLAGE_POLINATOR     = '120µ'
 
 type TypeExtraction = 'Polinator' | 'Ice-o-lator'
 
@@ -18,6 +19,8 @@ interface Props { onClose: () => void }
 export default function NouvelleHashModal({ onClose }: Props) {
   const qc    = useQueryClient()
   const today = new Date().toISOString().split('T')[0]
+  const { values: maillagesParam }  = useParametreListe('maillages_iceolator')
+  const MAILLAGES_ICEOLATOR = maillagesParam.length > 0 ? maillagesParam : MAILLAGES_ICEOLATOR_FB
 
   // ── Stock disponible ───────────────────────────────────────────────────
   const { data: stocks = [] } = useQuery<Stock[]>({
