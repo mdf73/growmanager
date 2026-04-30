@@ -102,4 +102,11 @@ export const sechageAPI = {
 
   removePlant: (sessionId: number, plantSechageId: number) =>
     client.delete(`/sechage/${sessionId}/plants/${plantSechageId}`).then(r => r.data),
+
+
+  // WPFF — Whole Plant Fresh Frozen
+  wpff: (idPlant: number, data: { poids_g?: number; date_action?: string }) =>
+    client.post<{ ok: boolean; id_stock: number; quantite_g: number }>(
+      `/sechage/plants/${idPlant}/wpff`, data
+    ).then(r => r.data),
 }

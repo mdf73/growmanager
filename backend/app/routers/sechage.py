@@ -1,12 +1,16 @@
 """Router SessionSechage — CRUD sessions de séchage + gestion des plantes"""
-from typing import List
+from datetime import date
+from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models.all_models import (
     SessionSechage, PlantSechage, Plant, Culture, EspaceCulture, Graine, Variete,
+    ActionCalendrier,
 )
+from app.models import Stock
 from app.schemas.sechage import (
     SessionSechageCreate, SessionSechageUpdate, SessionSechageRead,
     PlantSechageCreate, PlantSechageUpdate, PlantSechageRead,
@@ -210,7 +214,4 @@ def remove_plant_from_session(id_session: int, id_plant_sechage: int, db: Sessio
         PlantSechage.id_session_sechage == id_session,
     ).first()
     if not ps:
-        raise HTTPException(404, "Entrée de séchage introuvable")
-    db.delete(ps)
-    db.commit()
-    return {"ok": True}
+        

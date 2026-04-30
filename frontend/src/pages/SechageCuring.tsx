@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   Wind, ChevronDown, ChevronUp, Thermometer, Droplets, Scale,
   Calendar, Clock, X, CheckCircle2, MapPin, Package, Layers,
-  Pencil,
+  Pencil, Snowflake,
 } from 'lucide-react'
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -844,6 +844,111 @@ function EditCuringModal({
   )
 }
 
+// ─── Modal WPFF ───────────────────────────────────────────────────────────────
+
+function WpffModal({
+  plant,
+  onClose,
+  onSubmit,
+}: {
+  plant: PlantSechage
+  onClose: () => void
+  onSubmit: (poids: number | null, dateAction: string) => Promise<void>
+}) {
+  const [poids, setPoids]           = useState('')
+  const [dateAction, setDateAction] = useState(new Date().toISOString().slice(0, 10))
+  const [loading, setLoading]       = useState(false)
+  const [error, setError]           = useState('')
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    setLoading(true)
+    setError('')
+    try {
+      const poidsVal = poids.trim() !== '' ? parseFloat(poids) : null
+      await onSubmit(poidsVal, dateAction)
+      onClose()
+    } catch (err: any) {
+      setError(err?.response?.data?.detail || err?.message || 'Erreur')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-xl shadow-xl w-full max-w-sm">
+        <div className="flex items-center justify-between p-5 border-b">
+          <div className="flex items-center gap-2">
+            <Snowflake size={18} className="text-blue-500" />
+            <h2 className="text-base font-bold text-gray-900">Passer en WPFF — {plant.nom_affichage}</h2>
+          </div>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X size={18} /></button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="p-5 space-y-4">
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 text-sm px-3 py-2 rounded-lg">{error}</div>
+          )}
+
+          {/* Info */}
+          <div className="bg-blue-50 border border-blue-100 rounded-lg px-3 py-2.5 text-xs text-blue-700 flex items-start gap-2">
+            <Snowflake size={13} className="flex-shrink-0 mt-0.5 text-blue-500" />
+            <p>
+              La plante sera envoyée directement au congélateur <strong>(WPFF)</strong>, sans séchage ni curing.
+              Elle apparaîtra dans le stock en type <strong>WPFF</strong>.
+            </p>
+          </div>
+
+          {/* Date */}
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Date</label>
+            <input
+              type="date" value={dateAction}
+              onChange={e => setDateAction(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+
+          {/* Poids — optionnel */}
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">
+              Poids <span className="font-normal text-gray-400">(optionnel)</span>
+            </label>
+            <div className="relative">
+              <input
+                type="number" value={poids} min="0" step="0.1"
+                onChange={e => setPoids(e.target.value)}
+                placeholder="ex : 45.5"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-8"
+              />
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">g</span>
+            </div>
+            {poids && (
+              <p className="text-xs text-blue-600 mt-1">
+                <Scale size={10} className="inline mr-1" />
+                {parseFloat(poids)}g enregistrés dans le stock WPFF
+              </p>
+            )}
+          </div>
+
+          <div className="flex gap-3 pt-1">
+            <button type="button" onClick={onClose}
+              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 text-sm">
+              Annuler
+            </button>
+            <button type="submit" disabled={loading}
+              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 text-sm font-medium flex items-center justify-center gap-1.5">
+              <Snowflake size={14} />
+              {loading ? 'Enregistrement…' : 'Passer en WPFF'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
 // ─── Graphe temp/hygro ────────────────────────────────────────────────────────
 
 function GrapheSechage({ plant }: { plant: PlantSechage }) {
@@ -980,6 +1085,7 @@ function PlantRow({
   onAssignerEspace,
   onOuvertureBocal,
   onEditCuring,
+  onWpff,
 }: {
   plant: PlantSechage
   onDebutCuring: (plant: PlantSechage) => void
@@ -987,6 +1093,7 @@ function PlantRow({
   onAssignerEspace: (plant: PlantSechage) => void
   onOuvertureBocal: (plant: PlantSechage) => void
   onEditCuring: (plant: PlantSechage) => void
+  onWpff: (plant: PlantSechage) => void
 }) {
   const [expanded, setExpanded] = useState(false)
   // R+X : jours depuis la récolte (toujours croissant)
@@ -1166,6 +1273,17 @@ function PlantRow({
             </button>
           )}
 
+          {/* Bouton WPFF (séchage → congélateur direct) */}
+          {plant.statut === 'sechage' && (
+            <button
+              onClick={e => { e.stopPropagation(); onWpff(plant) }}
+              className="flex-shrink-0 px-2.5 py-1.5 text-xs rounded-lg font-medium whitespace-nowrap flex items-center gap-1 border border-blue-200 text-blue-600 hover:bg-blue-50"
+            >
+              <Snowflake size={11} />
+              WPFF
+            </button>
+          )}
+
           {/* Bouton début curing */}
           {plant.statut === 'sechage' && (
             <button
@@ -1260,6 +1378,7 @@ export default function SechageCuring() {
   const [assignerEspaceModal, setAssignerEspaceModal] = useState<PlantSechage | null>(null)
   const [ouvertureBocalModal, setOuvertureBocalModal] = useState<PlantSechage | null>(null)
   const [editCuringModal, setEditCuringModal]         = useState<PlantSechage | null>(null)
+  const [wpffModal, setWpffModal]                     = useState<PlantSechage | null>(null)
 
   const { data: plants = [], isLoading } = useQuery<PlantSechage[]>({
     queryKey: ['sechage-plants'],
@@ -1348,6 +1467,22 @@ export default function SechageCuring() {
     },
   })
 
+  const wpffMutation = useMutation({
+    mutationFn: async ({ plant, poids, dateAction }: {
+      plant: PlantSechage; poids: number | null; dateAction: string
+    }) => {
+      return sechageAPI.wpff(plant.id_plant, {
+        poids_g:     poids     ?? undefined,
+        date_action: dateAction,
+      })
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['sechage-plants'] })
+      qc.invalidateQueries({ queryKey: ['cultures'] })
+      qc.invalidateQueries({ queryKey: ['stock'] })
+    },
+  })
+
   function invalidateSechage() {
     qc.invalidateQueries({ queryKey: ['sechage-plants'] })
     qc.invalidateQueries({ queryKey: ['sessions-sechage'] })
@@ -1379,6 +1514,7 @@ export default function SechageCuring() {
           Chargement…
         </div>
       )}
+
 
       {!isLoading && plants.length === 0 && (
         <div className="flex flex-col items-center justify-center py-16 text-center">
@@ -1450,6 +1586,7 @@ export default function SechageCuring() {
                 onAssignerEspace={p => setAssignerEspaceModal(p)}
                 onOuvertureBocal={p => setOuvertureBocalModal(p)}
                 onEditCuring={p => setEditCuringModal(p)}
+                onWpff={p => setWpffModal(p)}
               />
             ))
           )}
@@ -1474,6 +1611,7 @@ export default function SechageCuring() {
                 onAssignerEspace={p => setAssignerEspaceModal(p)}
                 onOuvertureBocal={p => setOuvertureBocalModal(p)}
                 onEditCuring={p => setEditCuringModal(p)}
+                onWpff={p => setWpffModal(p)}
               />
             ))
           )}
@@ -1529,6 +1667,17 @@ export default function SechageCuring() {
           onClose={() => setEditCuringModal(null)}
           onSave={async (idEspace, idMaterielBocal) => {
             await editCuring.mutateAsync({ plant: editCuringModal, idEspace, idMaterielBocal })
+          }}
+        />
+      )}
+
+      {/* Modal WPFF */}
+      {wpffModal && (
+        <WpffModal
+          plant={wpffModal}
+          onClose={() => setWpffModal(null)}
+          onSubmit={async (poids, dateAction) => {
+            await wpffMutation.mutateAsync({ plant: wpffModal, poids, dateAction })
           }}
         />
       )}

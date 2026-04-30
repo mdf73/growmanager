@@ -93,7 +93,7 @@ def _enrich_action(action: ActionCalendrier, db: Session) -> dict:
 
 def _enrich_culture(culture: Culture, db: Session) -> dict:
     plants = db.query(Plant).filter(Plant.id_culture == culture.id_culture).all()
-    statuts_finis = {"recolte", "abandonne"}
+    statuts_finis = {"recolte", "abandonne", "wpff"}
     nb_actives = sum(1 for p in plants if p.statut not in statuts_finis)
     jours = None
     if culture.date_debut:
@@ -198,10 +198,10 @@ def _maybe_close_culture(culture: Culture, db: Session) -> None:
     plants = db.query(Plant).filter(Plant.id_culture == culture.id_culture).all()
     if not plants:
         return
-    statuts_finis = {"recolte", "curing", "prete", "abandonne"}
+    statuts_finis = {"recolte", "curing", "prete", "abandonne", "wpff"}
     all_done = all(p.statut in statuts_finis for p in plants)
     if all_done and culture.statut == "active":
-        has_recolte = any(p.statut in {"recolte", "curing", "prete"} for p in plants)
+        has_recolte = any(p.statut in {"recolte", "curing", "prete", "wpff"} for p in plants)
         culture.statut = "sechage_curing" if has_recolte else "terminee"
         culture.date_fin = date.today()
         db.commit()
@@ -213,8 +213,8 @@ def _maybe_archive_culture(culture: Culture, db: Session) -> None:
     plants = db.query(Plant).filter(Plant.id_culture == culture.id_culture).all()
     if not plants:
         return
-    # Toutes les plantes doivent avoir terminé le curing (prete) ou être abandonnées
-    if not all(p.statut in {"prete", "abandonne"} for p in plants):
+    # Toutes les plantes doivent avoir terminé le curing (prete), être en WPFF ou être abandonnées
+    if not all(p.statut in {"prete", "abandonne", "wpff"} for p in plants):
         return
     # Ne pas archiver si déjà terminée
     if culture.statut == "terminee":
@@ -1388,7 +1388,7 @@ def create_action(culture_id: int, payload: ActionCreate, db: Session = Depends(
 
     if is_global:
         # Une action individuelle par plante active (pas récoltée / abandonnée)
-        statuts_exclus = {"recolte", "curing", "prete", "abandonne"}
+        statuts_exclus = {"recolte", "curing", "prete", "abandonne", "wpff"}
         plants_cibles = db.query(Plant).filter(
             Plant.id_culture == culture_id,
             ~Plant.statut.in_(statuts_exclus),
@@ -1523,6 +1523,4 @@ def get_stats(culture_id: int, db: Session = Depends(get_db)):
     return {
         "hauteurs": hauteurs,
         "arrosages": arrosages,
-        "intensites_lampe": intensites,
-        "nb_actions_total": len(actions),
-    }
+        "intensites_lampe": inten
