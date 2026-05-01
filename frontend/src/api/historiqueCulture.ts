@@ -46,6 +46,12 @@ export interface HistoriqueCulture {
   prix_total_graines:    number | null
   g_par_watt:            number | null
   varietes_label:        string
+  // coûts (stockés à la clôture)
+  cout_engrais:          number | null
+  cout_electricite:      number | null
+  cout_graines:          number | null
+  cout_total:            number | null
+  cout_par_gramme:       number | null
 }
 
 export interface HistoriqueCultureCreate {

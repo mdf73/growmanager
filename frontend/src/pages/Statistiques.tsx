@@ -431,11 +431,23 @@ export default function Statistiques() {
     const ratioMax  = withGpW.length ? Math.max(...withGpW.map(c => c.g_par_watt!)) : null
     const ratioMin  = withGpW.length ? Math.min(...withGpW.map(c => c.g_par_watt!)) : null
 
-    // Coûts (prix total graines)
+    // Coûts (prix total graines — legacy, gardé pour compatibilité)
     const withCout  = filtered.filter(c => c.prix_total_graines != null)
     const coutMoy   = withCout.length ? withCout.reduce((s, c) => s + Number(c.prix_total_graines), 0) / withCout.length : null
     const coutMax   = withCout.length ? Math.max(...withCout.map(c => Number(c.prix_total_graines))) : null
     const coutMin   = withCout.length ? Math.min(...withCout.map(c => Number(c.prix_total_graines))) : null
+
+    // Coûts totaux (F1 — électricité + engrais + graines)
+    const withCoutTotal = filtered.filter(c => c.cout_total != null)
+    const coutTotalMoy  = withCoutTotal.length ? withCoutTotal.reduce((s, c) => s + Number(c.cout_total), 0) / withCoutTotal.length : null
+    const coutTotalMax  = withCoutTotal.length ? Math.max(...withCoutTotal.map(c => Number(c.cout_total))) : null
+    const coutTotalMin  = withCoutTotal.length ? Math.min(...withCoutTotal.map(c => Number(c.cout_total))) : null
+
+    // €/g
+    const withPg    = filtered.filter(c => c.cout_par_gramme != null)
+    const pgMoy     = withPg.length ? withPg.reduce((s, c) => s + Number(c.cout_par_gramme), 0) / withPg.length : null
+    const pgMax     = withPg.length ? Math.max(...withPg.map(c => Number(c.cout_par_gramme))) : null
+    const pgMin     = withPg.length ? Math.min(...withPg.map(c => Number(c.cout_par_gramme))) : null
 
     // Nombre de plants
     const plantsMoy = filtered.reduce((s, c) => s + c.nb_plants, 0) / filtered.length
@@ -464,6 +476,8 @@ export default function Statistiques() {
       dureeMoy, dureeMax, dureeMin,
       ratioMoy, ratioMax, ratioMin,
       coutMoy, coutMax, coutMin,
+      coutTotalMoy, coutTotalMax, coutTotalMin,
+      pgMoy, pgMax, pgMin,
       plantsMoy, plantsMax, plantsMin,
       bestVariete,
     }
@@ -645,16 +659,28 @@ export default function Statistiques() {
                 </div>
               </div>
 
-              {/* Ligne 4 : coûts + plants + meilleure variété */}
+              {/* Ligne 4 : coûts totaux (F1) */}
+              {cultStats.coutTotalMoy != null && (
+                <div>
+                  <SectionTitle>Coûts de culture (élec + engrais + graines)</SectionTitle>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+                    <MiniStat icon={Euro}      label="Coût total moy." value={cultStats.coutTotalMoy != null ? `${cultStats.coutTotalMoy.toFixed(2)} €` : '—'} color="indigo" />
+                    <MiniStat icon={ArrowUp}   label="Coût total max"  value={cultStats.coutTotalMax != null ? `${cultStats.coutTotalMax.toFixed(2)} €` : '—'} color="green"  />
+                    <MiniStat icon={ArrowDown} label="Coût total min"  value={cultStats.coutTotalMin != null ? `${cultStats.coutTotalMin.toFixed(2)} €` : '—'} color="rose"   />
+                    <MiniStat icon={Euro}      label="€/g moyen"       value={cultStats.pgMoy != null ? `${cultStats.pgMoy.toFixed(2)} €/g` : '—'}             color="purple" />
+                    <MiniStat icon={ArrowUp}   label="€/g max"         value={cultStats.pgMax != null ? `${cultStats.pgMax.toFixed(2)} €/g` : '—'}             color="rose"   />
+                    <MiniStat icon={ArrowDown} label="€/g min"         value={cultStats.pgMin != null ? `${cultStats.pgMin.toFixed(2)} €/g` : '—'}             color="green"  />
+                  </div>
+                </div>
+              )}
+
+              {/* Ligne 5 : plants */}
               <div>
-                <SectionTitle>Coûts & Plants</SectionTitle>
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-                  <MiniStat icon={Euro}      label="Coût moy."   value={cultStats.coutMoy  != null ? `${cultStats.coutMoy.toFixed(2)} €`  : '—'} color="blue"   />
-                  <MiniStat icon={ArrowUp}   label="Coût max"    value={cultStats.coutMax  != null ? `${cultStats.coutMax.toFixed(2)} €`  : '—'} color="green"  />
-                  <MiniStat icon={ArrowDown} label="Coût min"    value={cultStats.coutMin  != null ? `${cultStats.coutMin.toFixed(2)} €`  : '—'} color="rose"   />
-                  <MiniStat icon={Hash}      label="Plants moy." value={cultStats.plantsMoy.toFixed(1)}                                           color="teal"   />
-                  <MiniStat icon={ArrowUp}   label="Plants max"  value={cultStats.plantsMax}                                                       color="green"  />
-                  <MiniStat icon={ArrowDown} label="Plants min"  value={cultStats.plantsMin}                                                       color="rose"   />
+                <SectionTitle>Plants</SectionTitle>
+                <div className="grid grid-cols-3 gap-4">
+                  <MiniStat icon={Hash}      label="Plants moy." value={cultStats.plantsMoy.toFixed(1)} color="teal"  />
+                  <MiniStat icon={ArrowUp}   label="Plants max"  value={cultStats.plantsMax}             color="green" />
+                  <MiniStat icon={ArrowDown} label="Plants min"  value={cultStats.plantsMin}             color="rose"  />
                 </div>
               </div>
 

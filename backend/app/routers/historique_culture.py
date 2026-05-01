@@ -38,6 +38,13 @@ def _enrich(row: HistoriqueCulture) -> HistoriqueCultureRead:
     if obj.quantite_totale and row.puissance and row.puissance > 0:
         obj.g_par_watt = round(obj.quantite_totale / float(row.puissance), 3)
 
+    # Coûts (stockés en DB)
+    if row.cout_engrais      is not None: obj.cout_engrais     = float(row.cout_engrais)
+    if row.cout_electricite  is not None: obj.cout_electricite = float(row.cout_electricite)
+    if row.cout_graines      is not None: obj.cout_graines     = float(row.cout_graines)
+    if row.cout_total        is not None: obj.cout_total       = float(row.cout_total)
+    if row.cout_par_gramme   is not None: obj.cout_par_gramme  = float(row.cout_par_gramme)
+
     # Label variétés (dédupliqué, trié)
     noms = list(dict.fromkeys(
         p.variete_nom for p in row.plants if p.variete_nom

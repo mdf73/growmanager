@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom'
 import {
   Menu, X, Home, Sprout, Leaf, Package, Beaker,
   BookOpen, Wrench, Settings, BarChart2, FlaskConical,
-  ChevronDown, ChevronRight, NotebookPen, Boxes, Wind, Dna, Droplets, Thermometer, ClipboardList, Trophy,
+  ChevronDown, ChevronRight, NotebookPen, Boxes, Wind, Dna, Droplets, Thermometer, ClipboardList, Trophy, Cigarette,
   Moon, Sun,
 } from 'lucide-react'
 import clsx from 'clsx'
@@ -90,6 +90,7 @@ const navItems: NavItem[] = [
   },
   { path: '/espaces-culture',   label: 'Espaces de culture',  icon: Boxes },
   { path: '/materiel',          label: 'Matériel',            icon: Wrench },
+  { path: '/consommation',      label: 'Consommation',        icon: Cigarette },
   { path: '/statistiques',      label: 'Statistiques',        icon: BarChart2 },
   { path: '/parametrage',       label: 'Paramétrage',         icon: Settings },
 ]

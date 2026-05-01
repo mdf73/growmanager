@@ -658,6 +658,13 @@ class HistoriqueCulture(Base):
     id_espace              = Column(Integer, ForeignKey("EspaceCulture.id_espace"), nullable=True)
     notes                  = Column(Text)
 
+    # Coûts calculés à la clôture
+    cout_engrais           = Column(DECIMAL(10, 2), nullable=True)   # € dépensés en engrais
+    cout_electricite       = Column(DECIMAL(10, 2), nullable=True)   # € d'électricité
+    cout_graines           = Column(DECIMAL(10, 2), nullable=True)   # € de graines
+    cout_total             = Column(DECIMAL(10, 2), nullable=True)   # somme des 3
+    cout_par_gramme        = Column(DECIMAL(10, 4), nullable=True)   # €/g récolté
+
     # Relation vers les plantes de cette culture
     plants = relationship("HistoriquePlant", back_populates="culture",
                           cascade="all, delete-orphan")
@@ -1415,6 +1422,27 @@ class Croisement(Base):
     variete_resultat = relationship("Variete", foreign_keys=[id_variete_resultat])
     pollen           = relationship("Pollen", back_populates="croisements")
     packgraine_resultat = relationship("PackGraine", foreign_keys=[id_packgraine_resultat])
+
+
+# ============ Sessions de consommation ============
+
+class SessionConsommation(Base):
+    """Enregistre une session de consommation avec un vaporisateur."""
+    __tablename__ = "SessionConsommation"
+
+    id_session        = Column(Integer,      primary_key=True, autoincrement=True)
+    date_heure        = Column(DateTime,     nullable=False, default=datetime.utcnow)
+    id_vaporisateur   = Column(Integer,      ForeignKey("Vaporisateur.id_vaporisateur", ondelete="SET NULL"), nullable=True)
+    type_produit      = Column(String(20),   nullable=False)   # fleur | hash | rosin
+    id_stock          = Column(Integer,      ForeignKey("Stock.id_stock", ondelete="SET NULL"), nullable=True)
+    quantite_g        = Column(DECIMAL(6, 3), nullable=False)  # grammes consommés
+    options_vapo      = Column(JSON,         nullable=True)    # {nb_ballons, temp_c, remplissage, nb_taffs, type_chauffe, …}
+    notes             = Column(Text,         nullable=True)
+    created_at        = Column(DateTime,     nullable=True, default=datetime.utcnow)
+
+    # Relations
+    vaporisateur = relationship("Vaporisateur")
+    stock        = relationship("Stock")
 
 
 class AppSettings(Base):

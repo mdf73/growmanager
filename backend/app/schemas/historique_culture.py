@@ -78,3 +78,10 @@ class HistoriqueCultureRead(HistoriqueCultureBase):
     prix_total_graines: Optional[float] = None  # somme des prix graines
     g_par_watt:        Optional[float] = None
     varietes_label:    str             = ""     # ex: "Gelato, OG Kush"
+
+    # Coûts (stockés en DB à la clôture)
+    cout_engrais:      Optional[float] = None
+    cout_electricite:  Optional[float] = None
+    cout_graines:      Optional[float] = None
+    cout_total:        Optional[float] = None
+    cout_par_gramme:   Optional[float] = None

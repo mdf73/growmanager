@@ -1,7 +1,32 @@
-feat(parametrage): navigation en 3 tabs (Général / Sauvegarde / Capteurs)
+feat: Feature 5 (Consommation) + Feature 1 (Coûts culture)
 
-- Ajout d'un état activeTab (TabId: 'general' | 'backup' | 'capteurs')
-- Tab Général : AppSettingsSection + toutes les listes déroulantes + Génétique
-- Tab Sauvegarde et restaurations : BackupSection
-- Tab Capteurs : GoveeSection (devices + import Gmail)
-- Style underline cohérent avec le design existant, dark mode supporté
+── Feature 5 — Page Consommation ──────────────────────────────
+- backend/app/models/all_models.py : ajout classe SessionConsommation
+- backend/app/schemas/consommation.py : Create / Update / Read
+- backend/app/routers/consommation.py : CRUD + /stats (totaux, last7j, projection)
+- backend/app/main.py : import + include_router consommation
+- frontend/src/api/consommation.ts : types + consommationAPI
+- frontend/src/pages/Consommation.tsx : page complète (modal ajout, tableau, stat cards, graphique 7j, projection stock)
+- frontend/src/App.tsx : route /consommation
+- frontend/src/components/Layout.tsx : entrée nav Consommation (icône Cigarette)
+
+── Feature 1 — Gestion des coûts de culture ───────────────────
+- backend/app/models/all_models.py : colonnes cout_* sur HistoriqueCulture
+- backend/app/schemas/historique_culture.py : champs cout_* dans HistoriqueCultureRead
+- backend/app/routers/historique_culture.py : expose les coûts dans _enrich()
+- backend/app/routers/cultures.py :
+    - import CultureLampe, Lampe, AppSettings
+    - _compute_culture_cost() : calcul élec + engrais + graines
+    - _maybe_archive_culture() : stocke les coûts à la clôture
+    - GET /{culture_id}/cout : calcul dynamique cultures actives
+- frontend/src/api/cultures.ts : type CultureCout + getCout()
+- frontend/src/api/historiqueCulture.ts : champs cout_* dans HistoriqueCulture
+- frontend/src/components/culture/StatsTab.tsx : bloc coûts (élec/engrais/graines/total/€/g)
+- frontend/src/pages/HistoriqueCultures.tsx : colonnes "Coût €" et "€/g" triables
+- frontend/src/pages/Statistiques.tsx : section coûts moy/max/min (cout_total + €/g)
+
+── Migration ───────────────────────────────────────────────────
+- migration_features_1_5.sql : CREATE TABLE SessionConsommation + ALTER TABLE HistoriqueCulture
+
+── Wiki ────────────────────────────────────────────────────────
+- wiki/roadmap.md : Feature 1 et 5 marquées DONE avec détail implémentation

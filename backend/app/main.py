@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 from app.database import Base, engine
-from app.routers import breeders, varietes, graines, cultures, stock, extractions, dashboard, fournisseurs, import_export, historique_culture, materiel, parametre, engrais, recette_engrais, recette_tco, recette_lso, recette_reamendement, recette_arrosage, recette_fermentation, suivi_sol_vivant, espaces, capteurs, plan_culture, preparation_substrat, notation_variete, vaporisateur, sechage, curing, croisement, app_settings
+from app.routers import breeders, varietes, graines, cultures, stock, extractions, dashboard, fournisseurs, import_export, historique_culture, materiel, parametre, engrais, recette_engrais, recette_tco, recette_lso, recette_reamendement, recette_arrosage, recette_fermentation, suivi_sol_vivant, espaces, capteurs, plan_culture, preparation_substrat, notation_variete, vaporisateur, sechage, curing, croisement, app_settings, consommation
 from app.services.govee_poller import start_poller
 
 # Création de l'application FastAPI
@@ -91,6 +91,13 @@ def run_migrations():
         ("SessionCuring", "id_espace",         "ALTER TABLE SessionCuring ADD COLUMN id_espace INT NULL REFERENCES EspaceCulture(id_espace)"),
         ("SessionCuring", "id_materiel_bocal", "ALTER TABLE SessionCuring ADD COLUMN id_materiel_bocal INT NULL REFERENCES Materiel(id_materiel)"),
         # Vaporisateurs — nouvelles tables (créées via create_all, pas de migration ALTER nécessaire)
+        # Feature 1 — Coûts culture
+        ("HistoriqueCulture", "cout_engrais",     "ALTER TABLE HistoriqueCulture ADD COLUMN cout_engrais DECIMAL(10,2) NULL"),
+        ("HistoriqueCulture", "cout_electricite", "ALTER TABLE HistoriqueCulture ADD COLUMN cout_electricite DECIMAL(10,2) NULL"),
+        ("HistoriqueCulture", "cout_graines",     "ALTER TABLE HistoriqueCulture ADD COLUMN cout_graines DECIMAL(10,2) NULL"),
+        ("HistoriqueCulture", "cout_total",       "ALTER TABLE HistoriqueCulture ADD COLUMN cout_total DECIMAL(10,2) NULL"),
+        ("HistoriqueCulture", "cout_par_gramme",  "ALTER TABLE HistoriqueCulture ADD COLUMN cout_par_gramme DECIMAL(10,4) NULL"),
+        # Feature 5 — SessionConsommation créée via create_all
     ]
     # Créer les tables manquantes (ProduitEngrais, TemperatureLog, etc.)
     Base.metadata.create_all(bind=engine)
@@ -205,6 +212,7 @@ app.include_router(sechage.router)
 app.include_router(curing.router)
 app.include_router(croisement.router)
 app.include_router(app_settings.router)
+app.include_router(consommation.router)
 
 # Démarrage du poller Govee (si APScheduler installé)
 start_poller(app)

@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
-import { actionAPI, Stats } from '../../api/cultures'
-import { BarChart2, Droplets, Zap } from 'lucide-react'
+import { actionAPI, cultureAPI, Stats, CultureCout } from '../../api/cultures'
+import { BarChart2, Droplets, Zap, Euro, Leaf, Zap as ZapIcon, FlaskConical } from 'lucide-react'
 import {
   LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
 } from 'recharts'
@@ -11,6 +11,11 @@ export default function StatsTab({ cultureId }: Props) {
   const { data: stats, isLoading } = useQuery<Stats>({
     queryKey: ['stats', cultureId],
     queryFn: async () => (await actionAPI.getStats(cultureId)).data,
+  })
+
+  const { data: cout } = useQuery<CultureCout>({
+    queryKey: ['culture-cout', cultureId],
+    queryFn: async () => (await cultureAPI.getCout(cultureId)).data,
   })
 
   if (isLoading) return <div className="text-center py-12 text-gray-400 dark:text-gray-500">Chargement des stats…</div>
@@ -32,6 +37,56 @@ export default function StatsTab({ cultureId }: Props) {
 
   return (
     <div className="space-y-8">
+
+      {/* ── Coûts ── */}
+      {cout && (cout.cout_total != null || cout.cout_par_gramme != null) && (
+        <div className="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800 rounded-xl p-5">
+          <h3 className="text-sm font-semibold text-indigo-800 dark:text-indigo-300 mb-3 flex items-center gap-2">
+            <Euro size={15} /> Estimation des coûts
+          </h3>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {cout.cout_electricite != null && (
+              <div className="text-center">
+                <p className="text-xs text-indigo-500 dark:text-indigo-400 flex items-center justify-center gap-1 mb-0.5">
+                  <ZapIcon size={11} /> Électricité
+                </p>
+                <p className="text-lg font-bold text-indigo-700 dark:text-indigo-300">{cout.cout_electricite.toFixed(2)} €</p>
+              </div>
+            )}
+            {cout.cout_engrais != null && (
+              <div className="text-center">
+                <p className="text-xs text-indigo-500 dark:text-indigo-400 flex items-center justify-center gap-1 mb-0.5">
+                  <FlaskConical size={11} /> Engrais
+                </p>
+                <p className="text-lg font-bold text-indigo-700 dark:text-indigo-300">{cout.cout_engrais.toFixed(2)} €</p>
+              </div>
+            )}
+            {cout.cout_graines != null && (
+              <div className="text-center">
+                <p className="text-xs text-indigo-500 dark:text-indigo-400 flex items-center justify-center gap-1 mb-0.5">
+                  <Leaf size={11} /> Graines
+                </p>
+                <p className="text-lg font-bold text-indigo-700 dark:text-indigo-300">{cout.cout_graines.toFixed(2)} €</p>
+              </div>
+            )}
+            <div className="text-center border-l border-indigo-200 dark:border-indigo-700 pl-3">
+              <p className="text-xs text-indigo-500 dark:text-indigo-400 mb-0.5">Total</p>
+              <p className="text-xl font-bold text-indigo-800 dark:text-indigo-200">{(cout.cout_total ?? 0).toFixed(2)} €</p>
+              {cout.cout_par_gramme != null && (
+                <p className="text-xs font-semibold text-purple-600 dark:text-purple-400 mt-0.5">
+                  {cout.cout_par_gramme.toFixed(2)} €/g
+                </p>
+              )}
+            </div>
+          </div>
+          {cout.puissance_w != null && (
+            <p className="text-xs text-indigo-400 dark:text-indigo-500 mt-2 text-right">
+              Lampe(s) : {cout.puissance_w} W · 18 h/j · prix kWh depuis Paramétrage
+            </p>
+          )}
+        </div>
+      )}
+
       {/* Résumé */}
       <div className="grid grid-cols-3 gap-4">
         <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 text-center">

@@ -23,6 +23,7 @@ type SortCol =
   | 'num' | 'varietes' | 'date_debut' | 'date_fin' | 'duree'
   | 'plants' | 'prix_total' | 'tente' | 'lampe' | 'puissance'
   | 'type' | 'substrat' | 'engrais' | 'qte_total' | 'gpw'
+  | 'cout_total' | 'cout_pg'
 
 // ── Ligne ─────────────────────────────────────────────────────────────────────
 function CultureRow({
@@ -108,6 +109,12 @@ function CultureRow({
       <td className="px-2 py-2 text-xs font-semibold text-amber-600 text-right">
         {item.g_par_watt != null ? item.g_par_watt.toFixed(3) : '—'}
       </td>
+      <td className="px-2 py-2 text-xs font-semibold text-indigo-600 dark:text-indigo-400 text-right">
+        {item.cout_total != null ? `${Number(item.cout_total).toFixed(2)} €` : '—'}
+      </td>
+      <td className="px-2 py-2 text-xs font-semibold text-purple-600 dark:text-purple-400 text-right">
+        {item.cout_par_gramme != null ? `${Number(item.cout_par_gramme).toFixed(2)} €/g` : '—'}
+      </td>
       <td className="px-2 py-2 text-right" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-end gap-1">
           <button onClick={e => { e.stopPropagation(); onDetail() }}
@@ -176,6 +183,8 @@ export default function HistoriqueCulturesPage() {
         case 'engrais':    return c.engrais ?? ''
         case 'qte_total':  return c.quantite_totale ?? -1
         case 'gpw':        return c.g_par_watt ?? -1
+        case 'cout_total': return c.cout_total ?? -1
+        case 'cout_pg':    return c.cout_par_gramme ?? -1
         default:           return ''
       }
     }
@@ -313,6 +322,8 @@ export default function HistoriqueCulturesPage() {
                     <Th col="engrais">Engrais</Th>
                     <Th col="qte_total" right>Récolte</Th>
                     <Th col="gpw" right>g/W</Th>
+                    <Th col="cout_total" right>Coût €</Th>
+                    <Th col="cout_pg" right>€/g</Th>
                     <th className="px-2 py-2"></th>
                   </tr>
                 </thead>

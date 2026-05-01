@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models import Culture, Plant, ActionCalendrier, EspaceCulture, Graine, ProduitEngrais, Stock
-from app.models.all_models import RecetteEngrais, RecetteTCO, HistoriqueCulture, HistoriquePlant, RecetteLSO
+from app.models.all_models import RecetteEngrais, RecetteTCO, HistoriqueCulture, HistoriquePlant, RecetteLSO, CultureLampe, Lampe, AppSettings
 from app.schemas.culture import (
     CultureCreate, CultureUpdate, CultureRead, CultureWithDetails,
     PlantCreate, PlantUpdate, PlantRead,
@@ -267,11 +267,107 @@ def _maybe_archive_culture(culture: Culture, db: Session) -> None:
         )
         db.add(hp)
 
+    # ── Calcul des coûts à la clôture ──────────────────────────────────────
+    couts = _compute_culture_cost(culture.id_culture, db, date_fin_override=today)
+    historique.cout_engrais      = couts["cout_engrais"]
+    historique.cout_electricite  = couts["cout_electricite"]
+    historique.cout_graines      = couts["cout_graines"]
+    historique.cout_total        = couts["cout_total"]
+    historique.cout_par_gramme   = couts["cout_par_gramme"]
+    # Puissance lampe (dénormalisée)
+    historique.puissance         = couts["puissance_w"] or historique.puissance
+
     # Passer la culture en terminée
     culture.statut = "terminee"
     if not culture.date_fin:
         culture.date_fin = today
     db.commit()
+
+
+def _compute_culture_cost(id_culture: int, db: Session, date_fin_override=None) -> dict:
+    """Calcule les coûts d'une culture : électricité, engrais, graines.
+    Retourne un dict avec les montants en € (None si pas calculable).
+    """
+    from decimal import Decimal
+
+    culture = db.query(Culture).filter(Culture.id_culture == id_culture).first()
+    if not culture:
+        return {"cout_engrais": None, "cout_electricite": None, "cout_graines": None,
+                "cout_total": None, "cout_par_gramme": None, "puissance_w": None}
+
+    today = date.today()
+    date_debut = culture.date_debut or today
+    date_fin   = date_fin_override or culture.date_fin or today
+
+    # ── Prix kWh depuis AppSettings ──────────────────────────────────────────
+    setting = db.query(AppSettings).filter(AppSettings.cle == "prix_kwh").first()
+    prix_kwh = float(setting.valeur) if setting and setting.valeur else 0.18
+
+    # ── Puissance totale des lampes ──────────────────────────────────────────
+    lampes = (
+        db.query(Lampe)
+        .join(CultureLampe, CultureLampe.id_lampe == Lampe.id_lampe)
+        .filter(CultureLampe.id_culture == id_culture)
+        .all()
+    )
+    puissance_w = sum(l.puissance_lampe for l in lampes if l.puissance_lampe) or 0
+
+    # ── Coût électricité ─────────────────────────────────────────────────────
+    jours = max((date_fin - date_debut).days, 0)
+    heures_par_jour = 18  # photoperiode indoor standard
+    cout_electricite = round((puissance_w / 1000) * jours * heures_par_jour * prix_kwh, 2)
+
+    # ── Coût engrais (arrosages avec RecetteEngrais liée) ────────────────────
+    actions_arrosage = db.query(ActionCalendrier).filter(
+        ActionCalendrier.id_culture == id_culture,
+        ActionCalendrier.type_action == "arrosage_engrais",
+    ).all()
+
+    cout_engrais = 0.0
+    for action in actions_arrosage:
+        p = action.parametres or {}
+        id_recette = p.get("id_recette")
+        volume_l   = float(p.get("volume_l") or 1.0)
+        if not id_recette:
+            continue
+        recette = db.query(RecetteEngrais).filter(RecetteEngrais.id_recette == id_recette).first()
+        if not recette:
+            continue
+        for ligne in recette.lignes:
+            prod = db.query(ProduitEngrais).filter(ProduitEngrais.id_produit == ligne.id_produit).first()
+            if not prod or not prod.prix_achat or not prod.volume_conditionnement:
+                continue
+            qte_utilisee = ligne.dosage * volume_l          # mL ou g utilisés
+            prix_par_unite = float(prod.prix_achat) / float(prod.volume_conditionnement)
+            cout_engrais += qte_utilisee * prix_par_unite
+
+    cout_engrais = round(cout_engrais, 2)
+
+    # ── Coût graines (depuis les plantes de la culture) ──────────────────────
+    plants = db.query(Plant).filter(Plant.id_culture == id_culture).all()
+    cout_graines = 0.0
+    for plant in plants:
+        if plant.id_graine:
+            graine = db.query(Graine).filter(Graine.id_graine == plant.id_graine).first()
+            if graine and graine.prix_achat:
+                cout_graines += float(graine.prix_achat)
+    cout_graines = round(cout_graines, 2)
+
+    # ── Total & €/g ──────────────────────────────────────────────────────────
+    cout_total = round(cout_electricite + cout_engrais + cout_graines, 2)
+
+    # Récolte totale (poids_recolte_g des plantes)
+    total_g = sum(float(p.poids_recolte_g) for p in plants if p.poids_recolte_g)
+    cout_par_gramme = round(cout_total / total_g, 4) if total_g > 0 else None
+
+    return {
+        "cout_engrais":     cout_engrais or None,
+        "cout_electricite": cout_electricite or None,
+        "cout_graines":     cout_graines or None,
+        "cout_total":       cout_total or None,
+        "cout_par_gramme":  cout_par_gramme,
+        "puissance_w":      puissance_w or None,
+    }
 
 
 def _compute_harvest_date(culture: Culture, db: Session) -> None:
@@ -1161,6 +1257,15 @@ def delete_culture(culture_id: int, db: Session = Depends(get_db)):
     db.query(Plant).filter(Plant.id_culture == culture_id).delete(synchronize_session=False)
     db.delete(culture)
     db.commit()
+
+
+@router.get("/{culture_id}/cout")
+def get_culture_cout(culture_id: int, db: Session = Depends(get_db)):
+    """Calcule dynamiquement les coûts d'une culture active ou terminée."""
+    culture = db.query(Culture).filter(Culture.id_culture == culture_id).first()
+    if not culture:
+        raise HTTPException(status_code=404, detail="Culture non trouvée")
+    return _compute_culture_cost(culture_id, db)
 
 
 @router.post("/{culture_id}/close", response_model=CultureRead)

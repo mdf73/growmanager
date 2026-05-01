@@ -2,6 +2,15 @@ import client from './client'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
+export interface CultureCout {
+  cout_engrais:     number | null
+  cout_electricite: number | null
+  cout_graines:     number | null
+  cout_total:       number | null
+  cout_par_gramme:  number | null
+  puissance_w:      number | null
+}
+
 export interface Culture {
   id_culture: number
   nom?: string
@@ -251,6 +260,8 @@ export const cultureAPI = {
     client.delete(`/cultures/${id}`),
   close: (id: number) =>
     client.post<Culture>(`/cultures/${id}/close`),
+  getCout: (id: number) =>
+    client.get<CultureCout>(`/cultures/${id}/cout`),
   getSechagePlants: () =>
     client.get<PlantSechage[]>('/cultures/sechage/plants'),
   getSechageEligible: () =>
