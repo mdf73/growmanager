@@ -1,8 +1,7 @@
 import { useState, useMemo, useRef } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
-  Plus, Trash2, Pencil, Search, FlaskConical, Droplets,
-  Leaf, Euro, Hash, ChevronDown, ChevronRight, Download, Upload,
+  Plus, Trash2, Pencil, Search, FlaskConical, Droplets, ChevronDown, ChevronRight, Download, Upload,
 } from 'lucide-react'
 import { recetteEngraisAPI, RecetteEngrais } from '../api/recetteEngrais'
 import NouvelleRecetteEngraisModal from '../components/NouvelleRecetteEngraisModal'
@@ -21,15 +20,6 @@ const PERIODE_COLORS: Record<string, string> = {
 const TYPE_COLORS: Record<string, string> = {
   'Arrosage':       'bg-sky-100 text-sky-700',
   'Pulvérisation':  'bg-violet-100 text-violet-700',
-}
-
-// ── Calcul coût/L ─────────────────────────────────────────────────────────────
-function coutParLitre(recette: RecetteEngrais): number | null {
-  // Le coût est calculé depuis les données enrichies de la recette
-  // Mais ici, on n'a pas les prix — on affiche ce que le backend a calculé
-  // (les lignes ont nom_produit mais pas prix_achat)
-  // On retourne null si on n'a pas l'info
-  return null
 }
 
 // ── Card recette ──────────────────────────────────────────────────────────────

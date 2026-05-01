@@ -2,17 +2,17 @@ import client from './client'
 
 export interface Stock {
   id_stock:          number
-  id_variete?:       number
-  id_bocal?:         number
-  id_materiel_bocal?: number
-  type_stock?:       string
-  sous_type_stock?:  string
-  lampe_type?:       string
-  engrais_type?:     string
-  maillage?:         string
-  type_hash?:        string
-  type_rosin?:       string
-  date_stock?:       string
+  id_variete?:       number | null
+  id_bocal?:         number | null
+  id_materiel_bocal?: number | null
+  type_stock?:       string | null
+  sous_type_stock?:  string | null
+  lampe_type?:       string | null
+  engrais_type?:     string | null
+  maillage?:         string | null
+  type_hash?:        string | null
+  type_rosin?:       string | null
+  date_stock?:       string | null
   date_fin_stock?:   string | null
   quantite_stock:    number
   variete_nom?:      string

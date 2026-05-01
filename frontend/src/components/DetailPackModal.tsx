@@ -30,13 +30,6 @@ export default function DetailPackModal({ pack, onClose, onDeleted }: DetailPack
     },
   })
 
-  const deleteGraine = useMutation({
-    mutationFn: (id: number) => graineActionAPI.delete(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['pack-graines', pack.id_packgraine] })
-      queryClient.invalidateQueries({ queryKey: ['catalogue'] })
-    },
-  })
 
   const deletePack = useMutation({
     mutationFn: () => packCompletAPI.delete(pack.id_packgraine),

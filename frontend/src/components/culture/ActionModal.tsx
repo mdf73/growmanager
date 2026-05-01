@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Plant, ActionCreate } from '../../api/cultures'
 import { engraisAPI } from '../../api/engrais'
 import {
-  ACTION_TYPES, ACTIONS_BY_CATEGORY, ACTION_MAP,
+  ACTIONS_BY_CATEGORY, ACTION_MAP,
   CATEGORY_COLORS, CATEGORY_LABELS, ActionCategory,
 } from './actionTypes'
 

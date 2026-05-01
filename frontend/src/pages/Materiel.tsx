@@ -230,8 +230,8 @@ const COMPAT_LABELS: Record<string, string> = {
 }
 
 function VapoCard({
-  vapo, onEdit, onDelete,
-}: { vapo: Vaporisateur; onEdit: () => void; onDelete: () => void }) {
+  vapo, onEdit,
+}: { vapo: Vaporisateur; onEdit: () => void }) {
   const [confirm, setConfirm] = useState(false)
   const [expanded, setExpanded] = useState(false)
   const qc = useQueryClient()
@@ -686,8 +686,7 @@ export default function MaterielPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
             {filteredVapos.map(v => (
               <VapoCard key={v.id_vaporisateur} vapo={v}
-                onEdit={() => { setEditVapo(v); setShowVapoModal(true) }}
-                onDelete={() => {}} />
+                onEdit={() => { setEditVapo(v); setShowVapoModal(true) }} />
             ))}
           </div>
         )}

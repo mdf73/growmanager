@@ -64,7 +64,7 @@ export interface SuiviSolVivant {
   cultures:           SuiviCulture[]
 }
 
-export type SuiviSolVivantCreate = Omit<SuiviSolVivant, 'id_suivi' | 'nom_recette_lso' | 'nom_materiel' | 'cout_lso_estime' | 'cout_total_estime'> & {
+export type SuiviSolVivantCreate = Omit<SuiviSolVivant, 'id_suivi' | 'nom_recette_lso' | 'nom_materiel' | 'cout_lso_estime' | 'cout_total_estime' | 'reamendements' | 'arrosages' | 'tcos' | 'fermentations' | 'cultures'> & {
   reamendements: Omit<SuiviReamendement, 'id_suivi_reamend' | 'nom_recette_reamend' | 'cout_estime'>[]
   arrosages:     Omit<SuiviArrosage, 'id_suivi_arrosage' | 'nom_recette_arrosage' | 'cout_estime'>[]
   tcos:          Omit<SuiviTCO, 'id_suivi_tco' | 'nom_recette_tco'>[]

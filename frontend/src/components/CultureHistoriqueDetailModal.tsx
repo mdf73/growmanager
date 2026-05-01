@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { X, Trash2, Loader2, Leaf, Scale, Zap, AlertTriangle, Pencil, Check } from 'lucide-react'
+import { X, Trash2, Loader2, Leaf, AlertTriangle, Pencil, Check } from 'lucide-react'
 import type { HistoriqueCulture, HistoriquePlant, HistoriqueCultureUpdate } from '../api/historiqueCulture'
 import { historiqueCultureAPI } from '../api/historiqueCulture'
 

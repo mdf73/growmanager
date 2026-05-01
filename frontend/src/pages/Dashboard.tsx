@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import {
   Leaf, Wind, Package, Sprout, Beaker,
-  TrendingUp, FlaskConical, Scissors, Thermometer, Wifi, WifiOff, Droplets,
+  TrendingUp, Scissors, Thermometer, Wifi, WifiOff, Droplets,
 } from 'lucide-react'
 import { dashboardAPI, DashboardFullStats, BoxArrosageStats } from '../api/dashboard'
 import { capteursAPI, GoveeDevice } from '../api/capteurs'

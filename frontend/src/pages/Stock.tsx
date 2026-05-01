@@ -186,9 +186,9 @@ function StockRow({
   // Colonne âge / durée de consommation
   const ageCol = isCloture
     ? <span className="text-xs text-gray-400 dark:text-gray-500 italic">
-        {durationLabel(item.date_stock, item.date_fin_stock)}
+        {durationLabel(item.date_stock ?? undefined, item.date_fin_stock ?? undefined)}
       </span>
-    : <span className="text-sm text-gray-400 dark:text-gray-500">{ageLabel(item.date_stock)}</span>
+    : <span className="text-sm text-gray-400 dark:text-gray-500">{ageLabel(item.date_stock ?? undefined)}</span>
 
   const rowClass = isCloture
     ? 'opacity-50 bg-gray-50 dark:bg-gray-700/30'
@@ -204,7 +204,7 @@ function StockRow({
           </span>
         )}
       </td>
-      <td className="px-5 py-3"><TypeBadge type={item.type_stock} /></td>
+      <td className="px-5 py-3"><TypeBadge type={item.type_stock ?? undefined} /></td>
       <td className="px-5 py-3 text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500">{specs}</td>
       <td className="px-5 py-3 text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500">{item.engrais_type || '—'}</td>
       <td className="px-5 py-3 text-sm text-gray-400 dark:text-gray-500 max-w-[160px] truncate" title={bocalLabel !== '—' ? bocalLabel : undefined}>

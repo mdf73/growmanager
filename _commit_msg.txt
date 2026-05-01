@@ -1,19 +1,23 @@
-feat: Feature 6 — Mode sombre complet (Dark Mode)
+fix: audit complet erreurs backend + frontend — 0 erreur py_compile + tsc
 
-Infrastructure:
-- tailwind.config.js : darkMode: 'class'
-- frontend/index.html : script anti-FOUC (applique dark avant React)
-- src/hooks/useDarkMode.ts : hook + persistance localStorage 'gm-theme'
-- src/index.css : 7 classes utilitaires dark: (.card, .page-bg, etc.)
+Backend Python :
+- cultures.py : get_stats() tronqué, return dict restauré
+- sechage.py : corps if not ps vide, raise HTTPException 404 remis
 
-Layout:
-- Layout.tsx : toggle Moon/Sun sidebar desktop (footer) + header mobile
-  fond root dark:bg-gray-900, header/nav dark:bg-gray-800
+Frontend TypeScript — bugs sérieux :
+- api/suiviSolVivant.ts : SuiviSolVivantCreate Omit fix (5 sous-tableaux)
+- api/espaces.ts : EspaceCultureCreate Omit fix (equipements)
+- api/stock.ts : champs nullables passés en string|null / number|null
+- api/materiel.ts : champ date_sortie_stock ajouté
+- NouvellerCultureModal : b.id_parametre + 3 useState orphelins supprimés
+- ClassementVarietes : NoteSlider.value accepte number|null|undefined
+- EmptyState : icon prop LucideIcon → React.ElementType
+- Graines : prop title illégale sur Lucide → span wrapper
+- Stock + Statistiques : null → ?? undefined pour fonctions date
 
-Passage global (script Python — 58 fichiers .tsx) :
-- bg-white → dark:bg-gray-800
-- bg-gray-50 → dark:bg-gray-700/50
-- border-gray-100/200 → dark:border-gray-700
-- text-gray-900/700/600/500 → dark: variants
-- hover:bg-gray-50 → dark:hover:bg-gray-700/40
-- Tous tableaux, modales, composants, pages couverts
+Frontend TypeScript — cosmétiques (TS6133) :
+- Imports inutilisés supprimés dans ~15 fichiers
+- deleteGraine mutation morte, coutParLitre, fmt, ARROSAGE_COLORS supprimés
+
+React Router :
+- App.tsx : future flags v7_startTransition + v7_relativeSplatPath ajoutés

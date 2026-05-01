@@ -7,13 +7,6 @@ import {
 
 interface Props { cultureId: number }
 
-const ARROSAGE_COLORS: Record<string, string> = {
-  arrosage_eau:    '#60a5fa',
-  arrosage_engrais:'#34d399',
-  arrosage_tco:    '#a78bfa',
-  arrosage_aptus:  '#f97316',
-}
-
 export default function StatsTab({ cultureId }: Props) {
   const { data: stats, isLoading } = useQuery<Stats>({
     queryKey: ['stats', cultureId],

@@ -98,6 +98,7 @@ export interface Materiel {
   prix_achat:        number | null
   site_achat:        string | null
   etat:              string | null
+  date_sortie_stock: string | null
   notes:             string | null
   caracteristiques:  Caracteristiques | null
   age_jours:         number | null
@@ -112,6 +113,7 @@ export interface MaterielCreate {
   prix_achat?:       number | null
   site_achat?:       string | null
   etat?:             string | null
+  date_sortie_stock?: string | null
   notes?:            string | null
   caracteristiques?: Caracteristiques | null
 }

@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { X, Loader2, Save, Plus, Trash2, GripVertical, Euro } from 'lucide-react'
-import { recetteTCOAPI, RecetteTCO, RecetteTCOLigne } from '../api/recetteTCO'
+import { recetteTCOAPI, RecetteTCO } from '../api/recetteTCO'
 import { engraisAPI, ProduitEngrais } from '../api/engrais'
 
 interface Props {

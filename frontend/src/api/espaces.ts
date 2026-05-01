@@ -25,7 +25,7 @@ export interface EspaceCulture {
   equipements:            EspaceMateriel[]
 }
 
-export type EspaceCultureCreate = Omit<EspaceCulture, 'id_espace' | 'nom_materiel_principal'> & {
+export type EspaceCultureCreate = Omit<EspaceCulture, 'id_espace' | 'nom_materiel_principal' | 'equipements'> & {
   equipements: Omit<EspaceMateriel, 'id_espace_materiel' | 'nom_materiel' | 'categorie' | 'marque' | 'etat'>[]
 }
 export type EspaceCultureUpdate = Partial<EspaceCultureCreate>

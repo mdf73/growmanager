@@ -239,7 +239,7 @@ export default function Statistiques() {
 
     // Durées (âge depuis date_stock)
     const ages = actifs
-      .map(s => daysSince(s.date_stock))
+      .map(s => daysSince(s.date_stock ?? undefined))
       .filter((d): d is number => d !== null)
     const dureeAvg = ages.length ? ages.reduce((s, d) => s + d, 0) / ages.length : null
     const dureeMax = ages.length ? Math.max(...ages) : null

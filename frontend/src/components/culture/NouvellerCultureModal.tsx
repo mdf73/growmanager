@@ -65,9 +65,6 @@ export default function NouvellerCultureModal({ onClose, onSubmit, initialData }
   const [typeCulture, setTypeCulture] = useState('')
   const [typeEclairage, setTypeEclairage] = useState('')
   const [substratDefaut, setSubstratDefaut] = useState('')
-  const [idRecetteSolDefaut, setIdRecetteSolDefaut] = useState<number | ''>('')
-  const [idPotDefaut, setIdPotDefaut] = useState<number | ''>('')
-  const [volumePotDefaut, setVolumePotDefaut] = useState<number | ''>('')
   const [selectedButs, setSelectedButs] = useState<string[]>([])
   const [notes, setNotes] = useState('')
   const [selections, setSelections] = useState<{ id_packgraine: number; nb_plantes: number; variete_nom: string; id_pot?: number; volume_pot_l?: number }[]>(
@@ -169,7 +166,7 @@ export default function NouvellerCultureModal({ onClose, onSubmit, initialData }
         type_eclairage: typeEclairage || undefined,
         but_culture: selectedButs.length > 0 ? selectedButs.join(',') : undefined,
         substrat_defaut: substratDefaut || undefined,
-        id_recette_sol_defaut: idRecetteSolDefaut ? Number(idRecetteSolDefaut) : undefined,
+        id_recette_sol_defaut: undefined,
         notes: notes || undefined,
       }
       if (mode === 'externe') {
@@ -299,7 +296,7 @@ export default function NouvellerCultureModal({ onClose, onSubmit, initialData }
                 </label>
                 <div className="flex flex-wrap gap-2">
                   {butsCulture.map(b => (
-                    <button key={b.id} type="button"
+                    <button key={b.id_parametre} type="button"
                       onClick={() => toggleBut(b.valeur)}
                       className={`px-3 py-1.5 rounded-full border text-sm transition-colors
                         ${selectedButs.includes(b.valeur)

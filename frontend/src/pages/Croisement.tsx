@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
-  Plus, X, Dna, FlaskConical, Trash2, Edit3, Sparkles,
+  Plus, X, Dna, FlaskConical, Trash2, Sparkles,
   Calendar, AlertTriangle, Clock, CheckCircle2, Leaf,
 } from 'lucide-react'
 import {

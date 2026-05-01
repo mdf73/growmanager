@@ -239,7 +239,7 @@ export default function Graines() {
                       <span className="flex items-center gap-1.5">
                         {item.variete_nom}
                         {item.paquet_ouvert && (
-                          <PackageOpen size={13} className="text-amber-400 shrink-0" title="Paquet ouvert" />
+                          <span title="Paquet ouvert"><PackageOpen size={13} className="text-amber-400 shrink-0" /></span>
                         )}
                       </span>
                     </td>
@@ -262,7 +262,7 @@ export default function Graines() {
                     <td className="px-5 py-3 text-sm text-gray-600 dark:text-gray-300">
                       <span className="flex items-center gap-1">
                         {item.prix_par_graine == null ? '—' : item.prix_par_graine === 0 ? 'Gratuit' : `${item.prix_par_graine.toFixed(2)} €`}
-                        {item.edition_limite && <Lock size={11} className="text-amber-500" title="Édition limitée" />}
+                        {item.edition_limite && <span title="Édition limitée"><Lock size={11} className="text-amber-500" /></span>}
                       </span>
                     </td>
                     <td className="px-5 py-3 text-sm text-gray-400 dark:text-gray-500">

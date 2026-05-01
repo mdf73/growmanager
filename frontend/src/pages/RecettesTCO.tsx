@@ -2,7 +2,7 @@ import { useState, useMemo, useRef } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   Plus, Trash2, Pencil, Search, FlaskConical,
-  ChevronDown, ChevronRight, Euro, Download, Upload,
+  ChevronDown, ChevronRight, Download, Upload,
 } from 'lucide-react'
 import { recetteTCOAPI, RecetteTCO } from '../api/recetteTCO'
 import NouvelleRecetteTCOModal from '../components/NouvelleRecetteTCOModal'

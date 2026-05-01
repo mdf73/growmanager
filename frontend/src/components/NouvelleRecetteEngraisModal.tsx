@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { X, Loader2, Save, Plus, Trash2, GripVertical, Euro } from 'lucide-react'
-import { recetteEngraisAPI, RecetteEngrais, RecetteEngraisLigne } from '../api/recetteEngrais'
+import { recetteEngraisAPI, RecetteEngrais } from '../api/recetteEngrais'
 import { engraisAPI, ProduitEngrais } from '../api/engrais'
 import { useParametreListe } from '../api/parametres'
 

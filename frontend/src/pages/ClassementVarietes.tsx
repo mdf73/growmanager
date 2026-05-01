@@ -58,7 +58,7 @@ function NoteSlider({
 }: {
   label: string
   max: number
-  value: number | undefined
+  value: number | null | undefined
   onChange: (v: number) => void
   hint?: string
 }) {
@@ -1011,6 +1011,5 @@ export default function ClassementVarietes() {
           extractionStat={extractionStats[detailTarget.nom_variete]}
         />
       )}
-    </div>
-  )
+    </div>  )
 }

@@ -1,4 +1,4 @@
-import { X, Thermometer, Timer, Layers, FlaskConical, Package } from 'lucide-react'
+import { X, Thermometer, Layers, FlaskConical, Package } from 'lucide-react'
 import type { RosinExtraction } from '../api/stock'
 
 interface Props {
@@ -53,7 +53,6 @@ export default function ExtractionDetailModal({ extraction, onClose }: Props) {
     extraction.presse_4_poids,
   ].filter((v): v is number => v != null && v > 0)
 
-  const fmt = (v?: number | null) => v != null ? `${v.toFixed(2)} g` : null
   const fmtSec = (v?: number | null) => {
     if (v == null) return null
     if (v < 60) return `${v} sec`
