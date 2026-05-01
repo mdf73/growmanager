@@ -1638,12 +1638,23 @@ function BackupSection() {
 
 
 // ── Page ──────────────────────────────────────────────────────────────────────
-export default function ParametragePage() {
-  return (
-    <div className="space-y-8 max-w-4xl">
+type TabId = 'general' | 'backup' | 'capteurs'
 
+export default function ParametragePage() {
+  const [activeTab, setActiveTab] = useState<TabId>('general')
+
+  const tabs: { id: TabId; label: string }[] = [
+    { id: 'general',  label: 'Général' },
+    { id: 'backup',   label: 'Sauvegarde et restaurations' },
+    { id: 'capteurs', label: 'Capteurs' },
+  ]
+
+  return (
+    <div className="space-y-6 max-w-4xl">
+
+      {/* Header */}
       <div className="flex items-center gap-3">
-        <div className="p-2.5 bg-gray-100 rounded-xl">
+        <div className="p-2.5 bg-gray-100 dark:bg-gray-700 rounded-xl">
           <Settings size={22} className="text-gray-600 dark:text-gray-300" />
         </div>
         <div>
@@ -1654,40 +1665,73 @@ export default function ParametragePage() {
         </div>
       </div>
 
-      {/* Économique — prix kWh, devise */}
-      <AppSettingsSection />
-
-      {/* Sauvegarde & Restauration */}
-      <BackupSection />
-
-      {/* Listes déroulantes */}
-      {SECTIONS.map(section => (
-        <div key={section.titre} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50">
-            <h2 className="text-base font-semibold text-gray-800 dark:text-gray-100">{section.titre}</h2>
-          </div>
-          <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-            {section.listes.map(l => (
-              <ListeEditor key={l.nom} listeNom={l.nom} label={l.label} />
-            ))}
-          </div>
-        </div>
-      ))}
-
-      {/* Breeders & Variétés */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50">
-          <h2 className="text-base font-semibold text-gray-800 dark:text-gray-100">Génétique</h2>
-          <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">Gérez vos breeders et vos variétés</p>
-        </div>
-        <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-          <BreedersEditor />
-          <VarietesEditor />
-        </div>
+      {/* Tabs nav */}
+      <div className="border-b border-gray-200 dark:border-gray-700">
+        <nav className="flex gap-1" aria-label="Tabs">
+          {tabs.map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={[
+                'px-4 py-2.5 text-sm font-medium rounded-t-lg transition-colors border-b-2 -mb-px',
+                activeTab === tab.id
+                  ? 'border-grow-600 text-grow-600 dark:text-grow-400 dark:border-grow-400'
+                  : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:border-gray-300 dark:hover:border-gray-600',
+              ].join(' ')}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </nav>
       </div>
 
-      {/* Capteurs Govee */}
-      <GoveeSection />
+      {/* Tab — Général */}
+      {activeTab === 'general' && (
+        <div className="space-y-8">
+          {/* Économique — prix kWh, devise */}
+          <AppSettingsSection />
+
+          {/* Listes déroulantes */}
+          {SECTIONS.map(section => (
+            <div key={section.titre} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+              <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50">
+                <h2 className="text-base font-semibold text-gray-800 dark:text-gray-100">{section.titre}</h2>
+              </div>
+              <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                {section.listes.map(l => (
+                  <ListeEditor key={l.nom} listeNom={l.nom} label={l.label} />
+                ))}
+              </div>
+            </div>
+          ))}
+
+          {/* Breeders & Variétés */}
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50">
+              <h2 className="text-base font-semibold text-gray-800 dark:text-gray-100">Génétique</h2>
+              <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">Gérez vos breeders et vos variétés</p>
+            </div>
+            <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+              <BreedersEditor />
+              <VarietesEditor />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Tab — Sauvegarde et restaurations */}
+      {activeTab === 'backup' && (
+        <div className="space-y-8">
+          <BackupSection />
+        </div>
+      )}
+
+      {/* Tab — Capteurs */}
+      {activeTab === 'capteurs' && (
+        <div className="space-y-8">
+          <GoveeSection />
+        </div>
+      )}
 
     </div>
   )
