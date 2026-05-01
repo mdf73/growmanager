@@ -51,7 +51,7 @@ function BreederRow({ breeder, onSaved, onDeleted }: {
           <input
             value={form.origine_breeder}
             onChange={e => setForm(f => ({ ...f, origine_breeder: e.target.value }))}
-            className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-grow-600"
+            className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm focus:outline-none focus:ring-1 focus:ring-grow-600"
             placeholder="Pays / origine"
           />
         </td>
@@ -59,7 +59,7 @@ function BreederRow({ breeder, onSaved, onDeleted }: {
           <input
             value={form.information_breeder}
             onChange={e => setForm(f => ({ ...f, information_breeder: e.target.value }))}
-            className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-grow-600"
+            className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm focus:outline-none focus:ring-1 focus:ring-grow-600"
             placeholder="Notes"
           />
         </td>
@@ -74,7 +74,7 @@ function BreederRow({ breeder, onSaved, onDeleted }: {
             </button>
             <button
               onClick={() => setEditing(false)}
-              className="p-1.5 border border-gray-300 text-gray-500 rounded hover:bg-gray-50"
+              className="p-1.5 border border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-400 dark:text-gray-500 rounded hover:bg-gray-50 dark:hover:bg-gray-700/40"
             >
               <XCircle size={14} />
             </button>
@@ -105,7 +105,7 @@ function BreederRow({ breeder, onSaved, onDeleted }: {
             </button>
             <button
               onClick={() => setConfirmDelete(false)}
-              className="px-3 py-1 border border-gray-300 text-gray-600 text-xs rounded hover:bg-gray-50"
+              className="px-3 py-1 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 text-xs rounded hover:bg-gray-50 dark:hover:bg-gray-700/40"
             >
               Annuler
             </button>
@@ -118,9 +118,9 @@ function BreederRow({ breeder, onSaved, onDeleted }: {
   const isUrl = (val?: string) => !!val && /^https?:\/\//i.test(val)
 
   return (
-    <tr className="hover:bg-gray-50 group">
-      <td className="px-4 py-3 text-sm font-medium text-gray-900">{breeder.nom_breeder}</td>
-      <td className="px-4 py-3 text-sm text-gray-500">{breeder.origine_breeder || '—'}</td>
+    <tr className="hover:bg-gray-50 dark:hover:bg-gray-700/40 group">
+      <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-gray-100">{breeder.nom_breeder}</td>
+      <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500">{breeder.origine_breeder || '—'}</td>
       <td className="px-4 py-3 text-sm max-w-[200px] truncate">
         {isUrl(breeder.information_breeder) ? (
           <a
@@ -134,20 +134,20 @@ function BreederRow({ breeder, onSaved, onDeleted }: {
             <span className="truncate">{breeder.information_breeder!.replace(/^https?:\/\//, '')}</span>
           </a>
         ) : (
-          <span className="text-gray-500">{breeder.information_breeder || '—'}</span>
+          <span className="text-gray-500 dark:text-gray-400 dark:text-gray-500">{breeder.information_breeder || '—'}</span>
         )}
       </td>
       <td className="px-4 py-3 text-right">
         <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
           <button
             onClick={() => setEditing(true)}
-            className="p-1.5 text-gray-400 hover:text-grow-600 hover:bg-grow-50 rounded"
+            className="p-1.5 text-gray-400 dark:text-gray-500 hover:text-grow-600 hover:bg-grow-50 rounded"
           >
             <Pencil size={14} />
           </button>
           <button
             onClick={() => setConfirmDelete(true)}
-            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded"
+            className="p-1.5 text-gray-400 dark:text-gray-500 hover:text-red-600 hover:bg-red-50 rounded"
           >
             <Trash2 size={14} />
           </button>
@@ -198,7 +198,7 @@ function VarieteRow({ variete, onSaved, onDeleted }: {
           <input
             value={form.croisement_variete}
             onChange={e => setForm(f => ({ ...f, croisement_variete: e.target.value }))}
-            className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-grow-600"
+            className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm focus:outline-none focus:ring-1 focus:ring-grow-600"
             placeholder="ex: OG Kush × Durban"
           />
         </td>
@@ -206,7 +206,7 @@ function VarieteRow({ variete, onSaved, onDeleted }: {
           <input
             value={form.lien_web}
             onChange={e => setForm(f => ({ ...f, lien_web: e.target.value }))}
-            className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-grow-600"
+            className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm focus:outline-none focus:ring-1 focus:ring-grow-600"
             placeholder="https://en.seedfinder.eu/..."
           />
         </td>
@@ -214,7 +214,7 @@ function VarieteRow({ variete, onSaved, onDeleted }: {
           <input
             value={form.informations_variete}
             onChange={e => setForm(f => ({ ...f, informations_variete: e.target.value }))}
-            className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-grow-600"
+            className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm focus:outline-none focus:ring-1 focus:ring-grow-600"
             placeholder="Notes..."
           />
         </td>
@@ -229,7 +229,7 @@ function VarieteRow({ variete, onSaved, onDeleted }: {
             </button>
             <button
               onClick={() => setEditing(false)}
-              className="p-1.5 border border-gray-300 text-gray-500 rounded hover:bg-gray-50"
+              className="p-1.5 border border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-400 dark:text-gray-500 rounded hover:bg-gray-50 dark:hover:bg-gray-700/40"
             >
               <XCircle size={14} />
             </button>
@@ -260,7 +260,7 @@ function VarieteRow({ variete, onSaved, onDeleted }: {
             </button>
             <button
               onClick={() => setConfirmDelete(false)}
-              className="px-3 py-1 border border-gray-300 text-gray-600 text-xs rounded hover:bg-gray-50"
+              className="px-3 py-1 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 text-xs rounded hover:bg-gray-50 dark:hover:bg-gray-700/40"
             >
               Annuler
             </button>
@@ -271,10 +271,10 @@ function VarieteRow({ variete, onSaved, onDeleted }: {
   }
 
   return (
-    <tr className="hover:bg-gray-50 group">
-      <td className="px-4 py-3 text-sm font-medium text-gray-900">{variete.nom_variete}</td>
-      <td className="px-4 py-3 text-sm text-gray-500 italic">{variete.croisement_variete || '—'}</td>
-      <td className="px-4 py-3 text-sm text-gray-500">
+    <tr className="hover:bg-gray-50 dark:hover:bg-gray-700/40 group">
+      <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-gray-100">{variete.nom_variete}</td>
+      <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500 italic">{variete.croisement_variete || '—'}</td>
+      <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500">
         {variete.lien_web ? (
           <a
             href={variete.lien_web}
@@ -288,20 +288,20 @@ function VarieteRow({ variete, onSaved, onDeleted }: {
           </a>
         ) : '—'}
       </td>
-      <td className="px-4 py-3 text-sm text-gray-400 max-w-[160px] truncate">
+      <td className="px-4 py-3 text-sm text-gray-400 dark:text-gray-500 max-w-[160px] truncate">
         {variete.informations_variete || '—'}
       </td>
       <td className="px-4 py-3 text-right">
         <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
           <button
             onClick={() => setEditing(true)}
-            className="p-1.5 text-gray-400 hover:text-grow-600 hover:bg-grow-50 rounded"
+            className="p-1.5 text-gray-400 dark:text-gray-500 hover:text-grow-600 hover:bg-grow-50 rounded"
           >
             <Pencil size={14} />
           </button>
           <button
             onClick={() => setConfirmDelete(true)}
-            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded"
+            className="p-1.5 text-gray-400 dark:text-gray-500 hover:text-red-600 hover:bg-red-50 rounded"
           >
             <Trash2 size={14} />
           </button>
@@ -340,7 +340,7 @@ function AddBreederRow({ onAdded }: { onAdded: () => void }) {
           value={form.origine_breeder}
           onChange={e => setForm(f => ({ ...f, origine_breeder: e.target.value }))}
           placeholder="Pays / origine"
-          className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-grow-600"
+          className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm focus:outline-none focus:ring-1 focus:ring-grow-600"
         />
       </td>
       <td className="px-4 py-2">
@@ -348,7 +348,7 @@ function AddBreederRow({ onAdded }: { onAdded: () => void }) {
           value={form.information_breeder}
           onChange={e => setForm(f => ({ ...f, information_breeder: e.target.value }))}
           placeholder="Notes"
-          className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-grow-600"
+          className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm focus:outline-none focus:ring-1 focus:ring-grow-600"
         />
       </td>
       <td className="px-4 py-2 text-right">
@@ -393,7 +393,7 @@ function AddVarieteRow({ onAdded }: { onAdded: () => void }) {
           value={form.croisement_variete}
           onChange={e => setForm(f => ({ ...f, croisement_variete: e.target.value }))}
           placeholder="ex: OG Kush × Durban"
-          className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-grow-600"
+          className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm focus:outline-none focus:ring-1 focus:ring-grow-600"
         />
       </td>
       <td className="px-4 py-2">
@@ -401,7 +401,7 @@ function AddVarieteRow({ onAdded }: { onAdded: () => void }) {
           value={form.lien_web}
           onChange={e => setForm(f => ({ ...f, lien_web: e.target.value }))}
           placeholder="https://en.seedfinder.eu/..."
-          className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-grow-600"
+          className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm focus:outline-none focus:ring-1 focus:ring-grow-600"
         />
       </td>
       <td className="px-4 py-2">
@@ -409,7 +409,7 @@ function AddVarieteRow({ onAdded }: { onAdded: () => void }) {
           value={form.informations_variete}
           onChange={e => setForm(f => ({ ...f, informations_variete: e.target.value }))}
           placeholder="Notes..."
-          className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-grow-600"
+          className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm focus:outline-none focus:ring-1 focus:ring-grow-600"
         />
       </td>
       <td className="px-4 py-2 text-right">
@@ -510,11 +510,11 @@ export default function GestionModal({ defaultTab = 'breeders', onClose }: Gesti
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[85vh] flex flex-col">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-4xl max-h-[85vh] flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 shrink-0">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-700 shrink-0">
           <div className="flex items-center gap-6">
-            <h2 className="text-lg font-bold text-gray-900">Gestion</h2>
+            <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">Gestion</h2>
             <div className="flex gap-1">
               {tabs.map(t => (
                 <button
@@ -523,11 +523,11 @@ export default function GestionModal({ defaultTab = 'breeders', onClose }: Gesti
                   className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
                     tab === t.key
                       ? 'bg-grow-600 text-white'
-                      : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+                      : 'text-gray-500 dark:text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700'
                   }`}
                 >
                   {t.label}
-                  <span className={`ml-1.5 text-xs ${tab === t.key ? 'text-grow-100' : 'text-gray-400'}`}>
+                  <span className={`ml-1.5 text-xs ${tab === t.key ? 'text-grow-100' : 'text-gray-400 dark:text-gray-500'}`}>
                     {t.count}
                   </span>
                 </button>
@@ -540,7 +540,7 @@ export default function GestionModal({ defaultTab = 'breeders', onClose }: Gesti
                 onClick={() => setShowAddBreeder(v => !v)}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                   showAddBreeder
-                    ? 'bg-gray-100 text-gray-600'
+                    ? 'bg-gray-100 text-gray-600 dark:text-gray-300'
                     : 'bg-grow-600 text-white hover:bg-grow-700'
                 }`}
               >
@@ -553,7 +553,7 @@ export default function GestionModal({ defaultTab = 'breeders', onClose }: Gesti
                 onClick={() => setShowAddVariete(v => !v)}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                   showAddVariete
-                    ? 'bg-gray-100 text-gray-600'
+                    ? 'bg-gray-100 text-gray-600 dark:text-gray-300'
                     : 'bg-grow-600 text-white hover:bg-grow-700'
                 }`}
               >
@@ -561,7 +561,7 @@ export default function GestionModal({ defaultTab = 'breeders', onClose }: Gesti
                 {showAddVariete ? 'Annuler' : 'Ajouter'}
               </button>
             )}
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+            <button onClick={onClose} className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:text-gray-300">
               <X size={22} />
             </button>
           </div>
@@ -571,7 +571,7 @@ export default function GestionModal({ defaultTab = 'breeders', onClose }: Gesti
         <div className="overflow-y-auto flex-1">
           {tab === 'breeders' && (
             <table className="w-full">
-              <thead className="bg-gray-50 sticky top-0">
+              <thead className="bg-gray-50 dark:bg-gray-700/50 sticky top-0">
                 <tr>
                   {([
                     ['nom',     'Nom'],
@@ -581,7 +581,7 @@ export default function GestionModal({ defaultTab = 'breeders', onClose }: Gesti
                     <th
                       key={col}
                       onClick={() => handleBSort(col)}
-                      className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer select-none hover:bg-gray-100 whitespace-nowrap"
+                      className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase cursor-pointer select-none hover:bg-gray-100 dark:hover:bg-gray-700 whitespace-nowrap"
                     >
                       {label}<GestionSortIcon active={bSortCol === col} dir={bSortDir} />
                     </th>
@@ -589,14 +589,14 @@ export default function GestionModal({ defaultTab = 'breeders', onClose }: Gesti
                   <th className="px-4 py-3 w-20"></th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                 {showAddBreeder && (
                   <AddBreederRow onAdded={() => { refreshBreeders(); setShowAddBreeder(false) }} />
                 )}
                 {loadingB ? (
-                  <tr><td colSpan={4} className="px-4 py-8 text-center text-gray-400 text-sm">Chargement...</td></tr>
+                  <tr><td colSpan={4} className="px-4 py-8 text-center text-gray-400 dark:text-gray-500 text-sm">Chargement...</td></tr>
                 ) : sortedBreeders.length === 0 && !showAddBreeder ? (
-                  <tr><td colSpan={4} className="px-4 py-8 text-center text-gray-400 text-sm">Aucun breeder — cliquez sur "Ajouter"</td></tr>
+                  <tr><td colSpan={4} className="px-4 py-8 text-center text-gray-400 dark:text-gray-500 text-sm">Aucun breeder — cliquez sur "Ajouter"</td></tr>
                 ) : (
                   sortedBreeders.map(b => (
                     <BreederRow
@@ -613,7 +613,7 @@ export default function GestionModal({ defaultTab = 'breeders', onClose }: Gesti
 
           {tab === 'varietes' && (
             <table className="w-full">
-              <thead className="bg-gray-50 sticky top-0">
+              <thead className="bg-gray-50 dark:bg-gray-700/50 sticky top-0">
                 <tr>
                   {([
                     ['nom',        'Nom'],
@@ -624,7 +624,7 @@ export default function GestionModal({ defaultTab = 'breeders', onClose }: Gesti
                     <th
                       key={col}
                       onClick={() => handleVSort(col)}
-                      className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer select-none hover:bg-gray-100 whitespace-nowrap"
+                      className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase cursor-pointer select-none hover:bg-gray-100 dark:hover:bg-gray-700 whitespace-nowrap"
                     >
                       {label}<GestionSortIcon active={vSortCol === col} dir={vSortDir} />
                     </th>
@@ -632,14 +632,14 @@ export default function GestionModal({ defaultTab = 'breeders', onClose }: Gesti
                   <th className="px-4 py-3 w-20"></th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                 {showAddVariete && (
                   <AddVarieteRow onAdded={() => { refreshVarietes(); setShowAddVariete(false) }} />
                 )}
                 {loadingV ? (
-                  <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-400 text-sm">Chargement...</td></tr>
+                  <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-400 dark:text-gray-500 text-sm">Chargement...</td></tr>
                 ) : sortedVarietes.length === 0 && !showAddVariete ? (
-                  <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-400 text-sm">Aucune variété — cliquez sur "Ajouter"</td></tr>
+                  <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-400 dark:text-gray-500 text-sm">Aucune variété — cliquez sur "Ajouter"</td></tr>
                 ) : (
                   sortedVarietes.map(v => (
                     <VarieteRow
@@ -655,7 +655,7 @@ export default function GestionModal({ defaultTab = 'breeders', onClose }: Gesti
           )}
         </div>
 
-        <div className="px-6 py-3 border-t border-gray-100 text-xs text-gray-400 shrink-0">
+        <div className="px-6 py-3 border-t border-gray-100 dark:border-gray-700 text-xs text-gray-400 dark:text-gray-500 shrink-0">
           Survolez une ligne pour faire apparaître les actions · Suppression impossible si des graines sont associées
         </div>
       </div>

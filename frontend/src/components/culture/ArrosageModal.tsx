@@ -327,31 +327,31 @@ export default function ArrosageModal({ cultureId, plants, initialDate, onClose,
   // ─────────────────────────────────────────────────────────────────────────────
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-lg max-h-[92vh] overflow-y-auto">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-lg max-h-[92vh] overflow-y-auto">
 
         {/* Header */}
-        <div className="flex items-center justify-between p-5 border-b sticky top-0 bg-white z-10">
+        <div className="flex items-center justify-between p-5 border-b sticky top-0 bg-white dark:bg-gray-800 z-10">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
               <Droplets size={16} className="text-blue-600" />
             </div>
-            <h2 className="text-lg font-bold text-gray-900">Arrosage & Récolte</h2>
+            <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">Arrosage & Récolte</h2>
           </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
+          <button onClick={onClose} className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:text-gray-300"><X size={20} /></button>
         </div>
 
         <form onSubmit={handleSubmit} className="p-5 space-y-4">
 
           {/* Date */}
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">Date</label>
+            <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Date</label>
             <input type="date" value={dateAction} onChange={e => setDateAction(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
           </div>
 
           {/* Cible */}
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1.5">
+            <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1.5">
               Cible
               {!targetGlobal && selectedPlantIds && selectedPlantIds.size > 0 && (
                 <span className="ml-1.5 text-blue-600 font-normal">
@@ -366,7 +366,7 @@ export default function ArrosageModal({ cultureId, plants, initialDate, onClose,
                 value={recolteTargetId}
                 onChange={e => setRecolteTargetId(Number(e.target.value) || '')}
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="">Choisir une plante…</option>
                 {(selectedType === 'debut_curing' ? plantesSechage
@@ -379,7 +379,7 @@ export default function ArrosageModal({ cultureId, plants, initialDate, onClose,
 
             ) : selectedType === 'preparation_tco' ? (
               /* Préparation TCO : toujours global */
-              <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-600">
+              <div className="px-3 py-2 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-700 rounded-lg text-sm text-gray-600 dark:text-gray-300">
                 🌿 Tout l'espace
               </div>
 
@@ -409,7 +409,7 @@ export default function ArrosageModal({ cultureId, plants, initialDate, onClose,
                       className={`flex items-center gap-1 px-3 py-1.5 rounded-full border text-xs font-medium transition-colors
                         ${selected
                           ? 'bg-grow-600 border-grow-600 text-white'
-                          : 'bg-gray-50 border-gray-300 text-gray-600 hover:bg-gray-100'}`}
+                          : 'bg-gray-50 dark:bg-gray-700/50 border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
                     >
                       {selected ? '✓ ' : ''}{p.nom_affichage}
                     </button>
@@ -421,7 +421,7 @@ export default function ArrosageModal({ cultureId, plants, initialDate, onClose,
 
           {/* Sélection du type */}
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-2">Type d'action <span className="text-red-500">*</span></label>
+            <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-2">Type d'action <span className="text-red-500">*</span></label>
             <div className="grid grid-cols-2 gap-2">
               {TYPES.map(t => {
                 const Icon = t.icon
@@ -450,21 +450,21 @@ export default function ArrosageModal({ cultureId, plants, initialDate, onClose,
               <p className="text-xs font-semibold text-blue-700">💧 Arrosage Eau pure</p>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs text-gray-600 mb-1">Volume total <span className="text-red-500">*</span></label>
+                  <label className="block text-xs text-gray-600 dark:text-gray-300 mb-1">Volume total <span className="text-red-500">*</span></label>
                   <div className="flex items-center gap-1.5">
                     <input type="number" value={volumeL} onChange={e => setVolumeL(Number(e.target.value) || '')}
                       min={0} step={0.1} placeholder="ex: 5"
-                      className="flex-1 px-2.5 py-1.5 border border-gray-300 rounded text-sm" />
-                    <span className="text-xs text-gray-500 whitespace-nowrap">L</span>
+                      className="flex-1 px-2.5 py-1.5 border border-gray-300 dark:border-gray-600 rounded text-sm" />
+                    <span className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 whitespace-nowrap">L</span>
                   </div>
                 </div>
                 <div>
-                  <label className="block text-xs text-gray-600 mb-1">pH eau <span className="text-gray-400">(opt.)</span></label>
+                  <label className="block text-xs text-gray-600 dark:text-gray-300 mb-1">pH eau <span className="text-gray-400 dark:text-gray-500">(opt.)</span></label>
                   <div className="flex items-center gap-1.5">
                     <input type="number" value={phEau} onChange={e => setPhEau(Number(e.target.value) || '')}
                       min={0} max={14} step={0.1} placeholder="ex: 6.3"
-                      className="flex-1 px-2.5 py-1.5 border border-gray-300 rounded text-sm" />
-                    <span className="text-xs text-gray-500">pH</span>
+                      className="flex-1 px-2.5 py-1.5 border border-gray-300 dark:border-gray-600 rounded text-sm" />
+                    <span className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">pH</span>
                   </div>
                 </div>
               </div>
@@ -483,9 +483,9 @@ export default function ArrosageModal({ cultureId, plants, initialDate, onClose,
               <p className="text-xs font-semibold text-green-700">🧪 Arrosage Engrais — via recette</p>
 
               <div>
-                <label className="block text-xs text-gray-600 mb-1">Recette <span className="text-red-500">*</span></label>
+                <label className="block text-xs text-gray-600 dark:text-gray-300 mb-1">Recette <span className="text-red-500">*</span></label>
                 <select value={idRecetteEngrais} onChange={e => setIdRecetteEngrais(Number(e.target.value) || '')}
-                  className="w-full px-2.5 py-1.5 border border-gray-300 rounded text-sm">
+                  className="w-full px-2.5 py-1.5 border border-gray-300 dark:border-gray-600 rounded text-sm">
                   <option value="">Choisir une recette…</option>
                   {recettesEngrais.map(r => (
                     <option key={r.id_recette} value={r.id_recette}>
@@ -496,12 +496,12 @@ export default function ArrosageModal({ cultureId, plants, initialDate, onClose,
               </div>
 
               <div>
-                <label className="block text-xs text-gray-600 mb-1">Volume total à arroser <span className="text-red-500">*</span></label>
+                <label className="block text-xs text-gray-600 dark:text-gray-300 mb-1">Volume total à arroser <span className="text-red-500">*</span></label>
                 <div className="flex items-center gap-1.5">
                   <input type="number" value={volumeL} onChange={e => setVolumeL(Number(e.target.value) || '')}
                     min={0} step={0.5} placeholder="ex: 10"
-                    className="flex-1 px-2.5 py-1.5 border border-gray-300 rounded text-sm" />
-                  <span className="text-xs text-gray-500">L</span>
+                    className="flex-1 px-2.5 py-1.5 border border-gray-300 dark:border-gray-600 rounded text-sm" />
+                  <span className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">L</span>
                 </div>
                 {volumeParPlante !== null && nbPlantsSelected > 0 && (
                   <p className="text-xs text-green-700 font-medium flex items-center gap-1 mt-1.5">
@@ -526,23 +526,23 @@ export default function ArrosageModal({ cultureId, plants, initialDate, onClose,
                   </div>
                   <table className="w-full text-xs">
                     <thead>
-                      <tr className="bg-white border-b border-green-100">
-                        <th className="text-left px-2 py-1 text-gray-500">Produit</th>
-                        <th className="text-right px-2 py-1 text-gray-500">Dosage</th>
-                        <th className="text-right px-2 py-1 text-gray-500 font-bold text-green-700">Qté totale</th>
+                      <tr className="bg-white dark:bg-gray-800 border-b border-green-100">
+                        <th className="text-left px-2 py-1 text-gray-500 dark:text-gray-400 dark:text-gray-500">Produit</th>
+                        <th className="text-right px-2 py-1 text-gray-500 dark:text-gray-400 dark:text-gray-500">Dosage</th>
+                        <th className="text-right px-2 py-1 text-gray-500 dark:text-gray-400 dark:text-gray-500 font-bold text-green-700">Qté totale</th>
                       </tr>
                     </thead>
                     <tbody>
                       {dosagesCalcules.map((d, i) => (
                         <tr key={i} className="border-b border-green-50 last:border-0">
                           <td className="px-2 py-1 font-medium">{d.nom}</td>
-                          <td className="px-2 py-1 text-right text-gray-500">{d.dosage} {d.unite}</td>
+                          <td className="px-2 py-1 text-right text-gray-500 dark:text-gray-400 dark:text-gray-500">{d.dosage} {d.unite}</td>
                           <td className="px-2 py-1 text-right font-bold text-green-700">{d.quantite} {d.unite.replace('/L', '')}</td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
-                  <p className="text-[10px] text-gray-400 px-2 py-1 bg-green-50">
+                  <p className="text-[10px] text-gray-400 dark:text-gray-500 px-2 py-1 bg-green-50">
                     ✅ Ces quantités seront déduites du stock
                   </p>
                 </div>
@@ -584,9 +584,9 @@ export default function ArrosageModal({ cultureId, plants, initialDate, onClose,
               )}
 
               <div>
-                <label className="block text-xs text-gray-600 mb-1">Recette TCO <span className="text-red-500">*</span></label>
+                <label className="block text-xs text-gray-600 dark:text-gray-300 mb-1">Recette TCO <span className="text-red-500">*</span></label>
                 <select value={idRecetteTCO} onChange={e => setIdRecetteTCO(Number(e.target.value) || '')}
-                  className="w-full px-2.5 py-1.5 border border-gray-300 rounded text-sm">
+                  className="w-full px-2.5 py-1.5 border border-gray-300 dark:border-gray-600 rounded text-sm">
                   <option value="">Choisir une recette…</option>
                   {recettesTCO.map(r => (
                     <option key={r.id_recette_tco} value={r.id_recette_tco}>
@@ -597,12 +597,12 @@ export default function ArrosageModal({ cultureId, plants, initialDate, onClose,
               </div>
 
               <div>
-                <label className="block text-xs text-gray-600 mb-1">Volume utilisé <span className="text-gray-400">(opt.)</span></label>
+                <label className="block text-xs text-gray-600 dark:text-gray-300 mb-1">Volume utilisé <span className="text-gray-400 dark:text-gray-500">(opt.)</span></label>
                 <div className="flex items-center gap-1.5">
                   <input type="number" value={volumeL} onChange={e => setVolumeL(Number(e.target.value) || '')}
                     min={0} step={0.5} placeholder="ex: 5"
-                    className="flex-1 px-2.5 py-1.5 border border-gray-300 rounded text-sm" />
-                  <span className="text-xs text-gray-500">L</span>
+                    className="flex-1 px-2.5 py-1.5 border border-gray-300 dark:border-gray-600 rounded text-sm" />
+                  <span className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">L</span>
                 </div>
                 {volumeParPlante !== null && nbPlantsSelected > 0 && (
                   <p className="text-xs text-amber-700 font-medium flex items-center gap-1 mt-1.5">
@@ -611,7 +611,7 @@ export default function ArrosageModal({ cultureId, plants, initialDate, onClose,
                   </p>
                 )}
               </div>
-              <p className="text-[10px] text-gray-400">ℹ️ Le stock des amendements n'est pas modifié (déjà déduit lors de la préparation).</p>
+              <p className="text-[10px] text-gray-400 dark:text-gray-500">ℹ️ Le stock des amendements n'est pas modifié (déjà déduit lors de la préparation).</p>
             </div>
           )}
 
@@ -621,9 +621,9 @@ export default function ArrosageModal({ cultureId, plants, initialDate, onClose,
               <p className="text-xs font-semibold text-orange-700">🫧 Préparation TCO</p>
 
               <div>
-                <label className="block text-xs text-gray-600 mb-1">Recette TCO <span className="text-red-500">*</span></label>
+                <label className="block text-xs text-gray-600 dark:text-gray-300 mb-1">Recette TCO <span className="text-red-500">*</span></label>
                 <select value={idRecetteTCO} onChange={e => { setIdRecetteTCO(Number(e.target.value) || ''); setVolumeL('') }}
-                  className="w-full px-2.5 py-1.5 border border-gray-300 rounded text-sm">
+                  className="w-full px-2.5 py-1.5 border border-gray-300 dark:border-gray-600 rounded text-sm">
                   <option value="">Choisir une recette…</option>
                   {recettesTCO.map(r => (
                     <option key={r.id_recette_tco} value={r.id_recette_tco}>
@@ -638,13 +638,13 @@ export default function ArrosageModal({ cultureId, plants, initialDate, onClose,
               {recetteTCOSelected && (
                 <>
                   <div>
-                    <label className="block text-xs text-gray-600 mb-1">Volume à préparer <span className="text-red-500">*</span></label>
+                    <label className="block text-xs text-gray-600 dark:text-gray-300 mb-1">Volume à préparer <span className="text-red-500">*</span></label>
                     <div className="flex items-center gap-1.5">
                       <input type="number" value={volumeL} onChange={e => setVolumeL(Number(e.target.value) || '')}
                         min={0} step={0.5}
                         placeholder={`ex: ${recetteTCOSelected.quantite_tco || '10'}`}
-                        className="flex-1 px-2.5 py-1.5 border border-gray-300 rounded text-sm" />
-                      <span className="text-xs text-gray-500">L</span>
+                        className="flex-1 px-2.5 py-1.5 border border-gray-300 dark:border-gray-600 rounded text-sm" />
+                      <span className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">L</span>
                     </div>
                   </div>
 
@@ -678,7 +678,7 @@ export default function ArrosageModal({ cultureId, plants, initialDate, onClose,
                           ))}
                         </tbody>
                       </table>
-                      <p className="text-[10px] text-gray-400 px-2 py-1 bg-orange-50">
+                      <p className="text-[10px] text-gray-400 dark:text-gray-500 px-2 py-1 bg-orange-50">
                         ✅ Ces amendements seront déduits du stock
                       </p>
                     </div>
@@ -694,9 +694,9 @@ export default function ArrosageModal({ cultureId, plants, initialDate, onClose,
               <p className="text-xs font-semibold text-emerald-700">🪴 Rempotage</p>
 
               <div>
-                <label className="block text-xs text-gray-600 mb-1">Pot (inventaire)</label>
+                <label className="block text-xs text-gray-600 dark:text-gray-300 mb-1">Pot (inventaire)</label>
                 {pots.length === 0 ? (
-                  <p className="text-xs text-gray-400 italic">Aucun pot en inventaire — tu peux quand même saisir le volume manuellement.</p>
+                  <p className="text-xs text-gray-400 dark:text-gray-500 italic">Aucun pot en inventaire — tu peux quand même saisir le volume manuellement.</p>
                 ) : (
                   <select value={idPot} onChange={e => {
                     const newId = Number(e.target.value) || ''
@@ -707,7 +707,7 @@ export default function ArrosageModal({ cultureId, plants, initialDate, onClose,
                       if (pot?.taille_pot) setVolumePotOverride(pot.taille_pot)
                     }
                   }}
-                    className="w-full px-2.5 py-1.5 border border-gray-300 rounded text-sm">
+                    className="w-full px-2.5 py-1.5 border border-gray-300 dark:border-gray-600 rounded text-sm">
                     <option value="">Non sélectionné (saisie manuelle)</option>
                     {pots.map(p => (
                       <option key={p.id_pot} value={p.id_pot}>
@@ -719,15 +719,15 @@ export default function ArrosageModal({ cultureId, plants, initialDate, onClose,
               </div>
 
               <div>
-                <label className="block text-xs text-gray-600 mb-1">
-                  Volume du pot <span className="text-gray-400">{potSelected?.taille_pot ? `(auto: ${potSelected.taille_pot} L)` : ''}</span>
+                <label className="block text-xs text-gray-600 dark:text-gray-300 mb-1">
+                  Volume du pot <span className="text-gray-400 dark:text-gray-500">{potSelected?.taille_pot ? `(auto: ${potSelected.taille_pot} L)` : ''}</span>
                 </label>
                 <div className="flex items-center gap-1.5">
                   <input type="number" value={volumePotOverride}
                     onChange={e => setVolumePotOverride(Number(e.target.value) || '')}
                     min={0} step={0.5} placeholder="ex: 15"
-                    className="flex-1 px-2.5 py-1.5 border border-gray-300 rounded text-sm" />
-                  <span className="text-xs text-gray-500">L</span>
+                    className="flex-1 px-2.5 py-1.5 border border-gray-300 dark:border-gray-600 rounded text-sm" />
+                  <span className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">L</span>
                 </div>
               </div>
             </div>
@@ -755,15 +755,15 @@ export default function ArrosageModal({ cultureId, plants, initialDate, onClose,
             <div className="space-y-3 p-3 bg-rose-50 rounded-lg border border-rose-100">
               <p className="text-xs font-semibold text-rose-700">🏺 Début curing — Pesée finale</p>
               {plantesSechage.length === 0 && (
-                <p className="text-xs text-gray-400 italic">Aucune plante en séchage actuellement.</p>
+                <p className="text-xs text-gray-400 dark:text-gray-500 italic">Aucune plante en séchage actuellement.</p>
               )}
               <div>
-                <label className="block text-xs text-gray-600 mb-1">Poids sec récolté <span className="text-gray-400">(optionnel)</span></label>
+                <label className="block text-xs text-gray-600 dark:text-gray-300 mb-1">Poids sec récolté <span className="text-gray-400 dark:text-gray-500">(optionnel)</span></label>
                 <div className="flex items-center gap-1.5">
                   <input type="number" value={poidsG} onChange={e => setPoidsG(Number(e.target.value) || '')}
                     min={0} step={0.1} placeholder="ex: 45.5"
-                    className="flex-1 px-2.5 py-1.5 border border-gray-300 rounded text-sm" />
-                  <span className="text-xs text-gray-500">g</span>
+                    className="flex-1 px-2.5 py-1.5 border border-gray-300 dark:border-gray-600 rounded text-sm" />
+                  <span className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">g</span>
                 </div>
               </div>
               <div className="flex items-start gap-2 p-2 rounded text-xs bg-rose-100 border border-rose-200 text-rose-800">
@@ -781,7 +781,7 @@ export default function ArrosageModal({ cultureId, plants, initialDate, onClose,
             <div className="p-3 bg-yellow-50 rounded-lg border border-yellow-100">
               <p className="text-xs font-semibold text-yellow-700 mb-2">✅ Prête — Stock consommable</p>
               {plantesCuring.length === 0 && (
-                <p className="text-xs text-gray-400 italic">Aucune plante en curing actuellement.</p>
+                <p className="text-xs text-gray-400 dark:text-gray-500 italic">Aucune plante en curing actuellement.</p>
               )}
               <div className="flex items-start gap-2 p-2 rounded text-xs bg-yellow-100 border border-yellow-200 text-yellow-800">
                 <CheckCircle2 size={13} className="mt-0.5 flex-shrink-0" />
@@ -795,9 +795,9 @@ export default function ArrosageModal({ cultureId, plants, initialDate, onClose,
 
           {/* Note */}
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">Note (optionnelle)</label>
+            <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Note (optionnelle)</label>
             <textarea value={note} onChange={e => setNote(e.target.value)} rows={2}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm resize-none"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm resize-none"
               placeholder="Observations, pH mesuré, conditions…" />
           </div>
 
@@ -811,7 +811,7 @@ export default function ArrosageModal({ cultureId, plants, initialDate, onClose,
           {/* Boutons */}
           <div className="flex gap-3 pt-1">
             <button type="button" onClick={onClose}
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 text-sm">
+              className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/40 text-sm">
               Annuler
             </button>
             <button type="submit" disabled={loading || !isValid()}

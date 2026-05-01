@@ -49,26 +49,26 @@ function PlantLine({
   })
 
   return (
-    <tr className="hover:bg-gray-50 group">
-      <td className="px-4 py-2.5 text-sm text-gray-400 font-mono text-center">
+    <tr className="hover:bg-gray-50 dark:hover:bg-gray-700/40 group">
+      <td className="px-4 py-2.5 text-sm text-gray-400 dark:text-gray-500 font-mono text-center">
         P{plant.numero_plant ?? '?'}
       </td>
-      <td className="px-4 py-2.5 text-sm font-medium text-gray-900">
+      <td className="px-4 py-2.5 text-sm font-medium text-gray-900 dark:text-gray-100">
         {plant.variete_nom || '—'}
       </td>
-      <td className="px-4 py-2.5 text-xs text-gray-400 whitespace-nowrap">
+      <td className="px-4 py-2.5 text-xs text-gray-400 dark:text-gray-500 whitespace-nowrap">
         {plant.date_debut_plant ? new Date(plant.date_debut_plant).toLocaleDateString('fr-FR') : '—'}
       </td>
-      <td className="px-4 py-2.5 text-xs text-gray-400 whitespace-nowrap">
+      <td className="px-4 py-2.5 text-xs text-gray-400 dark:text-gray-500 whitespace-nowrap">
         {plant.date_fin_plant ? new Date(plant.date_fin_plant).toLocaleDateString('fr-FR') : '—'}
       </td>
-      <td className="px-4 py-2.5 text-sm text-gray-500 text-right">
+      <td className="px-4 py-2.5 text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500 text-right">
         {plant.prix_graine != null ? `${Number(plant.prix_graine).toFixed(2)} €` : '—'}
       </td>
       <td className="px-4 py-2.5 text-sm font-semibold text-grow-700 text-right">
         {plant.quantite_recoltee != null ? `${Number(plant.quantite_recoltee).toFixed(1)} g` : '—'}
       </td>
-      <td className="px-4 py-2.5 text-xs text-gray-400 max-w-[120px] truncate" title={plant.notes ?? ''}>
+      <td className="px-4 py-2.5 text-xs text-gray-400 dark:text-gray-500 max-w-[120px] truncate" title={plant.notes ?? ''}>
         {plant.notes || ''}
       </td>
       <td className="px-4 py-2.5 text-right">
@@ -82,7 +82,7 @@ function PlantLine({
               {remove.isPending ? <Loader2 size={10} className="animate-spin" /> : 'Suppr.'}
             </button>
             <button onClick={() => setConfirm(false)}
-              className="px-2 py-1 border border-gray-200 text-gray-500 text-xs rounded hover:bg-gray-50">
+              className="px-2 py-1 border border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 dark:text-gray-500 text-xs rounded hover:bg-gray-50 dark:hover:bg-gray-700/40">
               ✕
             </button>
           </div>
@@ -103,13 +103,13 @@ function PlantLine({
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex flex-col gap-1">
-      <label className="text-xs text-gray-400">{label}</label>
+      <label className="text-xs text-gray-400 dark:text-gray-500">{label}</label>
       {children}
     </div>
   )
 }
 
-const inputCls = 'w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-grow-400 focus:border-transparent'
+const inputCls = 'w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-grow-400 focus:border-transparent'
 const selectCls = inputCls
 
 // ── Modal ─────────────────────────────────────────────────────────────────────
@@ -180,19 +180,19 @@ export default function CultureHistoriqueDetailModal({ culture, onClose }: Props
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl flex flex-col max-h-[90vh]">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-2xl flex flex-col max-h-[90vh]">
 
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 shrink-0">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-700 shrink-0">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-grow-50 rounded-lg">
               <Leaf size={18} className="text-grow-600" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-gray-900">
+              <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
                 {culture.nom ?? `Culture #${culture.id_historique_culture}`}
               </h2>
-              <p className="text-xs text-gray-400">
+              <p className="text-xs text-gray-400 dark:text-gray-500">
                 {culture.nom && <span className="mr-1 text-gray-300">#{culture.id_historique_culture} —</span>}
                 {fmtDate(culture.date_debut)} → {fmtDate(culture.date_fin)}
                 {duree != null && <span className="ml-1 text-gray-300">({duree} j)</span>}
@@ -203,13 +203,13 @@ export default function CultureHistoriqueDetailModal({ culture, onClose }: Props
             {!editing && (
               <button
                 onClick={() => setEditing(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-gray-600 border border-gray-200 text-sm rounded-lg hover:bg-gray-50 transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700 text-sm rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/40 transition-colors"
               >
                 <Pencil size={13} />
                 Modifier
               </button>
             )}
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+            <button onClick={onClose} className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:text-gray-300">
               <X size={22} />
             </button>
           </div>
@@ -219,8 +219,8 @@ export default function CultureHistoriqueDetailModal({ culture, onClose }: Props
 
           {/* ── Mode édition ───────────────────────────────────────── */}
           {editing ? (
-            <section className="space-y-4 bg-gray-50 rounded-xl p-4 border border-gray-200">
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Modifier la culture</p>
+            <section className="space-y-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
+              <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase tracking-wide">Modifier la culture</p>
 
               <Field label="Nom de la culture">
                 <input type="text" className={inputCls}
@@ -302,7 +302,7 @@ export default function CultureHistoriqueDetailModal({ culture, onClose }: Props
                 </button>
                 <button
                   onClick={() => { setEditing(false); setForm({ nom: culture.nom, date_debut: culture.date_debut, date_fin: culture.date_fin, tente: culture.tente, lampe: culture.lampe, puissance: culture.puissance, type_culture: culture.type_culture, engrais: culture.engrais, substrat: culture.substrat, notes: culture.notes }) }}
-                  className="px-4 py-2 border border-gray-300 text-gray-600 text-sm rounded-lg hover:bg-gray-50"
+                  className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 text-sm rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/40"
                 >
                   Annuler
                 </button>
@@ -324,14 +324,14 @@ export default function CultureHistoriqueDetailModal({ culture, onClose }: Props
                     ['Engrais',  culture.engrais],
                     ['Substrat', culture.substrat],
                   ].filter(([, v]) => v).map(([label, value]) => (
-                    <div key={label as string} className="bg-gray-50 rounded-lg px-3 py-2">
-                      <p className="text-gray-400">{label as string}</p>
-                      <p className="font-semibold text-gray-700">{value as string}</p>
+                    <div key={label as string} className="bg-gray-50 dark:bg-gray-700/50 rounded-lg px-3 py-2">
+                      <p className="text-gray-400 dark:text-gray-500">{label as string}</p>
+                      <p className="font-semibold text-gray-700 dark:text-gray-200">{value as string}</p>
                     </div>
                   ))}
                 </div>
                 {culture.notes && (
-                  <p className="mt-2 text-xs text-gray-500 italic border-l-2 border-grow-200 pl-3">
+                  <p className="mt-2 text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 italic border-l-2 border-grow-200 pl-3">
                     {culture.notes}
                   </p>
                 )}
@@ -341,7 +341,7 @@ export default function CultureHistoriqueDetailModal({ culture, onClose }: Props
 
           {/* ── Stats ───────────────────────────────────────────────── */}
           <section>
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Résumé</p>
+            <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide mb-2">Résumé</p>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <SCard label="Plants"         value={String(nbPlants)}                           color="grow"   />
               <SCard label="Récolte totale" value={totalRecolte != null ? `${Number(totalRecolte).toFixed(1)} g` : '—'} color="purple" />
@@ -352,27 +352,27 @@ export default function CultureHistoriqueDetailModal({ culture, onClose }: Props
 
           {/* ── Tableau plantes ─────────────────────────────────────── */}
           <section>
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">
+            <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide mb-2">
               Détail par plante
             </p>
             {nbPlants === 0 ? (
-              <p className="text-sm text-gray-400 text-center py-4">Aucune plante enregistrée.</p>
+              <p className="text-sm text-gray-400 dark:text-gray-500 text-center py-4">Aucune plante enregistrée.</p>
             ) : (
-              <div className="overflow-x-auto rounded-xl border border-gray-100">
+              <div className="overflow-x-auto rounded-xl border border-gray-100 dark:border-gray-700">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="bg-gray-50 border-b border-gray-200">
-                      <th className="px-4 py-2.5 text-xs font-semibold text-gray-500 text-center">#</th>
-                      <th className="px-4 py-2.5 text-xs font-semibold text-gray-500 text-left">Variété</th>
-                      <th className="px-4 py-2.5 text-xs font-semibold text-gray-500 text-left">Début</th>
-                      <th className="px-4 py-2.5 text-xs font-semibold text-gray-500 text-left">Fin</th>
-                      <th className="px-4 py-2.5 text-xs font-semibold text-gray-500 text-right">Prix graine</th>
-                      <th className="px-4 py-2.5 text-xs font-semibold text-gray-500 text-right">Récolte</th>
-                      <th className="px-4 py-2.5 text-xs font-semibold text-gray-500 text-left">Notes</th>
+                    <tr className="bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-700">
+                      <th className="px-4 py-2.5 text-xs font-semibold text-gray-500 dark:text-gray-400 dark:text-gray-500 text-center">#</th>
+                      <th className="px-4 py-2.5 text-xs font-semibold text-gray-500 dark:text-gray-400 dark:text-gray-500 text-left">Variété</th>
+                      <th className="px-4 py-2.5 text-xs font-semibold text-gray-500 dark:text-gray-400 dark:text-gray-500 text-left">Début</th>
+                      <th className="px-4 py-2.5 text-xs font-semibold text-gray-500 dark:text-gray-400 dark:text-gray-500 text-left">Fin</th>
+                      <th className="px-4 py-2.5 text-xs font-semibold text-gray-500 dark:text-gray-400 dark:text-gray-500 text-right">Prix graine</th>
+                      <th className="px-4 py-2.5 text-xs font-semibold text-gray-500 dark:text-gray-400 dark:text-gray-500 text-right">Récolte</th>
+                      <th className="px-4 py-2.5 text-xs font-semibold text-gray-500 dark:text-gray-400 dark:text-gray-500 text-left">Notes</th>
                       <th className="px-4 py-2.5"></th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-100">
+                  <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                     {culture.plants
                       .slice()
                       .sort((a, b) => (a.numero_plant ?? 0) - (b.numero_plant ?? 0))
@@ -409,7 +409,7 @@ export default function CultureHistoriqueDetailModal({ culture, onClose }: Props
           )}
         </div>
 
-        <div className="px-6 py-4 border-t border-gray-100 shrink-0 flex items-center justify-between gap-3">
+        <div className="px-6 py-4 border-t border-gray-100 dark:border-gray-700 shrink-0 flex items-center justify-between gap-3">
           {/* Zone suppression culture */}
           {confirmDelete ? (
             <div className="flex items-center gap-2">
@@ -429,7 +429,7 @@ export default function CultureHistoriqueDetailModal({ culture, onClose }: Props
               </button>
               <button
                 onClick={() => setConfirmDelete(false)}
-                className="px-3 py-1.5 border border-gray-300 text-gray-600 text-sm rounded-lg hover:bg-gray-50"
+                className="px-3 py-1.5 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 text-sm rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/40"
               >
                 Annuler
               </button>
@@ -445,7 +445,7 @@ export default function CultureHistoriqueDetailModal({ culture, onClose }: Props
           )}
 
           <button onClick={onClose}
-            className="px-4 py-2 bg-gray-100 text-gray-700 text-sm rounded-lg hover:bg-gray-200">
+            className="px-4 py-2 bg-gray-100 text-gray-700 dark:text-gray-200 text-sm rounded-lg hover:bg-gray-200">
             Fermer
           </button>
         </div>

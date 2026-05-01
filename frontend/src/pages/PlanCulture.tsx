@@ -27,7 +27,7 @@ function typeGraineBadge(type?: string) {
     return <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-amber-100 text-amber-700">AUTO</span>
   if (t.includes('fem'))
     return <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-pink-100 text-pink-700">FEM</span>
-  return <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-gray-100 text-gray-600">REG</span>
+  return <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-gray-100 text-gray-600 dark:text-gray-300">REG</span>
 }
 
 function floAlert(varietes: PlanVariete[]) {
@@ -175,25 +175,25 @@ function GraineSelectorModal({ planId, existingPackIds, onClose }: GraineSelecto
 
   return (
     <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-3">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col">
 
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b">
           <div>
-            <h2 className="text-lg font-semibold text-gray-900">Catalogue Graines</h2>
-            <p className="text-xs text-gray-400 mt-0.5">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Catalogue Graines</h2>
+            <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
               Sélectionnez une ou plusieurs variétés à ajouter au plan
             </p>
           </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">
+          <button onClick={onClose} className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:text-gray-300 transition-colors">
             <X size={20} />
           </button>
         </div>
 
         {/* Filtres */}
-        <div className="px-4 py-3 border-b bg-gray-50 flex flex-wrap gap-2 items-center">
+        <div className="px-4 py-3 border-b bg-gray-50 dark:bg-gray-700/50 flex flex-wrap gap-2 items-center">
           <div className="relative flex-1 min-w-[200px]">
-            <Search size={14} className="absolute left-2.5 top-2.5 text-gray-400" />
+            <Search size={14} className="absolute left-2.5 top-2.5 text-gray-400 dark:text-gray-500" />
             <input
               type="text"
               placeholder="Breeder, variété, croisement..."
@@ -224,7 +224,7 @@ function GraineSelectorModal({ planId, existingPackIds, onClose }: GraineSelecto
             <option value="ferme">Paquet fermé</option>
           </select>
           {(search || typeFilter || stockFilter) && (
-            <span className="text-xs text-gray-400">
+            <span className="text-xs text-gray-400 dark:text-gray-500">
               {filtered.length} résultat{filtered.length > 1 ? 's' : ''}
             </span>
           )}
@@ -233,12 +233,12 @@ function GraineSelectorModal({ planId, existingPackIds, onClose }: GraineSelecto
         {/* Tableau */}
         <div className="overflow-auto flex-1">
           {isLoading ? (
-            <div className="p-10 text-center text-gray-400 text-sm">Chargement du catalogue...</div>
+            <div className="p-10 text-center text-gray-400 dark:text-gray-500 text-sm">Chargement du catalogue...</div>
           ) : filtered.length === 0 ? (
-            <div className="p-10 text-center text-gray-400 text-sm">Aucun résultat pour ces critères</div>
+            <div className="p-10 text-center text-gray-400 dark:text-gray-500 text-sm">Aucun résultat pour ces critères</div>
           ) : (
             <table className="w-full text-sm">
-              <thead className="sticky top-0 bg-gray-50 border-b z-10">
+              <thead className="sticky top-0 bg-gray-50 dark:bg-gray-700/50 border-b z-10">
                 <tr>
                   <th className="px-3 py-2.5 w-8">
                     <input
@@ -262,14 +262,14 @@ function GraineSelectorModal({ planId, existingPackIds, onClose }: GraineSelecto
                     <th
                       key={col}
                       onClick={() => handleSort(col)}
-                      className="px-4 py-2.5 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer select-none hover:bg-gray-100 whitespace-nowrap"
+                      className="px-4 py-2.5 text-left text-xs font-medium text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase cursor-pointer select-none hover:bg-gray-100 dark:hover:bg-gray-700 whitespace-nowrap"
                     >
                       {label}<SortIcon col={col} current={sortCol} dir={sortDir} />
                     </th>
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                 {filtered.map(item => {
                   const alreadyIn = existingPackIds.includes(item.id_packgraine)
                   const isChecked = selected.has(item.id_packgraine)
@@ -279,10 +279,10 @@ function GraineSelectorModal({ planId, existingPackIds, onClose }: GraineSelecto
                       onClick={() => !alreadyIn && toggleItem(item.id_packgraine)}
                       className={`transition-colors ${
                         alreadyIn
-                          ? 'bg-gray-50 opacity-50 cursor-not-allowed'
+                          ? 'bg-gray-50 dark:bg-gray-700/50 opacity-50 cursor-not-allowed'
                           : isChecked
                             ? 'bg-grow-50 cursor-pointer'
-                            : 'hover:bg-gray-50 cursor-pointer'
+                            : 'hover:bg-gray-50 dark:hover:bg-gray-700/40 cursor-pointer'
                       }`}
                     >
                       <td className="px-3 py-2.5" onClick={e => e.stopPropagation()}>
@@ -294,10 +294,10 @@ function GraineSelectorModal({ planId, existingPackIds, onClose }: GraineSelecto
                           className="rounded accent-grow-600 disabled:cursor-not-allowed"
                         />
                       </td>
-                      <td className="px-4 py-2.5 font-medium text-gray-800 whitespace-nowrap">
+                      <td className="px-4 py-2.5 font-medium text-gray-800 dark:text-gray-100 whitespace-nowrap">
                         {item.breeder_nom}
                       </td>
-                      <td className="px-4 py-2.5 text-gray-700 whitespace-nowrap">
+                      <td className="px-4 py-2.5 text-gray-700 dark:text-gray-200 whitespace-nowrap">
                         <span className="flex items-center gap-1.5">
                           {item.variete_nom}
                           {item.edition_limite && (
@@ -307,13 +307,13 @@ function GraineSelectorModal({ planId, existingPackIds, onClose }: GraineSelecto
                           )}
                         </span>
                       </td>
-                      <td className="px-4 py-2.5 text-gray-500 text-xs max-w-[160px] truncate">
+                      <td className="px-4 py-2.5 text-gray-500 dark:text-gray-400 dark:text-gray-500 text-xs max-w-[160px] truncate">
                         {item.croisement_variete ?? '—'}
                       </td>
                       <td className="px-4 py-2.5">
                         {typeGraineBadge(item.type_graines)}
                       </td>
-                      <td className="px-4 py-2.5 text-gray-600 whitespace-nowrap text-center">
+                      <td className="px-4 py-2.5 text-gray-600 dark:text-gray-300 whitespace-nowrap text-center">
                         {item.duree_flo_min && item.duree_flo_max
                           ? `${item.duree_flo_min}–${item.duree_flo_max}j`
                           : (item.duree_flo_min ?? item.duree_flo_max
@@ -325,10 +325,10 @@ function GraineSelectorModal({ planId, existingPackIds, onClose }: GraineSelecto
                           <span className="ml-1 text-[10px] text-amber-600 bg-amber-50 px-1 rounded">ouvert</span>
                         )}
                       </td>
-                      <td className="px-4 py-2.5 text-gray-500 text-center text-xs">
+                      <td className="px-4 py-2.5 text-gray-500 dark:text-gray-400 dark:text-gray-500 text-center text-xs">
                         {ageLabel(item.date_achat)}
                       </td>
-                      <td className="px-4 py-2.5 text-gray-600 text-center text-xs whitespace-nowrap">
+                      <td className="px-4 py-2.5 text-gray-600 dark:text-gray-300 text-center text-xs whitespace-nowrap">
                         {item.prix_par_graine != null ? `${item.prix_par_graine.toFixed(2)} €` : '—'}
                       </td>
                     </tr>
@@ -340,8 +340,8 @@ function GraineSelectorModal({ planId, existingPackIds, onClose }: GraineSelecto
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-3 border-t bg-gray-50 flex items-center justify-between">
-          <span className="text-sm text-gray-500">
+        <div className="px-6 py-3 border-t bg-gray-50 dark:bg-gray-700/50 flex items-center justify-between">
+          <span className="text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500">
             {selected.size > 0
               ? `${selected.size} variété${selected.size > 1 ? 's' : ''} sélectionnée${selected.size > 1 ? 's' : ''}`
               : 'Aucune sélection'}
@@ -349,7 +349,7 @@ function GraineSelectorModal({ planId, existingPackIds, onClose }: GraineSelecto
           <div className="flex gap-2">
             <button
               onClick={onClose}
-              className="px-4 py-2 text-sm text-gray-600 border rounded-lg hover:bg-gray-100 transition-colors"
+              className="px-4 py-2 text-sm text-gray-600 dark:text-gray-300 border rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
             >
               Annuler
             </button>
@@ -427,30 +427,30 @@ function PlanTable({ plan }: PlanTableProps) {
       )}
 
       {/* Tableau */}
-      <div className="overflow-x-auto rounded-lg border border-gray-200">
+      <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
         <table className="w-full text-sm">
           <thead>
-            <tr className="bg-gray-50 border-b">
-              <th className="px-3 py-2 text-left font-medium text-gray-500">Breeder</th>
-              <th className="px-3 py-2 text-left font-medium text-gray-500">Variété</th>
-              <th className="px-3 py-2 text-center font-medium text-gray-500">Type</th>
-              <th className="px-3 py-2 text-center font-medium text-gray-500">Flo (j)</th>
-              <th className="px-3 py-2 text-center font-medium text-gray-500">Conserv.</th>
-              <th className="px-3 py-2 text-center font-medium text-gray-500">Stock</th>
-              <th className="px-3 py-2 text-center font-medium text-gray-500">Nb plantes</th>
-              <th className="px-3 py-2 text-center font-medium text-gray-500">Taille pot</th>
+            <tr className="bg-gray-50 dark:bg-gray-700/50 border-b">
+              <th className="px-3 py-2 text-left font-medium text-gray-500 dark:text-gray-400 dark:text-gray-500">Breeder</th>
+              <th className="px-3 py-2 text-left font-medium text-gray-500 dark:text-gray-400 dark:text-gray-500">Variété</th>
+              <th className="px-3 py-2 text-center font-medium text-gray-500 dark:text-gray-400 dark:text-gray-500">Type</th>
+              <th className="px-3 py-2 text-center font-medium text-gray-500 dark:text-gray-400 dark:text-gray-500">Flo (j)</th>
+              <th className="px-3 py-2 text-center font-medium text-gray-500 dark:text-gray-400 dark:text-gray-500">Conserv.</th>
+              <th className="px-3 py-2 text-center font-medium text-gray-500 dark:text-gray-400 dark:text-gray-500">Stock</th>
+              <th className="px-3 py-2 text-center font-medium text-gray-500 dark:text-gray-400 dark:text-gray-500">Nb plantes</th>
+              <th className="px-3 py-2 text-center font-medium text-gray-500 dark:text-gray-400 dark:text-gray-500">Taille pot</th>
               {hasEspace && (
-                <th className="px-3 py-2 text-center font-medium text-gray-500">Nb pots</th>
+                <th className="px-3 py-2 text-center font-medium text-gray-500 dark:text-gray-400 dark:text-gray-500">Nb pots</th>
               )}
               <th className="px-3 py-2 w-28"></th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
             {plan.varietes.length === 0 ? (
               <tr>
                 <td
                   colSpan={hasEspace ? 10 : 9}
-                  className="px-4 py-8 text-center text-gray-400 text-sm"
+                  className="px-4 py-8 text-center text-gray-400 dark:text-gray-500 text-sm"
                 >
                   Aucune variété — ajoutez-en via le bouton ci-dessous
                 </td>
@@ -464,22 +464,22 @@ function PlanTable({ plan }: PlanTableProps) {
                     : null
 
                 return (
-                  <tr key={pv.id_plan_variete} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-3 py-2.5 text-gray-500 whitespace-nowrap">
+                  <tr key={pv.id_plan_variete} className="hover:bg-gray-50 dark:hover:bg-gray-700/40 transition-colors">
+                    <td className="px-3 py-2.5 text-gray-500 dark:text-gray-400 dark:text-gray-500 whitespace-nowrap">
                       {pv.nom_breeder ?? '—'}
                     </td>
-                    <td className="px-3 py-2.5 font-medium text-gray-900 whitespace-nowrap">
+                    <td className="px-3 py-2.5 font-medium text-gray-900 dark:text-gray-100 whitespace-nowrap">
                       {pv.nom_variete ?? '—'}
                     </td>
                     <td className="px-3 py-2.5 text-center">
                       {typeGraineBadge(pv.type_graine)}
                     </td>
-                    <td className="px-3 py-2.5 text-center text-gray-600 whitespace-nowrap">
+                    <td className="px-3 py-2.5 text-center text-gray-600 dark:text-gray-300 whitespace-nowrap">
                       {pv.duree_flo_min && pv.duree_flo_max
                         ? `${pv.duree_flo_min}–${pv.duree_flo_max}`
                         : (pv.duree_flo_min ?? pv.duree_flo_max ?? '—')}
                     </td>
-                    <td className="px-3 py-2.5 text-center text-gray-600">
+                    <td className="px-3 py-2.5 text-center text-gray-600 dark:text-gray-300">
                       {pv.duree_conservation_mois ? `${pv.duree_conservation_mois} mois` : '—'}
                     </td>
                     <td className="px-3 py-2.5 text-center">
@@ -508,7 +508,7 @@ function PlanTable({ plan }: PlanTableProps) {
                           className="w-16 px-2 py-0.5 text-sm border rounded text-center focus:outline-none focus:ring-2 focus:ring-grow-600"
                         />
                       ) : (
-                        <span className="font-semibold text-gray-800">{pv.nb_plantes}</span>
+                        <span className="font-semibold text-gray-800 dark:text-gray-100">{pv.nb_plantes}</span>
                       )}
                     </td>
 
@@ -533,7 +533,7 @@ function PlanTable({ plan }: PlanTableProps) {
                           ))}
                         </select>
                       ) : (
-                        <span className="text-gray-700">
+                        <span className="text-gray-700 dark:text-gray-200">
                           {pv.taille_pot_l ? `${pv.taille_pot_l} L` : '—'}
                         </span>
                       )}
@@ -541,7 +541,7 @@ function PlanTable({ plan }: PlanTableProps) {
 
                     {/* Nb pots calculé */}
                     {hasEspace && (
-                      <td className="px-3 py-2.5 text-center text-gray-400 text-xs">
+                      <td className="px-3 py-2.5 text-center text-gray-400 dark:text-gray-500 text-xs">
                         {nbPots !== null ? `≈ ${nbPots}` : '—'}
                       </td>
                     )}
@@ -559,7 +559,7 @@ function PlanTable({ plan }: PlanTableProps) {
                           </button>
                           <button
                             onClick={() => setEditingId(null)}
-                            className="px-2 py-1 text-gray-500 border rounded text-xs hover:bg-gray-100"
+                            className="px-2 py-1 text-gray-500 dark:text-gray-400 dark:text-gray-500 border rounded text-xs hover:bg-gray-100 dark:hover:bg-gray-700"
                           >
                             ✕
                           </button>
@@ -568,7 +568,7 @@ function PlanTable({ plan }: PlanTableProps) {
                         <div className="flex items-center gap-1 justify-end">
                           <button
                             onClick={() => startEdit(pv)}
-                            className="px-2 py-1 text-xs text-gray-500 border rounded hover:bg-gray-50 hover:text-gray-700 transition-colors"
+                            className="px-2 py-1 text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 border rounded hover:bg-gray-50 dark:hover:bg-gray-700/40 hover:text-gray-700 dark:text-gray-200 transition-colors"
                           >
                             Éditer
                           </button>
@@ -595,11 +595,11 @@ function PlanTable({ plan }: PlanTableProps) {
             )
             return (
               <tfoot>
-                <tr className="bg-gray-50 border-t font-medium">
-                  <td colSpan={6} className="px-3 py-2 text-right text-sm text-gray-500">
+                <tr className="bg-gray-50 dark:bg-gray-700/50 border-t font-medium">
+                  <td colSpan={6} className="px-3 py-2 text-right text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500">
                     Total :
                   </td>
-                  <td className="px-3 py-2 text-center text-gray-900 font-bold">
+                  <td className="px-3 py-2 text-center text-gray-900 dark:text-gray-100 font-bold">
                     {plan.nb_plantes_total}
                   </td>
                   <td className="px-3 py-2 text-center font-bold text-grow-700">
@@ -721,10 +721,10 @@ function EspaceSection({ espace, plans }: EspaceSectionProps) {
       if (!selectedPlan || selectedPlan.varietes.length === 0) return null
       return (
         <div className="flex flex-col gap-0.5">
-          <label className="text-[11px] font-medium text-gray-500 uppercase tracking-wide flex items-center gap-1">
+          <label className="text-[11px] font-medium text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase tracking-wide flex items-center gap-1">
             <Scissors size={11} /> Récolte estimée
           </label>
-          <div className="px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-400 italic">
+          <div className="px-3 py-1.5 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-700 rounded-lg text-sm text-gray-400 dark:text-gray-500 italic">
             Durées de floraison manquantes
           </div>
         </div>
@@ -735,7 +735,7 @@ function EspaceSection({ espace, plans }: EspaceSectionProps) {
       : formatDate(harvestRange.earliest) + ' \u2192 ' + formatDate(harvestRange.latest)
     return (
       <div className="flex flex-col gap-0.5">
-        <label className="text-[11px] font-medium text-gray-500 uppercase tracking-wide flex items-center gap-1">
+        <label className="text-[11px] font-medium text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase tracking-wide flex items-center gap-1">
           <Scissors size={11} /> Récolte estimée
         </label>
         <div className="px-3 py-1.5 bg-green-50 border border-green-200 rounded-lg text-sm font-medium text-green-800 whitespace-nowrap">
@@ -750,7 +750,7 @@ function EspaceSection({ espace, plans }: EspaceSectionProps) {
     : 'Sans espace'
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
       {/* Header espace */}
       <div className="px-5 py-3 bg-grow-600 flex items-center justify-between">
         <span className="font-semibold text-white">{headerLabel}</span>
@@ -774,21 +774,21 @@ function EspaceSection({ espace, plans }: EspaceSectionProps) {
             <div className="flex items-center gap-2 flex-wrap">
               {/* Pagination : seulement si > 1 plan */}
               {plans.length > 1 && (
-                <div className="flex items-center gap-1 bg-gray-50 border border-gray-200 rounded-lg px-1 py-1">
+                <div className="flex items-center gap-1 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-700 rounded-lg px-1 py-1">
                   <button
                     onClick={() => goTo(currentIndex - 1)}
                     disabled={!hasPrev}
-                    className="p-1 rounded text-gray-500 hover:bg-gray-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                    className="p-1 rounded text-gray-500 dark:text-gray-400 dark:text-gray-500 hover:bg-gray-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                     title="Plan précédent"
                   >
                     <ChevronLeft size={15} />
                   </button>
 
                   <div className="px-2 text-center min-w-[120px]">
-                    <span className="text-sm font-semibold text-gray-800 truncate block max-w-[160px]">
+                    <span className="text-sm font-semibold text-gray-800 dark:text-gray-100 truncate block max-w-[160px]">
                       {selectedPlan?.nom ?? '—'}
                     </span>
-                    <span className="text-[10px] text-gray-400">
+                    <span className="text-[10px] text-gray-400 dark:text-gray-500">
                       {currentIndex + 1} / {plans.length}
                       {selectedPlan && selectedPlan.nb_plantes_total > 0 && (
                         <> · {selectedPlan.nb_plantes_total} plante{selectedPlan.nb_plantes_total > 1 ? 's' : ''}</>
@@ -799,7 +799,7 @@ function EspaceSection({ espace, plans }: EspaceSectionProps) {
                   <button
                     onClick={() => goTo(currentIndex + 1)}
                     disabled={!hasNext}
-                    className="p-1 rounded text-gray-500 hover:bg-gray-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                    className="p-1 rounded text-gray-500 dark:text-gray-400 dark:text-gray-500 hover:bg-gray-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                     title="Plan suivant"
                   >
                     <ChevronRight size={15} />
@@ -861,7 +861,7 @@ function EspaceSection({ espace, plans }: EspaceSectionProps) {
                   </button>
                   <button
                     onClick={() => { setShowNewPlanInput(false); setNewPlanNom('') }}
-                    className="px-2 py-1.5 text-gray-500 border rounded-lg text-xs hover:bg-gray-100"
+                    className="px-2 py-1.5 text-gray-500 dark:text-gray-400 dark:text-gray-500 border rounded-lg text-xs hover:bg-gray-100 dark:hover:bg-gray-700"
                   >
                     ✕
                   </button>
@@ -869,7 +869,7 @@ function EspaceSection({ espace, plans }: EspaceSectionProps) {
               ) : (
                 <button
                   onClick={() => setShowNewPlanInput(true)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-500 border border-dashed rounded-lg hover:border-grow-600 hover:text-grow-600 transition-colors"
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500 border border-dashed rounded-lg hover:border-grow-600 hover:text-grow-600 transition-colors"
                 >
                   <Plus size={12} /> Nouveau plan
                 </button>
@@ -885,20 +885,20 @@ function EspaceSection({ espace, plans }: EspaceSectionProps) {
             <div className="mt-4 flex flex-wrap items-center gap-3">
               {/* Date de début */}
               <div className="flex flex-col gap-0.5">
-                <label className="text-[11px] font-medium text-gray-500 uppercase tracking-wide flex items-center gap-1">
+                <label className="text-[11px] font-medium text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase tracking-wide flex items-center gap-1">
                   <CalendarDays size={11} /> Date de début
                 </label>
                 <input
                   type="date"
                   value={dateDebut}
                   onChange={e => setDateDebut(e.target.value)}
-                  className="px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-grow-600 bg-white"
+                  className="px-3 py-1.5 text-sm border border-gray-200 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-grow-600 bg-white dark:bg-gray-800"
                 />
               </div>
 
               {/* Durée de croissance */}
               <div className="flex flex-col gap-0.5">
-                <label className="text-[11px] font-medium text-gray-500 uppercase tracking-wide">
+                <label className="text-[11px] font-medium text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase tracking-wide">
                   Durée vég. depuis germination
                 </label>
                 <div className="flex items-center gap-1">
@@ -909,9 +909,9 @@ function EspaceSection({ espace, plans }: EspaceSectionProps) {
                     placeholder="—"
                     value={dureeVeg}
                     onChange={e => setDureeVeg(e.target.value)}
-                    className="w-20 px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-grow-600 bg-white text-center"
+                    className="w-20 px-3 py-1.5 text-sm border border-gray-200 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-grow-600 bg-white dark:bg-gray-800 text-center"
                   />
-                  <span className="text-sm text-gray-500">sem.</span>
+                  <span className="text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500">sem.</span>
                 </div>
               </div>
 
@@ -926,7 +926,7 @@ function EspaceSection({ espace, plans }: EspaceSectionProps) {
               <div className="mt-4 flex items-center justify-end gap-2">
                 <button
                   onClick={() => planCultureAPI.exportCSV(selectedPlan.id_plan)}
-                  className="flex items-center gap-1.5 px-3 py-2 border border-gray-300 text-gray-600 rounded-lg text-sm hover:bg-gray-50 transition-colors"
+                  className="flex items-center gap-1.5 px-3 py-2 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-700/40 transition-colors"
                   title="Exporter en CSV"
                 >
                   <Download size={14} />
@@ -943,7 +943,7 @@ function EspaceSection({ espace, plans }: EspaceSectionProps) {
             )}
           </>
         ) : (
-          <div className="mt-4 py-6 text-center text-gray-400 text-sm">
+          <div className="mt-4 py-6 text-center text-gray-400 dark:text-gray-500 text-sm">
             Créez un plan pour commencer à planifier vos variétés
           </div>
         )}
@@ -999,7 +999,7 @@ export default function PlanCulturePage() {
   if (isLoading) {
     return (
       <div className="flex-1 flex items-center justify-center">
-        <div className="text-gray-400 text-sm">Chargement...</div>
+        <div className="text-gray-400 dark:text-gray-500 text-sm">Chargement...</div>
       </div>
     )
   }
@@ -1010,17 +1010,17 @@ export default function PlanCulturePage() {
     <div className="flex-1 overflow-auto p-6 space-y-6">
       {/* Titre */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Préparer une culture</h1>
-        <p className="text-sm text-gray-500 mt-1">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Préparer une culture</h1>
+        <p className="text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500 mt-1">
           Planifiez vos prochaines cultures par espace · variétés et quantités
         </p>
       </div>
 
       {/* Un bloc par espace */}
       {espaces.length === 0 ? (
-        <div className="bg-white rounded-xl border border-gray-200 p-10 text-center">
-          <p className="text-gray-500 text-sm">Aucun espace de culture configuré.</p>
-          <p className="text-gray-400 text-xs mt-1">
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-10 text-center">
+          <p className="text-gray-500 dark:text-gray-400 dark:text-gray-500 text-sm">Aucun espace de culture configuré.</p>
+          <p className="text-gray-400 dark:text-gray-500 text-xs mt-1">
             Créez des espaces de culture dans les paramètres pour commencer.
           </p>
         </div>

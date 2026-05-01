@@ -20,12 +20,12 @@ function getUnites(type: string) {
 
 const today = () => new Date().toISOString().split('T')[0]
 
-const sel  = "w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-grow-500"
-const inp  = "w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-grow-500"
+const sel  = "w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-grow-500"
+const inp  = "w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-grow-500"
 
 function Label({ children, required }: { children: React.ReactNode; required?: boolean }) {
   return (
-    <label className="block text-xs font-medium text-gray-600 mb-1">
+    <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">
       {children}{required && <span className="text-red-400 ml-0.5">*</span>}
     </label>
   )
@@ -94,14 +94,14 @@ export default function NouveauProduitEngraisModal({ editProduit, onClose }: Pro
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[92vh] flex flex-col">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-2xl max-h-[92vh] flex flex-col">
 
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-          <h2 className="text-lg font-bold text-gray-900">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-700">
+          <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
             {isEdit ? 'Modifier le produit' : 'Ajouter un produit'}
           </h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X size={22} /></button>
+          <button onClick={onClose} className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:text-gray-300"><X size={22} /></button>
         </div>
 
         {/* Corps */}
@@ -126,7 +126,7 @@ export default function NouveauProduitEngraisModal({ editProduit, onClose }: Pro
                 {marques.map(m => <option key={m} value={m}>{m}</option>)}
               </select>
               {marques.length === 0 && (
-                <p className="text-xs text-gray-400 mt-1">
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
                   Ajoutez des marques depuis la page <span className="font-medium">Paramétrage</span>.
                 </p>
               )}
@@ -163,7 +163,7 @@ export default function NouveauProduitEngraisModal({ editProduit, onClose }: Pro
                   placeholder="Ex: 500" className={inp} />
                 <select value={form.unite_volume}
                   onChange={e => setForm(f => ({ ...f, unite_volume: e.target.value }))}
-                  className="w-20 px-2 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-grow-500">
+                  className="w-20 px-2 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-grow-500">
                   {unites.volume.map(u => <option key={u} value={u}>{u}</option>)}
                 </select>
               </div>
@@ -203,7 +203,7 @@ export default function NouveauProduitEngraisModal({ editProduit, onClose }: Pro
                 placeholder="Ex: 250" className={inp} />
               <select value={form.unite_quantite}
                 onChange={e => setForm(f => ({ ...f, unite_quantite: e.target.value }))}
-                className="w-20 px-2 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-grow-500">
+                className="w-20 px-2 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-grow-500">
                 {unites.qte.map(u => <option key={u} value={u}>{u}</option>)}
               </select>
             </div>
@@ -230,9 +230,9 @@ export default function NouveauProduitEngraisModal({ editProduit, onClose }: Pro
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-gray-100 flex justify-end gap-3">
+        <div className="px-6 py-4 border-t border-gray-100 dark:border-gray-700 flex justify-end gap-3">
           <button onClick={onClose}
-            className="px-4 py-2 border border-gray-300 text-gray-600 text-sm rounded-lg hover:bg-gray-50">
+            className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 text-sm rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/40">
             Annuler
           </button>
           <button onClick={() => save.mutate()} disabled={save.isPending || !form.nom_produit.trim()}

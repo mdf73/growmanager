@@ -4,8 +4,10 @@ import {
   Menu, X, Home, Sprout, Leaf, Package, Beaker,
   BookOpen, Wrench, Settings, BarChart2, FlaskConical,
   ChevronDown, ChevronRight, NotebookPen, Boxes, Wind, Dna, Droplets, Thermometer, ClipboardList, Trophy,
+  Moon, Sun,
 } from 'lucide-react'
 import clsx from 'clsx'
+import { useDarkMode } from '../hooks/useDarkMode'
 
 interface LayoutProps {
   children: ReactNode
@@ -225,6 +227,7 @@ function NavGroup({
 export default function Layout({ children }: LayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const location = useLocation()
+  const { isDark, toggle: toggleDark } = useDarkMode()
 
   const renderNav = (closeSidebar?: () => void) =>
     navItems.map((item, i) => {
@@ -266,7 +269,7 @@ export default function Layout({ children }: LayoutProps) {
   })
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
 
       {/* ── Sidebar Desktop ── */}
       <aside className="hidden lg:flex lg:flex-col w-64 bg-grow-600 text-white">
@@ -279,8 +282,15 @@ export default function Layout({ children }: LayoutProps) {
           {renderNav()}
         </nav>
 
-        <div className="p-4 border-t border-grow-700">
+        <div className="p-4 border-t border-grow-700 flex items-center justify-between">
           <p className="text-xs text-grow-200">© 2024 GrowManager</p>
+          <button
+            onClick={toggleDark}
+            title={isDark ? 'Passer en mode clair' : 'Passer en mode sombre'}
+            className="p-1.5 rounded-lg text-grow-200 hover:bg-grow-700 hover:text-white transition-colors"
+          >
+            {isDark ? <Sun size={16} /> : <Moon size={16} />}
+          </button>
         </div>
       </aside>
 
@@ -314,15 +324,23 @@ export default function Layout({ children }: LayoutProps) {
       <div className="flex-1 flex flex-col overflow-hidden">
 
         {/* Header Mobile */}
-        <header className="lg:hidden bg-white border-b border-gray-200">
+        <header className="lg:hidden bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
           <div className="px-4 py-3 flex items-center justify-between">
-            <h1 className="text-lg font-bold text-grow-600">GrowManager</h1>
-            <button
-              onClick={() => setSidebarOpen(true)}
-              className="p-2 hover:bg-gray-100 rounded-lg"
-            >
-              <Menu size={24} />
-            </button>
+            <h1 className="text-lg font-bold text-grow-600 dark:text-grow-400">GrowManager</h1>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={toggleDark}
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-gray-500 dark:text-gray-400 dark:text-gray-500 transition-colors"
+              >
+                {isDark ? <Sun size={20} /> : <Moon size={20} />}
+              </button>
+              <button
+                onClick={() => setSidebarOpen(true)}
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-gray-700 dark:text-gray-300"
+              >
+                <Menu size={24} />
+              </button>
+            </div>
           </div>
         </header>
 
@@ -334,7 +352,7 @@ export default function Layout({ children }: LayoutProps) {
         </main>
 
         {/* Bottom Navigation Mobile */}
-        <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200">
+        <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
           <div className="flex justify-around overflow-x-auto">
             {flatItems.map((item) => (
               <Link
@@ -343,8 +361,8 @@ export default function Layout({ children }: LayoutProps) {
                 className={clsx(
                   'flex flex-col items-center space-y-1 flex-1 py-3 transition-colors min-w-[4rem]',
                   location.pathname === item.path
-                    ? 'text-grow-600 bg-grow-50'
-                    : 'text-gray-500 hover:text-gray-700'
+                    ? 'text-grow-600 dark:text-grow-400 bg-grow-50 dark:bg-grow-900/20'
+                    : 'text-gray-500 dark:text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:text-gray-200 dark:hover:text-gray-200'
                 )}
               >
                 <NavIcon item={item} size={20} />

@@ -16,7 +16,7 @@ import NouvellerCultureModal from '../components/culture/NouvellerCultureModal'
 const STATUT_CONFIG = {
   active:          { label: 'Active',          className: 'bg-green-100 text-green-700' },
   sechage_curing:  { label: 'Séchage & Curing',className: 'bg-yellow-100 text-yellow-700' },
-  terminee:        { label: 'Terminée',         className: 'bg-gray-100 text-gray-600' },
+  terminee:        { label: 'Terminée',         className: 'bg-gray-100 text-gray-600 dark:text-gray-300' },
 }
 
 // Phase de la culture (culture.phase)
@@ -46,15 +46,15 @@ function CultureCard({
   return (
     <div
       onClick={confirmDelete ? undefined : onClick}
-      className={`bg-white border border-gray-200 rounded-xl p-5 transition-all group ${confirmDelete ? '' : 'hover:shadow-md hover:border-grow-300 cursor-pointer'}`}
+      className={`bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-5 transition-all group ${confirmDelete ? '' : 'hover:shadow-md hover:border-grow-300 cursor-pointer'}`}
     >
       <div className="flex items-start justify-between mb-3">
         <div className="flex-1 min-w-0">
-          <h3 className="font-bold text-gray-900 text-base truncate group-hover:text-grow-700 transition-colors">
+          <h3 className="font-bold text-gray-900 dark:text-gray-100 text-base truncate group-hover:text-grow-700 transition-colors">
             {culture.nom || `Culture #${culture.id_culture}`}
           </h3>
           {culture.nom_espace && (
-            <p className="text-sm text-gray-500 mt-0.5">📦 {culture.nom_espace}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500 mt-0.5">📦 {culture.nom_espace}</p>
           )}
           {culture.but_culture && (
             <div className="flex flex-wrap gap-1 mt-1">
@@ -84,7 +84,7 @@ function CultureCard({
 
       {/* Phase */}
       {culture.phase && (
-        <div className="flex items-center gap-1.5 text-sm text-gray-600 mb-3">
+        <div className="flex items-center gap-1.5 text-sm text-gray-600 dark:text-gray-300 mb-3">
           <span>{PHASE_CONFIG[culture.phase]?.icon ?? '📍'}</span>
           <span>{PHASE_CONFIG[culture.phase]?.label ?? culture.phase}</span>
         </div>
@@ -92,23 +92,23 @@ function CultureCard({
 
       {/* Métriques */}
       <div className="grid grid-cols-4 gap-1.5 text-center">
-        <div className="bg-gray-50 rounded-lg p-2">
-          <p className="text-lg font-bold text-gray-900">{culture.nb_plantes_actives}</p>
-          <p className="text-xs text-gray-500">plantes</p>
+        <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-2">
+          <p className="text-lg font-bold text-gray-900 dark:text-gray-100">{culture.nb_plantes_actives}</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">plantes</p>
         </div>
-        <div className="bg-gray-50 rounded-lg p-2">
-          <p className="text-lg font-bold text-gray-900">{culture.jours_culture ?? '—'}</p>
-          <p className="text-xs text-gray-500">jours</p>
+        <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-2">
+          <p className="text-lg font-bold text-gray-900 dark:text-gray-100">{culture.jours_culture ?? '—'}</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">jours</p>
         </div>
-        <div className={`rounded-lg p-2 ${culture.date_debut_floraison ? 'bg-purple-50' : 'bg-gray-50'}`}>
-          <p className={`text-lg font-bold ${culture.date_debut_floraison ? 'text-purple-700' : 'text-gray-400'}`}>
+        <div className={`rounded-lg p-2 ${culture.date_debut_floraison ? 'bg-purple-50' : 'bg-gray-50 dark:bg-gray-700/50'}`}>
+          <p className={`text-lg font-bold ${culture.date_debut_floraison ? 'text-purple-700' : 'text-gray-400 dark:text-gray-500'}`}>
             {culture.date_debut_floraison
               ? `${Math.max(0, Math.floor((Date.now() - new Date(culture.date_debut_floraison + 'T12:00').getTime()) / (1000*60*60*24)))}j`
               : '—'}
           </p>
-          <p className="text-xs text-gray-500">🌸 flo.</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">🌸 flo.</p>
         </div>
-        <div className={`rounded-lg p-2 col-span-1 ${culture.date_recolte_min ? 'bg-amber-50' : 'bg-gray-50'}`}>
+        <div className={`rounded-lg p-2 col-span-1 ${culture.date_recolte_min ? 'bg-amber-50' : 'bg-gray-50 dark:bg-gray-700/50'}`}>
           {culture.date_recolte_min ? (
             <>
               <p className="text-xs font-bold text-amber-800 leading-tight">
@@ -121,9 +121,9 @@ function CultureCard({
               </p>
             </>
           ) : (
-            <p className="text-lg font-bold text-gray-400">—</p>
+            <p className="text-lg font-bold text-gray-400 dark:text-gray-500">—</p>
           )}
-          <p className="text-xs text-gray-500 mt-0.5">🌾 récolte</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 mt-0.5">🌾 récolte</p>
         </div>
       </div>
 
@@ -132,7 +132,7 @@ function CultureCard({
         {(() => {
           const j = culture.jours_depuis_dernier_arrosage
           if (j == null) return (
-            <div className="flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg bg-gray-50 text-gray-400">
+            <div className="flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg bg-gray-50 dark:bg-gray-700/50 text-gray-400 dark:text-gray-500">
               <Droplets size={12} /> Aucun arrosage enregistré
             </div>
           )
@@ -150,7 +150,7 @@ function CultureCard({
         {(() => {
           const j = culture.jours_depuis_dernier_tco
           if (j == null) return (
-            <div className="flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg bg-gray-50 text-gray-400">
+            <div className="flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg bg-gray-50 dark:bg-gray-700/50 text-gray-400 dark:text-gray-500">
               🫧 Aucun TCO enregistré
             </div>
           )
@@ -169,7 +169,7 @@ function CultureCard({
 
       {/* Date début */}
       {culture.date_debut && (
-        <p className="text-xs text-gray-400 mt-3">
+        <p className="text-xs text-gray-400 dark:text-gray-500 mt-3">
           Démarrée le {new Date(culture.date_debut + 'T12:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
         </p>
       )}
@@ -195,7 +195,7 @@ function CultureCard({
             </button>
             <button
               onClick={() => setConfirmDelete(false)}
-              className="flex-1 px-2 py-1 border border-gray-300 text-gray-600 text-xs rounded hover:bg-gray-50"
+              className="flex-1 px-2 py-1 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 text-xs rounded hover:bg-gray-50 dark:hover:bg-gray-700/40"
             >
               Annuler
             </button>
@@ -246,7 +246,7 @@ function CultureDetail({ cultureId, onBack }: { cultureId: number; onBack: () =>
   })
 
   if (isLoading) return <LoadingSpinner />
-  if (!culture) return <div className="text-gray-400 text-center py-12">Culture introuvable</div>
+  if (!culture) return <div className="text-gray-400 dark:text-gray-500 text-center py-12">Culture introuvable</div>
 
   const statut = STATUT_CONFIG[culture.statut as keyof typeof STATUT_CONFIG] || STATUT_CONFIG.active
   const pesoTotal = culture.plants
@@ -264,7 +264,7 @@ function CultureDetail({ cultureId, onBack }: { cultureId: number; onBack: () =>
       {/* Header */}
       <div className="flex items-start gap-3">
         <button onClick={onBack}
-          className="mt-1 p-1.5 hover:bg-gray-100 rounded-lg transition-colors text-gray-500">
+          className="mt-1 p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors text-gray-500 dark:text-gray-400 dark:text-gray-500">
           <ArrowLeft size={20} />
         </button>
         <div className="flex-1 min-w-0">
@@ -279,24 +279,24 @@ function CultureDetail({ cultureId, onBack }: { cultureId: number; onBack: () =>
                     if (e.key === 'Enter') renameCulture.mutate(nameValue)
                     if (e.key === 'Escape') setEditingName(false)
                   }}
-                  className="text-xl font-bold text-gray-900 border-b-2 border-grow-500 bg-transparent outline-none px-1"
+                  className="text-xl font-bold text-gray-900 dark:text-gray-100 border-b-2 border-grow-500 bg-transparent outline-none px-1"
                 />
                 <button onClick={() => renameCulture.mutate(nameValue)} disabled={renameCulture.isPending}
                   className="p-1 text-grow-600 hover:text-grow-800">
                   {renameCulture.isPending ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
                 </button>
-                <button onClick={() => setEditingName(false)} className="p-1 text-gray-400 hover:text-gray-600">
+                <button onClick={() => setEditingName(false)} className="p-1 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:text-gray-300">
                   <X size={16} />
                 </button>
               </div>
             ) : (
               <div className="flex items-center gap-2">
-                <h1 className="text-2xl font-bold text-gray-900 truncate">
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 truncate">
                   {culture.nom || `Culture #${culture.id_culture}`}
                 </h1>
                 <button
                   onClick={() => { setNameValue(culture.nom || ''); setEditingName(true) }}
-                  className="p-1 text-gray-300 hover:text-gray-600 transition-colors"
+                  className="p-1 text-gray-300 hover:text-gray-600 dark:text-gray-300 transition-colors"
                   title="Renommer la culture"
                 >
                   <Pencil size={14} />
@@ -308,7 +308,7 @@ function CultureDetail({ cultureId, onBack }: { cultureId: number; onBack: () =>
             </span>
           </div>
           {culture.nom_espace && (
-            <p className="text-sm text-gray-500 mt-1">📦 {culture.nom_espace}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500 mt-1">📦 {culture.nom_espace}</p>
           )}
           {culture.but_culture && (
             <div className="flex flex-wrap gap-1.5 mt-1.5">
@@ -327,7 +327,7 @@ function CultureDetail({ cultureId, onBack }: { cultureId: number; onBack: () =>
           {culture.statut === 'active' && (
             <button
               onClick={() => { if (confirm('Clôturer cette culture manuellement ?')) closeCulture.mutate() }}
-              className="flex items-center gap-1.5 px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-600 hover:bg-gray-50"
+              className="flex items-center gap-1.5 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/40"
             >
               <CheckCircle size={15} /> Clôturer
             </button>
@@ -354,7 +354,7 @@ function CultureDetail({ cultureId, onBack }: { cultureId: number; onBack: () =>
               </button>
               <button
                 onClick={() => setConfirmDelete(false)}
-                className="px-2 py-1 border border-gray-300 text-gray-600 text-xs rounded hover:bg-gray-50"
+                className="px-2 py-1 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 text-xs rounded hover:bg-gray-50 dark:hover:bg-gray-700/40"
               >
                 Annuler
               </button>
@@ -375,24 +375,24 @@ function CultureDetail({ cultureId, onBack }: { cultureId: number; onBack: () =>
               return j >= 0 ? `${j}j` : '—'
             })() },
         ].map(({ icon: Icon, label, value }) => (
-          <div key={label} className="bg-white border border-gray-200 rounded-xl p-3 flex items-center gap-3">
+          <div key={label} className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-3 flex items-center gap-3">
             <div className="w-8 h-8 bg-grow-50 rounded-lg flex items-center justify-center flex-shrink-0">
               <Icon size={16} className="text-grow-600" />
             </div>
             <div>
-              <p className="text-xs text-gray-500">{label}</p>
-              <p className="text-sm font-bold text-gray-900">{value}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">{label}</p>
+              <p className="text-sm font-bold text-gray-900 dark:text-gray-100">{value}</p>
             </div>
           </div>
         ))}
 
         {/* Fenêtre de récolte : première → dernière date */}
-        <div className={`border rounded-xl p-3 flex items-center gap-3 ${culture.date_recolte_min ? 'bg-amber-50 border-amber-200' : 'bg-white border-gray-200'}`}>
+        <div className={`border rounded-xl p-3 flex items-center gap-3 ${culture.date_recolte_min ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200' : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700'}`}>
           <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${culture.date_recolte_min ? 'bg-amber-100' : 'bg-grow-50'}`}>
             <Flower2 size={16} className={culture.date_recolte_min ? 'text-amber-700' : 'text-grow-600'} />
           </div>
           <div>
-            <p className="text-xs text-gray-500">Fenêtre récolte</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">Fenêtre récolte</p>
             {culture.date_recolte_min ? (
               <p className="text-sm font-bold text-amber-800">
                 {new Date(culture.date_recolte_min + 'T12:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
@@ -402,7 +402,7 @@ function CultureDetail({ cultureId, onBack }: { cultureId: number; onBack: () =>
                   : '?'}
               </p>
             ) : (
-              <p className="text-sm font-bold text-gray-400">—</p>
+              <p className="text-sm font-bold text-gray-400 dark:text-gray-500">—</p>
             )}
           </div>
         </div>
@@ -411,7 +411,7 @@ function CultureDetail({ cultureId, onBack }: { cultureId: number; onBack: () =>
         {(() => {
           const j = culture.jours_depuis_dernier_arrosage
           const { bg, iconColor, text } = j == null
-            ? { bg: 'bg-gray-50',    iconColor: 'text-gray-400',   text: '—' }
+            ? { bg: 'bg-gray-50 dark:bg-gray-700/50',    iconColor: 'text-gray-400 dark:text-gray-500',   text: '—' }
             : j === 0
             ? { bg: 'bg-blue-50',   iconColor: 'text-blue-600',   text: "Aujourd'hui" }
             : j <= 2
@@ -420,12 +420,12 @@ function CultureDetail({ cultureId, onBack }: { cultureId: number; onBack: () =>
             ? { bg: 'bg-orange-50', iconColor: 'text-orange-600', text: `${j}j` }
             : { bg: 'bg-red-50',    iconColor: 'text-red-600',    text: `${j}j` }
           return (
-            <div className={`${bg} border border-gray-200 rounded-xl p-3 flex items-center gap-3`}>
+            <div className={`${bg} border border-gray-200 dark:border-gray-700 rounded-xl p-3 flex items-center gap-3`}>
               <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${bg}`}>
                 <Droplets size={16} className={iconColor} />
               </div>
               <div>
-                <p className="text-xs text-gray-500">Dernier arrosage</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">Dernier arrosage</p>
                 <p className={`text-sm font-bold ${iconColor}`}>{text}</p>
               </div>
             </div>
@@ -436,7 +436,7 @@ function CultureDetail({ cultureId, onBack }: { cultureId: number; onBack: () =>
         {(() => {
           const j = culture.jours_depuis_dernier_tco
           const { bg, textColor, text } = j == null
-            ? { bg: 'bg-gray-50',    textColor: 'text-gray-400',   text: '—' }
+            ? { bg: 'bg-gray-50 dark:bg-gray-700/50',    textColor: 'text-gray-400 dark:text-gray-500',   text: '—' }
             : j === 0
             ? { bg: 'bg-blue-50',   textColor: 'text-blue-600',   text: "Aujourd'hui" }
             : j <= 7
@@ -445,12 +445,12 @@ function CultureDetail({ cultureId, onBack }: { cultureId: number; onBack: () =>
             ? { bg: 'bg-orange-50', textColor: 'text-orange-600', text: `${j}j` }
             : { bg: 'bg-red-50',    textColor: 'text-red-600',    text: `${j}j` }
           return (
-            <div className={`${bg} border border-gray-200 rounded-xl p-3 flex items-center gap-3`}>
+            <div className={`${bg} border border-gray-200 dark:border-gray-700 rounded-xl p-3 flex items-center gap-3`}>
               <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${bg} text-lg`}>
                 🫧
               </div>
               <div>
-                <p className="text-xs text-gray-500">Dernier TCO</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">Dernier TCO</p>
                 <p className={`text-sm font-bold ${textColor}`}>{text}</p>
               </div>
             </div>
@@ -472,7 +472,7 @@ function CultureDetail({ cultureId, onBack }: { cultureId: number; onBack: () =>
       )}
 
       {/* Tabs */}
-      <div className="border-b border-gray-200">
+      <div className="border-b border-gray-200 dark:border-gray-700">
         <div className="flex gap-0">
           {tabs.map(({ key, label, icon: Icon }) => (
             <button
@@ -481,7 +481,7 @@ function CultureDetail({ cultureId, onBack }: { cultureId: number; onBack: () =>
               className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors
                 ${activeTab === key
                   ? 'border-grow-600 text-grow-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+                  : 'border-transparent text-gray-500 dark:text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:text-gray-200'}`}
             >
               <Icon size={15} />
               {label}
@@ -551,8 +551,8 @@ export default function CulturePage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Suivi de culture</h1>
-          <p className="text-sm text-gray-500 mt-1">{cultures.length} culture{cultures.length > 1 ? 's' : ''}</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Suivi de culture</h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500 mt-1">{cultures.length} culture{cultures.length > 1 ? 's' : ''}</p>
         </div>
         <button
           onClick={() => setShowNewModal(true)}
@@ -576,7 +576,7 @@ export default function CulturePage() {
             className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors
               ${filterStatut === f.key
                 ? 'bg-grow-600 text-white'
-                : 'bg-white border border-gray-200 text-gray-600 hover:border-grow-300'}`}
+                : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:border-grow-300'}`}
           >
             {f.label}
           </button>
@@ -591,8 +591,8 @@ export default function CulturePage() {
           <div className="w-16 h-16 bg-grow-50 rounded-full flex items-center justify-center mx-auto mb-4">
             <Leaf size={28} className="text-grow-400" />
           </div>
-          <h3 className="text-lg font-semibold text-gray-700 mb-2">Aucune culture</h3>
-          <p className="text-gray-400 mb-6">
+          <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-200 mb-2">Aucune culture</h3>
+          <p className="text-gray-400 dark:text-gray-500 mb-6">
             {filterStatut === 'active'
               ? 'Aucune culture active. Créez votre première culture !'
               : 'Aucune culture dans cette catégorie'}

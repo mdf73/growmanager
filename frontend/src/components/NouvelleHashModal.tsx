@@ -141,9 +141,9 @@ export default function NouvelleHashModal({ onClose }: Props) {
     onError: (e: Error) => setError(e.message),
   })
 
-  const inputCls = "w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+  const inputCls = "w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
   const lbl = (txt: string, req = false) => (
-    <label className="block text-sm font-medium text-gray-700 mb-1">
+    <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
       {txt}{req && <span className="text-red-500 ml-0.5">*</span>}
     </label>
   )
@@ -152,15 +152,15 @@ export default function NouvelleHashModal({ onClose }: Props) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[94vh]">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[94vh]">
 
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 shrink-0">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700 shrink-0">
           <div className="flex items-center gap-2">
             <span className="text-2xl">🍫</span>
-            <h2 className="text-lg font-semibold text-gray-900">Nouvelle extraction Hash</h2>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Nouvelle extraction Hash</h2>
           </div>
-          <button onClick={onClose} className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100">
+          <button onClick={onClose} className="p-1.5 rounded-lg text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
             <X size={18} />
           </button>
         </div>
@@ -180,7 +180,7 @@ export default function NouvelleHashModal({ onClose }: Props) {
                 className={`py-3 rounded-xl text-sm font-semibold border-2 transition-all ${
                   typeExtraction === type
                     ? 'border-amber-500 bg-amber-50 text-amber-800'
-                    : 'border-gray-200 text-gray-500 hover:border-amber-300'
+                    : 'border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 dark:text-gray-500 hover:border-amber-300'
                 }`}
               >
                 {type === 'Polinator' ? '🥁 Polinator' : '🧊 Ice-o-lator'}
@@ -202,8 +202,8 @@ export default function NouvelleHashModal({ onClose }: Props) {
               ))}
             </select>
             {stockSelected && (
-              <p className="mt-1 text-xs text-gray-400">
-                Stock dispo : <span className="font-medium text-gray-600">{Number(stockSelected.quantite_stock).toFixed(1)} g</span>
+              <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
+                Stock dispo : <span className="font-medium text-gray-600 dark:text-gray-300">{Number(stockSelected.quantite_stock).toFixed(1)} g</span>
               </p>
             )}
           </div>
@@ -223,7 +223,7 @@ export default function NouvelleHashModal({ onClose }: Props) {
                   <input
                     value={MAILLAGE_POLINATOR}
                     readOnly
-                    className={inputCls + ' bg-gray-50 text-gray-500 cursor-not-allowed'}
+                    className={inputCls + ' bg-gray-50 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400 dark:text-gray-500 cursor-not-allowed'}
                   />
                 </div>
                 <div>
@@ -296,14 +296,14 @@ export default function NouvelleHashModal({ onClose }: Props) {
                 <div className="space-y-2">
                   {passages.map((p, i) => (
                     <div key={i} className="flex items-center gap-2">
-                      <span className="text-sm text-gray-500 w-20 shrink-0">Passage {i + 1}</span>
+                      <span className="text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500 w-20 shrink-0">Passage {i + 1}</span>
                       <input
                         type="number" min="1" step="1" value={p.duree}
                         onChange={e => updatePassage(i, e.target.value)}
                         placeholder="min" required
-                        className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-amber-400"
+                        className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm focus:ring-2 focus:ring-amber-400"
                       />
-                      <span className="text-xs text-gray-400 shrink-0">min</span>
+                      <span className="text-xs text-gray-400 dark:text-gray-500 shrink-0">min</span>
                       {i > 0 && (
                         <button type="button" onClick={() => removePassage(i)} className="p-1 text-gray-300 hover:text-red-500">
                           <Trash2 size={14} />
@@ -334,7 +334,7 @@ export default function NouvelleHashModal({ onClose }: Props) {
                       <select
                         value={sac.maillage}
                         onChange={e => updateSac(i, 'maillage', e.target.value)}
-                        className="w-28 shrink-0 rounded-lg border border-gray-300 px-2 py-2 text-sm focus:ring-2 focus:ring-blue-400"
+                        className="w-28 shrink-0 rounded-lg border border-gray-300 dark:border-gray-600 px-2 py-2 text-sm focus:ring-2 focus:ring-blue-400"
                       >
                         {MAILLAGES_ICEOLATOR.map(m => (
                           // Afficher le maillage courant + ceux non encore utilisés
@@ -347,9 +347,9 @@ export default function NouvelleHashModal({ onClose }: Props) {
                         type="number" min="0" step="0.01" value={sac.poids}
                         onChange={e => updateSac(i, 'poids', e.target.value)}
                         placeholder="0.00 g"
-                        className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-400"
+                        className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-400"
                       />
-                      <span className="text-sm text-gray-400 shrink-0">g</span>
+                      <span className="text-sm text-gray-400 dark:text-gray-500 shrink-0">g</span>
                       {sacs.length > 1 && (
                         <button type="button" onClick={() => removeSac(i)} className="p-1 text-gray-300 hover:text-red-500">
                           <Trash2 size={14} />
@@ -396,7 +396,7 @@ export default function NouvelleHashModal({ onClose }: Props) {
           {/* ── Actions ───────────────────────────────────────────────── */}
           <div className="flex gap-3 pt-1 pb-1">
             <button type="button" onClick={onClose}
-              className="flex-1 px-4 py-2 rounded-xl border border-gray-300 text-gray-700 text-sm font-medium hover:bg-gray-50">
+              className="flex-1 px-4 py-2 rounded-xl border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700/40">
               Annuler
             </button>
             <button type="submit" disabled={mutation.isPending}

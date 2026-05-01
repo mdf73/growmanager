@@ -11,7 +11,7 @@ import ImportExportModal from '../components/ImportExportModal'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function rendementStr(utilisee: number, extraite: number): { txt: string; color: string } {
-  if (!utilisee || utilisee <= 0) return { txt: '—', color: 'text-gray-400' }
+  if (!utilisee || utilisee <= 0) return { txt: '—', color: 'text-gray-400 dark:text-gray-500' }
   const pct = (extraite / utilisee) * 100
   const txt = pct.toFixed(1) + '%'
   const color = pct >= 20 ? 'text-green-600' : pct >= 12 ? 'text-amber-600' : 'text-red-500'
@@ -60,7 +60,7 @@ function ExtractionRow({
               {remove.isPending ? <Loader2 size={12} className="animate-spin" /> : 'Confirmer'}
             </button>
             <button onClick={() => setConfirm(false)}
-              className="px-3 py-1 border border-gray-300 text-gray-600 text-xs rounded hover:bg-gray-50">
+              className="px-3 py-1 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 text-xs rounded hover:bg-gray-50 dark:hover:bg-gray-700/40">
               Annuler
             </button>
           </div>
@@ -70,16 +70,16 @@ function ExtractionRow({
   }
 
   return (
-    <tr className="hover:bg-gray-50 group cursor-pointer" onClick={onDetail}>
-      <td className="px-5 py-3 text-sm font-medium text-gray-900">
+    <tr className="hover:bg-gray-50 dark:hover:bg-gray-700/40 group cursor-pointer" onClick={onDetail}>
+      <td className="px-5 py-3 text-sm font-medium text-gray-900 dark:text-gray-100">
         {item.variete_nom || item.nom_variete_extract || '—'}
       </td>
-      <td className="px-5 py-3 text-sm text-gray-500">{item.maillage || '—'}</td>
-      <td className="px-5 py-3 text-sm text-gray-500">{nbPresses > 0 ? `${nbPresses}×` : '—'}</td>
-      <td className="px-5 py-3 text-sm font-semibold text-gray-700">{item.quantite_utilisee.toFixed(1)} g</td>
+      <td className="px-5 py-3 text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500">{item.maillage || '—'}</td>
+      <td className="px-5 py-3 text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500">{nbPresses > 0 ? `${nbPresses}×` : '—'}</td>
+      <td className="px-5 py-3 text-sm font-semibold text-gray-700 dark:text-gray-200">{item.quantite_utilisee.toFixed(1)} g</td>
       <td className="px-5 py-3 text-sm font-semibold text-grow-700">{item.quantite_extraite.toFixed(2)} g</td>
       <td className={`px-5 py-3 text-sm font-bold ${rdtColor}`}>{rdtTxt}</td>
-      <td className="px-5 py-3 text-sm text-gray-400">
+      <td className="px-5 py-3 text-sm text-gray-400 dark:text-gray-500">
         {item.date_rosinextraction
           ? new Date(item.date_rosinextraction).toLocaleDateString('fr-FR')
           : '—'}
@@ -169,12 +169,12 @@ export default function ExtractionsPage() {
       {/* ── Header ─────────────────────────────────────────────────────────── */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div className="flex items-center gap-4">
-          <h1 className="text-3xl font-bold text-gray-900">Extractions Rosin</h1>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Extractions Rosin</h1>
           {/* Filtre année */}
           <select
             value={selectedYear}
             onChange={e => setSelectedYear(e.target.value === 'all' ? 'all' : parseInt(e.target.value))}
-            className="text-sm border border-gray-200 rounded-xl px-3 py-2 bg-white focus:ring-2 focus:ring-grow-400 shadow-sm"
+            className="text-sm border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-grow-400 shadow-sm"
           >
             <option value="all">Toutes les années</option>
             {availableYears.map(y => (
@@ -185,7 +185,7 @@ export default function ExtractionsPage() {
         <div className="flex items-center gap-2">
           <button
             onClick={() => setShowImportExport(true)}
-            className="flex items-center gap-2 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors text-sm font-medium"
+            className="flex items-center gap-2 px-4 py-2.5 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700/40 transition-colors text-sm font-medium"
           >
             <ArrowUpDown size={15} />
             Import / Export
@@ -209,15 +209,15 @@ export default function ExtractionsPage() {
             { icon: FlaskConical, color: 'purple', label: 'Rosin extrait',   value: `${stats.total_extrait_rosin_g.toFixed(1)} g` },
             { icon: TrendingUp,   color: 'amber',  label: 'Extractions',     value: String(stats.nombre_extractions) },
           ].map(({ icon: Icon, color, label, value }) => (
-            <div key={label} className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 flex items-center gap-3">
+            <div key={label} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-4 flex items-center gap-3">
               <div className={`p-2.5 rounded-xl bg-${color}-50`}>
                 <Icon size={20} className={`text-${color}-600`} />
               </div>
               <div>
-                <p className="text-xs text-gray-500">{label}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">{label}</p>
                 <p className={`text-xl font-bold text-${color}-700`}>{value}</p>
                 {selectedYear !== 'all' && (
-                  <p className="text-xs text-gray-400 mt-0.5">{selectedYear}</p>
+                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{selectedYear}</p>
                 )}
               </div>
             </div>
@@ -226,14 +226,14 @@ export default function ExtractionsPage() {
       ) : (
         // Cartes vides quand aucune extraction pour l'année sélectionnée
         selectedYear !== 'all' && (
-          <div className="bg-white rounded-xl border border-gray-100 shadow-sm px-6 py-4 text-sm text-gray-400 text-center">
+          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm px-6 py-4 text-sm text-gray-400 dark:text-gray-500 text-center">
             Aucune extraction en {selectedYear}
           </div>
         )
       )}
 
       {/* ── Table ──────────────────────────────────────────────────────────── */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
         {filtered.length === 0 ? (
           <EmptyState
             icon={Sparkles}
@@ -243,10 +243,10 @@ export default function ExtractionsPage() {
         ) : (
           <>
             <div className="px-5 pt-4 pb-1 flex items-center justify-between">
-              <p className="text-xs text-gray-400">
+              <p className="text-xs text-gray-400 dark:text-gray-500">
                 Cliquez sur une ligne pour voir les détails
               </p>
-              <p className="text-xs text-gray-400">
+              <p className="text-xs text-gray-400 dark:text-gray-500">
                 {filtered.length} extraction{filtered.length > 1 ? 's' : ''}
                 {selectedYear !== 'all' ? ` en ${selectedYear}` : ' au total'}
               </p>
@@ -254,15 +254,15 @@ export default function ExtractionsPage() {
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="bg-gray-50 border-b border-gray-200">
+                  <tr className="bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-700">
                     {COLS.map(h => (
-                      <th key={h} className="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                      <th key={h} className="px-5 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase tracking-wide">
                         {h}
                       </th>
                     ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100">
+                <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                   {filtered.map(e => (
                     <ExtractionRow
                       key={e.id_rosinextraction}

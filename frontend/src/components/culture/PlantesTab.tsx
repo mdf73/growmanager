@@ -121,7 +121,7 @@ export default function PlantesTab({ cultureId, plants }: Props) {
 
       {/* Header with add button */}
       <div className="flex items-center justify-between">
-        <span className="text-sm text-gray-500">{plants.length} plante{plants.length > 1 ? 's' : ''}</span>
+        <span className="text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500">{plants.length} plante{plants.length > 1 ? 's' : ''}</span>
         <button
           onClick={() => setShowAddForm(v => !v)}
           className="flex items-center gap-1.5 px-3 py-1.5 bg-grow-600 text-white rounded-lg text-xs hover:bg-grow-700"
@@ -143,7 +143,7 @@ export default function PlantesTab({ cultureId, plants }: Props) {
               if (e.key === 'Enter' && newPlantName.trim()) addPlant.mutate(newPlantName.trim())
               if (e.key === 'Escape') setShowAddForm(false)
             }}
-            className="flex-1 px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-grow-500 focus:border-transparent"
+            className="flex-1 px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-grow-500 focus:border-transparent"
           />
           <button
             onClick={() => { if (newPlantName.trim()) addPlant.mutate(newPlantName.trim()) }}
@@ -152,14 +152,14 @@ export default function PlantesTab({ cultureId, plants }: Props) {
           >
             <Check size={13} />
           </button>
-          <button onClick={() => setShowAddForm(false)} className="px-2 py-1.5 text-gray-500 hover:text-gray-700">
+          <button onClick={() => setShowAddForm(false)} className="px-2 py-1.5 text-gray-500 dark:text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:text-gray-200">
             <X size={13} />
           </button>
         </div>
       )}
 
       {plants.length === 0 && !showAddForm && (
-        <div className="text-center py-12 text-gray-400">
+        <div className="text-center py-12 text-gray-400 dark:text-gray-500">
           <Leaf size={40} className="mx-auto mb-3 opacity-30" />
           <p>Aucune plante dans cette culture</p>
         </div>
@@ -167,7 +167,7 @@ export default function PlantesTab({ cultureId, plants }: Props) {
 
       {actives.length > 0 && (
         <section>
-          <h3 className="text-sm font-semibold text-gray-600 mb-2 uppercase tracking-wide">
+          <h3 className="text-sm font-semibold text-gray-600 dark:text-gray-300 mb-2 uppercase tracking-wide">
             Plantes actives ({actives.length})
           </h3>
           <div className="space-y-2">
@@ -189,7 +189,7 @@ export default function PlantesTab({ cultureId, plants }: Props) {
 
       {terminees.length > 0 && (
         <section>
-          <h3 className="text-sm font-semibold text-gray-600 mb-2 uppercase tracking-wide">
+          <h3 className="text-sm font-semibold text-gray-600 dark:text-gray-300 mb-2 uppercase tracking-wide">
             Terminées ({terminees.length})
           </h3>
           <div className="space-y-2 opacity-70">
@@ -231,22 +231,22 @@ function PlantCard({
 }) {
   const [confirmDelete, setConfirmDelete] = useState(false)
   const statut = plant.statut || 'germination'
-  const colorClass = STATUT_COLORS[statut] || 'bg-gray-100 text-gray-600'
+  const colorClass = STATUT_COLORS[statut] || 'bg-gray-100 text-gray-600 dark:text-gray-300'
   const showSolVivant = (editing ? editValues.substrat : plant.substrat) === 'sol_vivant'
   const showPot = ['terre', 'sol_vivant', 'coco'].includes(editing ? editValues.substrat || '' : plant.substrat || '')
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-4">
+    <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4">
       {editing ? (
         <div className="space-y-3">
           {/* Nom + statut */}
           <div className="grid grid-cols-2 gap-2">
             <input type="text" value={editValues.nom_affichage || ''}
               onChange={e => onEditChange({ ...editValues, nom_affichage: e.target.value })}
-              className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm font-medium" />
+              className="px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium" />
             <select value={editValues.statut || ''}
               onChange={e => onEditChange({ ...editValues, statut: e.target.value })}
-              className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm">
+              className="px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg text-sm">
               {Object.entries(STATUT_LABELS).map(([k, v]) => (
                 <option key={k} value={k}>{v}</option>
               ))}
@@ -255,7 +255,7 @@ function PlantCard({
 
           {/* Substrat */}
           <div>
-            <label className="block text-xs text-gray-500 mb-1">Substrat</label>
+            <label className="block text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 mb-1">Substrat</label>
             <div className="flex flex-wrap gap-1.5">
               {SUBSTRAT_OPTIONS.map(([k, v]) => (
                 <button key={k} type="button"
@@ -263,7 +263,7 @@ function PlantCard({
                   className={`px-2.5 py-1 rounded-full text-xs border transition-colors
                     ${editValues.substrat === k
                       ? 'bg-grow-600 border-grow-600 text-white'
-                      : 'border-gray-200 text-gray-600 hover:border-grow-300'}`}>
+                      : 'border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:border-grow-300'}`}>
                   {v}
                 </button>
               ))}
@@ -273,10 +273,10 @@ function PlantCard({
           {/* Recette sol (si sol vivant) */}
           {showSolVivant && recettesSol.length > 0 && (
             <div>
-              <label className="block text-xs text-gray-500 mb-1">Recette sol vivant</label>
+              <label className="block text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 mb-1">Recette sol vivant</label>
               <select value={editValues.id_recette_sol || ''}
                 onChange={e => onEditChange({ ...editValues, id_recette_sol: Number(e.target.value) || undefined })}
-                className="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-sm">
+                className="w-full px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg text-sm">
                 <option value="">Aucune</option>
                 {recettesSol.map(r => (
                   <option key={r.id_recette_lso} value={r.id_recette_lso}>{r.nom_recette}</option>
@@ -289,10 +289,10 @@ function PlantCard({
           {showPot && (
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="block text-xs text-gray-500 mb-1">Pot inventaire</label>
+                <label className="block text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 mb-1">Pot inventaire</label>
                 <select value={editValues.id_pot || ''}
                   onChange={e => onEditChange({ ...editValues, id_pot: Number(e.target.value) || undefined })}
-                  className="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-sm">
+                  className="w-full px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg text-sm">
                   <option value="">Aucun</option>
                   {pots.map(p => {
                     // Un pot en cours est désactivé, sauf s'il est déjà le pot de cette plante
@@ -308,11 +308,11 @@ function PlantCard({
                 </select>
               </div>
               <div>
-                <label className="block text-xs text-gray-500 mb-1">Volume (L)</label>
+                <label className="block text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 mb-1">Volume (L)</label>
                 <input type="number" value={editValues.volume_pot_l || ''}
                   onChange={e => onEditChange({ ...editValues, volume_pot_l: Number(e.target.value) || undefined })}
                   placeholder="ex: 15" min={0} step={0.5}
-                  className="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-sm" />
+                  className="w-full px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg text-sm" />
               </div>
             </div>
           )}
@@ -321,7 +321,7 @@ function PlantCard({
           <textarea value={editValues.notes || ''}
             onChange={e => onEditChange({ ...editValues, notes: e.target.value })}
             placeholder="Notes…" rows={2}
-            className="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-sm resize-none" />
+            className="w-full px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg text-sm resize-none" />
 
           <div className="flex gap-2">
             <button onClick={onSave} disabled={saving}
@@ -329,7 +329,7 @@ function PlantCard({
               <Check size={12} /> Enregistrer
             </button>
             <button onClick={onCancel}
-              className="flex items-center gap-1 px-3 py-1.5 border border-gray-300 rounded-lg text-xs text-gray-600 hover:bg-gray-50">
+              className="flex items-center gap-1 px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg text-xs text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/40">
               <X size={12} /> Annuler
             </button>
           </div>
@@ -338,18 +338,18 @@ function PlantCard({
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-semibold text-gray-900">{plant.nom_affichage}</span>
+              <span className="font-semibold text-gray-900 dark:text-gray-100">{plant.nom_affichage}</span>
               <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${colorClass}`}>
                 {STATUT_LABELS[statut] || statut}
               </span>
             </div>
             {plant.nom_variete && (
-              <p className="text-xs text-gray-500 mt-0.5">
+              <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 mt-0.5">
                 {plant.nom_breeder ? `${plant.nom_breeder} — ` : ''}{plant.nom_variete}
                 {plant.duree_flo_min ? ` · Flo: ${plant.duree_flo_min}${plant.duree_flo_max ? `–${plant.duree_flo_max}` : ''}sem` : ''}
               </p>
             )}
-            <div className="flex flex-wrap gap-3 mt-1.5 text-xs text-gray-500">
+            <div className="flex flex-wrap gap-3 mt-1.5 text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">
               {plant.substrat && (
                 <span>{SUBSTRAT_LABELS[plant.substrat] || plant.substrat}</span>
               )}
@@ -373,7 +373,7 @@ function PlantCard({
               )}
             </div>
             {plant.notes && (
-              <p className="text-xs text-gray-400 mt-1 italic">{plant.notes}</p>
+              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1 italic">{plant.notes}</p>
             )}
           </div>
           <div className="flex items-center gap-1 flex-shrink-0">
@@ -386,16 +386,16 @@ function PlantCard({
                   Oui
                 </button>
                 <button onClick={() => setConfirmDelete(false)}
-                  className="px-1.5 py-0.5 border border-gray-300 text-gray-600 text-xs rounded">
+                  className="px-1.5 py-0.5 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 text-xs rounded">
                   Non
                 </button>
               </div>
             ) : (
               <>
-                <button onClick={onStartEdit} className="p-1 text-gray-400 hover:text-gray-600" title="Modifier">
+                <button onClick={onStartEdit} className="p-1 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:text-gray-300" title="Modifier">
                   <Edit2 size={14} />
                 </button>
-                <button onClick={onTransfer} className="p-1 text-gray-400 hover:text-grow-600" title="Déplacer vers une autre culture">
+                <button onClick={onTransfer} className="p-1 text-gray-400 dark:text-gray-500 hover:text-grow-600" title="Déplacer vers une autre culture">
                   <ArrowRightLeft size={14} />
                 </button>
                 <button onClick={() => setConfirmDelete(true)} className="p-1 text-gray-300 hover:text-red-500" title="Supprimer">

@@ -42,28 +42,28 @@ function MiniStat({
     grow:   'bg-grow-50',   purple: 'bg-purple-50',
     blue:   'bg-blue-50',   amber:  'bg-amber-50',
     orange: 'bg-orange-50', teal:   'bg-teal-50',
-    rose:   'bg-rose-50',   gray:   'bg-gray-50',
+    rose:   'bg-rose-50',   gray:   'bg-gray-50 dark:bg-gray-700/50',
     green:  'bg-green-50',  indigo: 'bg-indigo-50',
   }
   const txt: Record<string, string> = {
     grow:   'text-grow-700',   purple: 'text-purple-700',
     blue:   'text-blue-700',   amber:  'text-amber-700',
     orange: 'text-orange-700', teal:   'text-teal-700',
-    rose:   'text-rose-700',   gray:   'text-gray-700',
+    rose:   'text-rose-700',   gray:   'text-gray-700 dark:text-gray-200',
     green:  'text-green-700',  indigo: 'text-indigo-700',
   }
   const sub_: Record<string, string> = {
     grow:   'text-grow-400',   purple: 'text-purple-400',
     blue:   'text-blue-400',   amber:  'text-amber-400',
     orange: 'text-orange-400', teal:   'text-teal-400',
-    rose:   'text-rose-400',   gray:   'text-gray-400',
+    rose:   'text-rose-400',   gray:   'text-gray-400 dark:text-gray-500',
     green:  'text-green-400',  indigo: 'text-indigo-400',
   }
   const icon_: Record<string, string> = {
     grow:   'text-grow-500',   purple: 'text-purple-500',
     blue:   'text-blue-500',   amber:  'text-amber-500',
     orange: 'text-orange-500', teal:   'text-teal-500',
-    rose:   'text-rose-500',   gray:   'text-gray-500',
+    rose:   'text-rose-500',   gray:   'text-gray-500 dark:text-gray-400 dark:text-gray-500',
     green:  'text-green-500',  indigo: 'text-indigo-500',
   }
   return (
@@ -91,12 +91,12 @@ function ModuleHeader({
   children?: React.ReactNode
 }) {
   return (
-    <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
+    <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-700 flex items-center gap-3">
       <div className="p-2 bg-grow-50 rounded-lg">
         <Icon size={20} className="text-grow-600" />
       </div>
-      <h2 className="text-lg font-bold text-gray-900">{title}</h2>
-      {badge && <span className="ml-1 text-xs text-gray-400">{badge}</span>}
+      <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">{title}</h2>
+      {badge && <span className="ml-1 text-xs text-gray-400 dark:text-gray-500">{badge}</span>}
       {children && <div className="ml-auto">{children}</div>}
     </div>
   )
@@ -112,7 +112,7 @@ function YearSelect({ years, value, onChange }: {
     <select
       value={value}
       onChange={e => onChange(e.target.value === 'all' ? 'all' : parseInt(e.target.value))}
-      className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-grow-400 bg-white"
+      className="text-sm border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-grow-400 bg-white dark:bg-gray-800"
     >
       <option value="all">Toutes les années</option>
       {years.map(y => <option key={y} value={y}>{y}</option>)}
@@ -123,7 +123,7 @@ function YearSelect({ years, value, onChange }: {
 // ── Ligne séparatrice dans un module ─────────────────────────────────────────
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
-    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">{children}</p>
+    <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide mb-3">{children}</p>
   )
 }
 
@@ -485,14 +485,14 @@ export default function Statistiques() {
     Trim:   'text-blue-600',
     Hash:   'text-amber-600',
     Rosin:  'text-purple-600',
-    Autre:  'text-gray-600',
+    Autre:  'text-gray-600 dark:text-gray-300',
   }
 
   return (
     <div className="space-y-8">
 
       {/* ══════════════════ MODULE GRAINES ══════════════════ */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
         <ModuleHeader icon={Sprout} title="Graines"
           badge={`${catalogue.length} pack${catalogue.length > 1 ? 's' : ''} enregistré${catalogue.length > 1 ? 's' : ''}`}
         />
@@ -512,14 +512,14 @@ export default function Statistiques() {
                 {grainesStats.repartition.filter(r => r.count > 0).map(r => {
                   const pct = Math.round((r.count / grainesStats.totalStock) * 100)
                   const colors: Record<string, string> = { 'Féminisée': 'bg-pink-400', 'Régulière': 'bg-blue-400', 'Auto': 'bg-grow-400', 'Autre': 'bg-gray-400' }
-                  const textColors: Record<string, string> = { 'Féminisée': 'text-pink-600', 'Régulière': 'text-blue-600', 'Auto': 'text-grow-600', 'Autre': 'text-gray-600' }
+                  const textColors: Record<string, string> = { 'Féminisée': 'text-pink-600', 'Régulière': 'text-blue-600', 'Auto': 'text-grow-600', 'Autre': 'text-gray-600 dark:text-gray-300' }
                   return (
                     <div key={r.label} className="flex items-center gap-3">
-                      <span className={`text-xs font-medium w-20 shrink-0 ${textColors[r.label] ?? 'text-gray-600'}`}>{r.label}</span>
+                      <span className={`text-xs font-medium w-20 shrink-0 ${textColors[r.label] ?? 'text-gray-600 dark:text-gray-300'}`}>{r.label}</span>
                       <div className="flex-1 bg-gray-100 rounded-full h-2.5 overflow-hidden">
                         <div className={`h-full rounded-full ${colors[r.label] ?? 'bg-gray-400'} transition-all`} style={{ width: `${pct}%` }} />
                       </div>
-                      <span className="text-xs text-gray-500 w-16 text-right shrink-0">{r.count} <span className="text-gray-400">({pct}%)</span></span>
+                      <span className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 w-16 text-right shrink-0">{r.count} <span className="text-gray-400 dark:text-gray-500">({pct}%)</span></span>
                     </div>
                   )
                 })}
@@ -530,14 +530,14 @@ export default function Statistiques() {
       </div>
 
       {/* ══════════════════ MODULE STOCK ══════════════════ */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
         <ModuleHeader icon={Package} title="Stock"
           badge={`${stocks.filter(s => (s.quantite_stock ?? 0) > 0).length} entrée${stocks.length > 1 ? 's' : ''} actives`}
         >
           <select
             value={stockType}
             onChange={e => setStockType(e.target.value)}
-            className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-grow-400 bg-white"
+            className="text-sm border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-grow-400 bg-white dark:bg-gray-800"
           >
             <option value="all">Tous les types</option>
             {stockTypes.map(t => <option key={t} value={t}>{t}</option>)}
@@ -563,12 +563,12 @@ export default function Statistiques() {
               <p className="text-2xl font-bold text-rose-700">{stockStats.qteMin.toFixed(1)} g</p>
               <p className="text-xs text-rose-400 mt-0.5 truncate" title={stockStats.varieteMin}>{stockStats.varieteMin}</p>
             </div>
-            <div className="bg-gray-50 rounded-xl p-4">
-              <div className="flex items-center gap-1.5 mb-1 text-gray-500"><Clock size={13} /><span className="text-xs font-semibold uppercase tracking-wide text-gray-600">Durées stock</span></div>
+            <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4">
+              <div className="flex items-center gap-1.5 mb-1 text-gray-500 dark:text-gray-400 dark:text-gray-500"><Clock size={13} /><span className="text-xs font-semibold uppercase tracking-wide text-gray-600 dark:text-gray-300">Durées stock</span></div>
               <div className="space-y-0.5 mt-1">
-                <div className="flex justify-between text-xs"><span className="text-gray-400">Moyenne</span><span className="font-semibold text-gray-700">{fmtDays(stockStats.dureeAvg != null ? Math.round(stockStats.dureeAvg) : null)}</span></div>
-                <div className="flex justify-between text-xs"><span className="text-gray-400">Max</span><span className="font-semibold text-gray-700">{fmtDays(stockStats.dureeMax)}</span></div>
-                <div className="flex justify-between text-xs"><span className="text-gray-400">Min</span><span className="font-semibold text-gray-700">{fmtDays(stockStats.dureeMin)}</span></div>
+                <div className="flex justify-between text-xs"><span className="text-gray-400 dark:text-gray-500">Moyenne</span><span className="font-semibold text-gray-700 dark:text-gray-200">{fmtDays(stockStats.dureeAvg != null ? Math.round(stockStats.dureeAvg) : null)}</span></div>
+                <div className="flex justify-between text-xs"><span className="text-gray-400 dark:text-gray-500">Max</span><span className="font-semibold text-gray-700 dark:text-gray-200">{fmtDays(stockStats.dureeMax)}</span></div>
+                <div className="flex justify-between text-xs"><span className="text-gray-400 dark:text-gray-500">Min</span><span className="font-semibold text-gray-700 dark:text-gray-200">{fmtDays(stockStats.dureeMin)}</span></div>
               </div>
             </div>
           </div>
@@ -584,11 +584,11 @@ export default function Statistiques() {
                     const pct = Math.round((qty / stockStats.stockGlobal) * 100)
                     return (
                       <div key={type} className="flex items-center gap-3">
-                        <span className={`text-xs font-medium w-16 shrink-0 ${TYPE_TEXT[type] ?? 'text-gray-600'}`}>{type}</span>
+                        <span className={`text-xs font-medium w-16 shrink-0 ${TYPE_TEXT[type] ?? 'text-gray-600 dark:text-gray-300'}`}>{type}</span>
                         <div className="flex-1 bg-gray-100 rounded-full h-2.5 overflow-hidden">
                           <div className={`h-full rounded-full ${TYPE_COLORS[type] ?? 'bg-gray-400'} transition-all`} style={{ width: `${pct}%` }} />
                         </div>
-                        <span className="text-xs text-gray-500 w-28 text-right shrink-0">{qty.toFixed(1)} g <span className="text-gray-400">({pct}%)</span></span>
+                        <span className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 w-28 text-right shrink-0">{qty.toFixed(1)} g <span className="text-gray-400 dark:text-gray-500">({pct}%)</span></span>
                       </div>
                     )
                   })}
@@ -599,7 +599,7 @@ export default function Statistiques() {
       </div>
 
       {/* ══════════════════ MODULE CULTURES ══════════════════ */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
         <ModuleHeader icon={Leaf} title="Cultures"
           badge={`${histCultures.filter(c => c.date_fin).length} culture${histCultures.filter(c => c.date_fin).length > 1 ? 's' : ''} terminée${histCultures.filter(c => c.date_fin).length > 1 ? 's' : ''}`}
         >
@@ -607,7 +607,7 @@ export default function Statistiques() {
         </ModuleHeader>
         <div className="p-6">
           {!cultStats ? (
-            <p className="text-sm text-gray-400 text-center py-4">
+            <p className="text-sm text-gray-400 dark:text-gray-500 text-center py-4">
               {cultYear === 'all' ? 'Aucune culture terminée enregistrée' : `Aucune culture terminée en ${cultYear}`}
             </p>
           ) : (
@@ -680,18 +680,18 @@ export default function Statistiques() {
       </div>
 
       {/* ══════════════════ MODULE EXTRACTIONS ══════════════════ */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
         <ModuleHeader icon={FlaskConical} title="Extractions">
           <div className="flex items-center gap-2">
             {/* Toggle Rosin / Hash */}
-            <div className="flex rounded-lg border border-gray-200 overflow-hidden text-sm">
+            <div className="flex rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden text-sm">
               <button
                 onClick={() => setExType('rosin')}
-                className={`px-3 py-1.5 transition-colors ${exType === 'rosin' ? 'bg-purple-600 text-white font-medium' : 'bg-white text-gray-500 hover:bg-gray-50'}`}
+                className={`px-3 py-1.5 transition-colors ${exType === 'rosin' ? 'bg-purple-600 text-white font-medium' : 'bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 dark:text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700/40'}`}
               >🍯 Rosin</button>
               <button
                 onClick={() => setExType('hash')}
-                className={`px-3 py-1.5 transition-colors border-l border-gray-200 ${exType === 'hash' ? 'bg-amber-600 text-white font-medium' : 'bg-white text-gray-500 hover:bg-gray-50'}`}
+                className={`px-3 py-1.5 transition-colors border-l border-gray-200 dark:border-gray-700 ${exType === 'hash' ? 'bg-amber-600 text-white font-medium' : 'bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 dark:text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700/40'}`}
               >🍫 Hash</button>
             </div>
             <YearSelect years={extractionYears} value={exYear} onChange={setExYear} />
@@ -702,7 +702,7 @@ export default function Statistiques() {
           {/* ── ROSIN ── */}
           {exType === 'rosin' && (
             !exStats ? (
-              <p className="text-sm text-gray-400 text-center py-4">
+              <p className="text-sm text-gray-400 dark:text-gray-500 text-center py-4">
                 {exYear === 'all' ? 'Aucune extraction Rosin enregistrée' : `Aucune extraction Rosin en ${exYear}`}
               </p>
             ) : (
@@ -738,7 +738,7 @@ export default function Statistiques() {
           {/* ── HASH ── */}
           {exType === 'hash' && (
             !hashStats ? (
-              <p className="text-sm text-gray-400 text-center py-4">
+              <p className="text-sm text-gray-400 dark:text-gray-500 text-center py-4">
                 {exYear === 'all' ? 'Aucune extraction Hash enregistrée' : `Aucune extraction Hash en ${exYear}`}
               </p>
             ) : (
@@ -792,13 +792,13 @@ export default function Statistiques() {
       </div>
 
       {/* ══════════════════ MODULE CONSOMMATION ══════════════════ */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
         <ModuleHeader icon={Coffee} title="Consommation">
           <YearSelect years={extractionYears} value={consYear} onChange={setConsYear} />
         </ModuleHeader>
         <div className="p-6">
           {consStats.totalConsomme === 0 ? (
-            <p className="text-sm text-gray-400 text-center py-4">
+            <p className="text-sm text-gray-400 dark:text-gray-500 text-center py-4">
               {consYear === 'all' ? 'Aucune extraction enregistrée' : `Aucune extraction en ${consYear}`}
             </p>
           ) : (

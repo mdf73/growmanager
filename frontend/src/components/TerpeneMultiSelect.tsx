@@ -89,7 +89,7 @@ export default function TerpeneMultiSelect({ value, onChange }: TerpeneMultiSele
                 transition-all select-none
                 ${active
                   ? `${t.color} shadow-sm ring-1 ring-offset-1 ring-current`
-                  : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400 hover:text-gray-700'
+                  : 'bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 dark:text-gray-500 border-gray-200 dark:border-gray-700 hover:border-gray-400 hover:text-gray-700 dark:text-gray-200'
                 }
               `}
             >
@@ -102,7 +102,7 @@ export default function TerpeneMultiSelect({ value, onChange }: TerpeneMultiSele
       </div>
 
       {selected.size > 0 && (
-        <p className="text-xs text-gray-500">
+        <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">
           {selected.size} terpène{selected.size > 1 ? 's' : ''} sélectionné{selected.size > 1 ? 's' : ''} ·{' '}
           <button
             type="button"
@@ -128,7 +128,7 @@ export function TerpeneBadges({ csv }: { csv: string | null | undefined }) {
     <div className="flex flex-wrap gap-1.5">
       {names.map(name => {
         const info = TERPENES.find(t => t.name === name)
-        const color = info?.color ?? 'bg-gray-100 text-gray-700 border-gray-200'
+        const color = info?.color ?? 'bg-gray-100 text-gray-700 dark:text-gray-200 border-gray-200 dark:border-gray-700'
         const emoji = info?.emoji ?? '🌿'
         return (
           <span

@@ -46,15 +46,15 @@ function TimelineItem({ emoji, label, date, note, color, cout }: {
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-xs font-medium text-gray-700">{label}</span>
-          {date && <span className="text-xs text-gray-400">{formatDate(date)}</span>}
+          <span className="text-xs font-medium text-gray-700 dark:text-gray-200">{label}</span>
+          {date && <span className="text-xs text-gray-400 dark:text-gray-500">{formatDate(date)}</span>}
           {cout != null && (
             <span className="text-xs text-emerald-600 font-mono bg-emerald-50 px-1.5 py-0.5 rounded">
               ~{cout.toFixed(2)} €
             </span>
           )}
         </div>
-        {note && <p className="text-xs text-gray-400 mt-0.5 truncate">{note}</p>}
+        {note && <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5 truncate">{note}</p>}
       </div>
     </div>
   )
@@ -115,17 +115,17 @@ function SuiviCard({
   }, [suivi])
 
   return (
-    <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+    <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm overflow-hidden">
       {/* Header card */}
       <div className="px-5 py-4 flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap mb-1.5">
-            <h3 className="font-semibold text-gray-900 text-sm">🪴 {suivi.nom_pot}</h3>
+            <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-sm">🪴 {suivi.nom_pot}</h3>
             {suivi.volume_pot_l && (
               <Badge color="bg-amber-50 text-amber-700">{suivi.volume_pot_l} L</Badge>
             )}
           </div>
-          <div className="flex items-center gap-3 text-xs text-gray-500 flex-wrap">
+          <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 flex-wrap">
             {suivi.nom_recette_lso && (
               <span className="flex items-center gap-1">
                 <FlaskConical size={10} /> {suivi.nom_recette_lso}
@@ -160,7 +160,7 @@ function SuiviCard({
         </div>
         <div className="flex items-center gap-1 shrink-0">
           <button onClick={() => setExpanded(e => !e)}
-            className="p-1.5 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-50">
+            className="p-1.5 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/40">
             {expanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
           </button>
           <button onClick={onEdit}
@@ -176,21 +176,21 @@ function SuiviCard({
 
       {/* Détails expandables */}
       {expanded && (
-        <div className="border-t border-gray-50 bg-gray-50">
+        <div className="border-t border-gray-50 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50">
           {/* Coûts estimés */}
           {(suivi.cout_lso_estime != null || suivi.cout_total_estime != null) && (
-            <div className="px-5 py-3 border-b border-gray-100">
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">💰 Coûts estimés</p>
+            <div className="px-5 py-3 border-b border-gray-100 dark:border-gray-700">
+              <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase tracking-wide mb-2">💰 Coûts estimés</p>
               <div className="space-y-1">
                 {suivi.cout_lso_estime != null && (
                   <div className="flex justify-between text-xs">
-                    <span className="text-gray-600">LSO initial ({suivi.nom_recette_lso})</span>
+                    <span className="text-gray-600 dark:text-gray-300">LSO initial ({suivi.nom_recette_lso})</span>
                     <span className="font-mono text-emerald-600">~{suivi.cout_lso_estime.toFixed(2)} €</span>
                   </div>
                 )}
                 {suivi.cout_total_estime != null && (
-                  <div className="flex justify-between text-xs font-semibold border-t border-gray-200 pt-1 mt-1">
-                    <span className="text-gray-700">Total estimé</span>
+                  <div className="flex justify-between text-xs font-semibold border-t border-gray-200 dark:border-gray-700 pt-1 mt-1">
+                    <span className="text-gray-700 dark:text-gray-200">Total estimé</span>
                     <span className="font-mono text-emerald-700">~{suivi.cout_total_estime.toFixed(2)} €</span>
                   </div>
                 )}
@@ -200,14 +200,14 @@ function SuiviCard({
 
           {/* Cultures */}
           {suivi.cultures.length > 0 && (
-            <div className="px-5 py-3 border-b border-gray-100">
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">🌱 Cultures</p>
+            <div className="px-5 py-3 border-b border-gray-100 dark:border-gray-700">
+              <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase tracking-wide mb-2">🌱 Cultures</p>
               <div className="space-y-1">
                 {suivi.cultures.map((c, i) => (
                   <div key={i} className="flex items-center gap-2 text-xs">
-                    <span className="text-gray-700 font-medium flex-1">{c.description || `Culture #${i + 1}`}</span>
+                    <span className="text-gray-700 dark:text-gray-200 font-medium flex-1">{c.description || `Culture #${i + 1}`}</span>
                     {(c.date_debut || c.date_fin) && (
-                      <span className="text-gray-400">
+                      <span className="text-gray-400 dark:text-gray-500">
                         {formatDate(c.date_debut)}{c.date_fin ? ` → ${formatDate(c.date_fin)}` : ' → en cours'}
                       </span>
                     )}
@@ -220,8 +220,8 @@ function SuiviCard({
           {/* Timeline des applications */}
           {timeline.length > 0 ? (
             <div className="px-5 py-3">
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Historique des applications</p>
-              <div className="divide-y divide-gray-100">
+              <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase tracking-wide mb-2">Historique des applications</p>
+              <div className="divide-y divide-gray-100 dark:divide-gray-700">
                 {timeline.map((item, i) => (
                   <TimelineItem key={i} {...item} cout={item.cout} />
                 ))}
@@ -229,14 +229,14 @@ function SuiviCard({
             </div>
           ) : (
             <div className="px-5 py-4">
-              <p className="text-xs text-gray-400">Aucune application enregistrée.</p>
+              <p className="text-xs text-gray-400 dark:text-gray-500">Aucune application enregistrée.</p>
             </div>
           )}
 
           {/* Commentaires */}
           {suivi.commentaires && (
-            <div className="px-5 py-3 border-t border-gray-100">
-              <p className="text-xs text-gray-400">{suivi.commentaires}</p>
+            <div className="px-5 py-3 border-t border-gray-100 dark:border-gray-700">
+              <p className="text-xs text-gray-400 dark:text-gray-500">{suivi.commentaires}</p>
             </div>
           )}
         </div>
@@ -280,8 +280,8 @@ export default function SuiviSolsVivants() {
       {/* Header page */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">🪴 Suivi des Sols Vivants</h1>
-          <p className="text-sm text-gray-500 mt-0.5">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">🪴 Suivi des Sols Vivants</h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500 mt-0.5">
             {suivis.length} pot{suivis.length > 1 ? 's' : ''} en suivi
           </p>
         </div>
@@ -301,10 +301,10 @@ export default function SuiviSolsVivants() {
             { emoji: '🪱', label: 'Réamendements',  value: suivis.reduce((t, s) => t + s.reamendements.length, 0) },
             { emoji: '💧', label: 'Arrosages+',     value: suivis.reduce((t, s) => t + s.arrosages.length + s.tcos.length + s.fermentations.length, 0) },
           ].map(stat => (
-            <div key={stat.label} className="bg-white rounded-xl border border-gray-100 shadow-sm px-4 py-3 text-center">
+            <div key={stat.label} className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm px-4 py-3 text-center">
               <div className="text-2xl mb-1">{stat.emoji}</div>
-              <div className="text-2xl font-bold text-gray-900">{stat.value}</div>
-              <div className="text-xs text-gray-500">{stat.label}</div>
+              <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">{stat.value}</div>
+              <div className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">{stat.label}</div>
             </div>
           ))}
         </div>
@@ -313,16 +313,16 @@ export default function SuiviSolsVivants() {
       {/* Barre de recherche */}
       {suivis.length > 0 && (
         <div className="relative w-64">
-          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500" />
           <input type="text" value={search} onChange={e => setSearch(e.target.value)}
             placeholder="Rechercher un pot…"
-            className="pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-grow-400 w-full" />
+            className="pl-9 pr-4 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-grow-400 w-full" />
         </div>
       )}
 
       {/* Liste / empty state */}
       {filtered.length === 0 ? (
-        <div className="text-center py-16 text-gray-400">
+        <div className="text-center py-16 text-gray-400 dark:text-gray-500">
           {suivis.length === 0 ? (
             <>
               <span className="text-5xl block mb-3 opacity-40">🪴</span>

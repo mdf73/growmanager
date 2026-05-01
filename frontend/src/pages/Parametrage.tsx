@@ -166,34 +166,34 @@ function ListeEditor({ listeNom, label }: { listeNom: string; label: string }) {
   }
 
   return (
-    <div className="border border-gray-100 rounded-xl overflow-hidden">
+    <div className="border border-gray-100 dark:border-gray-700 rounded-xl overflow-hidden">
       <button
         onClick={() => setOpen(o => !o)}
-        className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 hover:bg-gray-100 transition-colors text-left"
+        className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-left"
       >
         <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-gray-700">{label}</span>
-          <span className="text-xs bg-gray-200 text-gray-500 px-2 py-0.5 rounded-full">
+          <span className="text-sm font-medium text-gray-700 dark:text-gray-200">{label}</span>
+          <span className="text-xs bg-gray-200 text-gray-500 dark:text-gray-400 dark:text-gray-500 px-2 py-0.5 rounded-full">
             {isLoading ? '…' : items.length}
           </span>
         </div>
-        <span className="text-gray-400 text-xs">{open ? '▲' : '▼'}</span>
+        <span className="text-gray-400 dark:text-gray-500 text-xs">{open ? '▲' : '▼'}</span>
       </button>
 
       {open && (
-        <div className="p-4 space-y-3 bg-white">
+        <div className="p-4 space-y-3 bg-white dark:bg-gray-800">
           <div className="space-y-1 max-h-48 overflow-y-auto">
             {items.length === 0 && (
-              <p className="text-xs text-gray-400 italic">Aucune valeur — ajoutez-en ci-dessous</p>
+              <p className="text-xs text-gray-400 dark:text-gray-500 italic">Aucune valeur — ajoutez-en ci-dessous</p>
             )}
             {items.map(item => (
               <div key={item.id_parametre}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-gray-50 group">
+                className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/40 group">
                 {editId === item.id_parametre ? (
                   <>
                     <input
                       type="text"
-                      className="flex-1 text-sm border border-gray-200 rounded px-2 py-1 focus:ring-2 focus:ring-grow-400"
+                      className="flex-1 text-sm border border-gray-200 dark:border-gray-700 rounded px-2 py-1 focus:ring-2 focus:ring-grow-400"
                       value={editVal}
                       onChange={e => setEditVal(e.target.value)}
                       onKeyDown={e => { if (e.key === 'Enter') handleEditSave(); if (e.key === 'Escape') setEditId(null) }}
@@ -204,13 +204,13 @@ function ListeEditor({ listeNom, label }: { listeNom: string; label: string }) {
                       <Check size={13} />
                     </button>
                     <button onClick={() => setEditId(null)}
-                      className="p-1 text-gray-400 hover:bg-gray-100 rounded">
+                      className="p-1 text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
                       <X size={13} />
                     </button>
                   </>
                 ) : (
                   <>
-                    <span className="flex-1 text-sm text-gray-700">{item.valeur}</span>
+                    <span className="flex-1 text-sm text-gray-700 dark:text-gray-200">{item.valeur}</span>
                     <button
                       onClick={() => { setEditId(item.id_parametre); setEditVal(item.valeur) }}
                       className="p-1 text-gray-300 hover:text-grow-600 hover:bg-grow-50 rounded opacity-0 group-hover:opacity-100 transition-opacity">
@@ -228,14 +228,14 @@ function ListeEditor({ listeNom, label }: { listeNom: string; label: string }) {
             ))}
           </div>
 
-          <div className="flex gap-2 pt-1 border-t border-gray-100">
+          <div className="flex gap-2 pt-1 border-t border-gray-100 dark:border-gray-700">
             <input
               type="text"
               value={newVal}
               onChange={e => setNewVal(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter') handleAdd() }}
               placeholder="Nouvelle valeur…"
-              className="flex-1 text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-grow-400"
+              className="flex-1 text-sm border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-grow-400"
             />
             <button
               onClick={handleAdd}
@@ -258,10 +258,10 @@ function Field({
   label: string; value: string; onChange: (v: string) => void
   placeholder?: string; required?: boolean; textarea?: boolean
 }) {
-  const cls = "w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-grow-400 focus:border-transparent"
+  const cls = "w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 focus:ring-2 focus:ring-grow-400 focus:border-transparent"
   return (
     <div>
-      <label className="block text-xs font-medium text-gray-600 mb-1">
+      <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">
         {label}{required && <span className="text-red-400 ml-0.5">*</span>}
       </label>
       {textarea ? (
@@ -348,35 +348,35 @@ function BreedersEditor() {
   const isFormOpen = showForm || editId !== null
 
   return (
-    <div className="border border-gray-100 rounded-xl overflow-hidden">
+    <div className="border border-gray-100 dark:border-gray-700 rounded-xl overflow-hidden">
       {/* Header */}
       <button
         onClick={() => setOpen(o => !o)}
-        className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 hover:bg-gray-100 transition-colors text-left"
+        className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-left"
       >
         <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-gray-700">🌱 Breeders</span>
-          <span className="text-xs bg-gray-200 text-gray-500 px-2 py-0.5 rounded-full">
+          <span className="text-sm font-medium text-gray-700 dark:text-gray-200">🌱 Breeders</span>
+          <span className="text-xs bg-gray-200 text-gray-500 dark:text-gray-400 dark:text-gray-500 px-2 py-0.5 rounded-full">
             {isLoading ? '…' : breeders.length}
           </span>
         </div>
-        {open ? <ChevronUp size={14} className="text-gray-400" /> : <ChevronDown size={14} className="text-gray-400" />}
+        {open ? <ChevronUp size={14} className="text-gray-400 dark:text-gray-500" /> : <ChevronDown size={14} className="text-gray-400 dark:text-gray-500" />}
       </button>
 
       {open && (
-        <div className="bg-white">
+        <div className="bg-white dark:bg-gray-800">
           {/* Liste */}
           <div className="divide-y divide-gray-50 max-h-72 overflow-y-auto">
             {breeders.length === 0 && !isLoading && (
-              <p className="text-xs text-gray-400 italic px-4 py-3">Aucun breeder — ajoutez-en ci-dessous</p>
+              <p className="text-xs text-gray-400 dark:text-gray-500 italic px-4 py-3">Aucun breeder — ajoutez-en ci-dessous</p>
             )}
             {breeders.map(b => (
               <div key={b.id_breeder}>
-                <div className="flex items-center gap-2 px-4 py-2.5 hover:bg-gray-50 group">
+                <div className="flex items-center gap-2 px-4 py-2.5 hover:bg-gray-50 dark:hover:bg-gray-700/40 group">
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-800 truncate">{b.nom_breeder}</p>
+                    <p className="text-sm font-medium text-gray-800 dark:text-gray-100 truncate">{b.nom_breeder}</p>
                     {b.origine_breeder && (
-                      <p className="text-xs text-gray-400 truncate">{b.origine_breeder}</p>
+                      <p className="text-xs text-gray-400 dark:text-gray-500 truncate">{b.origine_breeder}</p>
                     )}
                   </div>
                   <button
@@ -401,7 +401,7 @@ function BreedersEditor() {
                     <Field label="Informations" value={form.information_breeder} onChange={v => setForm(f => ({ ...f, information_breeder: v }))} placeholder="Notes diverses…" textarea />
                     {error && <p className="text-xs text-red-500">{error}</p>}
                     <div className="flex gap-2 justify-end">
-                      <button onClick={cancelEdit} className="flex items-center gap-1 px-3 py-1.5 text-sm text-gray-500 hover:bg-gray-100 rounded-lg">
+                      <button onClick={cancelEdit} className="flex items-center gap-1 px-3 py-1.5 text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
                         <X size={13} /> Annuler
                       </button>
                       <button
@@ -419,14 +419,14 @@ function BreedersEditor() {
 
           {/* Formulaire d'ajout */}
           {showForm && (
-            <div className="px-4 pb-4 pt-3 border-t border-gray-100 space-y-3 bg-gray-50">
-              <p className="text-xs font-semibold text-gray-600">Nouveau breeder</p>
+            <div className="px-4 pb-4 pt-3 border-t border-gray-100 dark:border-gray-700 space-y-3 bg-gray-50 dark:bg-gray-700/50">
+              <p className="text-xs font-semibold text-gray-600 dark:text-gray-300">Nouveau breeder</p>
               <Field label="Nom" value={form.nom_breeder} onChange={v => setForm(f => ({ ...f, nom_breeder: v }))} placeholder="Ex: Barney's Farm" required />
               <Field label="Origine / Pays" value={form.origine_breeder} onChange={v => setForm(f => ({ ...f, origine_breeder: v }))} placeholder="Ex: Pays-Bas" />
               <Field label="Informations" value={form.information_breeder} onChange={v => setForm(f => ({ ...f, information_breeder: v }))} placeholder="Notes diverses…" textarea />
               {error && <p className="text-xs text-red-500">{error}</p>}
               <div className="flex gap-2 justify-end">
-                <button onClick={cancelAdd} className="flex items-center gap-1 px-3 py-1.5 text-sm text-gray-500 hover:bg-gray-100 rounded-lg">
+                <button onClick={cancelAdd} className="flex items-center gap-1 px-3 py-1.5 text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
                   <X size={13} /> Annuler
                 </button>
                 <button
@@ -441,7 +441,7 @@ function BreedersEditor() {
 
           {/* Bouton Ajouter */}
           {!isFormOpen && (
-            <div className="px-4 py-3 border-t border-gray-100">
+            <div className="px-4 py-3 border-t border-gray-100 dark:border-gray-700">
               <button
                 onClick={() => { setShowForm(true); setForm(emptyForm); setError('') }}
                 className="flex items-center gap-1.5 text-sm text-grow-600 hover:text-grow-700 font-medium">
@@ -531,23 +531,23 @@ function VarietesEditor() {
   const isFormOpen = showForm || editId !== null
 
   return (
-    <div className="border border-gray-100 rounded-xl overflow-hidden">
+    <div className="border border-gray-100 dark:border-gray-700 rounded-xl overflow-hidden">
       {/* Header */}
       <button
         onClick={() => setOpen(o => !o)}
-        className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 hover:bg-gray-100 transition-colors text-left"
+        className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-left"
       >
         <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-gray-700">🌿 Variétés</span>
-          <span className="text-xs bg-gray-200 text-gray-500 px-2 py-0.5 rounded-full">
+          <span className="text-sm font-medium text-gray-700 dark:text-gray-200">🌿 Variétés</span>
+          <span className="text-xs bg-gray-200 text-gray-500 dark:text-gray-400 dark:text-gray-500 px-2 py-0.5 rounded-full">
             {isLoading ? '…' : varietes.length}
           </span>
         </div>
-        {open ? <ChevronUp size={14} className="text-gray-400" /> : <ChevronDown size={14} className="text-gray-400" />}
+        {open ? <ChevronUp size={14} className="text-gray-400 dark:text-gray-500" /> : <ChevronDown size={14} className="text-gray-400 dark:text-gray-500" />}
       </button>
 
       {open && (
-        <div className="bg-white">
+        <div className="bg-white dark:bg-gray-800">
           {/* Recherche */}
           {varietes.length > 5 && (
             <div className="px-4 pt-3 pb-2">
@@ -556,7 +556,7 @@ function VarietesEditor() {
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 placeholder="Rechercher une variété…"
-                className="w-full text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-grow-400"
+                className="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-grow-400"
               />
             </div>
           )}
@@ -564,17 +564,17 @@ function VarietesEditor() {
           {/* Liste */}
           <div className="divide-y divide-gray-50 max-h-80 overflow-y-auto">
             {filtered.length === 0 && !isLoading && (
-              <p className="text-xs text-gray-400 italic px-4 py-3">
+              <p className="text-xs text-gray-400 dark:text-gray-500 italic px-4 py-3">
                 {search ? 'Aucune variété correspondante' : 'Aucune variété — ajoutez-en ci-dessous'}
               </p>
             )}
             {filtered.map(v => (
               <div key={v.id_variete}>
-                <div className="flex items-center gap-2 px-4 py-2.5 hover:bg-gray-50 group">
+                <div className="flex items-center gap-2 px-4 py-2.5 hover:bg-gray-50 dark:hover:bg-gray-700/40 group">
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-800 truncate">{v.nom_variete}</p>
+                    <p className="text-sm font-medium text-gray-800 dark:text-gray-100 truncate">{v.nom_variete}</p>
                     {v.croisement_variete && (
-                      <p className="text-xs text-gray-400 truncate">{v.croisement_variete}</p>
+                      <p className="text-xs text-gray-400 dark:text-gray-500 truncate">{v.croisement_variete}</p>
                     )}
                   </div>
                   {v.lien_web && (
@@ -611,7 +611,7 @@ function VarietesEditor() {
                     <Field label="Informations" value={form.informations_variete} onChange={val => setForm(f => ({ ...f, informations_variete: val }))} placeholder="Notes, temps de floraison…" textarea />
                     {error && <p className="text-xs text-red-500">{error}</p>}
                     <div className="flex gap-2 justify-end">
-                      <button onClick={cancelEdit} className="flex items-center gap-1 px-3 py-1.5 text-sm text-gray-500 hover:bg-gray-100 rounded-lg">
+                      <button onClick={cancelEdit} className="flex items-center gap-1 px-3 py-1.5 text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
                         <X size={13} /> Annuler
                       </button>
                       <button
@@ -629,15 +629,15 @@ function VarietesEditor() {
 
           {/* Formulaire d'ajout */}
           {showForm && (
-            <div className="px-4 pb-4 pt-3 border-t border-gray-100 space-y-3 bg-gray-50">
-              <p className="text-xs font-semibold text-gray-600">Nouvelle variété</p>
+            <div className="px-4 pb-4 pt-3 border-t border-gray-100 dark:border-gray-700 space-y-3 bg-gray-50 dark:bg-gray-700/50">
+              <p className="text-xs font-semibold text-gray-600 dark:text-gray-300">Nouvelle variété</p>
               <Field label="Nom" value={form.nom_variete} onChange={val => setForm(f => ({ ...f, nom_variete: val }))} placeholder="Ex: Blue Dream" required />
               <Field label="Croisement" value={form.croisement_variete} onChange={val => setForm(f => ({ ...f, croisement_variete: val }))} placeholder="Ex: Blueberry × Haze" />
               <Field label="Lien web" value={form.lien_web} onChange={val => setForm(f => ({ ...f, lien_web: val }))} placeholder="https://…" />
               <Field label="Informations" value={form.informations_variete} onChange={val => setForm(f => ({ ...f, informations_variete: val }))} placeholder="Notes, temps de floraison…" textarea />
               {error && <p className="text-xs text-red-500">{error}</p>}
               <div className="flex gap-2 justify-end">
-                <button onClick={cancelAdd} className="flex items-center gap-1 px-3 py-1.5 text-sm text-gray-500 hover:bg-gray-100 rounded-lg">
+                <button onClick={cancelAdd} className="flex items-center gap-1 px-3 py-1.5 text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
                   <X size={13} /> Annuler
                 </button>
                 <button
@@ -652,7 +652,7 @@ function VarietesEditor() {
 
           {/* Bouton Ajouter */}
           {!isFormOpen && (
-            <div className="px-4 py-3 border-t border-gray-100">
+            <div className="px-4 py-3 border-t border-gray-100 dark:border-gray-700">
               <button
                 onClick={() => { setShowForm(true); setForm(emptyForm); setError('') }}
                 className="flex items-center gap-1.5 text-sm text-grow-600 hover:text-grow-700 font-medium">
@@ -791,12 +791,12 @@ function GoveeSection() {
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-      <div className="px-6 py-4 border-b border-gray-100 bg-teal-50 flex items-center gap-3">
+    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+      <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-700 bg-teal-50 flex items-center gap-3">
         <Thermometer size={18} className="text-teal-600" />
         <div>
-          <h2 className="text-base font-semibold text-gray-800">Capteurs Govee</h2>
-          <p className="text-xs text-gray-400">Thermomètres/hygromètres H5179 via API LAN (UDP) ou Cloud</p>
+          <h2 className="text-base font-semibold text-gray-800 dark:text-gray-100">Capteurs Govee</h2>
+          <p className="text-xs text-gray-400 dark:text-gray-500">Thermomètres/hygromètres H5179 via API LAN (UDP) ou Cloud</p>
         </div>
       </div>
 
@@ -804,8 +804,8 @@ function GoveeSection() {
 
         {/* Config API Cloud */}
         <div>
-          <h3 className="text-sm font-semibold text-gray-700 mb-2">Configuration API Cloud (fallback)</h3>
-          <p className="text-xs text-gray-400 mb-3">
+          <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">Configuration API Cloud (fallback)</h3>
+          <p className="text-xs text-gray-400 dark:text-gray-500 mb-3">
             Si l'IP locale n'est pas disponible, le polling utilise l'API Cloud Govee.
             Obtenez votre clé sur{' '}
             <a href="https://developer.govee.com" target="_blank" rel="noreferrer"
@@ -817,7 +817,7 @@ function GoveeSection() {
               placeholder={config?.api_key ? '••••••••••••••••' : 'Govee API Key…'}
               value={apiKey}
               onChange={e => setApiKey(e.target.value)}
-              className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400"
+              className="flex-1 border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400"
             />
             <button
               onClick={saveConfig}
@@ -837,14 +837,14 @@ function GoveeSection() {
         {/* Liste des capteurs */}
         <div>
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-semibold text-gray-700">
+            <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-200">
               Capteurs enregistrés ({devices.length})
             </h3>
             <div className="flex gap-2 flex-wrap">
               <button
                 onClick={handlePollNow}
                 disabled={polling || devices.length === 0}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 text-gray-700
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 text-gray-700 dark:text-gray-200
                            rounded-lg text-xs hover:bg-gray-200 disabled:opacity-50 transition-colors"
               >
                 <RefreshCw size={12} className={polling ? 'animate-spin' : ''} />
@@ -872,7 +872,7 @@ function GoveeSection() {
 
           {/* Résultats de poll */}
           {pollResults.length > 0 && (
-            <div className="mb-3 p-3 bg-gray-50 rounded-lg space-y-1">
+            <div className="mb-3 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg space-y-1">
               {pollResults.map(r => (
                 <div key={r.device_id} className="flex items-center gap-2 text-xs">
                   {r.success
@@ -880,7 +880,7 @@ function GoveeSection() {
                     : <WifiOff size={12} className="text-red-400" />}
                   <span className="font-medium">{r.nom}</span>
                   {r.success
-                    ? <span className="text-gray-600">
+                    ? <span className="text-gray-600 dark:text-gray-300">
                         {r.temperature?.toFixed(1)}°C · {r.humidite?.toFixed(0)}% · VPD {r.vpd?.toFixed(2)}
                       </span>
                     : <span className="text-red-500">{r.erreur}</span>}
@@ -911,10 +911,10 @@ function GoveeSection() {
                 <div className="space-y-2">
                   {cloudDevices.map(d => (
                     <div key={d.device_id}
-                      className="flex items-center gap-3 bg-white rounded-lg px-3 py-2 border border-blue-100">
+                      className="flex items-center gap-3 bg-white dark:bg-gray-800 rounded-lg px-3 py-2 border border-blue-100">
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-800">{d.device_name}</p>
-                        <p className="text-xs text-gray-400">{d.sku} · {d.device_id}</p>
+                        <p className="text-sm font-medium text-gray-800 dark:text-gray-100">{d.device_name}</p>
+                        <p className="text-xs text-gray-400 dark:text-gray-500">{d.sku} · {d.device_id}</p>
                       </div>
                       {d.already_registered ? (
                         <span className="text-xs text-green-600 font-medium flex items-center gap-1">
@@ -943,33 +943,33 @@ function GoveeSection() {
               <h4 className="text-xs font-semibold text-teal-700 uppercase tracking-wide">Nouveau capteur</h4>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs text-gray-600 mb-1">Nom *</label>
+                  <label className="block text-xs text-gray-600 dark:text-gray-300 mb-1">Nom *</label>
                   <input value={form.nom} onChange={e => setForm(f => ({...f, nom: e.target.value}))}
                     placeholder="Box Floraison 1"
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400" />
+                    className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400" />
                 </div>
                 <div>
-                  <label className="block text-xs text-gray-600 mb-1">Modèle</label>
+                  <label className="block text-xs text-gray-600 dark:text-gray-300 mb-1">Modèle</label>
                   <input value={form.modele ?? ''} onChange={e => setForm(f => ({...f, modele: e.target.value}))}
                     placeholder="H5179"
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400" />
+                    className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400" />
                 </div>
                 <div>
-                  <label className="block text-xs text-gray-600 mb-1">Device ID / MAC</label>
+                  <label className="block text-xs text-gray-600 dark:text-gray-300 mb-1">Device ID / MAC</label>
                   <input value={form.device_id ?? ''} onChange={e => setForm(f => ({...f, device_id: e.target.value}))}
                     placeholder="AA:BB:CC:DD:EE:FF"
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400" />
+                    className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400" />
                 </div>
                 <div>
-                  <label className="block text-xs text-gray-600 mb-1">IP locale (LAN UDP)</label>
+                  <label className="block text-xs text-gray-600 dark:text-gray-300 mb-1">IP locale (LAN UDP)</label>
                   <input value={form.ip_lan ?? ''} onChange={e => setForm(f => ({...f, ip_lan: e.target.value}))}
                     placeholder="192.168.1.42"
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400" />
+                    className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400" />
                 </div>
                 <div>
-                  <label className="block text-xs text-gray-600 mb-1">Espace de culture</label>
+                  <label className="block text-xs text-gray-600 dark:text-gray-300 mb-1">Espace de culture</label>
                   <select value={form.id_espace ?? ''} onChange={e => setForm(f => ({...f, id_espace: e.target.value ? Number(e.target.value) : undefined}))}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400">
+                    className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400">
                     <option value="">— Aucun —</option>
                     {espaces.map((e: any) => (
                       <option key={e.id_espace} value={e.id_espace}>{e.nom}</option>
@@ -979,7 +979,7 @@ function GoveeSection() {
               </div>
               <div className="flex gap-2 justify-end">
                 <button onClick={() => setShowForm(false)}
-                  className="px-3 py-1.5 text-sm text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
+                  className="px-3 py-1.5 text-sm text-gray-600 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/40">
                   Annuler
                 </button>
                 <button onClick={handleAddDevice} disabled={saving || !form.nom.trim()}
@@ -992,22 +992,22 @@ function GoveeSection() {
 
           {/* Tableau capteurs */}
           {devices.length === 0 ? (
-            <p className="text-sm text-gray-400 text-center py-4">Aucun capteur enregistré</p>
+            <p className="text-sm text-gray-400 dark:text-gray-500 text-center py-4">Aucun capteur enregistré</p>
           ) : (
             <div className="space-y-2">
               {devices.map(d => (
                 <div key={d.id_device}
-                  className="flex flex-col gap-2 px-4 py-3 bg-gray-50 rounded-xl border border-gray-100">
+                  className="flex flex-col gap-2 px-4 py-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl border border-gray-100 dark:border-gray-700">
                   <div className="flex items-center gap-3">
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-800 truncate">{d.nom}</p>
-                      <p className="text-xs text-gray-400">
+                      <p className="text-sm font-medium text-gray-800 dark:text-gray-100 truncate">{d.nom}</p>
+                      <p className="text-xs text-gray-400 dark:text-gray-500">
                         {[d.modele, d.device_id, d.ip_lan ? `LAN: ${d.ip_lan}` : null]
                           .filter(Boolean).join(' · ')}
                       </p>
                     </div>
                     {d.derniere_temperature != null && (
-                      <div className="text-xs text-gray-600 shrink-0">
+                      <div className="text-xs text-gray-600 dark:text-gray-300 shrink-0">
                         {d.derniere_temperature.toFixed(1)}°C · {d.derniere_humidite?.toFixed(0)}%
                       </div>
                     )}
@@ -1015,7 +1015,7 @@ function GoveeSection() {
                       className={`shrink-0 p-1.5 rounded-lg transition-colors ${
                         d.actif
                           ? 'bg-green-100 text-green-600 hover:bg-green-200'
-                          : 'bg-gray-200 text-gray-400 hover:bg-gray-300'
+                          : 'bg-gray-200 text-gray-400 dark:text-gray-500 hover:bg-gray-300'
                       }`}
                       title={d.actif ? 'Actif — cliquer pour désactiver' : 'Inactif — cliquer pour activer'}>
                       <Wifi size={14} />
@@ -1040,7 +1040,7 @@ function GoveeSection() {
                         ))}
                       </select>
                       <button onClick={() => setEditingEspace(null)}
-                        className="p-1 text-gray-400 hover:text-gray-600">
+                        className="p-1 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:text-gray-300">
                         <X size={13} />
                       </button>
                     </div>
@@ -1049,11 +1049,11 @@ function GoveeSection() {
                       onClick={() => setEditingEspace(d.id_device)}
                       className="flex items-center gap-1.5 text-xs text-left w-fit px-2 py-1 rounded-lg hover:bg-gray-200 transition-colors"
                     >
-                      <span className="text-gray-400">🏠</span>
-                      <span className={d.nom_espace ? 'text-teal-700 font-medium' : 'text-gray-400 italic'}>
+                      <span className="text-gray-400 dark:text-gray-500">🏠</span>
+                      <span className={d.nom_espace ? 'text-teal-700 font-medium' : 'text-gray-400 dark:text-gray-500 italic'}>
                         {d.nom_espace ?? 'Aucun espace — cliquer pour assigner'}
                       </span>
-                      <Pencil size={10} className="text-gray-400 ml-0.5" />
+                      <Pencil size={10} className="text-gray-400 dark:text-gray-500 ml-0.5" />
                     </button>
                   )}
                 </div>
@@ -1063,8 +1063,8 @@ function GoveeSection() {
         </div>
 
         {/* Info protocole */}
-        <div className="text-xs text-gray-400 bg-gray-50 rounded-lg p-3 space-y-1">
-          <p className="font-medium text-gray-500">💡 Comment ça marche ?</p>
+        <div className="text-xs text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3 space-y-1">
+          <p className="font-medium text-gray-500 dark:text-gray-400 dark:text-gray-500">💡 Comment ça marche ?</p>
           <p>Le backend interroge vos capteurs toutes les <strong>5 minutes</strong> automatiquement.</p>
           <p>Priorité LAN (UDP port 4003) si une IP est configurée, sinon Cloud API Govee.</p>
           <p>Le H5179 doit être sur le même réseau local et avoir le LAN Control activé dans l'app Govee.</p>
@@ -1146,12 +1146,12 @@ function GmailImportSection({
     : null
 
   return (
-    <div className="border-t border-gray-100 pt-6 mt-2">
+    <div className="border-t border-gray-100 dark:border-gray-700 pt-6 mt-2">
       <div className="flex items-center gap-3 mb-4">
         <Mail size={16} className="text-blue-500" />
         <div>
-          <h3 className="text-sm font-semibold text-gray-700">Import automatique Gmail</h3>
-          <p className="text-xs text-gray-400">
+          <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-200">Import automatique Gmail</h3>
+          <p className="text-xs text-gray-400 dark:text-gray-500">
             Importe automatiquement les exports CSV Govee reçus par email — chaque nuit à 00h30
           </p>
         </div>
@@ -1166,10 +1166,10 @@ function GmailImportSection({
             transition-colors duration-200 focus:outline-none
             ${enabled ? 'bg-blue-500' : 'bg-gray-300'}`}
         >
-          <span className={`pointer-events-none inline-block h-4 w-4 rounded-full bg-white shadow
+          <span className={`pointer-events-none inline-block h-4 w-4 rounded-full bg-white dark:bg-gray-800 shadow
             transform transition duration-200 ${enabled ? 'translate-x-4' : 'translate-x-0'}`} />
         </button>
-        <span className="text-sm text-gray-600">
+        <span className="text-sm text-gray-600 dark:text-gray-300">
           {enabled ? 'Import automatique activé' : 'Import automatique désactivé'}
         </span>
       </div>
@@ -1177,20 +1177,20 @@ function GmailImportSection({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
         {/* Adresse Gmail */}
         <div>
-          <label className="block text-xs text-gray-500 mb-1">Adresse Gmail</label>
+          <label className="block text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 mb-1">Adresse Gmail</label>
           <input
             type="email"
             value={gmailUser}
             onChange={e => setGmailUser(e.target.value)}
             placeholder="pietissot@gmail.com"
-            className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2
+            className="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2
               focus:ring-2 focus:ring-blue-400 focus:border-transparent"
           />
         </div>
 
         {/* Mot de passe d'application */}
         <div>
-          <label className="block text-xs text-gray-500 mb-1">
+          <label className="block text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 mb-1">
             Mot de passe d'application Google
             {config?.gmail_app_password_set && (
               <span className="ml-2 text-green-500">✓ enregistré</span>
@@ -1202,18 +1202,18 @@ function GmailImportSection({
               value={gmailPwd}
               onChange={e => setGmailPwd(e.target.value)}
               placeholder={config?.gmail_app_password_set ? '••••••••••••••••' : 'xxxx xxxx xxxx xxxx'}
-              className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 pr-9
+              className="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 pr-9
                 focus:ring-2 focus:ring-blue-400 focus:border-transparent"
             />
             <button
               type="button"
               onClick={() => setShowPwd(v => !v)}
-              className="absolute right-2 top-2 text-gray-400 hover:text-gray-600"
+              className="absolute right-2 top-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:text-gray-300"
             >
               {showPwd ? <EyeOff size={15} /> : <Eye size={15} />}
             </button>
           </div>
-          <p className="text-xs text-gray-400 mt-1">
+          <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
             Différent de ton mot de passe habituel —{' '}
             <a
               href="https://myaccount.google.com/apppasswords"
@@ -1228,7 +1228,7 @@ function GmailImportSection({
 
       {/* Statut dernière vérification */}
       {(config?.gmail_last_status || lastCheck) && (
-        <div className="mb-4 text-xs text-gray-500 bg-gray-50 rounded-lg px-3 py-2 space-y-0.5">
+        <div className="mb-4 text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-gray-700/50 rounded-lg px-3 py-2 space-y-0.5">
           {lastCheck && <p>Dernière vérification : <strong>{lastCheck}</strong></p>}
           {config?.gmail_last_status && <p>{config.gmail_last_status}</p>}
         </div>
@@ -1275,7 +1275,7 @@ function GmailImportSection({
         <button
           onClick={handleCheckNow}
           disabled={checking || !config?.gmail_user}
-          className="flex items-center gap-1.5 px-3 py-2 bg-gray-100 text-gray-700
+          className="flex items-center gap-1.5 px-3 py-2 bg-gray-100 text-gray-700 dark:text-gray-200
             rounded-lg text-sm hover:bg-gray-200 disabled:opacity-50 transition-colors"
           title={!config?.gmail_user ? 'Configurez d\'abord Gmail' : undefined}
         >
@@ -1289,7 +1289,7 @@ function GmailImportSection({
         <summary className="text-xs text-blue-500 cursor-pointer hover:text-blue-700 select-none">
           📋 Comment créer un mot de passe d'application Google ?
         </summary>
-        <div className="mt-2 text-xs text-gray-500 bg-blue-50 rounded-lg p-3 space-y-1.5">
+        <div className="mt-2 text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 bg-blue-50 rounded-lg p-3 space-y-1.5">
           <p><strong>1.</strong> Assure-toi d'avoir la <strong>validation en 2 étapes activée</strong> sur ton compte Google
             (<a href="https://myaccount.google.com/security" target="_blank" rel="noreferrer" className="text-blue-500 underline">myaccount.google.com/security</a>).</p>
           <p><strong>2.</strong> Va sur{' '}
@@ -1299,7 +1299,7 @@ function GmailImportSection({
           <p><strong>3.</strong> Dans le champ "Nom de l'application", tape <code className="bg-blue-100 px-1 rounded">GrowManager</code> et clique <strong>Créer</strong>.</p>
           <p><strong>4.</strong> Google affiche un mot de passe de <strong>16 caractères</strong> (format : xxxx xxxx xxxx xxxx). Copie-le.</p>
           <p><strong>5.</strong> Colle-le dans le champ "Mot de passe d'application" ci-dessus et clique <strong>Enregistrer</strong>.</p>
-          <p className="text-gray-400 pt-1">Ce mot de passe ne fonctionne que pour GrowManager et peut être révoqué à tout moment.</p>
+          <p className="text-gray-400 dark:text-gray-500 pt-1">Ce mot de passe ne fonctionne que pour GrowManager et peut être révoqué à tout moment.</p>
         </div>
       </details>
     </div>
@@ -1339,22 +1339,22 @@ function AppSettingsSection() {
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-      <div className="px-6 py-4 border-b border-gray-100 bg-grow-50 flex items-center gap-3">
+    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+      <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-700 bg-grow-50 flex items-center gap-3">
         <div className="p-2 bg-grow-100 rounded-lg">
           <Euro size={18} className="text-grow-700" />
         </div>
         <div>
-          <h2 className="text-base font-semibold text-gray-800">Économique</h2>
-          <p className="text-xs text-gray-400 mt-0.5">Paramètres utilisés pour le calcul des coûts de culture</p>
+          <h2 className="text-base font-semibold text-gray-800 dark:text-gray-100">Économique</h2>
+          <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">Paramètres utilisés pour le calcul des coûts de culture</p>
         </div>
       </div>
       <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
 
         {/* Prix kWh */}
         <div className="space-y-2">
-          <label className="text-sm font-medium text-gray-700">Prix du kWh (€)</label>
-          <p className="text-xs text-gray-400">Utilisé pour calculer le coût électrique de chaque culture.</p>
+          <label className="text-sm font-medium text-gray-700 dark:text-gray-200">Prix du kWh (€)</label>
+          <p className="text-xs text-gray-400 dark:text-gray-500">Utilisé pour calculer le coût électrique de chaque culture.</p>
           {editingKwh ? (
             <div className="flex items-center gap-2">
               <input
@@ -1362,27 +1362,27 @@ function AppSettingsSection() {
                 value={valKwh}
                 onChange={e => setValKwh(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter') saveKwh(); if (e.key === 'Escape') setEditingKwh(false) }}
-                className="w-32 text-sm border border-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-grow-400 focus:outline-none"
+                className="w-32 text-sm border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 focus:ring-2 focus:ring-grow-400 focus:outline-none"
                 autoFocus
               />
-              <span className="text-sm text-gray-500">€/kWh</span>
+              <span className="text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500">€/kWh</span>
               <button onClick={saveKwh} disabled={prixKwh.isPending}
                 className="p-1.5 text-grow-600 hover:bg-grow-50 rounded-lg transition-colors">
                 {prixKwh.isPending ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
               </button>
               <button onClick={() => setEditingKwh(false)}
-                className="p-1.5 text-gray-400 hover:bg-gray-100 rounded-lg transition-colors">
+                className="p-1.5 text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
                 <X size={14} />
               </button>
             </div>
           ) : (
             <div className="flex items-center gap-3">
-              <span className="text-lg font-semibold text-gray-800">
-                {prixKwh.value ? `${prixKwh.value} €/kWh` : <span className="text-gray-400 text-sm font-normal">Non renseigné</span>}
+              <span className="text-lg font-semibold text-gray-800 dark:text-gray-100">
+                {prixKwh.value ? `${prixKwh.value} €/kWh` : <span className="text-gray-400 dark:text-gray-500 text-sm font-normal">Non renseigné</span>}
               </span>
               {savedKwh && <span className="text-xs text-grow-600 flex items-center gap-1"><CheckCircle2 size={12} /> Enregistré</span>}
               <button onClick={startEditKwh}
-                className="flex items-center gap-1 text-xs text-gray-400 hover:text-grow-600 px-2 py-1 hover:bg-grow-50 rounded-lg transition-colors">
+                className="flex items-center gap-1 text-xs text-gray-400 dark:text-gray-500 hover:text-grow-600 px-2 py-1 hover:bg-grow-50 rounded-lg transition-colors">
                 <Pencil size={12} /> Modifier
               </button>
             </div>
@@ -1391,8 +1391,8 @@ function AppSettingsSection() {
 
         {/* Devise */}
         <div className="space-y-2">
-          <label className="text-sm font-medium text-gray-700">Devise</label>
-          <p className="text-xs text-gray-400">Symbole affiché dans les coûts (EUR, USD, CHF…).</p>
+          <label className="text-sm font-medium text-gray-700 dark:text-gray-200">Devise</label>
+          <p className="text-xs text-gray-400 dark:text-gray-500">Symbole affiché dans les coûts (EUR, USD, CHF…).</p>
           {editingDevise ? (
             <div className="flex items-center gap-2">
               <input
@@ -1400,7 +1400,7 @@ function AppSettingsSection() {
                 value={valDevise}
                 onChange={e => setValDevise(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter') saveDevise(); if (e.key === 'Escape') setEditingDevise(false) }}
-                className="w-24 text-sm border border-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-grow-400 focus:outline-none"
+                className="w-24 text-sm border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 focus:ring-2 focus:ring-grow-400 focus:outline-none"
                 autoFocus
               />
               <button onClick={saveDevise} disabled={devise.isPending}
@@ -1408,18 +1408,18 @@ function AppSettingsSection() {
                 {devise.isPending ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
               </button>
               <button onClick={() => setEditingDevise(false)}
-                className="p-1.5 text-gray-400 hover:bg-gray-100 rounded-lg transition-colors">
+                className="p-1.5 text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
                 <X size={14} />
               </button>
             </div>
           ) : (
             <div className="flex items-center gap-3">
-              <span className="text-lg font-semibold text-gray-800">
-                {devise.value || <span className="text-gray-400 text-sm font-normal">Non renseigné</span>}
+              <span className="text-lg font-semibold text-gray-800 dark:text-gray-100">
+                {devise.value || <span className="text-gray-400 dark:text-gray-500 text-sm font-normal">Non renseigné</span>}
               </span>
               {savedDevise && <span className="text-xs text-grow-600 flex items-center gap-1"><CheckCircle2 size={12} /> Enregistré</span>}
               <button onClick={startEditDevise}
-                className="flex items-center gap-1 text-xs text-gray-400 hover:text-grow-600 px-2 py-1 hover:bg-grow-50 rounded-lg transition-colors">
+                className="flex items-center gap-1 text-xs text-gray-400 dark:text-gray-500 hover:text-grow-600 px-2 py-1 hover:bg-grow-50 rounded-lg transition-colors">
                 <Pencil size={12} /> Modifier
               </button>
             </div>
@@ -1508,16 +1508,16 @@ function BackupSection() {
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
 
       {/* Header */}
-      <div className="px-6 py-4 border-b border-gray-100 bg-grow-50 flex items-center gap-3">
+      <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-700 bg-grow-50 flex items-center gap-3">
         <div className="p-2 bg-grow-100 rounded-lg">
           <Database size={18} className="text-grow-700" />
         </div>
         <div>
-          <h2 className="text-base font-semibold text-gray-800">Sauvegarde & Restauration</h2>
-          <p className="text-xs text-gray-400 mt-0.5">Export complet de la base de données (mysqldump)</p>
+          <h2 className="text-base font-semibold text-gray-800 dark:text-gray-100">Sauvegarde & Restauration</h2>
+          <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">Export complet de la base de données (mysqldump)</p>
         </div>
       </div>
 
@@ -1525,10 +1525,10 @@ function BackupSection() {
 
         {/* ── Colonne export ── */}
         <div className="space-y-3">
-          <h3 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+          <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-200 flex items-center gap-2">
             <Download size={15} className="text-grow-600" /> Exporter
           </h3>
-          <p className="text-xs text-gray-400">
+          <p className="text-xs text-gray-400 dark:text-gray-500">
             Génère un fichier <code className="bg-gray-100 px-1 rounded">.sql</code> contenant
             toute la base de données — structure et données.
             À conserver comme backup avant une mise à jour.
@@ -1548,10 +1548,10 @@ function BackupSection() {
 
         {/* ── Colonne import / restauration ── */}
         <div className="space-y-3">
-          <h3 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+          <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-200 flex items-center gap-2">
             <Upload size={15} className="text-orange-500" /> Restaurer
           </h3>
-          <p className="text-xs text-gray-400">
+          <p className="text-xs text-gray-400 dark:text-gray-500">
             Glissez-déposez un fichier <code className="bg-gray-100 px-1 rounded">.sql</code> ou
             cliquez pour sélectionner.{' '}
             <span className="text-orange-500 font-medium">⚠ Remplace toutes les données existantes.</span>
@@ -1566,10 +1566,10 @@ function BackupSection() {
                         px-4 py-6 cursor-pointer transition-colors
                         ${dragOver
                           ? 'border-orange-400 bg-orange-50'
-                          : 'border-gray-200 hover:border-grow-400 hover:bg-grow-50'}`}
+                          : 'border-gray-200 dark:border-gray-700 hover:border-grow-400 hover:bg-grow-50'}`}
           >
             <UploadCloud size={24} className={dragOver ? 'text-orange-400' : 'text-gray-300'} />
-            <span className="text-xs text-gray-400 text-center">
+            <span className="text-xs text-gray-400 dark:text-gray-500 text-center">
               {restoring
                 ? 'Restauration en cours…'
                 : dragOver
@@ -1601,24 +1601,24 @@ function BackupSection() {
       {/* ── Modale de confirmation ── */}
       {confirmOpen && pendingFile && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6 space-y-4">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-sm w-full p-6 space-y-4">
             <div className="flex items-center gap-3">
               <div className="p-2.5 bg-orange-100 rounded-xl">
                 <AlertCircle size={20} className="text-orange-500" />
               </div>
               <div>
-                <h3 className="font-semibold text-gray-900">Confirmer la restauration</h3>
-                <p className="text-xs text-gray-400 mt-0.5">Cette action est irréversible</p>
+                <h3 className="font-semibold text-gray-900 dark:text-gray-100">Confirmer la restauration</h3>
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">Cette action est irréversible</p>
               </div>
             </div>
-            <p className="text-sm text-gray-600">
-              Le fichier <strong className="text-gray-800">{pendingFile.name}</strong> va
+            <p className="text-sm text-gray-600 dark:text-gray-300">
+              Le fichier <strong className="text-gray-800 dark:text-gray-100">{pendingFile.name}</strong> va
               remplacer <strong>toutes les données</strong> actuelles de GrowManager.
             </p>
             <div className="flex gap-3 justify-end pt-1">
               <button
                 onClick={() => { setConfirmOpen(false); setPendingFile(null) }}
-                className="px-4 py-2 text-sm text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                className="px-4 py-2 text-sm text-gray-600 dark:text-gray-300 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
               >
                 Annuler
               </button>
@@ -1644,11 +1644,11 @@ export default function ParametragePage() {
 
       <div className="flex items-center gap-3">
         <div className="p-2.5 bg-gray-100 rounded-xl">
-          <Settings size={22} className="text-gray-600" />
+          <Settings size={22} className="text-gray-600 dark:text-gray-300" />
         </div>
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Paramétrage</h1>
-          <p className="text-sm text-gray-400 mt-0.5">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Paramétrage</h1>
+          <p className="text-sm text-gray-400 dark:text-gray-500 mt-0.5">
             Gérez les valeurs des listes déroulantes utilisées dans toute l'application
           </p>
         </div>
@@ -1662,9 +1662,9 @@ export default function ParametragePage() {
 
       {/* Listes déroulantes */}
       {SECTIONS.map(section => (
-        <div key={section.titre} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-100 bg-gray-50">
-            <h2 className="text-base font-semibold text-gray-800">{section.titre}</h2>
+        <div key={section.titre} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50">
+            <h2 className="text-base font-semibold text-gray-800 dark:text-gray-100">{section.titre}</h2>
           </div>
           <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
             {section.listes.map(l => (
@@ -1675,10 +1675,10 @@ export default function ParametragePage() {
       ))}
 
       {/* Breeders & Variétés */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-100 bg-gray-50">
-          <h2 className="text-base font-semibold text-gray-800">Génétique</h2>
-          <p className="text-xs text-gray-400 mt-0.5">Gérez vos breeders et vos variétés</p>
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+        <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50">
+          <h2 className="text-base font-semibold text-gray-800 dark:text-gray-100">Génétique</h2>
+          <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">Gérez vos breeders et vos variétés</p>
         </div>
         <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
           <BreedersEditor />

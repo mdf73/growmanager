@@ -33,7 +33,7 @@ const METHODES: { value: MethodePollinisation; label: string }[] = [
 ]
 
 const STATUT_META: Record<StatutCroisement, { label: string; color: string; icon: any }> = {
-  planifie:   { label: 'Planifié',     color: 'bg-gray-100 text-gray-700',       icon: Calendar },
+  planifie:   { label: 'Planifié',     color: 'bg-gray-100 text-gray-700 dark:text-gray-200',       icon: Calendar },
   pollinise:  { label: 'Pollinisé',    color: 'bg-blue-100 text-blue-700',       icon: Sparkles },
   maturation: { label: 'Maturation',   color: 'bg-amber-100 text-amber-700',     icon: Clock },
   recolte:    { label: 'Récolté',      color: 'bg-green-100 text-green-700',     icon: CheckCircle2 },
@@ -118,13 +118,13 @@ function NouveauCroisementModal({ varietes, pollenStock, onClose }: NouveauCrois
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between">
+      <div className="bg-white dark:bg-gray-800 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="sticky top-0 bg-white dark:bg-gray-800 border-b px-6 py-4 flex items-center justify-between">
           <h2 className="text-lg font-semibold flex items-center gap-2">
             <Dna size={20} className="text-grow-600" /> Nouveau croisement
-            <span className="text-sm text-gray-400 font-normal">— étape {step}/3</span>
+            <span className="text-sm text-gray-400 dark:text-gray-500 font-normal">— étape {step}/3</span>
           </h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-700"><X size={20} /></button>
+          <button onClick={onClose} className="text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:text-gray-200"><X size={20} /></button>
         </div>
 
         <div className="p-6 space-y-5">
@@ -132,14 +132,14 @@ function NouveauCroisementModal({ varietes, pollenStock, onClose }: NouveauCrois
           {step === 1 && (
             <>
               <div>
-                <h3 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
+                <h3 className="font-medium text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
                   <Leaf size={16} className="text-pink-500" /> Parent mère (porteuse de graines)
                 </h3>
                 <div className="space-y-2">
                   <select
                     value={form.id_variete_mere || ''}
                     onChange={e => setForm({ ...form, id_variete_mere: Number(e.target.value) || undefined })}
-                    className="w-full rounded border-gray-300 px-3 py-2 text-sm"
+                    className="w-full rounded border-gray-300 dark:border-gray-600 px-3 py-2 text-sm"
                   >
                     <option value="">— Choisir une variété —</option>
                     {varietes.map(v => <option key={v.id_variete} value={v.id_variete}>{v.nom_variete}</option>)}
@@ -149,13 +149,13 @@ function NouveauCroisementModal({ varietes, pollenStock, onClose }: NouveauCrois
                     placeholder="Pheno (ex : pheno #3)"
                     value={form.pheno_mere || ''}
                     onChange={e => setForm({ ...form, pheno_mere: e.target.value })}
-                    className="w-full rounded border-gray-300 px-3 py-2 text-sm"
+                    className="w-full rounded border-gray-300 dark:border-gray-600 px-3 py-2 text-sm"
                   />
                 </div>
               </div>
 
               <div>
-                <h3 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
+                <h3 className="font-medium text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
                   <Sparkles size={16} className="text-blue-500" /> Parent père (pollen)
                 </h3>
 
@@ -163,14 +163,14 @@ function NouveauCroisementModal({ varietes, pollenStock, onClose }: NouveauCrois
                   <button
                     type="button"
                     onClick={() => setPereMode('direct')}
-                    className={`flex-1 px-3 py-2 rounded text-sm font-medium ${peremode === 'direct' ? 'bg-grow-600 text-white' : 'bg-gray-100 text-gray-700'}`}
+                    className={`flex-1 px-3 py-2 rounded text-sm font-medium ${peremode === 'direct' ? 'bg-grow-600 text-white' : 'bg-gray-100 text-gray-700 dark:text-gray-200'}`}
                   >
                     Saisie directe (variété)
                   </button>
                   <button
                     type="button"
                     onClick={() => setPereMode('pollen')}
-                    className={`flex-1 px-3 py-2 rounded text-sm font-medium ${peremode === 'pollen' ? 'bg-grow-600 text-white' : 'bg-gray-100 text-gray-700'}`}
+                    className={`flex-1 px-3 py-2 rounded text-sm font-medium ${peremode === 'pollen' ? 'bg-grow-600 text-white' : 'bg-gray-100 text-gray-700 dark:text-gray-200'}`}
                   >
                     Depuis stock pollen ({pollenStock.length})
                   </button>
@@ -181,7 +181,7 @@ function NouveauCroisementModal({ varietes, pollenStock, onClose }: NouveauCrois
                     <select
                       value={form.id_variete_pere || ''}
                       onChange={e => setForm({ ...form, id_variete_pere: Number(e.target.value) || undefined })}
-                      className="w-full rounded border-gray-300 px-3 py-2 text-sm"
+                      className="w-full rounded border-gray-300 dark:border-gray-600 px-3 py-2 text-sm"
                     >
                       <option value="">— Choisir une variété —</option>
                       {varietes.map(v => <option key={v.id_variete} value={v.id_variete}>{v.nom_variete}</option>)}
@@ -191,7 +191,7 @@ function NouveauCroisementModal({ varietes, pollenStock, onClose }: NouveauCrois
                       placeholder="Pheno / origine (ex : mâle Zkittlez ami X)"
                       value={form.pheno_pere || ''}
                       onChange={e => setForm({ ...form, pheno_pere: e.target.value })}
-                      className="w-full rounded border-gray-300 px-3 py-2 text-sm"
+                      className="w-full rounded border-gray-300 dark:border-gray-600 px-3 py-2 text-sm"
                     />
                     <label className="flex items-center gap-2 text-sm">
                       <input
@@ -207,7 +207,7 @@ function NouveauCroisementModal({ varietes, pollenStock, onClose }: NouveauCrois
                 {peremode === 'pollen' && (
                   <div className="space-y-2">
                     {pollenStock.length === 0 ? (
-                      <div className="text-sm text-gray-500 italic p-3 bg-gray-50 rounded">
+                      <div className="text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500 italic p-3 bg-gray-50 dark:bg-gray-700/50 rounded">
                         Aucun pollen en stock. Bascule vers "Saisie directe" ou ajoute du pollen dans l'onglet "Stock pollen".
                       </div>
                     ) : (
@@ -215,7 +215,7 @@ function NouveauCroisementModal({ varietes, pollenStock, onClose }: NouveauCrois
                         <select
                           value={form.id_pollen || ''}
                           onChange={e => setForm({ ...form, id_pollen: Number(e.target.value) || undefined })}
-                          className="w-full rounded border-gray-300 px-3 py-2 text-sm"
+                          className="w-full rounded border-gray-300 dark:border-gray-600 px-3 py-2 text-sm"
                         >
                           <option value="">— Choisir du pollen —</option>
                           {pollenStock.filter(p => p.actif).map(p => (
@@ -233,7 +233,7 @@ function NouveauCroisementModal({ varietes, pollenStock, onClose }: NouveauCrois
                           placeholder="Quantité pollen utilisée (g) — optionnel"
                           value={form.quantite_pollen_utilisee_g || ''}
                           onChange={e => setForm({ ...form, quantite_pollen_utilisee_g: Number(e.target.value) || undefined })}
-                          className="w-full rounded border-gray-300 px-3 py-2 text-sm"
+                          className="w-full rounded border-gray-300 dark:border-gray-600 px-3 py-2 text-sm"
                         />
                       </>
                     )}
@@ -254,10 +254,10 @@ function NouveauCroisementModal({ varietes, pollenStock, onClose }: NouveauCrois
                       key={t.value}
                       type="button"
                       onClick={() => setForm({ ...form, type_croisement: t.value })}
-                      className={`text-left px-3 py-2 rounded border text-sm ${form.type_croisement === t.value ? 'border-grow-600 bg-grow-50' : 'border-gray-200'}`}
+                      className={`text-left px-3 py-2 rounded border text-sm ${form.type_croisement === t.value ? 'border-grow-600 bg-grow-50' : 'border-gray-200 dark:border-gray-700'}`}
                     >
                       <div className="font-medium">{t.label}</div>
-                      <div className="text-xs text-gray-500">{t.desc}</div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">{t.desc}</div>
                     </button>
                   ))}
                 </div>
@@ -270,7 +270,7 @@ function NouveauCroisementModal({ varietes, pollenStock, onClose }: NouveauCrois
                     type="date"
                     value={form.date_pollinisation || ''}
                     onChange={e => setForm({ ...form, date_pollinisation: e.target.value || undefined })}
-                    className="w-full rounded border-gray-300 px-3 py-2 text-sm"
+                    className="w-full rounded border-gray-300 dark:border-gray-600 px-3 py-2 text-sm"
                   />
                 </div>
                 <div>
@@ -278,7 +278,7 @@ function NouveauCroisementModal({ varietes, pollenStock, onClose }: NouveauCrois
                   <select
                     value={form.methode || ''}
                     onChange={e => setForm({ ...form, methode: (e.target.value as MethodePollinisation) || undefined })}
-                    className="w-full rounded border-gray-300 px-3 py-2 text-sm"
+                    className="w-full rounded border-gray-300 dark:border-gray-600 px-3 py-2 text-sm"
                   >
                     <option value="">— Choisir —</option>
                     {METHODES.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
@@ -293,7 +293,7 @@ function NouveauCroisementModal({ varietes, pollenStock, onClose }: NouveauCrois
                   placeholder="Ex : 2 branches du bas, plante entière…"
                   value={form.zone_pollinisee || ''}
                   onChange={e => setForm({ ...form, zone_pollinisee: e.target.value })}
-                  className="w-full rounded border-gray-300 px-3 py-2 text-sm"
+                  className="w-full rounded border-gray-300 dark:border-gray-600 px-3 py-2 text-sm"
                 />
               </div>
 
@@ -302,7 +302,7 @@ function NouveauCroisementModal({ varietes, pollenStock, onClose }: NouveauCrois
                 <select
                   value={form.statut || 'planifie'}
                   onChange={e => setForm({ ...form, statut: e.target.value as StatutCroisement })}
-                  className="w-full rounded border-gray-300 px-3 py-2 text-sm"
+                  className="w-full rounded border-gray-300 dark:border-gray-600 px-3 py-2 text-sm"
                 >
                   <option value="planifie">Planifié</option>
                   <option value="pollinise">Pollinisé (déjà fait)</option>
@@ -322,10 +322,10 @@ function NouveauCroisementModal({ varietes, pollenStock, onClose }: NouveauCrois
                   placeholder={autoNom || 'Nom de ce croisement'}
                   value={form.nom_croisement}
                   onChange={e => setForm({ ...form, nom_croisement: e.target.value })}
-                  className="w-full rounded border-gray-300 px-3 py-2 text-sm"
+                  className="w-full rounded border-gray-300 dark:border-gray-600 px-3 py-2 text-sm"
                 />
                 {autoNom && !form.nom_croisement && (
-                  <p className="text-xs text-gray-500 mt-1">Suggestion : <button className="text-grow-600 underline" onClick={() => setForm({ ...form, nom_croisement: autoNom })}>{autoNom}</button></p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 mt-1">Suggestion : <button className="text-grow-600 underline" onClick={() => setForm({ ...form, nom_croisement: autoNom })}>{autoNom}</button></p>
                 )}
               </div>
               <div>
@@ -334,13 +334,13 @@ function NouveauCroisementModal({ varietes, pollenStock, onClose }: NouveauCrois
                   rows={4}
                   value={form.notes || ''}
                   onChange={e => setForm({ ...form, notes: e.target.value })}
-                  className="w-full rounded border-gray-300 px-3 py-2 text-sm"
+                  className="w-full rounded border-gray-300 dark:border-gray-600 px-3 py-2 text-sm"
                   placeholder="Observations, objectifs, contexte…"
                 />
               </div>
-              <div className="bg-gray-50 rounded p-3 text-sm">
-                <div className="font-medium text-gray-700 mb-1">Récap</div>
-                <div className="text-gray-600">
+              <div className="bg-gray-50 dark:bg-gray-700/50 rounded p-3 text-sm">
+                <div className="font-medium text-gray-700 dark:text-gray-200 mb-1">Récap</div>
+                <div className="text-gray-600 dark:text-gray-300">
                   <div>♀ {mereNom || '—'}{form.pheno_mere ? ` (${form.pheno_mere})` : ''}</div>
                   <div>♂ {pereNom || '—'}{form.pheno_pere ? ` (${form.pheno_pere})` : ''}{form.pere_reverse ? ' — reversé' : ''}</div>
                   <div>Type : {form.type_croisement}</div>
@@ -351,8 +351,8 @@ function NouveauCroisementModal({ varietes, pollenStock, onClose }: NouveauCrois
           )}
         </div>
 
-        <div className="sticky bottom-0 bg-white border-t px-6 py-3 flex justify-between">
-          <button onClick={onClose} className="px-4 py-2 text-sm text-gray-600">Annuler</button>
+        <div className="sticky bottom-0 bg-white dark:bg-gray-800 border-t px-6 py-3 flex justify-between">
+          <button onClick={onClose} className="px-4 py-2 text-sm text-gray-600 dark:text-gray-300">Annuler</button>
           <div className="flex gap-2">
             {step > 1 && (
               <button onClick={() => setStep(step - 1)} className="px-4 py-2 text-sm border rounded">Retour</button>
@@ -407,7 +407,7 @@ function RecolteModal({ croisement, onClose }: { croisement: Croisement; onClose
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-xl max-w-lg w-full">
+      <div className="bg-white dark:bg-gray-800 rounded-xl max-w-lg w-full">
         <div className="border-b px-6 py-4 flex items-center justify-between">
           <h2 className="text-lg font-semibold flex items-center gap-2">
             <Sparkles size={20} className="text-green-600" /> Récolter les graines
@@ -415,8 +415,8 @@ function RecolteModal({ croisement, onClose }: { croisement: Croisement; onClose
           <button onClick={onClose}><X size={20} /></button>
         </div>
         <div className="p-6 space-y-4">
-          <div className="text-sm text-gray-600 bg-gray-50 rounded p-3">
-            Croisement : <span className="font-medium text-gray-900">{croisement.nom_croisement}</span>
+          <div className="text-sm text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-700/50 rounded p-3">
+            Croisement : <span className="font-medium text-gray-900 dark:text-gray-100">{croisement.nom_croisement}</span>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
@@ -426,7 +426,7 @@ function RecolteModal({ croisement, onClose }: { croisement: Croisement; onClose
                 type="date"
                 value={data.date_recolte_graines}
                 onChange={e => setData({ ...data, date_recolte_graines: e.target.value })}
-                className="w-full rounded border-gray-300 px-3 py-2 text-sm"
+                className="w-full rounded border-gray-300 dark:border-gray-600 px-3 py-2 text-sm"
               />
             </div>
             <div>
@@ -435,7 +435,7 @@ function RecolteModal({ croisement, onClose }: { croisement: Croisement; onClose
                 type="number"
                 value={data.nb_graines}
                 onChange={e => setData({ ...data, nb_graines: Number(e.target.value) })}
-                className="w-full rounded border-gray-300 px-3 py-2 text-sm"
+                className="w-full rounded border-gray-300 dark:border-gray-600 px-3 py-2 text-sm"
               />
             </div>
           </div>
@@ -446,7 +446,7 @@ function RecolteModal({ croisement, onClose }: { croisement: Croisement; onClose
               <select
                 value={data.qualite_graines}
                 onChange={e => setData({ ...data, qualite_graines: e.target.value as QualiteGraines })}
-                className="w-full rounded border-gray-300 px-3 py-2 text-sm"
+                className="w-full rounded border-gray-300 dark:border-gray-600 px-3 py-2 text-sm"
               >
                 <option value="bonne">Bonne (mature, foncée)</option>
                 <option value="moyenne">Moyenne</option>
@@ -460,7 +460,7 @@ function RecolteModal({ croisement, onClose }: { croisement: Croisement; onClose
                 step="0.01"
                 value={data.poids_graines_g || ''}
                 onChange={e => setData({ ...data, poids_graines_g: Number(e.target.value) || undefined })}
-                className="w-full rounded border-gray-300 px-3 py-2 text-sm"
+                className="w-full rounded border-gray-300 dark:border-gray-600 px-3 py-2 text-sm"
               />
             </div>
           </div>
@@ -485,7 +485,7 @@ function RecolteModal({ croisement, onClose }: { croisement: Croisement; onClose
           </div>
         </div>
         <div className="border-t px-6 py-3 flex justify-end gap-2">
-          <button onClick={onClose} className="px-4 py-2 text-sm text-gray-600">Annuler</button>
+          <button onClick={onClose} className="px-4 py-2 text-sm text-gray-600 dark:text-gray-300">Annuler</button>
           <button
             onClick={() => mut.mutate()}
             disabled={mut.isPending || !data.nb_graines}
@@ -522,7 +522,7 @@ function NouveauPollenModal({ varietes, onClose }: { varietes: Variete[]; onClos
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-xl max-w-lg w-full">
+      <div className="bg-white dark:bg-gray-800 rounded-xl max-w-lg w-full">
         <div className="border-b px-6 py-4 flex items-center justify-between">
           <h2 className="text-lg font-semibold flex items-center gap-2">
             <FlaskConical size={20} className="text-grow-600" /> Collecter du pollen
@@ -537,7 +537,7 @@ function NouveauPollenModal({ varietes, onClose }: { varietes: Variete[]; onClos
               placeholder="Ex : Gelato mâle #3 — avril 2026"
               value={data.nom_pollen}
               onChange={e => setData({ ...data, nom_pollen: e.target.value })}
-              className="w-full rounded border-gray-300 px-3 py-2 text-sm"
+              className="w-full rounded border-gray-300 dark:border-gray-600 px-3 py-2 text-sm"
             />
           </div>
           <div className="grid grid-cols-2 gap-3">
@@ -546,7 +546,7 @@ function NouveauPollenModal({ varietes, onClose }: { varietes: Variete[]; onClos
               <select
                 value={data.id_variete_source || ''}
                 onChange={e => setData({ ...data, id_variete_source: Number(e.target.value) || undefined })}
-                className="w-full rounded border-gray-300 px-3 py-2 text-sm"
+                className="w-full rounded border-gray-300 dark:border-gray-600 px-3 py-2 text-sm"
               >
                 <option value="">— Inconnue —</option>
                 {varietes.map(v => <option key={v.id_variete} value={v.id_variete}>{v.nom_variete}</option>)}
@@ -558,7 +558,7 @@ function NouveauPollenModal({ varietes, onClose }: { varietes: Variete[]; onClos
                 type="text"
                 value={data.pheno_source || ''}
                 onChange={e => setData({ ...data, pheno_source: e.target.value })}
-                className="w-full rounded border-gray-300 px-3 py-2 text-sm"
+                className="w-full rounded border-gray-300 dark:border-gray-600 px-3 py-2 text-sm"
               />
             </div>
           </div>
@@ -577,7 +577,7 @@ function NouveauPollenModal({ varietes, onClose }: { varietes: Variete[]; onClos
                 type="date"
                 value={data.date_collecte || ''}
                 onChange={e => setData({ ...data, date_collecte: e.target.value || undefined })}
-                className="w-full rounded border-gray-300 px-3 py-2 text-sm"
+                className="w-full rounded border-gray-300 dark:border-gray-600 px-3 py-2 text-sm"
               />
             </div>
             <div>
@@ -587,7 +587,7 @@ function NouveauPollenModal({ varietes, onClose }: { varietes: Variete[]; onClos
                 step="0.001"
                 value={data.quantite_initiale_g || ''}
                 onChange={e => setData({ ...data, quantite_initiale_g: Number(e.target.value) || undefined })}
-                className="w-full rounded border-gray-300 px-3 py-2 text-sm"
+                className="w-full rounded border-gray-300 dark:border-gray-600 px-3 py-2 text-sm"
               />
             </div>
             <div>
@@ -595,7 +595,7 @@ function NouveauPollenModal({ varietes, onClose }: { varietes: Variete[]; onClos
               <select
                 value={data.stockage || ''}
                 onChange={e => setData({ ...data, stockage: (e.target.value as StockagePollen) || undefined })}
-                className="w-full rounded border-gray-300 px-3 py-2 text-sm"
+                className="w-full rounded border-gray-300 dark:border-gray-600 px-3 py-2 text-sm"
               >
                 <option value="ambiant">Ambiant (~1 mois)</option>
                 <option value="frigo">Frigo (~6 mois)</option>
@@ -609,12 +609,12 @@ function NouveauPollenModal({ varietes, onClose }: { varietes: Variete[]; onClos
               rows={2}
               value={data.notes || ''}
               onChange={e => setData({ ...data, notes: e.target.value })}
-              className="w-full rounded border-gray-300 px-3 py-2 text-sm"
+              className="w-full rounded border-gray-300 dark:border-gray-600 px-3 py-2 text-sm"
             />
           </div>
         </div>
         <div className="border-t px-6 py-3 flex justify-end gap-2">
-          <button onClick={onClose} className="px-4 py-2 text-sm text-gray-600">Annuler</button>
+          <button onClick={onClose} className="px-4 py-2 text-sm text-gray-600 dark:text-gray-300">Annuler</button>
           <button
             onClick={() => mut.mutate()}
             disabled={!data.nom_pollen || mut.isPending}
@@ -678,10 +678,10 @@ export default function CroisementPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
             <Dna className="text-grow-600" /> Croisements
           </h1>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500 mt-1">
             Gère tes croisements maison, la collecte de pollen et les graines produites.
           </p>
         </div>
@@ -695,17 +695,17 @@ export default function CroisementPage() {
       </div>
 
       {/* Tabs */}
-      <div className="border-b border-gray-200 mb-6">
+      <div className="border-b border-gray-200 dark:border-gray-700 mb-6">
         <div className="flex gap-6">
           <button
             onClick={() => setTab('croisements')}
-            className={`pb-3 px-1 text-sm font-medium border-b-2 transition ${tab === 'croisements' ? 'border-grow-600 text-grow-700' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+            className={`pb-3 px-1 text-sm font-medium border-b-2 transition ${tab === 'croisements' ? 'border-grow-600 text-grow-700' : 'border-transparent text-gray-500 dark:text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:text-gray-200'}`}
           >
             <Dna size={14} className="inline mr-1" /> Croisements ({croisements.length})
           </button>
           <button
             onClick={() => setTab('pollen')}
-            className={`pb-3 px-1 text-sm font-medium border-b-2 transition ${tab === 'pollen' ? 'border-grow-600 text-grow-700' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+            className={`pb-3 px-1 text-sm font-medium border-b-2 transition ${tab === 'pollen' ? 'border-grow-600 text-grow-700' : 'border-transparent text-gray-500 dark:text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:text-gray-200'}`}
           >
             <FlaskConical size={14} className="inline mr-1" /> Stock pollen ({pollen.length})
           </button>
@@ -721,7 +721,7 @@ export default function CroisementPage() {
               <button
                 key={s}
                 onClick={() => setStatutFilter(s)}
-                className={`px-3 py-1.5 rounded-full ${statutFilter === s ? 'bg-grow-600 text-white' : 'bg-gray-100 text-gray-600'}`}
+                className={`px-3 py-1.5 rounded-full ${statutFilter === s ? 'bg-grow-600 text-white' : 'bg-gray-100 text-gray-600 dark:text-gray-300'}`}
               >
                 {s === 'all' ? `Tous (${croisements.length})` : STATUT_META[s].label}
                 {s !== 'all' && ` (${croisements.filter(c => c.statut === s).length})`}
@@ -741,11 +741,11 @@ export default function CroisementPage() {
                 const meta = STATUT_META[c.statut]
                 const StatutIcon = meta.icon
                 return (
-                  <div key={c.id_croisement} className="border rounded-lg p-4 bg-white hover:shadow-sm transition">
+                  <div key={c.id_croisement} className="border rounded-lg p-4 bg-white dark:bg-gray-800 hover:shadow-sm transition">
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex-1">
-                        <h3 className="font-semibold text-gray-900">{c.nom_croisement}</h3>
-                        <div className="text-xs text-gray-500 mt-0.5">
+                        <h3 className="font-semibold text-gray-900 dark:text-gray-100">{c.nom_croisement}</h3>
+                        <div className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 mt-0.5">
                           {c.type_croisement && <span className="inline-block px-1.5 py-0.5 bg-gray-100 rounded text-[10px] font-semibold mr-2">{c.type_croisement}</span>}
                           <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold ${meta.color}`}>
                             <StatutIcon size={10} /> {meta.label}
@@ -757,19 +757,19 @@ export default function CroisementPage() {
                           onClick={() => {
                             if (confirm(`Supprimer "${c.nom_croisement}" ?`)) deleteCroisementMut.mutate(c.id_croisement)
                           }}
-                          className="p-1 text-gray-400 hover:text-red-600"
+                          className="p-1 text-gray-400 dark:text-gray-500 hover:text-red-600"
                         >
                           <Trash2 size={14} />
                         </button>
                       </div>
                     </div>
 
-                    <div className="text-sm text-gray-600 space-y-1 mt-2">
-                      <div>♀ <span className="font-medium">{c.nom_variete_mere || '—'}</span>{c.pheno_mere && <span className="text-gray-400"> · {c.pheno_mere}</span>}</div>
-                      <div>♂ <span className="font-medium">{c.nom_variete_pere || c.nom_pollen || '—'}</span>{c.pheno_pere && <span className="text-gray-400"> · {c.pheno_pere}</span>}{c.pere_reverse && <span className="ml-1 px-1 py-0.5 bg-pink-50 text-pink-600 rounded text-[9px] font-semibold">FEM</span>}</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-300 space-y-1 mt-2">
+                      <div>♀ <span className="font-medium">{c.nom_variete_mere || '—'}</span>{c.pheno_mere && <span className="text-gray-400 dark:text-gray-500"> · {c.pheno_mere}</span>}</div>
+                      <div>♂ <span className="font-medium">{c.nom_variete_pere || c.nom_pollen || '—'}</span>{c.pheno_pere && <span className="text-gray-400 dark:text-gray-500"> · {c.pheno_pere}</span>}{c.pere_reverse && <span className="ml-1 px-1 py-0.5 bg-pink-50 text-pink-600 rounded text-[9px] font-semibold">FEM</span>}</div>
                     </div>
 
-                    <div className="mt-3 pt-3 border-t text-xs text-gray-500 flex justify-between items-center">
+                    <div className="mt-3 pt-3 border-t text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 flex justify-between items-center">
                       <div>
                         <Calendar size={11} className="inline mr-1" />
                         Pollinisé : {fmtDate(c.date_pollinisation)}
@@ -835,9 +835,9 @@ export default function CroisementPage() {
               description="Enregistre la collecte d'un nouveau lot pour commencer."
             />
           ) : (
-            <div className="bg-white border rounded-lg overflow-hidden">
+            <div className="bg-white dark:bg-gray-800 border rounded-lg overflow-hidden">
               <table className="w-full text-sm">
-                <thead className="bg-gray-50 text-xs text-gray-600 uppercase">
+                <thead className="bg-gray-50 dark:bg-gray-700/50 text-xs text-gray-600 dark:text-gray-300 uppercase">
                   <tr>
                     <th className="px-3 py-2 text-left">Nom</th>
                     <th className="px-3 py-2 text-left">Variété</th>
@@ -856,28 +856,28 @@ export default function CroisementPage() {
                     return (
                       <tr key={p.id_pollen} className={!p.actif ? 'opacity-50' : ''}>
                         <td className="px-3 py-2">
-                          <div className="font-medium text-gray-900">{p.nom_pollen}</div>
+                          <div className="font-medium text-gray-900 dark:text-gray-100">{p.nom_pollen}</div>
                           {p.reverse && <span className="text-[10px] px-1 py-0.5 bg-pink-100 text-pink-700 rounded font-semibold">FEM (reverse)</span>}
                         </td>
-                        <td className="px-3 py-2 text-gray-600">
+                        <td className="px-3 py-2 text-gray-600 dark:text-gray-300">
                           {p.nom_variete_source || '—'}
-                          {p.pheno_source && <div className="text-xs text-gray-400">{p.pheno_source}</div>}
+                          {p.pheno_source && <div className="text-xs text-gray-400 dark:text-gray-500">{p.pheno_source}</div>}
                         </td>
-                        <td className="px-3 py-2 text-gray-600">{fmtDate(p.date_collecte)}</td>
-                        <td className="px-3 py-2 text-gray-600">{p.stockage || '—'}</td>
-                        <td className="px-3 py-2 text-right text-gray-600">
+                        <td className="px-3 py-2 text-gray-600 dark:text-gray-300">{fmtDate(p.date_collecte)}</td>
+                        <td className="px-3 py-2 text-gray-600 dark:text-gray-300">{p.stockage || '—'}</td>
+                        <td className="px-3 py-2 text-right text-gray-600 dark:text-gray-300">
                           {p.quantite_restante_g != null ? `${p.quantite_restante_g}g` : '—'}
                           {p.quantite_initiale_g != null && p.quantite_restante_g != null && p.quantite_initiale_g > 0 && (
-                            <div className="text-[10px] text-gray-400">/ {p.quantite_initiale_g}g</div>
+                            <div className="text-[10px] text-gray-400 dark:text-gray-500">/ {p.quantite_initiale_g}g</div>
                           )}
                         </td>
-                        <td className="px-3 py-2 text-gray-600">
+                        <td className="px-3 py-2 text-gray-600 dark:text-gray-300">
                           {fmtDate(p.date_peremption)}
                           {alerte && <div className="text-[10px] text-amber-600 font-semibold">dans {d}j</div>}
                           {p.perime && <div className="text-[10px] text-red-600 font-semibold">Périmé</div>}
                         </td>
                         <td className="px-3 py-2 text-center">
-                          {p.epuise ? <span className="text-[10px] px-2 py-0.5 bg-gray-100 text-gray-600 rounded">Épuisé</span> :
+                          {p.epuise ? <span className="text-[10px] px-2 py-0.5 bg-gray-100 text-gray-600 dark:text-gray-300 rounded">Épuisé</span> :
                            p.perime ? <span className="text-[10px] px-2 py-0.5 bg-red-100 text-red-700 rounded">Périmé</span> :
                            <span className="text-[10px] px-2 py-0.5 bg-green-100 text-green-700 rounded">Actif</span>}
                         </td>
@@ -886,7 +886,7 @@ export default function CroisementPage() {
                             onClick={() => {
                               if (confirm(`Supprimer "${p.nom_pollen}" ?`)) deletePollenMut.mutate(p.id_pollen)
                             }}
-                            className="p-1 text-gray-400 hover:text-red-600"
+                            className="p-1 text-gray-400 dark:text-gray-500 hover:text-red-600"
                           >
                             <Trash2 size={14} />
                           </button>

@@ -111,28 +111,28 @@ export default function ActionModal({ plants, initialDate, initialPlantId, onClo
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex items-center justify-between p-5 border-b sticky top-0 bg-white z-10">
-          <h2 className="text-lg font-bold text-gray-900">Ajouter une action</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
+        <div className="flex items-center justify-between p-5 border-b sticky top-0 bg-white dark:bg-gray-800 z-10">
+          <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">Ajouter une action</h2>
+          <button onClick={onClose} className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:text-gray-300"><X size={20} /></button>
         </div>
 
         <form onSubmit={handleSubmit} className="p-5 space-y-4">
           {/* Date */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Date</label>
+              <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Date</label>
               <input type="date" value={dateAction} onChange={e => setDateAction(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-grow-500 focus:border-transparent" />
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-grow-500 focus:border-transparent" />
             </div>
             {/* Cible */}
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Cible</label>
+              <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Cible</label>
               <select
                 value={target}
                 onChange={e => setTarget(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-grow-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-grow-500 focus:border-transparent"
               >
                 <option value="space">🏠 Espace uniquement</option>
                 <option value="global">🌿 Toutes les plantes</option>
@@ -141,15 +141,15 @@ export default function ActionModal({ plants, initialDate, initialPlantId, onClo
                 ))}
               </select>
               {target === 'space' && (
-                <p className="text-xs text-gray-400 mt-1">Enregistré pour l'espace, sans impact sur les plantes</p>
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Enregistré pour l'espace, sans impact sur les plantes</p>
               )}
             </div>
           </div>
 
           {/* Sélection du type d'action */}
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-2">Type d'action <span className="text-red-500">*</span></label>
-            <div className="border border-gray-200 rounded-lg overflow-hidden">
+            <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-2">Type d'action <span className="text-red-500">*</span></label>
+            <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
               {categories.map(cat => (
                 <div key={cat}>
                   <button
@@ -161,16 +161,16 @@ export default function ActionModal({ plants, initialDate, initialPlantId, onClo
                         setTarget('space')
                       }
                     }}
-                    className="w-full flex items-center justify-between px-3 py-2 bg-gray-50 hover:bg-gray-100 border-b border-gray-200"
+                    className="w-full flex items-center justify-between px-3 py-2 bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-700 border-b border-gray-200 dark:border-gray-700"
                   >
                     <div className="flex items-center gap-2">
                       <span className={`w-2.5 h-2.5 rounded-full ${CATEGORY_COLORS[cat]}`} />
-                      <span className="text-xs font-semibold text-gray-700">{CATEGORY_LABELS[cat]}</span>
+                      <span className="text-xs font-semibold text-gray-700 dark:text-gray-200">{CATEGORY_LABELS[cat]}</span>
                     </div>
-                    <ChevronDown size={14} className={`text-gray-400 transition-transform ${openCategory === cat ? 'rotate-180' : ''}`} />
+                    <ChevronDown size={14} className={`text-gray-400 dark:text-gray-500 transition-transform ${openCategory === cat ? 'rotate-180' : ''}`} />
                   </button>
                   {openCategory === cat && (
-                    <div className="grid grid-cols-2 gap-0.5 p-1.5 bg-white">
+                    <div className="grid grid-cols-2 gap-0.5 p-1.5 bg-white dark:bg-gray-800">
                       {ACTIONS_BY_CATEGORY[cat].filter(isActionVisible).map(action => (
                         <button
                           key={action.key}
@@ -186,7 +186,7 @@ export default function ActionModal({ plants, initialDate, initialPlantId, onClo
                           className={`flex items-center gap-1.5 px-2 py-1.5 rounded text-left text-xs transition-colors
                             ${selectedType === action.key
                               ? 'bg-grow-600 text-white'
-                              : 'hover:bg-gray-100 text-gray-700'}`}
+                              : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200'}`}
                         >
                           <span>{action.icon}</span>
                           <span className="leading-tight">{action.label}</span>
@@ -201,11 +201,11 @@ export default function ActionModal({ plants, initialDate, initialPlantId, onClo
 
           {/* Champs dynamiques selon le type */}
           {actionDef && actionDef.fields && actionDef.fields.length > 0 && (
-            <div className="space-y-3 p-3 bg-gray-50 rounded-lg">
-              <p className="text-xs font-medium text-gray-600">{actionDef.icon} {actionDef.label}</p>
+            <div className="space-y-3 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+              <p className="text-xs font-medium text-gray-600 dark:text-gray-300">{actionDef.icon} {actionDef.label}</p>
               {actionDef.fields.map(field => (
                 <div key={field.key}>
-                  <label className="block text-xs text-gray-600 mb-1">{field.label}</label>
+                  <label className="block text-xs text-gray-600 dark:text-gray-300 mb-1">{field.label}</label>
                   {field.type === 'produit_engrais' ? (
                     <div className="space-y-2">
                       {produits.map((prod, idx) => (
@@ -213,7 +213,7 @@ export default function ActionModal({ plants, initialDate, initialPlantId, onClo
                           <select
                             value={prod.id_produit}
                             onChange={e => updateProduit(idx, 'id_produit', Number(e.target.value))}
-                            className="flex-1 px-2 py-1.5 border border-gray-300 rounded text-xs"
+                            className="flex-1 px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded text-xs"
                           >
                             <option value={0}>Choisir un produit…</option>
                             {produitsEngrais.map((p: { id_produit: number; nom_produit: string; quantite_stock?: number; unite_quantite?: string }) => (
@@ -227,7 +227,7 @@ export default function ActionModal({ plants, initialDate, initialPlantId, onClo
                             value={prod.quantite || ''}
                             onChange={e => updateProduit(idx, 'quantite', Number(e.target.value))}
                             placeholder="qté"
-                            className="w-16 px-2 py-1.5 border border-gray-300 rounded text-xs"
+                            className="w-16 px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded text-xs"
                           />
                           <button type="button" onClick={() => removeProduit(idx)} className="text-red-400 hover:text-red-600">
                             <X size={14} />
@@ -243,7 +243,7 @@ export default function ActionModal({ plants, initialDate, initialPlantId, onClo
                     <select
                       value={(params[field.key] as string) || ''}
                       onChange={e => setParam(field.key, e.target.value)}
-                      className="w-full px-2 py-1.5 border border-gray-300 rounded text-sm"
+                      className="w-full px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded text-sm"
                     >
                       <option value="">Choisir…</option>
                       {field.options?.map(opt => (
@@ -257,9 +257,9 @@ export default function ActionModal({ plants, initialDate, initialPlantId, onClo
                         value={(params[field.key] as string | number) || ''}
                         onChange={e => setParam(field.key, field.type === 'number' ? Number(e.target.value) : e.target.value)}
                         placeholder={field.placeholder}
-                        className="flex-1 px-2 py-1.5 border border-gray-300 rounded text-sm"
+                        className="flex-1 px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded text-sm"
                       />
-                      {field.unit && <span className="text-xs text-gray-500">{field.unit}</span>}
+                      {field.unit && <span className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">{field.unit}</span>}
                     </div>
                   )}
                 </div>
@@ -269,12 +269,12 @@ export default function ActionModal({ plants, initialDate, initialPlantId, onClo
 
           {/* Note */}
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">Note (optionnelle)</label>
+            <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Note (optionnelle)</label>
             <textarea
               value={note}
               onChange={e => setNote(e.target.value)}
               rows={2}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm resize-none"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm resize-none"
               placeholder="Observations, détails…"
             />
           </div>
@@ -282,7 +282,7 @@ export default function ActionModal({ plants, initialDate, initialPlantId, onClo
           {/* Submit */}
           <div className="flex gap-3">
             <button type="button" onClick={onClose}
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 text-sm">
+              className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/40 text-sm">
               Annuler
             </button>
             <button

@@ -56,7 +56,7 @@ const TYPE_COLORS: Record<string, string> = {
   Hash:      'bg-amber-100 text-amber-700',
   Rosin:     'bg-orange-100 text-orange-700',
   Poussière: 'bg-yellow-100 text-yellow-700',
-  Autre:     'bg-gray-100 text-gray-600',
+  Autre:     'bg-gray-100 text-gray-600 dark:text-gray-300',
 }
 function TypeBadge({ type }: { type?: string }) {
   const label = type || 'Autre'
@@ -116,7 +116,7 @@ function StockRow({
             </button>
             <button
               onClick={() => setConfirmDelete(false)}
-              className="px-3 py-1 border border-gray-300 text-gray-600 text-xs rounded hover:bg-gray-50"
+              className="px-3 py-1 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 text-xs rounded hover:bg-gray-50 dark:hover:bg-gray-700/40"
             >
               Annuler
             </button>
@@ -146,7 +146,7 @@ function StockRow({
             </button>
             <button
               onClick={() => setConfirmSortie(false)}
-              className="px-3 py-1 border border-gray-300 text-gray-600 text-xs rounded hover:bg-gray-50"
+              className="px-3 py-1 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 text-xs rounded hover:bg-gray-50 dark:hover:bg-gray-700/40"
             >
               Annuler
             </button>
@@ -185,38 +185,38 @@ function StockRow({
 
   // Colonne âge / durée de consommation
   const ageCol = isCloture
-    ? <span className="text-xs text-gray-400 italic">
+    ? <span className="text-xs text-gray-400 dark:text-gray-500 italic">
         {durationLabel(item.date_stock, item.date_fin_stock)}
       </span>
-    : <span className="text-sm text-gray-400">{ageLabel(item.date_stock)}</span>
+    : <span className="text-sm text-gray-400 dark:text-gray-500">{ageLabel(item.date_stock)}</span>
 
   const rowClass = isCloture
-    ? 'opacity-50 bg-gray-50'
-    : 'hover:bg-gray-50 group'
+    ? 'opacity-50 bg-gray-50 dark:bg-gray-700/30'
+    : 'hover:bg-gray-50 dark:hover:bg-gray-700/40 dark:hover:bg-gray-700/40 group'
 
   return (
     <tr className={rowClass}>
-      <td className="px-5 py-3 text-sm font-medium text-gray-900">
+      <td className="px-5 py-3 text-sm font-medium text-gray-900 dark:text-gray-100">
         {item.variete_nom || '—'}
         {isCloture && (
-          <span className="ml-2 text-xs text-gray-400 font-normal">
+          <span className="ml-2 text-xs text-gray-400 dark:text-gray-500 font-normal">
             clôturé {item.date_fin_stock ? new Date(item.date_fin_stock).toLocaleDateString('fr-FR') : ''}
           </span>
         )}
       </td>
       <td className="px-5 py-3"><TypeBadge type={item.type_stock} /></td>
-      <td className="px-5 py-3 text-sm text-gray-500">{specs}</td>
-      <td className="px-5 py-3 text-sm text-gray-500">{item.engrais_type || '—'}</td>
-      <td className="px-5 py-3 text-sm text-gray-400 max-w-[160px] truncate" title={bocalLabel !== '—' ? bocalLabel : undefined}>
+      <td className="px-5 py-3 text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500">{specs}</td>
+      <td className="px-5 py-3 text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500">{item.engrais_type || '—'}</td>
+      <td className="px-5 py-3 text-sm text-gray-400 dark:text-gray-500 max-w-[160px] truncate" title={bocalLabel !== '—' ? bocalLabel : undefined}>
         {bocalLabel}
       </td>
       <td className="px-5 py-3 text-sm font-semibold text-grow-700">
         {isCloture
-          ? <span className="line-through text-gray-400">0 g</span>
+          ? <span className="line-through text-gray-400 dark:text-gray-500">0 g</span>
           : `${item.quantite_stock.toFixed(1)} g`
         }
       </td>
-      <td className="px-5 py-3 text-sm text-gray-400">
+      <td className="px-5 py-3 text-sm text-gray-400 dark:text-gray-500">
         {item.date_stock ? new Date(item.date_stock).toLocaleDateString('fr-FR') : '—'}
       </td>
       <td className="px-5 py-3">{ageCol}</td>
@@ -225,7 +225,7 @@ function StockRow({
           {!isCloture && (
             <button
               onClick={() => setConfirmSortie(true)}
-              className="p-1.5 text-gray-400 hover:text-amber-600 hover:bg-amber-50 rounded"
+              className="p-1.5 text-gray-400 dark:text-gray-500 hover:text-amber-600 hover:bg-amber-50 rounded"
               title="Déclarer comme terminé"
             >
               <LogOut size={14} />
@@ -233,14 +233,14 @@ function StockRow({
           )}
           <button
             onClick={() => onEdit(item)}
-            className="p-1.5 text-gray-400 hover:text-grow-600 hover:bg-grow-50 rounded"
+            className="p-1.5 text-gray-400 dark:text-gray-500 hover:text-grow-600 hover:bg-grow-50 rounded"
             title="Modifier"
           >
             <Pencil size={14} />
           </button>
           <button
             onClick={() => setConfirmDelete(true)}
-            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded"
+            className="p-1.5 text-gray-400 dark:text-gray-500 hover:text-red-600 hover:bg-red-50 rounded"
             title="Supprimer"
           >
             <Trash2 size={14} />
@@ -338,7 +338,7 @@ export default function StockPage() {
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div className="flex items-center gap-4">
-          <h1 className="text-3xl font-bold text-gray-900">Stock</h1>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Stock</h1>
           {stats.total > 0 && (
             <div className="flex items-center gap-1 px-3 py-1.5 bg-grow-50 border border-grow-100 rounded-lg">
               <span className="text-xs text-grow-500">Total actif</span>
@@ -349,7 +349,7 @@ export default function StockPage() {
         <div className="flex gap-2">
           <button
             onClick={() => setShowImportExport(true)}
-            className="flex items-center gap-2 px-3 py-2 border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 text-sm"
+            className="flex items-center gap-2 px-3 py-2 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/40 text-sm"
           >
             <ArrowDownUp size={15} />Import / Export
           </button>
@@ -372,14 +372,14 @@ export default function StockPage() {
               className={`text-left rounded-lg p-4 border-2 transition-colors ${
                 typeFilter === type
                   ? 'border-grow-500 bg-grow-50'
-                  : 'border-gray-200 bg-white hover:border-grow-300'
+                  : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-grow-300'
               }`}
             >
               <TypeBadge type={type} />
-              <p className="text-xl font-bold text-gray-800 mt-2">
+              <p className="text-xl font-bold text-gray-800 dark:text-gray-100 mt-2">
                 {stats.byType[type].toFixed(1)} g
               </p>
-              <p className="text-xs text-gray-400 mt-0.5">
+              <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
                 {stocks.filter(s => (s.type_stock || 'Autre') === type && !s.date_fin_stock).length} actif{stocks.filter(s => (s.type_stock || 'Autre') === type && !s.date_fin_stock).length > 1 ? 's' : ''}
               </p>
             </button>
@@ -388,14 +388,14 @@ export default function StockPage() {
       )}
 
       {/* Barre de recherche */}
-      <div className="bg-white rounded-lg shadow p-4">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
         <div className="flex flex-col lg:flex-row gap-3">
           <div className="flex-1 relative">
-            <Search className="absolute left-3 top-2.5 text-gray-400" size={17} />
+            <Search className="absolute left-3 top-2.5 text-gray-400 dark:text-gray-500" size={17} />
             <input
               type="text"
               placeholder="Variété, sous-type..."
-              className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-grow-600"
+              className="w-full pl-9 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-grow-600 bg-white dark:bg-gray-800 dark:bg-gray-700 text-gray-900 dark:text-gray-100"
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
             />
@@ -413,8 +413,8 @@ export default function StockPage() {
               onClick={() => setShowClotures(v => !v)}
               className={`px-3 py-2 text-sm rounded-lg border transition-colors ${
                 showClotures
-                  ? 'bg-gray-200 text-gray-700 border-gray-300'
-                  : 'bg-white text-gray-400 border-gray-200 hover:bg-gray-50'
+                  ? 'bg-gray-200 text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-600'
+                  : 'bg-white dark:bg-gray-800 text-gray-400 dark:text-gray-500 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/40'
               }`}
             >
               {showClotures ? '🗃 Masquer clôturés' : `🗃 Voir clôturés (${stats.nbClotures})`}
@@ -422,7 +422,7 @@ export default function StockPage() {
           )}
         </div>
         {(searchTerm || typeFilter) && (
-          <p className="mt-2 text-xs text-gray-400">
+          <p className="mt-2 text-xs text-gray-400 dark:text-gray-500">
             {filtered.length} résultat{filtered.length > 1 ? 's' : ''} sur {stocks.length}
           </p>
         )}
@@ -436,10 +436,10 @@ export default function StockPage() {
           description='Cliquez sur "Nouveau stock" pour ajouter une entrée manuellement'
         />
       ) : (
-        <div className="bg-white rounded-lg shadow overflow-hidden">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
           <div className="overflow-auto max-h-[calc(100vh-380px)]">
             <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200 sticky top-0 z-10">
+              <thead className="bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-10">
                 <tr>
                   {([
                     ['variete',  'Variété'],
@@ -454,7 +454,7 @@ export default function StockPage() {
                     <th
                       key={col}
                       onClick={() => handleSort(col)}
-                      className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer select-none hover:bg-gray-100 whitespace-nowrap"
+                      className="px-5 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase cursor-pointer select-none hover:bg-gray-100 dark:hover:bg-gray-600 whitespace-nowrap"
                     >
                       {label}<SortIcon col={col} current={sortCol} dir={sortDir} />
                     </th>
@@ -462,7 +462,7 @@ export default function StockPage() {
                   <th className="px-5 py-3 w-24"></th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                 {filtered.map(item => (
                   <StockRow
                     key={item.id_stock}
@@ -475,7 +475,7 @@ export default function StockPage() {
               </tbody>
             </table>
           </div>
-          <div className="px-5 py-2 border-t border-gray-100 text-xs text-gray-400">
+          <div className="px-5 py-2 border-t border-gray-100 dark:border-gray-700 text-xs text-gray-400 dark:text-gray-500 dark:text-gray-400 dark:text-gray-500">
             {filtered.filter(s => !s.date_fin_stock).length} actif{filtered.filter(s => !s.date_fin_stock).length > 1 ? 's' : ''} · {filtered.filter(s => !s.date_fin_stock).reduce((s, i) => s + i.quantite_stock, 0).toFixed(1)} g affichés
           </div>
         </div>

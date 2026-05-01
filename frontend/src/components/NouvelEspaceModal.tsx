@@ -16,12 +16,12 @@ type TabKey = 'infos' | 'materiel'
 
 const STATUTS = ['Actif', 'Inactif', 'Maintenance']
 
-const inp = "w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-grow-500"
-const sel = "w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-grow-500"
+const inp = "w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-grow-500"
+const sel = "w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-grow-500"
 
 function Label({ children, required }: { children: React.ReactNode; required?: boolean }) {
   return (
-    <label className="block text-xs font-medium text-gray-600 mb-1">
+    <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">
       {children}{required && <span className="text-red-400 ml-0.5">*</span>}
     </label>
   )
@@ -29,7 +29,7 @@ function Label({ children, required }: { children: React.ReactNode; required?: b
 
 const STATUT_COLORS: Record<string, string> = {
   'Actif':       'bg-green-100 text-green-700',
-  'Inactif':     'bg-gray-100 text-gray-600',
+  'Inactif':     'bg-gray-100 text-gray-600 dark:text-gray-300',
   'Maintenance': 'bg-yellow-100 text-yellow-700',
 }
 
@@ -164,26 +164,26 @@ export default function NouvelEspaceModal({ editEspace, onClose }: Props) {
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[94vh] flex flex-col">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-3xl max-h-[94vh] flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-700">
           <div className="flex items-center gap-3">
             <Boxes size={20} className="text-grow-600" />
-            <h2 className="text-lg font-bold text-gray-900">
+            <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
               {isEdit ? `Modifier — ${editEspace!.nom}` : 'Nouvel espace de culture'}
             </h2>
           </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X size={22} /></button>
+          <button onClick={onClose} className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:text-gray-300"><X size={22} /></button>
         </div>
 
         {/* Onglets */}
-        <div className="flex border-b border-gray-100 px-4 gap-1 shrink-0">
+        <div className="flex border-b border-gray-100 dark:border-gray-700 px-4 gap-1 shrink-0">
           {tabs.map(tab => (
             <button key={tab.key} onClick={() => setActiveTab(tab.key)}
               className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
                 activeTab === tab.key
                   ? 'border-grow-600 text-grow-700'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
+                  : 'border-transparent text-gray-500 dark:text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:text-gray-200'
               }`}
             >
               {tab.icon}
@@ -238,7 +238,7 @@ export default function NouvelEspaceModal({ editEspace, onClose }: Props) {
                     ))}
                   </select>
                   {boxMateriel.length === 0 && allMateriel.length > 0 && (
-                    <p className="text-xs text-gray-400 mt-1">
+                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
                       <Home size={10} className="inline mr-1" />
                       Aucun matériel Box/Tente — affichage de tout le matériel
                     </p>
@@ -267,7 +267,7 @@ export default function NouvelEspaceModal({ editEspace, onClose }: Props) {
               <div>
                 <Label>Dimensions</Label>
                 <div className="relative">
-                  <Ruler size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <Ruler size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500" />
                   <input type="text" value={form.dimensions}
                     onChange={e => setForm(f => ({ ...f, dimensions: e.target.value }))}
                     placeholder="Ex: 80x80x200 cm ou 1.2m x 1.2m"
@@ -306,7 +306,7 @@ export default function NouvelEspaceModal({ editEspace, onClose }: Props) {
           {activeTab === 'materiel' && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500">
                   Sélectionnez le matériel assigné à cet espace.
                 </p>
                 <span className="text-xs font-medium text-grow-700 bg-grow-50 px-2 py-1 rounded-full">
@@ -317,19 +317,19 @@ export default function NouvelEspaceModal({ editEspace, onClose }: Props) {
               {/* Filtres */}
               <div className="flex gap-2 flex-wrap items-center">
                 <div className="relative">
-                  <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500" />
                   <input type="text" value={searchMat} onChange={e => setSearchMat(e.target.value)}
                     placeholder="Rechercher…"
-                    className="pl-8 pr-3 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-grow-400 w-44" />
+                    className="pl-8 pr-3 py-1.5 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-grow-400 w-44" />
                 </div>
                 <div className="flex gap-1 flex-wrap">
                   <button onClick={() => setFilterCat('all')}
-                    className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors ${filterCat === 'all' ? 'bg-grow-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
+                    className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors ${filterCat === 'all' ? 'bg-grow-600 text-white' : 'bg-gray-100 text-gray-600 dark:text-gray-300 hover:bg-gray-200'}`}>
                     Tout
                   </button>
                   {categories.map(c => (
                     <button key={c} onClick={() => setFilterCat(c)}
-                      className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors ${filterCat === c ? 'bg-grow-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
+                      className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors ${filterCat === c ? 'bg-grow-600 text-white' : 'bg-gray-100 text-gray-600 dark:text-gray-300 hover:bg-gray-200'}`}>
                       {c}
                     </button>
                   ))}
@@ -338,7 +338,7 @@ export default function NouvelEspaceModal({ editEspace, onClose }: Props) {
 
               {/* Liste du matériel */}
               {filteredMateriel.length === 0 ? (
-                <p className="text-sm text-gray-400 text-center py-6">
+                <p className="text-sm text-gray-400 dark:text-gray-500 text-center py-6">
                   {allMateriel.length === 0
                     ? 'Aucun matériel en stock — ajoutez du matériel dans la page Matériel'
                     : 'Aucun résultat pour cette recherche'}
@@ -356,21 +356,21 @@ export default function NouvelEspaceModal({ editEspace, onClose }: Props) {
                         title={disabled ? `Déjà utilisé dans : ${takenByEsp}` : undefined}
                         className={`flex items-center gap-3 px-3 py-2.5 rounded-lg border transition-colors text-left ${
                           disabled
-                            ? 'border-gray-100 bg-gray-50 opacity-50 cursor-not-allowed'
+                            ? 'border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50 opacity-50 cursor-not-allowed'
                             : checked
                               ? 'border-grow-300 bg-grow-50'
-                              : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                              : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700/40'
                         }`}>
                         <span className={disabled ? 'text-gray-200' : checked ? 'text-grow-600' : 'text-gray-300'}>
                           {checked ? <CheckSquare size={16} /> : <Square size={16} />}
                         </span>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
-                            <span className={`text-sm font-medium truncate ${disabled ? 'text-gray-400' : 'text-gray-800'}`}>{m.nom}</span>
-                            {m.marque && <span className="text-xs text-gray-400">{m.marque}</span>}
+                            <span className={`text-sm font-medium truncate ${disabled ? 'text-gray-400 dark:text-gray-500' : 'text-gray-800 dark:text-gray-100'}`}>{m.nom}</span>
+                            {m.marque && <span className="text-xs text-gray-400 dark:text-gray-500">{m.marque}</span>}
                           </div>
                           <div className="flex items-center gap-2 mt-0.5">
-                            <span className="text-xs text-gray-400">{m.categorie}</span>
+                            <span className="text-xs text-gray-400 dark:text-gray-500">{m.categorie}</span>
                             {disabled
                               ? <span className="text-xs text-orange-400">Utilisé dans : {takenByEsp}</span>
                               : m.etat && m.etat !== 'Bon état' && (
@@ -391,13 +391,13 @@ export default function NouvelEspaceModal({ editEspace, onClose }: Props) {
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-gray-100 flex justify-between items-center">
-          <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${STATUT_COLORS[form.statut] ?? 'bg-gray-100 text-gray-500'}`}>
+        <div className="px-6 py-4 border-t border-gray-100 dark:border-gray-700 flex justify-between items-center">
+          <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${STATUT_COLORS[form.statut] ?? 'bg-gray-100 text-gray-500 dark:text-gray-400 dark:text-gray-500'}`}>
             {form.statut}
           </span>
           <div className="flex gap-3">
             <button onClick={onClose}
-              className="px-4 py-2 border border-gray-300 text-gray-600 text-sm rounded-lg hover:bg-gray-50">
+              className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 text-sm rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/40">
               Annuler
             </button>
             <button onClick={() => save.mutate()} disabled={save.isPending || !form.nom.trim()}

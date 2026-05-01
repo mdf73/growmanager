@@ -23,7 +23,7 @@ function dureeLabel(min?: number, max?: number, unit = 'j'): string | null {
 }
 
 function harvestLabel(min?: number, max?: number): { text: string; color: string } {
-  if (min == null && max == null) return { text: '—', color: 'text-gray-400' }
+  if (min == null && max == null) return { text: '—', color: 'text-gray-400 dark:text-gray-500' }
   const lo = min ?? max!
   const hi = max ?? min!
   if (hi <= 0) return { text: 'Toutes récoltables', color: 'text-green-600' }
@@ -40,12 +40,12 @@ interface ModuleProps {
   clickable?: boolean
 }
 function Module({ onClick, children, className = '', clickable = true }: ModuleProps) {
-  const base = `bg-white rounded-xl border border-gray-100 shadow-sm p-5 flex flex-col gap-3 ${className}`
+  const base = `bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm p-5 flex flex-col gap-3 ${className}`
   if (onClick && clickable) {
     return (
       <div
         onClick={onClick}
-        className={`${base} cursor-pointer hover:shadow-md hover:border-gray-200 transition-all`}
+        className={`${base} cursor-pointer hover:shadow-md hover:border-gray-200 dark:border-gray-700 transition-all`}
       >
         {children}
       </div>
@@ -54,7 +54,7 @@ function Module({ onClick, children, className = '', clickable = true }: ModuleP
   return <div className={base}>{children}</div>
 }
 
-function ModuleTitle({ icon, label, color = 'text-gray-700' }: { icon: React.ReactNode; label: string; color?: string }) {
+function ModuleTitle({ icon, label, color = 'text-gray-700 dark:text-gray-200' }: { icon: React.ReactNode; label: string; color?: string }) {
   return (
     <div className={`flex items-center gap-2 font-semibold text-sm ${color}`}>
       {icon}
@@ -63,25 +63,25 @@ function ModuleTitle({ icon, label, color = 'text-gray-700' }: { icon: React.Rea
   )
 }
 
-function StatRow({ label, value, sub, valueColor = 'text-gray-900' }: {
+function StatRow({ label, value, sub, valueColor = 'text-gray-900 dark:text-gray-100' }: {
   label: string; value: string | React.ReactNode; sub?: string; valueColor?: string
 }) {
   return (
     <div className="flex items-center justify-between">
-      <span className="text-xs text-gray-500">{label}</span>
+      <span className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">{label}</span>
       <div className="text-right">
         <span className={`text-sm font-semibold ${valueColor}`}>{value}</span>
-        {sub && <p className="text-xs text-gray-400">{sub}</p>}
+        {sub && <p className="text-xs text-gray-400 dark:text-gray-500">{sub}</p>}
       </div>
     </div>
   )
 }
 
-function BigNum({ value, label, color = 'text-gray-900' }: { value: number | string; label: string; color?: string }) {
+function BigNum({ value, label, color = 'text-gray-900 dark:text-gray-100' }: { value: number | string; label: string; color?: string }) {
   return (
     <div className="text-center">
       <div className={`text-3xl font-bold ${color}`}>{value}</div>
-      <div className="text-xs text-gray-400 mt-0.5">{label}</div>
+      <div className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{label}</div>
     </div>
   )
 }
@@ -102,9 +102,9 @@ function ModuleCultures({ stats, onClick, className }: { stats: DashboardFullSta
       <ModuleTitle icon={<Leaf size={16} />} label="Cultures en cours" color="text-green-700" />
 
       {/* Compteurs principaux */}
-      <div className="grid grid-cols-3 gap-3 border-b border-gray-50 pb-3">
+      <div className="grid grid-cols-3 gap-3 border-b border-gray-50 dark:border-gray-700 pb-3">
         <BigNum value={stats.nb_cultures_actives} label="cultures" color="text-green-700" />
-        <BigNum value={totalPlants} label="plantes" color="text-gray-700" />
+        <BigNum value={totalPlants} label="plantes" color="text-gray-700 dark:text-gray-200" />
         <BigNum value={stats.nb_plants_flo} label="en floraison" color="text-amber-600" />
       </div>
 
@@ -132,16 +132,16 @@ function ModuleCultures({ stats, onClick, className }: { stats: DashboardFullSta
           />
         )}
         {totalPlants === 0 && (
-          <p className="text-xs text-gray-400 text-center py-2">Aucune culture active</p>
+          <p className="text-xs text-gray-400 dark:text-gray-500 text-center py-2">Aucune culture active</p>
         )}
       </div>
 
       {/* Arrosage par culture */}
       {arrosageBoxes.length > 0 && (
-        <div className="border-t border-gray-100 pt-3 space-y-1">
+        <div className="border-t border-gray-100 dark:border-gray-700 pt-3 space-y-1">
           <div className="flex items-center gap-1.5 mb-2">
             <Droplets size={13} className="text-blue-500" />
-            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Dernier arrosage</span>
+            <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase tracking-wide">Dernier arrosage</span>
           </div>
           {arrosageBoxes.map(b => (
             <BoxArrosageRow key={b.id_culture} box={b} />
@@ -162,20 +162,20 @@ function ModuleSechage({ stats, onClick, className }: { stats: DashboardFullStat
         <div className="text-right">
           {stats.nb_plants_sechage > 0 ? (
             <>
-              <div className="text-sm font-semibold text-gray-700">
+              <div className="text-sm font-semibold text-gray-700 dark:text-gray-200">
                 {dureeLabel(stats.sechage_jours_min, stats.sechage_jours_max) ?? '—'}
               </div>
-              <div className="text-xs text-gray-400">jours de séchage</div>
+              <div className="text-xs text-gray-400 dark:text-gray-500">jours de séchage</div>
             </>
           ) : (
-            <span className="text-xs text-gray-400">Aucune en séchage</span>
+            <span className="text-xs text-gray-400 dark:text-gray-500">Aucune en séchage</span>
           )}
         </div>
       </div>
 
       {/* T° & Humidité ambiante */}
       {(stats.sechage_temp_moy != null || stats.sechage_hum_moy != null) && (
-        <div className="border-t border-gray-100 pt-3 space-y-1.5">
+        <div className="border-t border-gray-100 dark:border-gray-700 pt-3 space-y-1.5">
           {stats.sechage_temp_moy != null && (
             <StatRow
               label="🌡 T° ambiante"
@@ -190,7 +190,7 @@ function ModuleSechage({ stats, onClick, className }: { stats: DashboardFullStat
               valueColor="text-blue-600"
             />
           )}
-          <p className="text-xs text-gray-400">moyenne capteurs actifs</p>
+          <p className="text-xs text-gray-400 dark:text-gray-500">moyenne capteurs actifs</p>
         </div>
       )}
     </Module>
@@ -199,7 +199,7 @@ function ModuleSechage({ stats, onClick, className }: { stats: DashboardFullStat
 
 // ── Module 3 : Curing ──────────────────────────────────────────────────────────
 function bocaColor(jours?: number): string {
-  if (jours == null) return 'text-gray-400'
+  if (jours == null) return 'text-gray-400 dark:text-gray-500'
   if (jours === 0)   return 'text-green-600'
   if (jours <= 3)    return 'text-green-600'
   if (jours <= 7)    return 'text-amber-600'
@@ -222,26 +222,26 @@ function ModuleCuring({ stats, onClick, className }: { stats: DashboardFullStats
         <div className="text-right">
           {stats.nb_plants_curing > 0 ? (
             <>
-              <div className="text-sm font-semibold text-gray-700">
+              <div className="text-sm font-semibold text-gray-700 dark:text-gray-200">
                 {dureeLabel(stats.curing_jours_min, stats.curing_jours_max) ?? '—'}
               </div>
-              <div className="text-xs text-gray-400">jours de curing</div>
+              <div className="text-xs text-gray-400 dark:text-gray-500">jours de curing</div>
             </>
           ) : (
-            <span className="text-xs text-gray-400">Aucune en curing</span>
+            <span className="text-xs text-gray-400 dark:text-gray-500">Aucune en curing</span>
           )}
         </div>
       </div>
 
       {/* Dernière ouverture bocal */}
       {stats.nb_plants_curing > 0 && (
-        <div className="border-t border-gray-100 pt-3">
+        <div className="border-t border-gray-100 dark:border-gray-700 pt-3">
           <StatRow
             label="🫙 Dernier burping"
             value={bocaLabel(stats.curing_jours_bocal)}
             valueColor={bocaColor(stats.curing_jours_bocal)}
           />
-          <p className="text-xs text-gray-400 mt-1">bocal le plus en retard</p>
+          <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">bocal le plus en retard</p>
         </div>
       )}
     </Module>
@@ -252,14 +252,14 @@ function ModuleCuring({ stats, onClick, className }: { stats: DashboardFullStats
 function ModuleStock({ stats, onClick }: { stats: DashboardFullStats; onClick: () => void }) {
   return (
     <Module onClick={onClick}>
-      <ModuleTitle icon={<Package size={16} />} label="Stock" color="text-gray-700" />
+      <ModuleTitle icon={<Package size={16} />} label="Stock" color="text-gray-700 dark:text-gray-200" />
       <div className="space-y-2">
         <StatRow
           label="Total global"
           value={formatGrams(stats.stock_total_g)}
-          valueColor="text-gray-900"
+          valueColor="text-gray-900 dark:text-gray-100"
         />
-        <div className="border-t border-gray-50 pt-2 space-y-1.5">
+        <div className="border-t border-gray-50 dark:border-gray-700 pt-2 space-y-1.5">
           <StatRow
             label="🌿 Herbe"
             value={formatGrams(stats.stock_herbe_g)}
@@ -298,22 +298,22 @@ function ModuleProduction({ stats, onClick }: { stats: DashboardFullStats; onCli
             sub={`${stats.nb_recoltes_annee} récolte${stats.nb_recoltes_annee > 1 ? 's' : ''}`}
             valueColor="text-teal-700"
           />
-          <div className="border-t border-gray-50 pt-2 space-y-1.5">
+          <div className="border-t border-gray-50 dark:border-gray-700 pt-2 space-y-1.5">
             <StatRow
               label={`🗓 ${moisLabel.charAt(0).toUpperCase() + moisLabel.slice(1)}`}
               value={formatGrams(stats.production_mois_g)}
-              valueColor="text-gray-700"
+              valueColor="text-gray-700 dark:text-gray-200"
             />
             <StatRow
               label="📅 30 derniers jours"
               value={formatGrams(stats.production_30j_g)}
-              valueColor="text-gray-700"
+              valueColor="text-gray-700 dark:text-gray-200"
             />
           </div>
         </div>
       ) : (
         <div className="flex items-center justify-center py-4">
-          <p className="text-xs text-gray-400 text-center">Aucune récolte enregistrée cette année</p>
+          <p className="text-xs text-gray-400 dark:text-gray-500 text-center">Aucune récolte enregistrée cette année</p>
         </div>
       )}
     </Module>
@@ -329,7 +329,7 @@ function ModuleGraines({ stats, onClick }: { stats: DashboardFullStats; onClick:
       <ModuleTitle icon={<Sprout size={16} />} label="Graines" color="text-lime-700" />
 
       {/* Total centré */}
-      <div className="flex items-center justify-center border-b border-gray-50 pb-3">
+      <div className="flex items-center justify-center border-b border-gray-50 dark:border-gray-700 pb-3">
         <BigNum
           value={stats.graines_disponibles}
           label={`graine${stats.graines_disponibles !== 1 ? 's' : ''} disponible${stats.graines_disponibles !== 1 ? 's' : ''}`}
@@ -342,9 +342,9 @@ function ModuleGraines({ stats, onClick }: { stats: DashboardFullStats; onClick:
         <StatRow label="🌸 Féminisées"  value={`${stats.graines_feminisees}`}  valueColor="text-pink-600" />
         <StatRow label="🌿 Régulières"  value={`${stats.graines_regulieres}`}  valueColor="text-green-700" />
         {autres > 0 && (
-          <StatRow label="• Autres" value={`${autres}`} valueColor="text-gray-500" />
+          <StatRow label="• Autres" value={`${autres}`} valueColor="text-gray-500 dark:text-gray-400 dark:text-gray-500" />
         )}
-        <div className="border-t border-gray-50 pt-1.5">
+        <div className="border-t border-gray-50 dark:border-gray-700 pt-1.5">
           <StatRow
             label="🌱 Variétés"
             value={`${stats.nb_varietes_graines}`}
@@ -366,7 +366,7 @@ function ModuleGraines({ stats, onClick }: { stats: DashboardFullStats; onClick:
 // ── Module 7 : Capteurs Govee ─────────────────────────────────────────────────
 
 function vpdColor(vpd?: number): string {
-  if (vpd == null) return 'text-gray-400'
+  if (vpd == null) return 'text-gray-400 dark:text-gray-500'
   if (vpd < 0.4)  return 'text-blue-500'
   if (vpd < 0.8)  return 'text-green-500'
   if (vpd < 1.2)  return 'text-green-600'
@@ -388,11 +388,11 @@ function SensorMiniCard({
   return (
     <button
       onClick={onClick}
-      className="w-full text-left p-3 rounded-lg border border-gray-100 bg-gray-50
+      className="w-full text-left p-3 rounded-lg border border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50
                  hover:bg-teal-50 hover:border-teal-200 transition-colors"
     >
       <div className="flex items-center justify-between mb-1">
-        <span className="text-xs font-semibold text-gray-700 truncate">{device.nom}</span>
+        <span className="text-xs font-semibold text-gray-700 dark:text-gray-200 truncate">{device.nom}</span>
         {isRecent
           ? <Wifi size={11} className="text-green-500 shrink-0" />
           : <WifiOff size={11} className="text-gray-300 shrink-0" />}
@@ -410,10 +410,10 @@ function SensorMiniCard({
           </span>
         </div>
       ) : (
-        <span className="text-xs text-gray-400">Aucune donnée</span>
+        <span className="text-xs text-gray-400 dark:text-gray-500">Aucune donnée</span>
       )}
       {device.nom_espace && (
-        <p className="text-xs text-gray-400 mt-0.5 truncate">{device.nom_espace}</p>
+        <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5 truncate">{device.nom_espace}</p>
       )}
     </button>
   )
@@ -431,19 +431,19 @@ function ModuleCapteurs({ onClick }: { onClick: () => void }) {
   return (
     <div
       onClick={onClick}
-      className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm
+      className="bg-white dark:bg-gray-800 rounded-2xl p-4 border border-gray-100 dark:border-gray-700 shadow-sm
                  cursor-pointer hover:shadow-md transition-shadow col-span-1 sm:col-span-3"
     >
       <div className="flex items-center gap-2 mb-3">
         <Thermometer size={16} className="text-teal-600" />
         <span className="font-semibold text-sm text-teal-700">Capteurs</span>
-        <span className="ml-auto text-xs text-gray-400">
+        <span className="ml-auto text-xs text-gray-400 dark:text-gray-500">
           {actifs.length} capteur{actifs.length !== 1 ? 's' : ''} actif{actifs.length !== 1 ? 's' : ''}
         </span>
       </div>
 
       {actifs.length === 0 ? (
-        <p className="text-xs text-gray-400 text-center py-2">
+        <p className="text-xs text-gray-400 dark:text-gray-500 text-center py-2">
           Aucun capteur configuré — voir Paramétrage
         </p>
       ) : (
@@ -460,7 +460,7 @@ function ModuleCapteurs({ onClick }: { onClick: () => void }) {
 // ── Module 8 : Arrosage des boxes ────────────────────────────────────────────
 
 function arrosageColor(jours?: number): { badge: string; text: string } {
-  if (jours == null)  return { badge: 'bg-gray-100 text-gray-400',   text: 'text-gray-400' }
+  if (jours == null)  return { badge: 'bg-gray-100 text-gray-400 dark:text-gray-500',   text: 'text-gray-400 dark:text-gray-500' }
   if (jours === 0)    return { badge: 'bg-green-100 text-green-700', text: 'text-green-700' }
   if (jours <= 2)     return { badge: 'bg-green-50 text-green-600',  text: 'text-green-600' }
   if (jours <= 4)     return { badge: 'bg-amber-100 text-amber-700', text: 'text-amber-700' }
@@ -477,11 +477,11 @@ function arrosageLabel(jours?: number): string {
 function BoxArrosageRow({ box }: { box: BoxArrosageStats }) {
   const colors = arrosageColor(box.jours_depuis_arrosage)
   return (
-    <div className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
+    <div className="flex items-center justify-between py-2 border-b border-gray-50 dark:border-gray-700 last:border-0">
       <div className="min-w-0">
-        <p className="text-sm font-semibold text-gray-800 truncate">{box.culture_nom}</p>
+        <p className="text-sm font-semibold text-gray-800 dark:text-gray-100 truncate">{box.culture_nom}</p>
         {box.box_label && (
-          <p className="text-xs text-gray-400">{box.box_label}</p>
+          <p className="text-xs text-gray-400 dark:text-gray-500">{box.box_label}</p>
         )}
       </div>
       <span className={`ml-3 shrink-0 text-xs font-bold px-2 py-1 rounded-full ${colors.badge}`}>
@@ -504,7 +504,7 @@ export default function Dashboard() {
   if (isLoading) return <LoadingSpinner />
   if (isError || !stats) {
     return (
-      <div className="text-center py-16 text-gray-400">
+      <div className="text-center py-16 text-gray-400 dark:text-gray-500">
         <Beaker size={40} className="mx-auto mb-3 opacity-30" />
         <p className="text-sm">Impossible de charger le tableau de bord.</p>
       </div>
@@ -515,8 +515,8 @@ export default function Dashboard() {
     <div className="space-y-4">
       {/* Titre */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Tableau de bord</h1>
-        <p className="text-sm text-gray-500 mt-0.5">Vue d'ensemble de votre culture</p>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Tableau de bord</h1>
+        <p className="text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500 mt-0.5">Vue d'ensemble de votre culture</p>
       </div>
 
       {/* Ligne 1 : Capteurs Govee (pleine largeur) */}

@@ -89,30 +89,30 @@ function HistoriqueModal({ onClose }: { onClose: () => void }) {
 
   return (
     <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-3">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col">
         <div className="flex items-center justify-between px-6 py-4 border-b">
-          <h2 className="text-lg font-semibold text-gray-900">Historique des préparations</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Historique des préparations</h2>
+          <button onClick={onClose} className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:text-gray-300"><X size={20} /></button>
         </div>
         <div className="overflow-y-auto flex-1 p-4 space-y-3">
           {isLoading ? (
-            <p className="text-sm text-gray-400 text-center py-8">Chargement...</p>
+            <p className="text-sm text-gray-400 dark:text-gray-500 text-center py-8">Chargement...</p>
           ) : history.length === 0 ? (
-            <p className="text-sm text-gray-400 text-center py-8">Aucune préparation enregistrée</p>
+            <p className="text-sm text-gray-400 dark:text-gray-500 text-center py-8">Aucune préparation enregistrée</p>
           ) : (
             history.map(h => (
-              <div key={h.id_preparation} className="border border-gray-200 rounded-xl p-4">
+              <div key={h.id_preparation} className="border border-gray-200 dark:border-gray-700 rounded-xl p-4">
                 <div className="flex items-start justify-between mb-2">
                   <div>
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-sm font-semibold text-gray-900">
+                      <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
                         {new Date(h.date_preparation + 'T12:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
                       </span>
                       <span className="text-sm font-bold text-grow-600">{h.volume_total_l} L</span>
                       {h.type_sol && <TypeSolBadge type={h.type_sol} />}
                     </div>
                     {h.nom_recette_lso && (
-                      <p className="text-xs text-gray-500 mt-0.5">🌿 {h.nom_recette_lso}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 mt-0.5">🌿 {h.nom_recette_lso}</p>
                     )}
                   </div>
                   <button
@@ -126,7 +126,7 @@ function HistoriqueModal({ onClose }: { onClose: () => void }) {
                 {h.configuration_pots && h.configuration_pots.length > 0 && (
                   <div className="flex flex-wrap gap-1.5 mb-2">
                     {h.configuration_pots.map((p, i) => (
-                      <span key={i} className="px-2 py-0.5 rounded bg-gray-100 text-xs text-gray-600">
+                      <span key={i} className="px-2 py-0.5 rounded bg-gray-100 text-xs text-gray-600 dark:text-gray-300">
                         {p.nb} × {p.volume_l} L
                       </span>
                     ))}
@@ -137,15 +137,15 @@ function HistoriqueModal({ onClose }: { onClose: () => void }) {
                   <div className="grid grid-cols-2 gap-x-4 gap-y-0.5">
                     {h.resultat.map((r, i) => (
                       <div key={i} className="flex items-center justify-between text-xs">
-                        <span className="text-gray-600">{r.label}</span>
-                        <span className="font-mono font-semibold text-gray-800">
+                        <span className="text-gray-600 dark:text-gray-300">{r.label}</span>
+                        <span className="font-mono font-semibold text-gray-800 dark:text-gray-100">
                           {r.quantite % 1 === 0 ? r.quantite : r.quantite.toFixed(2)} {r.unite}
                         </span>
                       </div>
                     ))}
                   </div>
                 )}
-                {h.notes && <p className="text-xs text-gray-400 mt-2 italic">{h.notes}</p>}
+                {h.notes && <p className="text-xs text-gray-400 dark:text-gray-500 mt-2 italic">{h.notes}</p>}
               </div>
             ))
           )}
@@ -410,14 +410,14 @@ export default function PreparationSubstrat() {
       {/* ── Titre + bouton historique ── */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Préparer un substrat</h1>
-          <p className="text-sm text-gray-500 mt-0.5">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Préparer un substrat</h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500 mt-0.5">
             Calculez les quantités de sol et ingrédients à préparer
           </p>
         </div>
         <button
           onClick={() => setShowHistorique(true)}
-          className="flex items-center gap-1.5 px-3 py-2 text-sm text-gray-600 border rounded-lg hover:bg-gray-50 transition-colors"
+          className="flex items-center gap-1.5 px-3 py-2 text-sm text-gray-600 dark:text-gray-300 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/40 transition-colors"
         >
           <History size={15} />
           Historique
@@ -430,12 +430,12 @@ export default function PreparationSubstrat() {
           <div key={s} className="flex items-center gap-2">
             <div
               className={`w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold transition-colors ${
-                step === s ? 'bg-grow-600 text-white' : step > s ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-500'
+                step === s ? 'bg-grow-600 text-white' : step > s ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-500 dark:text-gray-400 dark:text-gray-500'
               }`}
             >
               {step > s ? '✓' : s}
             </div>
-            <span className={`text-sm ${step === s ? 'font-medium text-gray-900' : 'text-gray-400'}`}>
+            <span className={`text-sm ${step === s ? 'font-medium text-gray-900 dark:text-gray-100' : 'text-gray-400 dark:text-gray-500'}`}>
               {s === 1 ? 'Configuration des pots' : 'Recette & résultat'}
             </span>
             {s < 2 && <ChevronRight size={14} className="text-gray-300" />}
@@ -447,14 +447,14 @@ export default function PreparationSubstrat() {
           ÉTAPE 1 — Configuration des pots
       ════════════════════════════════════════════════════════════ */}
       {step === 1 && (
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 space-y-5">
-          <h2 className="text-base font-semibold text-gray-800">🪴 Combien de pots, de quel volume ?</h2>
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6 space-y-5">
+          <h2 className="text-base font-semibold text-gray-800 dark:text-gray-100">🪴 Combien de pots, de quel volume ?</h2>
 
           {/* Tableau des pots */}
           <div className="space-y-2">
             {pots.map((pot, idx) => (
               <div key={pot.id} className="flex items-center gap-3">
-                <span className="text-xs text-gray-400 w-5 text-right">{idx + 1}.</span>
+                <span className="text-xs text-gray-400 dark:text-gray-500 w-5 text-right">{idx + 1}.</span>
 
                 {/* Nombre */}
                 <div className="flex items-center gap-1.5">
@@ -463,20 +463,20 @@ export default function PreparationSubstrat() {
                       const n = Math.max(1, parseInt(pot.nb || '1') - 1)
                       updatePot(pot.id, 'nb', String(n))
                     }}
-                    className="w-7 h-7 rounded border border-gray-300 flex items-center justify-center text-gray-600 hover:bg-gray-100 text-lg font-light"
+                    className="w-7 h-7 rounded border border-gray-300 dark:border-gray-600 flex items-center justify-center text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 text-lg font-light"
                   >−</button>
                   <input
                     type="number"
                     min={1}
                     value={pot.nb}
                     onChange={e => updatePot(pot.id, 'nb', e.target.value)}
-                    className="w-12 text-center px-1 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-grow-500 focus:border-transparent"
+                    className="w-12 text-center px-1 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-grow-500 focus:border-transparent"
                   />
                   <button
                     onClick={() => updatePot(pot.id, 'nb', String(parseInt(pot.nb || '0') + 1))}
-                    className="w-7 h-7 rounded border border-gray-300 flex items-center justify-center text-gray-600 hover:bg-gray-100 text-lg font-light"
+                    className="w-7 h-7 rounded border border-gray-300 dark:border-gray-600 flex items-center justify-center text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 text-lg font-light"
                   >+</button>
-                  <span className="text-sm text-gray-500">pot{parseInt(pot.nb) > 1 ? 's' : ''} de</span>
+                  <span className="text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500">pot{parseInt(pot.nb) > 1 ? 's' : ''} de</span>
                 </div>
 
                 {/* Volume */}
@@ -488,11 +488,11 @@ export default function PreparationSubstrat() {
                     value={pot.volume_l}
                     onChange={e => updatePot(pot.id, 'volume_l', e.target.value)}
                     placeholder="Volume"
-                    className="w-24 px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-grow-500 focus:border-transparent"
+                    className="w-24 px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-grow-500 focus:border-transparent"
                   />
-                  <span className="text-sm text-gray-500">L</span>
+                  <span className="text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500">L</span>
                   {pot.volume_l && pot.nb && (
-                    <span className="text-xs text-gray-400 ml-1">
+                    <span className="text-xs text-gray-400 dark:text-gray-500 ml-1">
                       = {(parseFloat(pot.volume_l) * parseInt(pot.nb)).toFixed(1)} L
                     </span>
                   )}
@@ -514,7 +514,7 @@ export default function PreparationSubstrat() {
           {/* Ajouter une ligne */}
           <button
             onClick={addPot}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-500 border border-dashed rounded-lg hover:border-grow-600 hover:text-grow-600 transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500 border border-dashed rounded-lg hover:border-grow-600 hover:text-grow-600 transition-colors"
           >
             <Plus size={13} /> Ajouter un format de pot
           </button>
@@ -522,11 +522,11 @@ export default function PreparationSubstrat() {
           {/* Résumé volume total */}
           {volumeTotal > 0 && (
             <div className="bg-grow-50 border border-grow-200 rounded-xl p-4">
-              <p className="text-sm text-gray-600">Volume total de substrat à préparer :</p>
+              <p className="text-sm text-gray-600 dark:text-gray-300">Volume total de substrat à préparer :</p>
               <p className="text-3xl font-bold text-grow-700 mt-1">{volumeTotal.toFixed(1)} L</p>
               <div className="flex flex-wrap gap-1.5 mt-2">
                 {pots.filter(p => parseFloat(p.volume_l) > 0 && parseInt(p.nb) > 0).map((p, i) => (
-                  <span key={i} className="px-2 py-0.5 rounded-full bg-white border border-grow-200 text-xs text-gray-600">
+                  <span key={i} className="px-2 py-0.5 rounded-full bg-white dark:bg-gray-800 border border-grow-200 text-xs text-gray-600 dark:text-gray-300">
                     {p.nb} × {p.volume_l} L
                   </span>
                 ))}
@@ -555,20 +555,20 @@ export default function PreparationSubstrat() {
           {/* Rappel volume */}
           <div className="bg-grow-50 border border-grow-200 rounded-xl p-4 flex items-center justify-between">
             <div>
-              <p className="text-xs text-gray-500">Volume total à préparer</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">Volume total à préparer</p>
               <p className="text-2xl font-bold text-grow-700">{volumeTotal.toFixed(1)} L</p>
             </div>
             <button
               onClick={() => { setStep(1); setSaved(false) }}
-              className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700"
+              className="flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:text-gray-200"
             >
               <ChevronLeft size={15} /> Modifier les pots
             </button>
           </div>
 
           {/* Sélection type de sol */}
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 space-y-4">
-            <h2 className="text-base font-semibold text-gray-800">🧱 Type de sol</h2>
+          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6 space-y-4">
+            <h2 className="text-base font-semibold text-gray-800 dark:text-gray-100">🧱 Type de sol</h2>
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               {typesSol.map(ts => (
@@ -578,7 +578,7 @@ export default function PreparationSubstrat() {
                   className={`px-3 py-2 rounded-lg border text-sm font-medium transition-colors text-center ${
                     typeSol === ts.valeur
                       ? 'border-grow-500 bg-grow-50 text-grow-700'
-                      : 'border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50'
+                      : 'border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700/40'
                   }`}
                 >
                   {ts.valeur}
@@ -589,13 +589,13 @@ export default function PreparationSubstrat() {
             {/* ── Sol vivant → choix recette LSO ── */}
             {isLSOMode && !isMixMode && (
               <div className="pt-2 space-y-3">
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
                   🌿 Recette Living Soil Organique
                 </label>
                 <select
                   value={idRecetteLSO}
                   onChange={e => { setIdRecetteLSO(e.target.value === '' ? '' : Number(e.target.value)); setSaved(false) }}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-grow-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-grow-500 focus:border-transparent"
                 >
                   <option value="">— Sélectionnez une recette —</option>
                   {recettesLSO.map(r => (
@@ -606,7 +606,7 @@ export default function PreparationSubstrat() {
                   ))}
                 </select>
                 {idRecetteLSO !== '' && (
-                  <p className="text-xs text-gray-400">
+                  <p className="text-xs text-gray-400 dark:text-gray-500">
                     Les quantités seront proportionnées à votre volume ({volumeTotal.toFixed(1)} L)
                   </p>
                 )}
@@ -616,7 +616,7 @@ export default function PreparationSubstrat() {
             {/* ── Coco + Terre → % coco ── */}
             {isMixMode && (
               <div className="pt-2 space-y-3">
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
                   Proportion de coco
                 </label>
                 <div className="flex items-center gap-3">
@@ -646,8 +646,8 @@ export default function PreparationSubstrat() {
 
             {/* ── Config coco (coco seul ou coco+terre) ── */}
             {isCocoMode && (
-              <div className="pt-2 space-y-3 border-t border-gray-100">
-                <label className="block text-sm font-medium text-gray-700">Type de coco</label>
+              <div className="pt-2 space-y-3 border-t border-gray-100 dark:border-gray-700">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Type de coco</label>
 
                 <div className="grid grid-cols-2 gap-2">
                   {(['vrac', 'brique'] as const).map(t => (
@@ -657,7 +657,7 @@ export default function PreparationSubstrat() {
                       className={`px-3 py-2 rounded-lg border text-sm font-medium transition-colors ${
                         cocoConfig.type === t
                           ? 'border-orange-400 bg-orange-50 text-orange-700'
-                          : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                          : 'border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/40'
                       }`}
                     >
                       {t === 'vrac' ? '📦 Vrac (non compressé)' : '🧱 Briques (compressé)'}
@@ -676,7 +676,7 @@ export default function PreparationSubstrat() {
                           className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors ${
                             cocoConfig.brique_input === m
                               ? 'bg-orange-500 text-white'
-                              : 'bg-white border border-orange-200 text-orange-600 hover:bg-orange-100'
+                              : 'bg-white dark:bg-gray-800 border border-orange-200 text-orange-600 hover:bg-orange-100'
                           }`}
                         >
                           {m === 'dimensions' ? '📐 Dimensions (cm)' : '⚖️ Poids (grammes)'}
@@ -690,7 +690,7 @@ export default function PreparationSubstrat() {
                         <div className="grid grid-cols-3 gap-2">
                           {(['brique_l_cm', 'brique_w_cm', 'brique_h_cm'] as const).map((field, i) => (
                             <div key={field}>
-                              <label className="block text-xs text-gray-500 mb-0.5">
+                              <label className="block text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 mb-0.5">
                                 {['Longueur', 'Largeur', 'Hauteur'][i]} (cm)
                               </label>
                               <input
@@ -698,7 +698,7 @@ export default function PreparationSubstrat() {
                                 min={1}
                                 value={cocoConfig[field]}
                                 onChange={e => setCocoConfig(prev => ({ ...prev, [field]: e.target.value }))}
-                                className="w-full px-2 py-1.5 border border-orange-200 rounded-lg text-sm focus:ring-2 focus:ring-orange-400 focus:border-transparent bg-white"
+                                className="w-full px-2 py-1.5 border border-orange-200 rounded-lg text-sm focus:ring-2 focus:ring-orange-400 focus:border-transparent bg-white dark:bg-gray-800"
                                 placeholder="0"
                               />
                             </div>
@@ -712,13 +712,13 @@ export default function PreparationSubstrat() {
                       </div>
                     ) : (
                       <div>
-                        <label className="block text-xs text-gray-500 mb-1">Poids de la brique (grammes)</label>
+                        <label className="block text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 mb-1">Poids de la brique (grammes)</label>
                         <input
                           type="number"
                           min={100}
                           value={cocoConfig.brique_poids_g}
                           onChange={e => setCocoConfig(prev => ({ ...prev, brique_poids_g: e.target.value }))}
-                          className="w-full px-3 py-2 border border-orange-200 rounded-lg text-sm focus:ring-2 focus:ring-orange-400 focus:border-transparent bg-white"
+                          className="w-full px-3 py-2 border border-orange-200 rounded-lg text-sm focus:ring-2 focus:ring-orange-400 focus:border-transparent bg-white dark:bg-gray-800"
                           placeholder="ex: 650"
                         />
                         {calcBriqueL(cocoConfig) > 0 && (
@@ -736,14 +736,14 @@ export default function PreparationSubstrat() {
 
           {/* ── Résultat ── */}
           {typeSol && result.length > 0 && (
-            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 space-y-4">
-              <h2 className="text-base font-semibold text-gray-800">✅ Ingrédients à préparer</h2>
+            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6 space-y-4">
+              <h2 className="text-base font-semibold text-gray-800 dark:text-gray-100">✅ Ingrédients à préparer</h2>
 
-              <div className="divide-y divide-gray-100">
+              <div className="divide-y divide-gray-100 dark:divide-gray-700">
                 {result.map((r, i) => (
                   r.quantite > 0 ? (
                     <div key={i} className="flex items-center justify-between py-2.5">
-                      <span className={`text-sm ${r.label.startsWith('   ↳') ? 'text-gray-400 pl-4' : 'text-gray-800 font-medium'}`}>
+                      <span className={`text-sm ${r.label.startsWith('   ↳') ? 'text-gray-400 dark:text-gray-500 pl-4' : 'text-gray-800 dark:text-gray-100 font-medium'}`}>
                         {r.label}
                       </span>
                       <span className="font-mono font-semibold text-grow-700">
@@ -760,12 +760,12 @@ export default function PreparationSubstrat() {
 
               {/* Notes */}
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Notes (optionnel)</label>
+                <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Notes (optionnel)</label>
                 <textarea
                   value={notes}
                   onChange={e => setNotes(e.target.value)}
                   rows={2}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-grow-500 focus:border-transparent resize-none"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-grow-500 focus:border-transparent resize-none"
                   placeholder="Observations, ajustements..."
                 />
               </div>
@@ -786,7 +786,7 @@ export default function PreparationSubstrat() {
                 </button>
                 <button
                   onClick={handlePrint}
-                  className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium border border-gray-300 text-gray-600 hover:bg-gray-50 transition-colors"
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/40 transition-colors"
                 >
                   <Printer size={15} />
                   Imprimer

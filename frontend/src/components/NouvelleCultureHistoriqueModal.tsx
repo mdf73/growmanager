@@ -47,21 +47,21 @@ function PlantRow({
   }
 
   return (
-    <div className="p-3 bg-gray-50 rounded-xl border border-gray-100 space-y-2">
+    <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl border border-gray-100 dark:border-gray-700 space-y-2">
       {/* Ligne 1 : numéro + variété + prix + récolte + supprimer */}
       <div className="flex items-end gap-2">
         {/* Numéro */}
-        <span className="text-sm font-bold text-gray-400 w-6 shrink-0 text-center pb-2">
+        <span className="text-sm font-bold text-gray-400 dark:text-gray-500 w-6 shrink-0 text-center pb-2">
           {row.numero_plant ?? index + 1}
         </span>
 
         {/* Variété */}
         <div className="flex-1 min-w-0">
-          <label className="block text-[10px] text-gray-400 mb-0.5">Variété</label>
+          <label className="block text-[10px] text-gray-400 dark:text-gray-500 mb-0.5">Variété</label>
           <select
             value={row.id_variete ?? ''}
             onChange={e => handleVarieteChange(e.target.value ? parseInt(e.target.value) : null)}
-            className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:ring-2 focus:ring-grow-400 bg-white"
+            className="w-full border border-gray-200 dark:border-gray-700 rounded-lg px-2 py-1.5 text-sm focus:ring-2 focus:ring-grow-400 bg-white dark:bg-gray-800"
           >
             <option value="">— choisir —</option>
             {varietes.map(v => (
@@ -72,29 +72,29 @@ function PlantRow({
 
         {/* Prix graine */}
         <div className="w-24 shrink-0">
-          <label className="block text-[10px] text-gray-400 mb-0.5">Prix graine (€)</label>
+          <label className="block text-[10px] text-gray-400 dark:text-gray-500 mb-0.5">Prix graine (€)</label>
           <div className="relative">
             <input
               type="number" min="0" step="0.01"
               value={row.prix_graine ?? ''}
               onChange={e => onUpdate(row._key, { prix_graine: e.target.value ? parseFloat(e.target.value) : null })}
-              className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:ring-2 focus:ring-grow-400"
+              className="w-full border border-gray-200 dark:border-gray-700 rounded-lg px-2 py-1.5 text-sm focus:ring-2 focus:ring-grow-400"
               placeholder="auto"
             />
             {row._loading && (
-              <Loader2 size={12} className="animate-spin absolute right-2 top-2 text-gray-400" />
+              <Loader2 size={12} className="animate-spin absolute right-2 top-2 text-gray-400 dark:text-gray-500" />
             )}
           </div>
         </div>
 
         {/* Récolte */}
         <div className="w-24 shrink-0">
-          <label className="block text-[10px] text-gray-400 mb-0.5">Récolte (g)</label>
+          <label className="block text-[10px] text-gray-400 dark:text-gray-500 mb-0.5">Récolte (g)</label>
           <input
             type="number" min="0" step="0.1"
             value={row.quantite_recoltee ?? ''}
             onChange={e => onUpdate(row._key, { quantite_recoltee: e.target.value ? parseFloat(e.target.value) : null })}
-            className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:ring-2 focus:ring-grow-400"
+            className="w-full border border-gray-200 dark:border-gray-700 rounded-lg px-2 py-1.5 text-sm focus:ring-2 focus:ring-grow-400"
             placeholder="0"
           />
         </div>
@@ -112,30 +112,30 @@ function PlantRow({
       {/* Ligne 2 : dates + notes */}
       <div className="flex items-end gap-2 pl-8">
         <div className="w-32 shrink-0">
-          <label className="block text-[10px] text-gray-400 mb-0.5">Début plante</label>
+          <label className="block text-[10px] text-gray-400 dark:text-gray-500 mb-0.5">Début plante</label>
           <input
             type="date"
             value={row.date_debut_plant ?? ''}
             onChange={e => onUpdate(row._key, { date_debut_plant: e.target.value || null })}
-            className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-xs focus:ring-2 focus:ring-grow-400"
+            className="w-full border border-gray-200 dark:border-gray-700 rounded-lg px-2 py-1.5 text-xs focus:ring-2 focus:ring-grow-400"
           />
         </div>
         <div className="w-32 shrink-0">
-          <label className="block text-[10px] text-gray-400 mb-0.5">Fin plante</label>
+          <label className="block text-[10px] text-gray-400 dark:text-gray-500 mb-0.5">Fin plante</label>
           <input
             type="date"
             value={row.date_fin_plant ?? ''}
             onChange={e => onUpdate(row._key, { date_fin_plant: e.target.value || null })}
-            className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-xs focus:ring-2 focus:ring-grow-400"
+            className="w-full border border-gray-200 dark:border-gray-700 rounded-lg px-2 py-1.5 text-xs focus:ring-2 focus:ring-grow-400"
           />
         </div>
         <div className="flex-1 min-w-0">
-          <label className="block text-[10px] text-gray-400 mb-0.5">Notes</label>
+          <label className="block text-[10px] text-gray-400 dark:text-gray-500 mb-0.5">Notes</label>
           <input
             type="text"
             value={row.notes ?? ''}
             onChange={e => onUpdate(row._key, { notes: e.target.value || null })}
-            className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:ring-2 focus:ring-grow-400"
+            className="w-full border border-gray-200 dark:border-gray-700 rounded-lg px-2 py-1.5 text-sm focus:ring-2 focus:ring-grow-400"
             placeholder="optionnel"
           />
         </div>
@@ -244,17 +244,17 @@ export default function NouvelleCultureHistoriqueModal({ onClose }: Props) {
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl flex flex-col max-h-[92vh]">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-3xl flex flex-col max-h-[92vh]">
 
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 shrink-0">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-700 shrink-0">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-grow-50 rounded-lg">
               <Leaf size={18} className="text-grow-600" />
             </div>
-            <h2 className="text-lg font-bold text-gray-900">Nouvelle culture</h2>
+            <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">Nouvelle culture</h2>
           </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+          <button onClick={onClose} className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:text-gray-300">
             <X size={22} />
           </button>
         </div>
@@ -263,59 +263,59 @@ export default function NouvelleCultureHistoriqueModal({ onClose }: Props) {
 
           {/* ── Infos culture ─────────────────────────────────────────── */}
           <section>
-            <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Informations culture</h3>
+            <h3 className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide mb-3">Informations culture</h3>
 
             {/* Nom de la culture */}
             <div className="mb-3">
-              <label className="block text-xs text-gray-500 mb-1">Nom de la culture <span className="text-gray-300">(optionnel)</span></label>
+              <label className="block text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 mb-1">Nom de la culture <span className="text-gray-300">(optionnel)</span></label>
               <input type="text" value={form.nom} onChange={set('nom')} placeholder="ex: Gelato #4 run 2, Test LED…"
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-grow-400" />
+                className="w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-grow-400" />
             </div>
 
             {/* Dates */}
             <div className="grid grid-cols-2 gap-3 mb-3">
               <div>
-                <label className="block text-xs text-gray-500 mb-1">Date de début</label>
+                <label className="block text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 mb-1">Date de début</label>
                 <input type="date" value={form.date_debut} onChange={set('date_debut')}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-grow-400" />
+                  className="w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-grow-400" />
               </div>
               <div>
-                <label className="block text-xs text-gray-500 mb-1">Date de fin</label>
+                <label className="block text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 mb-1">Date de fin</label>
                 <input type="date" value={form.date_fin} onChange={set('date_fin')}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-grow-400" />
+                  className="w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-grow-400" />
               </div>
             </div>
 
             {/* Matériel - ligne 1 */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3">
               <div>
-                <label className="block text-xs text-gray-500 mb-1">Tente</label>
+                <label className="block text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 mb-1">Tente</label>
                 <select value={form.tente} onChange={set('tente')}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-grow-400">
+                  className="w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-grow-400">
                   <option value="">—</option>
                   {tentes.map(t => <option key={t} value={t}>{t}</option>)}
                 </select>
               </div>
               <div>
-                <label className="block text-xs text-gray-500 mb-1">Lampe</label>
+                <label className="block text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 mb-1">Lampe</label>
                 <select value={form.lampe} onChange={set('lampe')}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-grow-400">
+                  className="w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-grow-400">
                   <option value="">—</option>
                   {lampes.map(l => <option key={l} value={l}>{l}</option>)}
                 </select>
               </div>
               <div>
-                <label className="block text-xs text-gray-500 mb-1">Puissance (W)</label>
+                <label className="block text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 mb-1">Puissance (W)</label>
                 <select value={form.puissance} onChange={set('puissance')}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-grow-400">
+                  className="w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-grow-400">
                   <option value="">—</option>
                   {puissances.map(p => <option key={p} value={p}>{p} W</option>)}
                 </select>
               </div>
               <div>
-                <label className="block text-xs text-gray-500 mb-1">Type</label>
+                <label className="block text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 mb-1">Type</label>
                 <select value={form.type_culture} onChange={set('type_culture')}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-grow-400">
+                  className="w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-grow-400">
                   <option value="">—</option>
                   {types.map(t => <option key={t} value={t}>{t}</option>)}
                 </select>
@@ -325,17 +325,17 @@ export default function NouvelleCultureHistoriqueModal({ onClose }: Props) {
             {/* Matériel - ligne 2 */}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs text-gray-500 mb-1">Engrais</label>
+                <label className="block text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 mb-1">Engrais</label>
                 <select value={form.engrais} onChange={set('engrais')}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-grow-400">
+                  className="w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-grow-400">
                   <option value="">—</option>
                   {engrais.map(e => <option key={e} value={e}>{e}</option>)}
                 </select>
               </div>
               <div>
-                <label className="block text-xs text-gray-500 mb-1">Substrat</label>
+                <label className="block text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 mb-1">Substrat</label>
                 <select value={form.substrat} onChange={set('substrat')}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-grow-400">
+                  className="w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-grow-400">
                   <option value="">—</option>
                   {substrats.map(s => <option key={s} value={s}>{s}</option>)}
                 </select>
@@ -346,7 +346,7 @@ export default function NouvelleCultureHistoriqueModal({ onClose }: Props) {
           {/* ── Plantes ───────────────────────────────────────────────── */}
           <section>
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
+              <h3 className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide">
                 Plantes
                 <span className="ml-2 font-bold text-grow-600">{plants.length}</span>
               </h3>
@@ -361,8 +361,8 @@ export default function NouvelleCultureHistoriqueModal({ onClose }: Props) {
             </div>
 
             {plants.length === 0 ? (
-              <div className="text-center py-6 border-2 border-dashed border-gray-200 rounded-xl">
-                <p className="text-sm text-gray-400">Aucune plante. Cliquez sur « Ajouter une plante ».</p>
+              <div className="text-center py-6 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-xl">
+                <p className="text-sm text-gray-400 dark:text-gray-500">Aucune plante. Cliquez sur « Ajouter une plante ».</p>
               </div>
             ) : (
               <div className="space-y-2">
@@ -382,7 +382,7 @@ export default function NouvelleCultureHistoriqueModal({ onClose }: Props) {
             {/* Totaux en temps réel */}
             {plants.length > 0 && (
               <div className="mt-3 flex items-center gap-4 px-3 py-2 bg-grow-50 rounded-xl text-xs">
-                <span className="text-gray-500">{plants.length} plante{plants.length > 1 ? 's' : ''}</span>
+                <span className="text-gray-500 dark:text-gray-400 dark:text-gray-500">{plants.length} plante{plants.length > 1 ? 's' : ''}</span>
                 <span className="font-semibold text-grow-700">
                   Récolte : <strong>{totalRecolte.toFixed(1)} g</strong>
                 </span>
@@ -400,18 +400,18 @@ export default function NouvelleCultureHistoriqueModal({ onClose }: Props) {
 
           {/* ── Notes culture ─────────────────────────────────────────── */}
           <section>
-            <label className="block text-xs text-gray-500 mb-1">Notes (culture)</label>
+            <label className="block text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 mb-1">Notes (culture)</label>
             <textarea value={form.notes} onChange={set('notes')} rows={2}
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-grow-400 resize-none" />
+              className="w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-grow-400 resize-none" />
           </section>
 
           {error && <p className="text-sm text-red-600">{error}</p>}
         </form>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-gray-100 shrink-0 flex justify-end gap-3">
+        <div className="px-6 py-4 border-t border-gray-100 dark:border-gray-700 shrink-0 flex justify-end gap-3">
           <button type="button" onClick={onClose}
-            className="px-4 py-2 bg-gray-100 text-gray-700 text-sm rounded-lg hover:bg-gray-200">
+            className="px-4 py-2 bg-gray-100 text-gray-700 dark:text-gray-200 text-sm rounded-lg hover:bg-gray-200">
             Annuler
           </button>
           <button type="submit" onClick={handleSubmit} disabled={loading}

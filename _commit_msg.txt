@@ -1,18 +1,19 @@
-feat: Feature 4 — Refonte page Paramétrage (V3)
+feat: Feature 6 — Mode sombre complet (Dark Mode)
 
-Backend:
-- Nouveau modèle AppSettings (table clé/valeur pour paramètres uniques)
-- Nouveau router /api/app-settings (GET all, GET by key, PUT upsert)
-- Seed automatique : prix_kwh (0.18 €) + devise (EUR)
-- LISTE_DEFAULTS enrichi : types_stock, sous_types_stock, types_rosin,
-  lampes_stock, maillages_iceolator, maillages_rosin
-- main.py : import + include_router app_settings + seed au démarrage
+Infrastructure:
+- tailwind.config.js : darkMode: 'class'
+- frontend/index.html : script anti-FOUC (applique dark avant React)
+- src/hooks/useDarkMode.ts : hook + persistance localStorage 'gm-theme'
+- src/index.css : 7 classes utilitaires dark: (.card, .page-bg, etc.)
 
-Frontend:
-- Nouveau fichier api/appSettings.ts + hook useAppSetting
-- Parametrage.tsx : section "Économique" (prix kWh + devise, édition inline)
-- Parametrage.tsx : 4 nouvelles sections Stock (Types, Hash/Rosin, Maillages, Lampes)
-- NouveauStockModal : TYPES_STOCK, SOUS_TYPES, MAILLAGES, TYPES_ROSIN,
-  LAMPES, ENGRAIS_OPTS remplacés par useParametreListe (fallbacks statiques conservés)
-- NouvelleExtractionModal : MAILLAGES → useParametreListe('maillages_rosin')
-- NouvelleHashModal : MAILLAGES_ICEOLATOR → useParametreListe('maillages_iceolator')
+Layout:
+- Layout.tsx : toggle Moon/Sun sidebar desktop (footer) + header mobile
+  fond root dark:bg-gray-900, header/nav dark:bg-gray-800
+
+Passage global (script Python — 58 fichiers .tsx) :
+- bg-white → dark:bg-gray-800
+- bg-gray-50 → dark:bg-gray-700/50
+- border-gray-100/200 → dark:border-gray-700
+- text-gray-900/700/600/500 → dark: variants
+- hover:bg-gray-50 → dark:hover:bg-gray-700/40
+- Tous tableaux, modales, composants, pages couverts

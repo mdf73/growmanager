@@ -71,19 +71,19 @@ export default function TransfertPlantModal({ plant, cultureId, onClose }: Props
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-md">
         {/* Header */}
-        <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-gray-100">
+        <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-gray-100 dark:border-gray-700">
           <div className="flex items-center gap-2.5">
             <div className="p-2 bg-grow-50 rounded-lg">
               <ArrowRightLeft size={16} className="text-grow-600" />
             </div>
             <div>
-              <h2 className="font-bold text-gray-900 text-base">Déplacer la plante</h2>
-              <p className="text-xs text-gray-500 mt-0.5">{plant.nom_affichage}</p>
+              <h2 className="font-bold text-gray-900 dark:text-gray-100 text-base">Déplacer la plante</h2>
+              <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 mt-0.5">{plant.nom_affichage}</p>
             </div>
           </div>
-          <button onClick={onClose} className="p-1.5 text-gray-400 hover:text-gray-600 rounded-lg">
+          <button onClick={onClose} className="p-1.5 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:text-gray-300 rounded-lg">
             <X size={18} />
           </button>
         </div>
@@ -97,7 +97,7 @@ export default function TransfertPlantModal({ plant, cultureId, onClose }: Props
           )}
 
           {!isLoading && !hasTargets && (
-            <div className="text-center py-8 text-gray-400">
+            <div className="text-center py-8 text-gray-400 dark:text-gray-500">
               <ArrowRightLeft size={32} className="mx-auto mb-3 opacity-30" />
               <p className="text-sm">Aucune destination disponible.</p>
               <p className="text-xs mt-1 text-gray-300">Il faut au moins une autre culture active ou un espace libre.</p>
@@ -107,7 +107,7 @@ export default function TransfertPlantModal({ plant, cultureId, onClose }: Props
           {/* Cultures actives */}
           {!isLoading && (targets?.cultures_actives.length ?? 0) > 0 && (
             <section>
-              <h3 className="flex items-center gap-1.5 text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+              <h3 className="flex items-center gap-1.5 text-xs font-semibold text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase tracking-wide mb-2">
                 <Leaf size={12} className="text-green-500" />
                 Cultures actives
               </h3>
@@ -124,15 +124,15 @@ export default function TransfertPlantModal({ plant, cultureId, onClose }: Props
                     className={`w-full text-left px-3.5 py-2.5 rounded-xl border transition-all ${
                       selectedKind === 'culture' && selectedCultureId === c.id_culture
                         ? 'border-grow-500 bg-grow-50 ring-1 ring-grow-400'
-                        : 'border-gray-200 hover:border-grow-300 hover:bg-gray-50'
+                        : 'border-gray-200 dark:border-gray-700 hover:border-grow-300 hover:bg-gray-50 dark:hover:bg-gray-700/40'
                     }`}
                   >
-                    <span className="block font-medium text-sm text-gray-900">{c.nom}</span>
+                    <span className="block font-medium text-sm text-gray-900 dark:text-gray-100">{c.nom}</span>
                     {c.nom_espace && (
-                      <span className="text-xs text-gray-500">📦 {c.nom_espace}</span>
+                      <span className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">📦 {c.nom_espace}</span>
                     )}
                     {c.phase && (
-                      <span className="text-xs text-gray-400 ml-2">· {c.phase}</span>
+                      <span className="text-xs text-gray-400 dark:text-gray-500 ml-2">· {c.phase}</span>
                     )}
                   </button>
                 ))}
@@ -143,10 +143,10 @@ export default function TransfertPlantModal({ plant, cultureId, onClose }: Props
           {/* Espaces disponibles */}
           {!isLoading && (targets?.espaces_disponibles.length ?? 0) > 0 && (
             <section>
-              <h3 className="flex items-center gap-1.5 text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+              <h3 className="flex items-center gap-1.5 text-xs font-semibold text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase tracking-wide mb-2">
                 <Home size={12} className="text-blue-500" />
                 Espaces disponibles
-                <span className="font-normal text-gray-400 normal-case tracking-normal ml-1">(crée une nouvelle culture)</span>
+                <span className="font-normal text-gray-400 dark:text-gray-500 normal-case tracking-normal ml-1">(crée une nouvelle culture)</span>
               </h3>
               <div className="space-y-1.5">
                 {targets!.espaces_disponibles.map((e: TransferEspaceTarget) => (
@@ -161,11 +161,11 @@ export default function TransfertPlantModal({ plant, cultureId, onClose }: Props
                     className={`w-full text-left px-3.5 py-2.5 rounded-xl border transition-all ${
                       selectedKind === 'espace' && selectedEspaceId === e.id_espace
                         ? 'border-blue-500 bg-blue-50 ring-1 ring-blue-400'
-                        : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'
+                        : 'border-gray-200 dark:border-gray-700 hover:border-blue-300 hover:bg-gray-50 dark:hover:bg-gray-700/40'
                     }`}
                   >
-                    <span className="block font-medium text-sm text-gray-900">📦 {e.nom}</span>
-                    <span className="text-xs text-gray-400">Nouvelle culture créée automatiquement</span>
+                    <span className="block font-medium text-sm text-gray-900 dark:text-gray-100">📦 {e.nom}</span>
+                    <span className="text-xs text-gray-400 dark:text-gray-500">Nouvelle culture créée automatiquement</span>
                   </button>
                 ))}
               </div>
@@ -198,7 +198,7 @@ export default function TransfertPlantModal({ plant, cultureId, onClose }: Props
             </button>
             <button
               onClick={onClose}
-              className="px-4 py-2.5 border border-gray-300 rounded-xl text-sm text-gray-600 hover:bg-gray-50"
+              className="px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-xl text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/40"
             >
               Annuler
             </button>

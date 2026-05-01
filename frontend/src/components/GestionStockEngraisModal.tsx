@@ -13,12 +13,12 @@ interface Props {
   onClose: () => void
 }
 
-const inp = "w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-grow-500"
-const sel = "w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-grow-500"
+const inp = "w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-grow-500"
+const sel = "w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-grow-500"
 
 function Label({ children, required }: { children: React.ReactNode; required?: boolean }) {
   return (
-    <label className="block text-xs font-medium text-gray-600 mb-1">
+    <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">
       {children}{required && <span className="text-red-400 ml-0.5">*</span>}
     </label>
   )
@@ -84,8 +84,8 @@ function TabRecharger({ produit, onDone }: { produit: ProduitEngrais; onDone: ()
     <div className="space-y-4">
 
       {/* Info stock actuel */}
-      <div className="flex items-center justify-between px-4 py-3 bg-gray-50 rounded-lg">
-        <span className="text-sm text-gray-600">Stock actuel</span>
+      <div className="flex items-center justify-between px-4 py-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+        <span className="text-sm text-gray-600 dark:text-gray-300">Stock actuel</span>
         <span className={`text-sm font-bold ${stockActuel === 0 ? 'text-red-600' : 'text-grow-700'}`}>
           {stockActuel} {produit.unite_quantite ?? ''}
         </span>
@@ -101,7 +101,7 @@ function TabRecharger({ produit, onDone }: { produit: ProduitEngrais; onDone: ()
             placeholder="Ex: 500" className={inp} />
           <select value={form.unite_volume}
             onChange={e => setForm(f => ({ ...f, unite_volume: e.target.value }))}
-            className="w-20 px-2 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-grow-500">
+            className="w-20 px-2 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-grow-500">
             {unites.map(u => <option key={u} value={u}>{u}</option>)}
           </select>
         </div>
@@ -185,12 +185,12 @@ function TabHistorique({ produit }: { produit: ProduitEngrais }) {
 
   if (isLoading) return (
     <div className="flex justify-center py-8">
-      <Loader2 size={20} className="animate-spin text-gray-400" />
+      <Loader2 size={20} className="animate-spin text-gray-400 dark:text-gray-500" />
     </div>
   )
 
   if (achats.length === 0) return (
-    <div className="text-center py-10 text-gray-400">
+    <div className="text-center py-10 text-gray-400 dark:text-gray-500">
       <History size={32} className="mx-auto mb-2 opacity-40" />
       <p className="text-sm">Aucun achat enregistré</p>
       <p className="text-xs mt-1">Les recharges apparaîtront ici</p>
@@ -200,22 +200,22 @@ function TabHistorique({ produit }: { produit: ProduitEngrais }) {
   return (
     <div className="space-y-2">
       {achats.map(a => (
-        <div key={a.id_achat} className="flex items-start justify-between px-4 py-3 bg-gray-50 rounded-lg">
+        <div key={a.id_achat} className="flex items-start justify-between px-4 py-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
           <div className="space-y-0.5">
-            <p className="text-sm font-medium text-gray-800">
+            <p className="text-sm font-medium text-gray-800 dark:text-gray-100">
               {a.volume_achat != null ? `${a.volume_achat} ${a.unite_volume ?? ''}` : '—'}
-              {a.conditionnement ? <span className="text-gray-400 font-normal"> · {a.conditionnement}</span> : null}
+              {a.conditionnement ? <span className="text-gray-400 dark:text-gray-500 font-normal"> · {a.conditionnement}</span> : null}
             </p>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">
               Acheté le {fmtDate(a.date_achat)}
               {a.date_peremption ? ` · Péremption : ${fmtDate(a.date_peremption)}` : ''}
             </p>
-            {a.notes && <p className="text-xs text-gray-400 italic">{a.notes}</p>}
+            {a.notes && <p className="text-xs text-gray-400 dark:text-gray-500 italic">{a.notes}</p>}
           </div>
           <div className="text-right shrink-0 ml-4">
             {a.prix_achat != null
-              ? <p className="text-sm font-semibold text-gray-700">{Number(a.prix_achat).toFixed(2)} €</p>
-              : <p className="text-sm text-gray-400">—</p>
+              ? <p className="text-sm font-semibold text-gray-700 dark:text-gray-200">{Number(a.prix_achat).toFixed(2)} €</p>
+              : <p className="text-sm text-gray-400 dark:text-gray-500">—</p>
             }
           </div>
         </div>
@@ -241,19 +241,19 @@ export default function GestionStockEngraisModal({ produit, onClose }: Props) {
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col">
 
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-700">
           <div>
-            <h2 className="text-base font-bold text-gray-900">Gestion du stock</h2>
-            <p className="text-xs text-gray-500 mt-0.5">{produit.nom_produit}</p>
+            <h2 className="text-base font-bold text-gray-900 dark:text-gray-100">Gestion du stock</h2>
+            <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 mt-0.5">{produit.nom_produit}</p>
           </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
+          <button onClick={onClose} className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:text-gray-300"><X size={20} /></button>
         </div>
 
         {/* Tabs */}
-        <div className="flex border-b border-gray-100 px-6">
+        <div className="flex border-b border-gray-100 dark:border-gray-700 px-6">
           {([
             { key: 'recharger',  label: 'Recharger',  icon: PackagePlus },
             { key: 'historique', label: 'Historique',  icon: History },
@@ -264,7 +264,7 @@ export default function GestionStockEngraisModal({ produit, onClose }: Props) {
               className={`flex items-center gap-1.5 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
                 tab === key
                   ? 'border-grow-600 text-grow-700'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
+                  : 'border-transparent text-gray-500 dark:text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:text-gray-200'
               }`}>
               <Icon size={14} />
               {label}
@@ -281,7 +281,7 @@ export default function GestionStockEngraisModal({ produit, onClose }: Props) {
         </div>
 
         {/* Footer — Déclarer stock vide */}
-        <div className="px-6 py-4 border-t border-gray-100">
+        <div className="px-6 py-4 border-t border-gray-100 dark:border-gray-700">
           {confirmVider ? (
             <div className="flex items-center gap-3 p-3 bg-red-50 border border-red-200 rounded-lg">
               <AlertTriangle size={15} className="text-red-500 shrink-0" />
@@ -297,7 +297,7 @@ export default function GestionStockEngraisModal({ produit, onClose }: Props) {
                 </button>
                 <button
                   onClick={() => setConfirmVider(false)}
-                  className="px-3 py-1 border border-gray-300 text-gray-600 text-xs rounded hover:bg-gray-50">
+                  className="px-3 py-1 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 text-xs rounded hover:bg-gray-50 dark:hover:bg-gray-700/40">
                   Annuler
                 </button>
               </div>
@@ -305,7 +305,7 @@ export default function GestionStockEngraisModal({ produit, onClose }: Props) {
           ) : (
             <button
               onClick={() => setConfirmVider(true)}
-              className="flex items-center gap-2 text-xs text-gray-400 hover:text-red-600 transition-colors">
+              className="flex items-center gap-2 text-xs text-gray-400 dark:text-gray-500 hover:text-red-600 transition-colors">
               <Trash2 size={13} />
               Déclarer le stock vide
             </button>

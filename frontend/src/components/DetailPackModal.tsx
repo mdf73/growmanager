@@ -63,14 +63,14 @@ export default function DetailPackModal({ pack, onClose, onDeleted }: DetailPack
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col">
 
         {/* Header */}
-        <div className="px-6 py-4 border-b border-gray-100 shrink-0">
+        <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-700 shrink-0">
           <div className="flex items-start justify-between">
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-lg font-bold text-gray-900">
+                <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
                   {pack.breeder_nom} · {pack.variete_nom}
                 </h2>
                 {pack.edition_limite && (
@@ -91,7 +91,7 @@ export default function DetailPackModal({ pack, onClose, onDeleted }: DetailPack
                   </a>
                 )}
               </div>
-              <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-500">
+              <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500">
                 {pack.croisement_variete && (
                   <span className="italic">{pack.croisement_variete}</span>
                 )}
@@ -107,7 +107,7 @@ export default function DetailPackModal({ pack, onClose, onDeleted }: DetailPack
                 )}
               </div>
             </div>
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-600 ml-4 shrink-0">
+            <button onClick={onClose} className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:text-gray-300 ml-4 shrink-0">
               <X size={22} />
             </button>
           </div>
@@ -116,17 +116,17 @@ export default function DetailPackModal({ pack, onClose, onDeleted }: DetailPack
           <div className="mt-3 flex gap-4 text-sm">
             <div className="flex items-center gap-1.5">
               <span className="w-2.5 h-2.5 rounded-full bg-green-500 inline-block"></span>
-              <span className="text-gray-700 font-medium">{disponibles}</span>
-              <span className="text-gray-400">disponible{disponibles > 1 ? 's' : ''}</span>
+              <span className="text-gray-700 dark:text-gray-200 font-medium">{disponibles}</span>
+              <span className="text-gray-400 dark:text-gray-500">disponible{disponibles > 1 ? 's' : ''}</span>
             </div>
             <div className="flex items-center gap-1.5">
               <span className="w-2.5 h-2.5 rounded-full bg-gray-300 inline-block"></span>
-              <span className="text-gray-700 font-medium">{utilisees}</span>
-              <span className="text-gray-400">utilisée{utilisees > 1 ? 's' : ''}</span>
+              <span className="text-gray-700 dark:text-gray-200 font-medium">{utilisees}</span>
+              <span className="text-gray-400 dark:text-gray-500">utilisée{utilisees > 1 ? 's' : ''}</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <span className="text-gray-500 font-medium">{graines.length}</span>
-              <span className="text-gray-400">total</span>
+              <span className="text-gray-500 dark:text-gray-400 dark:text-gray-500 font-medium">{graines.length}</span>
+              <span className="text-gray-400 dark:text-gray-500">total</span>
             </div>
           </div>
         </div>
@@ -138,7 +138,7 @@ export default function DetailPackModal({ pack, onClose, onDeleted }: DetailPack
               <Loader2 className="animate-spin text-gray-300" size={32} />
             </div>
           ) : graines.length === 0 ? (
-            <p className="text-center text-gray-400 text-sm py-8">Aucune graine enregistrée</p>
+            <p className="text-center text-gray-400 dark:text-gray-500 text-sm py-8">Aucune graine enregistrée</p>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
               {graines.map((g, idx) => (
@@ -146,7 +146,7 @@ export default function DetailPackModal({ pack, onClose, onDeleted }: DetailPack
                   key={g.id_graine}
                   className={`relative group flex items-center justify-between px-3 py-2 rounded-lg border transition-colors ${
                     g.utilisee
-                      ? 'border-gray-200 bg-gray-50 opacity-60'
+                      ? 'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50 opacity-60'
                       : 'border-green-200 bg-green-50'
                   }`}
                 >
@@ -157,11 +157,11 @@ export default function DetailPackModal({ pack, onClose, onDeleted }: DetailPack
                     title={g.utilisee ? 'Marquer comme disponible' : 'Marquer comme utilisée'}
                   >
                     {g.utilisee ? (
-                      <CheckCircle2 size={16} className="text-gray-400 shrink-0" />
+                      <CheckCircle2 size={16} className="text-gray-400 dark:text-gray-500 shrink-0" />
                     ) : (
                       <Circle size={16} className="text-green-500 shrink-0" />
                     )}
-                    <span className={`text-xs font-mono ${g.utilisee ? 'text-gray-400 line-through' : 'text-gray-700'}`}>
+                    <span className={`text-xs font-mono ${g.utilisee ? 'text-gray-400 dark:text-gray-500 line-through' : 'text-gray-700 dark:text-gray-200'}`}>
                       #{idx + 1}
                     </span>
                   </button>
@@ -169,13 +169,13 @@ export default function DetailPackModal({ pack, onClose, onDeleted }: DetailPack
               ))}
             </div>
           )}
-          <p className="mt-3 text-xs text-gray-400">
+          <p className="mt-3 text-xs text-gray-400 dark:text-gray-500">
             Clique sur une graine pour basculer son état. L'icône ✓ = utilisée, ○ = disponible.
           </p>
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-3 border-t border-gray-100 flex justify-between items-center shrink-0">
+        <div className="px-6 py-3 border-t border-gray-100 dark:border-gray-700 flex justify-between items-center shrink-0">
           {confirmDeletePack ? (
             <div className="flex items-center gap-3 w-full">
               <span className="text-sm text-red-600 flex items-center gap-1.5">
@@ -191,7 +191,7 @@ export default function DetailPackModal({ pack, onClose, onDeleted }: DetailPack
               </button>
               <button
                 onClick={() => setConfirmDeletePack(false)}
-                className="px-3 py-1 border border-gray-300 text-gray-600 text-xs rounded hover:bg-gray-50"
+                className="px-3 py-1 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 text-xs rounded hover:bg-gray-50 dark:hover:bg-gray-700/40"
               >
                 Annuler
               </button>
@@ -201,7 +201,7 @@ export default function DetailPackModal({ pack, onClose, onDeleted }: DetailPack
               <div className="flex gap-2">
                 <button
                   onClick={() => setShowEdit(true)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 border border-gray-300 text-gray-600 text-sm rounded-lg hover:bg-gray-50"
+                  className="flex items-center gap-1.5 px-3 py-1.5 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 text-sm rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/40"
                 >
                   <Pencil size={14} />
                   Modifier le pack

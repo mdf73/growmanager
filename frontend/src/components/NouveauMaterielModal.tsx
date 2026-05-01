@@ -6,13 +6,13 @@ import type { MaterielCreate, MaterielUpdate, Materiel } from '../api/materiel'
 import { useParametreListeWithAdd } from '../api/parametres'
 
 // ── Helpers UI ────────────────────────────────────────────────────────────────
-const inputCls  = 'w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-grow-400 focus:border-transparent'
+const inputCls  = 'w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-grow-400 focus:border-transparent'
 const selectCls = inputCls
 
 function Field({ label, required, children }: { label: string; required?: boolean; children: React.ReactNode }) {
   return (
     <div>
-      <label className="block text-xs text-gray-500 mb-1">
+      <label className="block text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 mb-1">
         {label}{required && <span className="text-red-400 ml-0.5">*</span>}
       </label>
       {children}
@@ -62,7 +62,7 @@ function SelectWithAdd({
           {isAdding ? <Loader2 size={11} className="animate-spin" /> : '✓'}
         </button>
         <button type="button" onClick={() => setAdding(false)}
-          className="px-2 py-1 border border-gray-200 text-gray-500 text-xs rounded-lg hover:bg-gray-50">
+          className="px-2 py-1 border border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 dark:text-gray-500 text-xs rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/40">
           ✕
         </button>
       </div>
@@ -76,7 +76,7 @@ function SelectWithAdd({
         {values.map(v => <option key={v} value={v}>{v}</option>)}
       </select>
       <button type="button" onClick={() => setAdding(true)}
-        className="px-2 border border-gray-200 text-gray-400 hover:text-grow-600 hover:border-grow-300 rounded-lg text-xs"
+        className="px-2 border border-gray-200 dark:border-gray-700 text-gray-400 dark:text-gray-500 hover:text-grow-600 hover:border-grow-300 rounded-lg text-xs"
         title="Ajouter une valeur">
         <Plus size={13} />
       </button>
@@ -135,7 +135,7 @@ function CaractFields({ categorie, caract, setCaract }: {
             </select>
           </Field>
           <div className="col-span-2">
-            <label className="block text-xs text-gray-500 mb-1">Spectres (max 5)</label>
+            <label className="block text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 mb-1">Spectres (max 5)</label>
             <div className="space-y-2">
               {spectresList.map((s, i) => (
                 <div key={i} className="flex gap-2">
@@ -287,7 +287,7 @@ function CaractFields({ categorie, caract, setCaract }: {
         <div className="grid grid-cols-2 gap-3">
           {/* Volume avec unité — mise à jour atomique pour éviter l'écrasement */}
           <div className="col-span-2">
-            <label className="block text-xs text-gray-500 mb-1">Volume</label>
+            <label className="block text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 mb-1">Volume</label>
             <div className="flex gap-2">
               <input
                 type="number" step="any" min="0" className={`${inputCls} flex-1`}
@@ -301,7 +301,7 @@ function CaractFields({ categorie, caract, setCaract }: {
                 placeholder={((caract._vol_unit as string) || 'mL') === 'L' ? 'ex: 1' : 'ex: 500'}
               />
               <select
-                className="border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:ring-2 focus:ring-grow-400 bg-white"
+                className="border border-gray-200 dark:border-gray-700 rounded-lg px-2 py-1.5 text-sm focus:ring-2 focus:ring-grow-400 bg-white dark:bg-gray-800"
                 value={(caract._vol_unit as string) || 'mL'}
                 onChange={e => {
                   const unit = e.target.value
@@ -315,7 +315,7 @@ function CaractFields({ categorie, caract, setCaract }: {
               </select>
             </div>
             {volMl != null && (
-              <p className="text-xs text-gray-400 mt-0.5">
+              <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
                 → {volMl >= 500 ? 'Bocal' : 'Pot'} · {volMl >= 1000 ? `${volMl / 1000} L` : `${volMl} mL`}
               </p>
             )}
@@ -481,13 +481,13 @@ export default function NouveauMaterielModal({ editItem, onClose }: Props) {
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-xl flex flex-col max-h-[92vh]">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-xl flex flex-col max-h-[92vh]">
 
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 shrink-0">
-          <h2 className="text-lg font-bold text-gray-900">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-700 shrink-0">
+          <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
             {isEdit ? 'Modifier le matériel' : 'Nouveau matériel'}
           </h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X size={22} /></button>
+          <button onClick={onClose} className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:text-gray-300"><X size={22} /></button>
         </div>
 
         <form onSubmit={handleSubmit} className="overflow-y-auto flex-1 px-6 py-5 space-y-4">
@@ -516,13 +516,13 @@ export default function NouveauMaterielModal({ editItem, onClose }: Props) {
                         type="button"
                         onClick={() => { setNomAuto(true); refreshAutoNom(1) }}
                         title="Régénérer le nom automatique"
-                        className={`px-2 border rounded-lg text-xs transition-colors ${nomAuto ? 'border-grow-400 bg-grow-50 text-grow-600' : 'border-gray-200 text-gray-400 hover:border-grow-300 hover:text-grow-500'}`}
+                        className={`px-2 border rounded-lg text-xs transition-colors ${nomAuto ? 'border-grow-400 bg-grow-50 text-grow-600' : 'border-gray-200 dark:border-gray-700 text-gray-400 dark:text-gray-500 hover:border-grow-300 hover:text-grow-500'}`}
                       >
                         <RefreshCw size={12} />
                       </button>
                     </div>
                     {nomAuto && (
-                      <p className="text-xs text-gray-400">
+                      <p className="text-xs text-gray-400 dark:text-gray-500">
                         🤖 Nom auto · basé sur volume + marque
                       </p>
                     )}
@@ -537,18 +537,18 @@ export default function NouveauMaterielModal({ editItem, onClose }: Props) {
                     <button
                       type="button"
                       onClick={() => setQuantite(q => Math.max(1, q - 1))}
-                      className="w-8 h-[34px] border border-gray-200 rounded-lg text-gray-500 hover:bg-gray-50 text-base font-semibold flex items-center justify-center"
+                      className="w-8 h-[34px] border border-gray-200 dark:border-gray-700 rounded-lg text-gray-500 dark:text-gray-400 dark:text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700/40 text-base font-semibold flex items-center justify-center"
                     >−</button>
                     <input
                       type="number" min={1} max={99}
                       value={quantite}
                       onChange={e => setQuantite(Math.max(1, Math.min(99, Number(e.target.value) || 1)))}
-                      className="w-12 text-center border border-gray-200 rounded-lg px-1 py-1.5 text-sm focus:ring-2 focus:ring-grow-400 focus:border-transparent"
+                      className="w-12 text-center border border-gray-200 dark:border-gray-700 rounded-lg px-1 py-1.5 text-sm focus:ring-2 focus:ring-grow-400 focus:border-transparent"
                     />
                     <button
                       type="button"
                       onClick={() => setQuantite(q => Math.min(99, q + 1))}
-                      className="w-8 h-[34px] border border-gray-200 rounded-lg text-gray-500 hover:bg-gray-50 text-base font-semibold flex items-center justify-center"
+                      className="w-8 h-[34px] border border-gray-200 dark:border-gray-700 rounded-lg text-gray-500 dark:text-gray-400 dark:text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700/40 text-base font-semibold flex items-center justify-center"
                     >+</button>
                   </div>
                 </Field>
@@ -600,8 +600,8 @@ export default function NouveauMaterielModal({ editItem, onClose }: Props) {
 
           {/* Caractéristiques spécifiques */}
           {categorie && (
-            <div className="border-t border-gray-100 pt-4">
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">
+            <div className="border-t border-gray-100 dark:border-gray-700 pt-4">
+              <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide mb-3">
                 Caractéristiques — {categorie}
               </p>
               <CaractFields categorie={categorie} caract={caract} setCaract={setCaract} />
@@ -615,9 +615,9 @@ export default function NouveauMaterielModal({ editItem, onClose }: Props) {
           {error && <p className="text-sm text-red-500">{error}</p>}
         </form>
 
-        <div className="px-6 py-4 border-t border-gray-100 shrink-0 flex justify-end gap-2">
+        <div className="px-6 py-4 border-t border-gray-100 dark:border-gray-700 shrink-0 flex justify-end gap-2">
           <button type="button" onClick={onClose}
-            className="px-4 py-2 border border-gray-300 text-gray-600 text-sm rounded-lg hover:bg-gray-50">
+            className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 text-sm rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/40">
             Annuler
           </button>
           <button onClick={handleSubmit} disabled={isPending}

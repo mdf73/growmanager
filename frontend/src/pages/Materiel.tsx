@@ -111,7 +111,7 @@ function ItemRow({
             {remove.isPending ? <Loader2 size={10} className="animate-spin" /> : 'Confirmer'}
           </button>
           <button onClick={() => setConfirm(false)}
-            className="px-2 py-1 border border-gray-300 text-gray-600 text-xs rounded hover:bg-gray-50">
+            className="px-2 py-1 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 text-xs rounded hover:bg-gray-50 dark:hover:bg-gray-700/40">
             Annuler
           </button>
         </div>
@@ -122,33 +122,33 @@ function ItemRow({
   const caract = formatCaract(item.caracteristiques as Record<string, unknown> | null, item.categorie)
 
   return (
-    <tr className="hover:bg-gray-50 group">
-      <td className="px-3 py-2.5 text-xs text-gray-400 font-mono">#{item.id_materiel}</td>
-      <td className="px-3 py-2.5 text-sm font-medium text-gray-900">
+    <tr className="hover:bg-gray-50 dark:hover:bg-gray-700/40 group">
+      <td className="px-3 py-2.5 text-xs text-gray-400 dark:text-gray-500 font-mono">#{item.id_materiel}</td>
+      <td className="px-3 py-2.5 text-sm font-medium text-gray-900 dark:text-gray-100">
         <span className="mr-1">{CAT_ICONS[item.categorie] ?? '📦'}</span>
         {item.nom}
       </td>
-      <td className="px-3 py-2.5 text-xs text-gray-500">{item.marque || '—'}</td>
-      <td className="px-3 py-2.5 text-xs text-gray-400 font-mono">{item.code_barre_serial || '—'}</td>
-      <td className="px-3 py-2.5 text-xs text-gray-500 whitespace-nowrap">{fmtDate(item.date_achat)}</td>
-      <td className="px-3 py-2.5 text-xs text-gray-500 text-right whitespace-nowrap">
+      <td className="px-3 py-2.5 text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">{item.marque || '—'}</td>
+      <td className="px-3 py-2.5 text-xs text-gray-400 dark:text-gray-500 font-mono">{item.code_barre_serial || '—'}</td>
+      <td className="px-3 py-2.5 text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 whitespace-nowrap">{fmtDate(item.date_achat)}</td>
+      <td className="px-3 py-2.5 text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 text-right whitespace-nowrap">
         {item.prix_achat != null ? `${Number(item.prix_achat).toFixed(2)} €` : '—'}
       </td>
-      <td className="px-3 py-2.5 text-xs text-gray-400">{fmtAge(item.age_jours)}</td>
-      <td className="px-3 py-2.5 text-xs text-gray-500 max-w-[200px] truncate" title={caract}>{caract || '—'}</td>
+      <td className="px-3 py-2.5 text-xs text-gray-400 dark:text-gray-500">{fmtAge(item.age_jours)}</td>
+      <td className="px-3 py-2.5 text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 max-w-[200px] truncate" title={caract}>{caract || '—'}</td>
       <td className="px-3 py-2.5">
         {item.etat
-          ? <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${ETAT_COLORS[item.etat] ?? 'bg-gray-100 text-gray-600'}`}>{item.etat}</span>
+          ? <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${ETAT_COLORS[item.etat] ?? 'bg-gray-100 text-gray-600 dark:text-gray-300'}`}>{item.etat}</span>
           : <span className="text-xs text-gray-300">—</span>
         }
       </td>
       <td className="px-3 py-2.5 text-right">
         <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
           <button onClick={onEdit}
-            className="p-1.5 text-gray-400 hover:text-grow-600 hover:bg-grow-50 rounded"
+            className="p-1.5 text-gray-400 dark:text-gray-500 hover:text-grow-600 hover:bg-grow-50 rounded"
             title="Modifier"><Pencil size={13} /></button>
           <button onClick={() => setConfirm(true)}
-            className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded"
+            className="p-1.5 text-gray-400 dark:text-gray-500 hover:text-red-500 hover:bg-red-50 rounded"
             title="Supprimer"><Trash2 size={13} /></button>
         </div>
       </td>
@@ -167,52 +167,52 @@ function GroupRow({
   const [open, setOpen] = useState(false)
   return (
     <>
-      <tr className="bg-gray-50 hover:bg-gray-100 cursor-pointer" onClick={() => setOpen(o => !o)}>
-        <td className="px-3 py-2.5 text-xs text-gray-400 font-mono w-8">
+      <tr className="bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer" onClick={() => setOpen(o => !o)}>
+        <td className="px-3 py-2.5 text-xs text-gray-400 dark:text-gray-500 font-mono w-8">
           {open ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
         </td>
-        <td className="px-3 py-2.5 text-sm font-semibold text-gray-800">
+        <td className="px-3 py-2.5 text-sm font-semibold text-gray-800 dark:text-gray-100">
           <span className="mr-1">{CAT_ICONS[categorie] ?? '📦'}</span>
           {nom}
         </td>
-        <td className="px-3 py-2.5 text-xs text-gray-500">{marque || '—'}</td>
+        <td className="px-3 py-2.5 text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">{marque || '—'}</td>
         <td className="px-3 py-2.5">
           <span className="inline-flex items-center gap-1 bg-grow-100 text-grow-700 text-xs font-semibold px-2 py-0.5 rounded-full">
             <Hash size={10} /> {count}
           </span>
         </td>
-        <td className="px-3 py-2.5 text-xs text-gray-400" colSpan={2}>
+        <td className="px-3 py-2.5 text-xs text-gray-400 dark:text-gray-500" colSpan={2}>
           {avgPrix != null ? `moy. ${avgPrix.toFixed(2)} €` : '—'}
         </td>
         <td colSpan={4} />
       </tr>
       {open && items.map(item => (
-        <tr key={item.id_materiel} className="hover:bg-blue-50 group bg-white border-l-4 border-blue-100">
+        <tr key={item.id_materiel} className="hover:bg-blue-50 group bg-white dark:bg-gray-800 border-l-4 border-blue-100">
           <td className="px-3 py-2 text-xs text-gray-300 font-mono pl-8">#{item.id_materiel}</td>
-          <td className="px-3 py-2 text-xs text-gray-600 pl-6">
+          <td className="px-3 py-2 text-xs text-gray-600 dark:text-gray-300 pl-6">
             S/N: {item.code_barre_serial || '—'}
           </td>
-          <td className="px-3 py-2 text-xs text-gray-400">{fmtDate(item.date_achat)}</td>
-          <td className="px-3 py-2 text-xs text-gray-500 text-right">
+          <td className="px-3 py-2 text-xs text-gray-400 dark:text-gray-500">{fmtDate(item.date_achat)}</td>
+          <td className="px-3 py-2 text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 text-right">
             {item.prix_achat != null ? `${Number(item.prix_achat).toFixed(2)} €` : '—'}
           </td>
-          <td className="px-3 py-2 text-xs text-gray-400">{fmtAge(item.age_jours)}</td>
-          <td className="px-3 py-2 text-xs text-gray-400 max-w-[180px] truncate"
+          <td className="px-3 py-2 text-xs text-gray-400 dark:text-gray-500">{fmtAge(item.age_jours)}</td>
+          <td className="px-3 py-2 text-xs text-gray-400 dark:text-gray-500 max-w-[180px] truncate"
               title={formatCaract(item.caracteristiques as Record<string, unknown> | null, item.categorie)}>
             {formatCaract(item.caracteristiques as Record<string, unknown> | null, item.categorie) || '—'}
           </td>
           <td className="px-3 py-2">
             {item.etat
-              ? <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${ETAT_COLORS[item.etat] ?? 'bg-gray-100 text-gray-600'}`}>{item.etat}</span>
+              ? <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${ETAT_COLORS[item.etat] ?? 'bg-gray-100 text-gray-600 dark:text-gray-300'}`}>{item.etat}</span>
               : null}
           </td>
           <td className="px-3 py-2 text-right" colSpan={2}>
             <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
               <button onClick={() => onEdit(item)}
-                className="p-1 text-gray-400 hover:text-grow-600 hover:bg-grow-50 rounded"><Pencil size={12} /></button>
+                className="p-1 text-gray-400 dark:text-gray-500 hover:text-grow-600 hover:bg-grow-50 rounded"><Pencil size={12} /></button>
               <button onClick={() => {
                 materielAPI.delete(item.id_materiel).then(onDeleted)
-              }} className="p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded"><Trash2 size={12} /></button>
+              }} className="p-1 text-gray-400 dark:text-gray-500 hover:text-red-500 hover:bg-red-50 rounded"><Trash2 size={12} /></button>
             </div>
           </td>
         </tr>
@@ -248,13 +248,13 @@ function VapoCard({
   const compats = (vapo.compatibilites ?? '').split(',').filter(Boolean)
 
   return (
-    <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+    <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm overflow-hidden">
       {/* Header */}
       <div className="px-5 py-4 flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
             <span className="text-xl">💨</span>
-            <h3 className="text-base font-bold text-gray-900 truncate">{vapo.nom}</h3>
+            <h3 className="text-base font-bold text-gray-900 dark:text-gray-100 truncate">{vapo.nom}</h3>
           </div>
           <div className="flex flex-wrap gap-1.5 mt-2">
             {vapo.type_chauffe && (
@@ -273,7 +273,7 @@ function VapoCard({
               </span>
             )}
             {vapo.type_charge && (
-              <span className="inline-flex items-center gap-1 text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">
+              <span className="inline-flex items-center gap-1 text-xs bg-gray-100 text-gray-600 dark:text-gray-300 px-2 py-0.5 rounded-full">
                 <Zap size={10} /> {vapo.type_charge}
               </span>
             )}
@@ -286,7 +286,7 @@ function VapoCard({
         </div>
         <div className="flex items-center gap-1 shrink-0">
           <button onClick={onEdit}
-            className="p-1.5 text-gray-400 hover:text-grow-600 hover:bg-grow-50 rounded-lg" title="Modifier">
+            className="p-1.5 text-gray-400 dark:text-gray-500 hover:text-grow-600 hover:bg-grow-50 rounded-lg" title="Modifier">
             <Pencil size={13} />
           </button>
           {confirm ? (
@@ -296,11 +296,11 @@ function VapoCard({
                 {deleteMut.isPending ? <Loader2 size={10} className="animate-spin" /> : 'OK'}
               </button>
               <button onClick={() => setConfirm(false)}
-                className="px-2 py-1 border text-gray-600 text-xs rounded-lg">✕</button>
+                className="px-2 py-1 border text-gray-600 dark:text-gray-300 text-xs rounded-lg">✕</button>
             </div>
           ) : (
             <button onClick={() => setConfirm(true)}
-              className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg">
+              className="p-1.5 text-gray-400 dark:text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-lg">
               <Trash2 size={13} />
             </button>
           )}
@@ -308,34 +308,34 @@ function VapoCard({
       </div>
 
       {/* Stats rapides */}
-      <div className="px-5 pb-3 grid grid-cols-4 gap-2 text-center border-t border-gray-50">
+      <div className="px-5 pb-3 grid grid-cols-4 gap-2 text-center border-t border-gray-50 dark:border-gray-700">
         <div className="py-2">
-          <p className="text-xs text-gray-400">Sessions</p>
-          <p className="text-base font-bold text-gray-800">{vapo.nbr_sessions ?? 0}</p>
+          <p className="text-xs text-gray-400 dark:text-gray-500">Sessions</p>
+          <p className="text-base font-bold text-gray-800 dark:text-gray-100">{vapo.nbr_sessions ?? 0}</p>
         </div>
         <div className="py-2">
-          <p className="text-xs text-gray-400">Temp.</p>
-          <p className="text-base font-bold text-gray-800">
+          <p className="text-xs text-gray-400 dark:text-gray-500">Temp.</p>
+          <p className="text-base font-bold text-gray-800 dark:text-gray-100">
             {vapo.temp_min && vapo.temp_max ? `${vapo.temp_min}–${vapo.temp_max}°` : '—'}
           </p>
         </div>
         <div className="py-2">
-          <p className="text-xs text-gray-400">Chauffe</p>
-          <p className="text-base font-bold text-gray-800">
+          <p className="text-xs text-gray-400 dark:text-gray-500">Chauffe</p>
+          <p className="text-base font-bold text-gray-800 dark:text-gray-100">
             {vapo.temps_chauffe_s ? `${vapo.temps_chauffe_s}s` : '—'}
           </p>
         </div>
         <div className="py-2">
-          <p className="text-xs text-gray-400">Autonomie</p>
-          <p className="text-base font-bold text-gray-800">
+          <p className="text-xs text-gray-400 dark:text-gray-500">Autonomie</p>
+          <p className="text-base font-bold text-gray-800 dark:text-gray-100">
             {vapo.autonomie_sessions ? `${vapo.autonomie_sessions} sess.` : vapo.autonomie_mah ? `${vapo.autonomie_mah} mAh` : '—'}
           </p>
         </div>
       </div>
 
       {/* Footer */}
-      <div className="px-5 py-2.5 bg-gray-50 border-t border-gray-100 flex items-center justify-between">
-        <div className="flex items-center gap-3 text-xs text-gray-400">
+      <div className="px-5 py-2.5 bg-gray-50 dark:bg-gray-700/50 border-t border-gray-100 dark:border-gray-700 flex items-center justify-between">
+        <div className="flex items-center gap-3 text-xs text-gray-400 dark:text-gray-500">
           {vapo.prix_achat != null && <span>{Number(vapo.prix_achat).toFixed(0)} €</span>}
           {vapo.date_achat && <span>{new Date(vapo.date_achat).toLocaleDateString('fr-FR')}</span>}
           {vapo.numero_serie && <span className="font-mono">SN: {vapo.numero_serie}</span>}
@@ -357,11 +357,11 @@ function VapoCard({
 
       {/* Consommables expandables */}
       {expanded && vapo.consommables.length > 0 && (
-        <div className="px-5 py-3 border-t border-gray-100 space-y-1.5">
+        <div className="px-5 py-3 border-t border-gray-100 dark:border-gray-700 space-y-1.5">
           {vapo.consommables.map(c => (
-            <div key={c.id_consommable} className="flex items-center justify-between text-xs text-gray-600 bg-gray-50 rounded-lg px-3 py-1.5">
+            <div key={c.id_consommable} className="flex items-center justify-between text-xs text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-700/50 rounded-lg px-3 py-1.5">
               <span className="font-medium">{c.type_consommable}</span>
-              <div className="flex items-center gap-2 text-gray-400">
+              <div className="flex items-center gap-2 text-gray-400 dark:text-gray-500">
                 {c.matiere && <span>{c.matiere}</span>}
                 {c.diametre_mm && <span>⌀{c.diametre_mm} mm</span>}
                 {c.prix_achat != null && <span>{Number(c.prix_achat).toFixed(2)} €</span>}
@@ -466,11 +466,11 @@ export default function MaterielPage() {
 
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-        <h1 className="text-3xl font-bold text-gray-900">Matériel</h1>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Matériel</h1>
         <div className="flex items-center gap-2">
           {activeTab === 'materiel' && (
             <button onClick={() => setShowImportExport(true)}
-              className="flex items-center gap-2 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 text-sm font-medium">
+              className="flex items-center gap-2 px-4 py-2.5 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700/40 text-sm font-medium">
               <ArrowUpDown size={15} /> Import / Export
             </button>
           )}
@@ -489,15 +489,15 @@ export default function MaterielPage() {
       <div className="flex items-center gap-1 bg-gray-100 rounded-xl p-1 w-fit">
         <button onClick={() => setActiveTab('materiel')}
           className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-            activeTab === 'materiel' ? 'bg-white shadow text-gray-900' : 'text-gray-500 hover:text-gray-700'
+            activeTab === 'materiel' ? 'bg-white dark:bg-gray-800 shadow text-gray-900 dark:text-gray-100' : 'text-gray-500 dark:text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:text-gray-200'
           }`}>
-          <Wrench size={14} /> Matériel <span className="text-xs text-gray-400">({items.length})</span>
+          <Wrench size={14} /> Matériel <span className="text-xs text-gray-400 dark:text-gray-500">({items.length})</span>
         </button>
         <button onClick={() => setActiveTab('vaporisateurs')}
           className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-            activeTab === 'vaporisateurs' ? 'bg-white shadow text-gray-900' : 'text-gray-500 hover:text-gray-700'
+            activeTab === 'vaporisateurs' ? 'bg-white dark:bg-gray-800 shadow text-gray-900 dark:text-gray-100' : 'text-gray-500 dark:text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:text-gray-200'
           }`}>
-          <Wind size={14} /> Vaporisateurs <span className="text-xs text-gray-400">({vapos.length})</span>
+          <Wind size={14} /> Vaporisateurs <span className="text-xs text-gray-400 dark:text-gray-500">({vapos.length})</span>
         </button>
       </div>
 
@@ -507,41 +507,41 @@ export default function MaterielPage() {
       {/* Stats cartes */}
       {stats.total > 0 && (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex items-center gap-3">
+          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm p-4 flex items-center gap-3">
             <div className="p-2.5 bg-grow-50 rounded-xl"><Wrench size={18} className="text-grow-600" /></div>
-            <div><p className="text-xs text-gray-400">Total matériel</p><p className="text-xl font-bold text-grow-700">{stats.total}</p></div>
+            <div><p className="text-xs text-gray-400 dark:text-gray-500">Total matériel</p><p className="text-xl font-bold text-grow-700">{stats.total}</p></div>
           </div>
-          <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex items-center gap-3">
+          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm p-4 flex items-center gap-3">
             <div className="p-2.5 bg-blue-50 rounded-xl"><Euro size={18} className="text-blue-600" /></div>
-            <div><p className="text-xs text-gray-400">Valeur totale</p><p className="text-xl font-bold text-blue-700">{stats.valeurTot.toFixed(0)} €</p></div>
+            <div><p className="text-xs text-gray-400 dark:text-gray-500">Valeur totale</p><p className="text-xl font-bold text-blue-700">{stats.valeurTot.toFixed(0)} €</p></div>
           </div>
-          <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex items-center gap-3">
+          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm p-4 flex items-center gap-3">
             <div className="p-2.5 bg-purple-50 rounded-xl"><Tag size={18} className="text-purple-600" /></div>
-            <div><p className="text-xs text-gray-400">Catégories</p><p className="text-xl font-bold text-purple-700">{Object.values(stats.byCat).filter(n => n > 0).length}</p></div>
+            <div><p className="text-xs text-gray-400 dark:text-gray-500">Catégories</p><p className="text-xl font-bold text-purple-700">{Object.values(stats.byCat).filter(n => n > 0).length}</p></div>
           </div>
-          <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex items-center gap-3">
+          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm p-4 flex items-center gap-3">
             <div className="p-2.5 bg-red-50 rounded-xl"><AlertTriangle size={18} className="text-red-500" /></div>
-            <div><p className="text-xs text-gray-400">Hors service</p><p className="text-xl font-bold text-red-600">{stats.horsService}</p></div>
+            <div><p className="text-xs text-gray-400 dark:text-gray-500">Hors service</p><p className="text-xl font-bold text-red-600">{stats.horsService}</p></div>
           </div>
         </div>
       )}
 
       {/* Filtres + vue */}
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-        <div className="px-5 pt-4 pb-3 flex flex-wrap items-center gap-3 border-b border-gray-100">
+      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm overflow-hidden">
+        <div className="px-5 pt-4 pb-3 flex flex-wrap items-center gap-3 border-b border-gray-100 dark:border-gray-700">
           <input
             type="text" placeholder="Rechercher…" value={search} onChange={e => setSearch(e.target.value)}
-            className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-grow-400 w-48"
+            className="text-sm border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-grow-400 w-48"
           />
           <select value={catFilter} onChange={e => setCatFilter(e.target.value)}
-            className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-grow-400 bg-white">
+            className="text-sm border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-grow-400 bg-white dark:bg-gray-800">
             <option value="all">Toutes les catégories</option>
             {CATEGORIES.map(c => (
               <option key={c} value={c}>{CAT_ICONS[c]} {c} ({stats.byCat[c] ?? 0})</option>
             ))}
           </select>
           <select value={etatFilter} onChange={e => setEtatFilter(e.target.value)}
-            className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-grow-400 bg-white">
+            className="text-sm border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-grow-400 bg-white dark:bg-gray-800">
             <option value="all">Tous les états</option>
             <option>Neuf</option>
             <option>Bon état</option>
@@ -551,7 +551,7 @@ export default function MaterielPage() {
           <div className="ml-auto flex items-center gap-1 bg-gray-100 rounded-lg p-1">
             {(['liste', 'groupe'] as const).map(mode => (
               <button key={mode} onClick={() => setViewMode(mode)}
-                className={`text-xs px-3 py-1 rounded-md font-medium transition-colors ${viewMode === mode ? 'bg-white shadow text-gray-800' : 'text-gray-500 hover:text-gray-700'}`}>
+                className={`text-xs px-3 py-1 rounded-md font-medium transition-colors ${viewMode === mode ? 'bg-white dark:bg-gray-800 shadow text-gray-800 dark:text-gray-100' : 'text-gray-500 dark:text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:text-gray-200'}`}>
                 {mode === 'liste' ? 'Liste' : 'Groupé'}
               </button>
             ))}
@@ -564,7 +564,7 @@ export default function MaterielPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-gray-50 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                <tr className="bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-700 text-xs font-semibold text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase tracking-wide">
                   {viewMode === 'liste' ? (
                     <>
                       <th className="px-3 py-2.5 text-left">#</th>
@@ -589,7 +589,7 @@ export default function MaterielPage() {
                   )}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                 {viewMode === 'liste'
                   ? filtered.map(item => (
                       <ItemRow key={item.id_materiel} item={item}
@@ -612,7 +612,7 @@ export default function MaterielPage() {
         )}
 
         {filtered.length > 0 && (
-          <div className="px-5 py-3 border-t border-gray-100 text-xs text-gray-400">
+          <div className="px-5 py-3 border-t border-gray-100 dark:border-gray-700 text-xs text-gray-400 dark:text-gray-500">
             {filtered.length} élément{filtered.length > 1 ? 's' : ''}
             {catFilter !== 'all' && ` · ${catFilter}`}
           </div>
@@ -637,32 +637,32 @@ export default function MaterielPage() {
         {/* Stats vapos */}
         {vapos.length > 0 && (
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex items-center gap-3">
+            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm p-4 flex items-center gap-3">
               <div className="p-2.5 bg-grow-50 rounded-xl"><Wind size={18} className="text-grow-600" /></div>
-              <div><p className="text-xs text-gray-400">Vaporisateurs</p><p className="text-xl font-bold text-grow-700">{vapos.length}</p></div>
+              <div><p className="text-xs text-gray-400 dark:text-gray-500">Vaporisateurs</p><p className="text-xl font-bold text-grow-700">{vapos.length}</p></div>
             </div>
-            <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex items-center gap-3">
+            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm p-4 flex items-center gap-3">
               <div className="p-2.5 bg-blue-50 rounded-xl"><Euro size={18} className="text-blue-600" /></div>
               <div>
-                <p className="text-xs text-gray-400">Valeur totale</p>
+                <p className="text-xs text-gray-400 dark:text-gray-500">Valeur totale</p>
                 <p className="text-xl font-bold text-blue-700">
                   {vapos.filter(v => v.prix_achat != null).reduce((s, v) => s + Number(v.prix_achat), 0).toFixed(0)} €
                 </p>
               </div>
             </div>
-            <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex items-center gap-3">
+            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm p-4 flex items-center gap-3">
               <div className="p-2.5 bg-purple-50 rounded-xl"><Zap size={18} className="text-purple-600" /></div>
               <div>
-                <p className="text-xs text-gray-400">Sessions totales</p>
+                <p className="text-xs text-gray-400 dark:text-gray-500">Sessions totales</p>
                 <p className="text-xl font-bold text-purple-700">
                   {vapos.reduce((s, v) => s + (v.nbr_sessions ?? 0), 0)}
                 </p>
               </div>
             </div>
-            <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex items-center gap-3">
+            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm p-4 flex items-center gap-3">
               <div className="p-2.5 bg-orange-50 rounded-xl"><Package size={18} className="text-orange-500" /></div>
               <div>
-                <p className="text-xs text-gray-400">Consommables</p>
+                <p className="text-xs text-gray-400 dark:text-gray-500">Consommables</p>
                 <p className="text-xl font-bold text-orange-600">
                   {vapos.reduce((s, v) => s + v.consommables.length, 0)}
                 </p>
@@ -675,7 +675,7 @@ export default function MaterielPage() {
         <div className="flex items-center gap-3">
           <input type="text" placeholder="Rechercher un vapo…"
             value={vapoSearch} onChange={e => setVapoSearch(e.target.value)}
-            className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-grow-400 w-56" />
+            className="text-sm border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-grow-400 w-56" />
         </div>
 
         {/* Grille de cartes */}

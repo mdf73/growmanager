@@ -65,12 +65,12 @@ function NoteSlider({
   return (
     <div className="space-y-1">
       <div className="flex items-center justify-between">
-        <label className="text-sm font-medium text-gray-700">{label}</label>
+        <label className="text-sm font-medium text-gray-700 dark:text-gray-200">{label}</label>
         <span className="text-sm font-bold text-grow-600">
           {(value ?? 0).toFixed(1)} / {max}
         </span>
       </div>
-      {hint && <p className="text-xs text-gray-400">{hint}</p>}
+      {hint && <p className="text-xs text-gray-400 dark:text-gray-500">{hint}</p>}
       <input
         type="range"
         min={0}
@@ -80,7 +80,7 @@ function NoteSlider({
         onChange={e => onChange(parseFloat(e.target.value))}
         className="w-full accent-grow-600"
       />
-      <div className="flex justify-between text-xs text-gray-400">
+      <div className="flex justify-between text-xs text-gray-400 dark:text-gray-500">
         <span>0</span>
         <span>{max / 2}</span>
         <span>{max}</span>
@@ -204,16 +204,16 @@ function NotationFormModal({ initial, onClose, onSave, saving, varietes, breeder
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-start justify-center p-4 overflow-y-auto">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl my-4">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-2xl my-4">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b">
           <div className="flex items-center gap-3">
             <Trophy size={22} className="text-yellow-500" />
-            <h2 className="text-xl font-bold text-gray-800">
+            <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">
               {initial ? 'Modifier la notation' : 'Nouvelle notation'}
             </h2>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg">
+          <button onClick={onClose} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
             <X size={20} />
           </button>
         </div>
@@ -224,7 +224,7 @@ function NotationFormModal({ initial, onClose, onSave, saving, varietes, breeder
 
             {/* Variété */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                 Variété <span className="text-red-500">*</span>
               </label>
               <select
@@ -237,7 +237,7 @@ function NotationFormModal({ initial, onClose, onSave, saving, varietes, breeder
                     handleVarieteChange(e.target.value)
                   }
                 }}
-                className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-grow-500 bg-white ${
+                className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-grow-500 bg-white dark:bg-gray-800 ${
                   formError && !form.nom_variete ? 'border-red-400 ring-1 ring-red-400' : ''
                 }`}
               >
@@ -255,7 +255,7 @@ function NotationFormModal({ initial, onClose, onSave, saving, varietes, breeder
 
             {/* Breeder */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Breeder</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Breeder</label>
               <select
                 value={hasUnknownBreeder ? '__custom__' : (form.breeder ?? '')}
                 onChange={e => {
@@ -265,7 +265,7 @@ function NotationFormModal({ initial, onClose, onSave, saving, varietes, breeder
                     set('breeder', e.target.value)
                   }
                 }}
-                className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-grow-500 bg-white"
+                className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-grow-500 bg-white dark:bg-gray-800"
               >
                 <option value="">— Choisir un breeder —</option>
                 {sortedBreeders.map(b => (
@@ -281,7 +281,7 @@ function NotationFormModal({ initial, onClose, onSave, saving, varietes, breeder
 
             {/* Date */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Date de notation</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Date de notation</label>
               <input
                 type="date"
                 value={form.date_notation ?? ''}
@@ -363,8 +363,8 @@ function NotationFormModal({ initial, onClose, onSave, saving, varietes, breeder
           </div>
 
           {/* ── Score synthèse ── */}
-          <div className="bg-gray-50 rounded-xl p-4 flex items-center justify-between">
-            <span className="text-sm text-gray-600">Note finale estimée</span>
+          <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4 flex items-center justify-between">
+            <span className="text-sm text-gray-600 dark:text-gray-300">Note finale estimée</span>
             <span
               className={`text-2xl font-black ${
                 notaFinale >= 80
@@ -384,14 +384,14 @@ function NotationFormModal({ initial, onClose, onSave, saving, varietes, breeder
 
           {/* ── Données labo (optionnel) ── */}
           <details className="border rounded-xl">
-            <summary className="flex items-center gap-2 cursor-pointer px-4 py-3 text-sm font-medium text-gray-700 select-none">
+            <summary className="flex items-center gap-2 cursor-pointer px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-200 select-none">
               <FlaskConical size={16} className="text-blue-500" />
               Données Labo (optionnel — informatif, n'impacte pas la note)
             </summary>
             <div className="p-4 space-y-3">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">THC %</label>
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">THC %</label>
                   <input
                     type="number"
                     step="0.1"
@@ -404,7 +404,7 @@ function NotationFormModal({ initial, onClose, onSave, saving, varietes, breeder
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">CBD %</label>
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">CBD %</label>
                   <input
                     type="number"
                     step="0.1"
@@ -418,8 +418,8 @@ function NotationFormModal({ initial, onClose, onSave, saving, varietes, breeder
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-2">
-                  Terpènes <span className="text-gray-400 font-normal">(sélectionner un ou plusieurs)</span>
+                <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-2">
+                  Terpènes <span className="text-gray-400 dark:text-gray-500 font-normal">(sélectionner un ou plusieurs)</span>
                 </label>
                 <TerpeneMultiSelect
                   value={form.terpene_dominant ?? ''}
@@ -427,7 +427,7 @@ function NotationFormModal({ initial, onClose, onSave, saving, varietes, breeder
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Commentaire labo</label>
+                <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Commentaire labo</label>
                 <input
                   type="text"
                   value={form.commentaire_labo ?? ''}
@@ -441,7 +441,7 @@ function NotationFormModal({ initial, onClose, onSave, saving, varietes, breeder
 
           {/* Notes générales */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Notes générales</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Notes générales</label>
             <textarea
               value={form.notes_generales ?? ''}
               onChange={e => set('notes_generales', e.target.value)}
@@ -463,7 +463,7 @@ function NotationFormModal({ initial, onClose, onSave, saving, varietes, breeder
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 border rounded-lg text-sm text-gray-700 hover:bg-gray-50"
+              className="px-4 py-2 border rounded-lg text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/40"
             >
               Annuler
             </button>
@@ -503,7 +503,7 @@ function DetailModal({
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-start justify-center p-4 overflow-y-auto">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg my-4">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-lg my-4">
         {/* Header */}
         <div
           className={`rounded-t-2xl p-6 text-white ${
@@ -580,20 +580,20 @@ function DetailModal({
 
           {/* Partie A — Culture */}
           <div>
-            <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
+            <h4 className="text-sm font-semibold text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase tracking-wide mb-3">
               🌿 Partie A — Culture (/30)
             </h4>
             <div className="space-y-2">
               <div>
-                <p className="text-xs text-gray-500 mb-1">Vigueur & Santé</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 mb-1">Vigueur & Santé</p>
                 <ScoreBar value={notation.vigueur_sante} max={10} />
               </div>
               <div>
-                <p className="text-xs text-gray-500 mb-1">Productivité & Structure</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 mb-1">Productivité & Structure</p>
                 <ScoreBar value={notation.productivite_structure} max={10} />
               </div>
               <div>
-                <p className="text-xs text-gray-500 mb-1">💧 Soif (sobriété en arrosage)</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 mb-1">💧 Soif (sobriété en arrosage)</p>
                 <ScoreBar value={notation.soif} max={10} />
               </div>
             </div>
@@ -601,24 +601,24 @@ function DetailModal({
 
           {/* Partie B — Consommation */}
           <div>
-            <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
+            <h4 className="text-sm font-semibold text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase tracking-wide mb-3">
               💨 Partie B — Consommation (/70)
             </h4>
             <div className="space-y-2">
               <div>
-                <p className="text-xs text-gray-500 mb-1">Apparence & Structure (/15)</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 mb-1">Apparence & Structure (/15)</p>
                 <ScoreBar value={notation.apparence_structure} max={15} />
               </div>
               <div>
-                <p className="text-xs text-gray-500 mb-1">Profil Aromatique & Terpènes (/15)</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 mb-1">Profil Aromatique & Terpènes (/15)</p>
                 <ScoreBar value={notation.profil_aromatique} max={15} />
               </div>
               <div>
-                <p className="text-xs text-gray-500 mb-1">Saveur & Qualité de Fumée (/20)</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 mb-1">Saveur & Qualité de Fumée (/20)</p>
                 <ScoreBar value={notation.saveur_qualite} max={20} />
               </div>
               <div>
-                <p className="text-xs text-gray-500 mb-1">Effet & Puissance (/20)</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 mb-1">Effet & Puissance (/20)</p>
                 <ScoreBar value={notation.effet_puissance} max={20} />
               </div>
             </div>
@@ -633,12 +633,12 @@ function DetailModal({
               {(notation.taux_thc || notation.taux_cbd) && (
                 <div className="flex items-center gap-4">
                   {notation.taux_thc && (
-                    <span className="text-sm text-gray-700">
+                    <span className="text-sm text-gray-700 dark:text-gray-200">
                       <span className="font-medium">THC :</span> {notation.taux_thc}%
                     </span>
                   )}
                   {notation.taux_cbd && (
-                    <span className="text-sm text-gray-700">
+                    <span className="text-sm text-gray-700 dark:text-gray-200">
                       <span className="font-medium">CBD :</span> {notation.taux_cbd}%
                     </span>
                   )}
@@ -646,23 +646,23 @@ function DetailModal({
               )}
               {notation.terpene_dominant && parseTerpenes(notation.terpene_dominant).length > 0 && (
                 <div>
-                  <p className="text-xs font-medium text-gray-500 mb-1.5">
+                  <p className="text-xs font-medium text-gray-500 dark:text-gray-400 dark:text-gray-500 mb-1.5">
                     Terpène{parseTerpenes(notation.terpene_dominant).length > 1 ? 's' : ''} :
                   </p>
                   <TerpeneBadges csv={notation.terpene_dominant} />
                 </div>
               )}
               {notation.commentaire_labo && (
-                <p className="text-sm text-gray-600 italic">{notation.commentaire_labo}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-300 italic">{notation.commentaire_labo}</p>
               )}
             </div>
           )}
 
           {/* Notes */}
           {notation.notes_generales && (
-            <div className="bg-gray-50 rounded-xl p-4">
-              <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Notes</h4>
-              <p className="text-sm text-gray-700 whitespace-pre-line">{notation.notes_generales}</p>
+            <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4">
+              <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase tracking-wide mb-1">Notes</h4>
+              <p className="text-sm text-gray-700 dark:text-gray-200 whitespace-pre-line">{notation.notes_generales}</p>
             </div>
           )}
 
@@ -670,7 +670,7 @@ function DetailModal({
           <div className="flex items-center justify-between pt-2 border-t">
             <button
               onClick={onClose}
-              className="px-4 py-2 border rounded-lg text-sm text-gray-700 hover:bg-gray-50"
+              className="px-4 py-2 border rounded-lg text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/40"
             >
               Fermer
             </button>
@@ -701,7 +701,7 @@ function RankBadge({ rank }: { rank: number }) {
   if (rank === 1) return <span className="text-xl">🥇</span>
   if (rank === 2) return <span className="text-xl">🥈</span>
   if (rank === 3) return <span className="text-xl">🥉</span>
-  return <span className="text-sm font-bold text-gray-500 w-7 text-center">{rank}</span>
+  return <span className="text-sm font-bold text-gray-500 dark:text-gray-400 dark:text-gray-500 w-7 text-center">{rank}</span>
 }
 
 // ── Page principale ───────────────────────────────────────────────────────────
@@ -789,18 +789,18 @@ export default function ClassementVarietes() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
             <Trophy size={24} className="text-yellow-500" />
             Classement des variétés
           </h1>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500 mt-1">
             {notations.length} variété{notations.length !== 1 ? 's' : ''} notée{notations.length !== 1 ? 's' : ''} · Score sur 100 pts (Culture /30 + Consommation /70)
           </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           <button
             onClick={notationVarieteAPI.exportCsv}
-            className="flex items-center gap-1.5 px-3 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm hover:bg-gray-50"
+            className="flex items-center gap-1.5 px-3 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-700/40"
           >
             <Download size={15} /> Export CSV
           </button>
@@ -826,17 +826,17 @@ export default function ClassementVarietes() {
 
       {/* Tableau de classement */}
       {isLoading ? (
-        <div className="text-center py-20 text-gray-400">Chargement…</div>
+        <div className="text-center py-20 text-gray-400 dark:text-gray-500">Chargement…</div>
       ) : filtered.length === 0 ? (
         <div className="text-center py-20">
           <Trophy size={40} className="mx-auto text-gray-300 mb-3" />
-          <p className="text-gray-500 font-medium">Aucune notation encore enregistrée</p>
-          <p className="text-gray-400 text-sm mt-1">Cliquez sur "Ajouter une notation" pour commencer le classement</p>
+          <p className="text-gray-500 dark:text-gray-400 dark:text-gray-500 font-medium">Aucune notation encore enregistrée</p>
+          <p className="text-gray-400 dark:text-gray-500 text-sm mt-1">Cliquez sur "Ajouter une notation" pour commencer le classement</p>
         </div>
       ) : (
-        <div className="bg-white rounded-2xl shadow-sm border overflow-hidden">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border overflow-hidden">
           {/* En-tête tableau */}
-          <div className="hidden sm:grid sm:grid-cols-[56px_1fr_120px_120px_120px] gap-3 px-5 py-3 bg-gray-50 border-b text-xs font-semibold text-gray-500 uppercase tracking-wide">
+          <div className="hidden sm:grid sm:grid-cols-[56px_1fr_120px_120px_120px] gap-3 px-5 py-3 bg-gray-50 dark:bg-gray-700/50 border-b text-xs font-semibold text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase tracking-wide">
             <div className="text-center">#</div>
             <div>Variété</div>
             <div className="text-center">🌿 Culture</div>
@@ -855,7 +855,7 @@ export default function ClassementVarietes() {
                 <button
                   key={n.id_notation}
                   onClick={() => setDetailTarget(n)}
-                  className={`w-full text-left transition-colors hover:bg-gray-50 ${
+                  className={`w-full text-left transition-colors hover:bg-gray-50 dark:hover:bg-gray-700/40 ${
                     isTop ? 'bg-yellow-50 hover:bg-yellow-100' : ''
                   }`}
                 >
@@ -863,10 +863,10 @@ export default function ClassementVarietes() {
                   <div className="sm:hidden flex items-center gap-3 px-4 py-3">
                     <RankBadge rank={i + 1} />
                     <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-gray-800 truncate">{n.nom_variete}</p>
+                      <p className="font-semibold text-gray-800 dark:text-gray-100 truncate">{n.nom_variete}</p>
                       <div className="flex flex-wrap items-center gap-1 mt-0.5">
                         {n.breeder && (
-                          <span className="text-xs text-gray-400">{n.breeder}</span>
+                          <span className="text-xs text-gray-400 dark:text-gray-500">{n.breeder}</span>
                         )}
                         {exStat?.avg_rosin_pct != null && (
                           <span className="text-xs bg-amber-100 text-amber-700 px-1 py-0.5 rounded-full">
@@ -884,7 +884,7 @@ export default function ClassementVarietes() {
                       <span className={`text-lg font-black ${scoreColor(pct)}`}>
                         {nf.toFixed(1)}
                       </span>
-                      <span className="text-xs text-gray-400"> /100</span>
+                      <span className="text-xs text-gray-400 dark:text-gray-500"> /100</span>
                     </div>
                   </div>
 
@@ -895,10 +895,10 @@ export default function ClassementVarietes() {
                     </div>
 
                     <div className="min-w-0">
-                      <p className="font-semibold text-gray-800 truncate">{n.nom_variete}</p>
+                      <p className="font-semibold text-gray-800 dark:text-gray-100 truncate">{n.nom_variete}</p>
                       <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
                         {n.breeder && (
-                          <span className="text-xs text-gray-400">{n.breeder}</span>
+                          <span className="text-xs text-gray-400 dark:text-gray-500">{n.breeder}</span>
                         )}
                         {n.taux_thc && (
                           <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full">
@@ -924,14 +924,14 @@ export default function ClassementVarietes() {
                     <div className="text-center">
                       <span className="text-sm font-semibold text-green-700">
                         {(n.total_culture ?? 0).toFixed(1)}
-                        <span className="font-normal text-gray-400">/30</span>
+                        <span className="font-normal text-gray-400 dark:text-gray-500">/30</span>
                       </span>
                     </div>
 
                     <div className="text-center">
                       <span className="text-sm font-semibold text-purple-700">
                         {(n.total_consommation ?? 0).toFixed(1)}
-                        <span className="font-normal text-gray-400">/70</span>
+                        <span className="font-normal text-gray-400 dark:text-gray-500">/70</span>
                       </span>
                     </div>
 
@@ -962,7 +962,7 @@ export default function ClassementVarietes() {
 
       {/* Légende */}
       {filtered.length > 0 && (
-        <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500">
+        <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">
           <span className="font-medium">Légende :</span>
           <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-full bg-emerald-500 inline-block"/> ≥ 80 — Excellente</span>
           <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-full bg-green-400 inline-block"/> ≥ 65 — Très bonne</span>

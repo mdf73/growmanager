@@ -36,7 +36,7 @@ function formatDate(iso: string, heures: number): string {
 }
 
 function vpdColor(vpd?: number): string {
-  if (vpd == null) return 'text-gray-400'
+  if (vpd == null) return 'text-gray-400 dark:text-gray-500'
   if (vpd < 0.4)  return 'text-blue-500'   // trop humide
   if (vpd < 0.8)  return 'text-green-500'  // seedling/clone
   if (vpd < 1.2)  return 'text-green-600'  // veg/early flo
@@ -75,18 +75,18 @@ function SensorCard({
         w-full text-left p-4 rounded-xl border-2 transition-all
         ${selected
           ? 'border-teal-500 bg-teal-50 shadow-md'
-          : 'border-gray-200 bg-white hover:border-teal-300 hover:shadow'}
+          : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-teal-300 hover:shadow'}
       `}
     >
       <div className="flex items-center justify-between mb-2">
-        <span className="font-semibold text-gray-800 text-sm truncate">{device.nom}</span>
+        <span className="font-semibold text-gray-800 dark:text-gray-100 text-sm truncate">{device.nom}</span>
         {isRecent
           ? <Wifi size={14} className="text-green-500 shrink-0" />
           : <WifiOff size={14} className="text-gray-300 shrink-0" />
         }
       </div>
       {device.nom_espace && (
-        <p className="text-xs text-gray-400 mb-2">{device.nom_espace}</p>
+        <p className="text-xs text-gray-400 dark:text-gray-500 mb-2">{device.nom_espace}</p>
       )}
 
       {device.derniere_temperature != null ? (
@@ -95,23 +95,23 @@ function SensorCard({
             <p className="text-lg font-bold text-orange-600">
               {device.derniere_temperature?.toFixed(1)}°
             </p>
-            <p className="text-xs text-gray-400">Temp</p>
+            <p className="text-xs text-gray-400 dark:text-gray-500">Temp</p>
           </div>
           <div className="text-center">
             <p className="text-lg font-bold text-blue-600">
               {device.derniere_humidite?.toFixed(0)}%
             </p>
-            <p className="text-xs text-gray-400">Hum</p>
+            <p className="text-xs text-gray-400 dark:text-gray-500">Hum</p>
           </div>
           <div className="text-center">
             <p className={`text-lg font-bold ${vpdColor(device.derniere_vpd)}`}>
               {device.derniere_vpd?.toFixed(2)}
             </p>
-            <p className="text-xs text-gray-400">VPD</p>
+            <p className="text-xs text-gray-400 dark:text-gray-500">VPD</p>
           </div>
         </div>
       ) : (
-        <p className="text-xs text-gray-400 text-center py-1">Aucune donnée</p>
+        <p className="text-xs text-gray-400 dark:text-gray-500 text-center py-1">Aucune donnée</p>
       )}
     </button>
   )
@@ -174,19 +174,19 @@ function SensorChart({
   }, [logs, prevLogs, heures, prevDateFin])
 
   if (isLoading) return (
-    <div className="h-64 flex items-center justify-center text-gray-400 text-sm">
+    <div className="h-64 flex items-center justify-center text-gray-400 dark:text-gray-500 text-sm">
       Chargement…
     </div>
   )
 
   if (chartData.length === 0) return (
-    <div className="h-64 flex items-center justify-center text-gray-400 text-sm">
+    <div className="h-64 flex items-center justify-center text-gray-400 dark:text-gray-500 text-sm">
       Aucune donnée sur la période sélectionnée
     </div>
   )
 
   const aggrLabel = heures > 48
-    ? <span className="ml-2 normal-case font-normal text-gray-400">(moyennes horaires)</span>
+    ? <span className="ml-2 normal-case font-normal text-gray-400 dark:text-gray-500">(moyennes horaires)</span>
     : null
 
   const prevYear = new Date(prevDateFin).getFullYear()
@@ -203,12 +203,12 @@ function SensorChart({
   const yearLegend = hasPrevData && (
     <div className="flex items-center gap-4 mb-4">
       {/* Trait plein = année courante */}
-      <span className="flex items-center gap-1.5 text-xs text-gray-500">
+      <span className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">
         <svg width="24" height="8"><line x1="0" y1="4" x2="24" y2="4" stroke="#6b7280" strokeWidth="2"/></svg>
         {new Date().getFullYear()}
       </span>
       {/* Trait pointillé = année N-1 */}
-      <span className="flex items-center gap-1.5 text-xs text-gray-500">
+      <span className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">
         <svg width="24" height="8"><line x1="0" y1="4" x2="24" y2="4" stroke="#9ca3af" strokeWidth="2" strokeDasharray="4 3"/></svg>
         {prevYear}
       </span>
@@ -217,7 +217,7 @@ function SensorChart({
         className={`ml-auto text-xs px-2 py-0.5 rounded-full border transition-colors
           ${showPrevYear
             ? 'bg-gray-700 text-white border-gray-700'
-            : 'bg-white text-gray-500 border-gray-300 hover:border-gray-500'}`}
+            : 'bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 dark:text-gray-500 border-gray-300 dark:border-gray-600 hover:border-gray-500'}`}
       >
         {showPrevYear ? `Masquer ${prevYear}` : `Afficher ${prevYear}`}
       </button>
@@ -382,9 +382,9 @@ function SensorChart({
             { range: '1.2–1.6',   label: 'Fin floraison', color: 'bg-amber-400'  },
             { range: '> 1.6',     label: 'Trop sec',      color: 'bg-red-400'    },
           ].map(z => (
-            <span key={z.range} className="flex items-center gap-1.5 text-xs text-gray-500">
+            <span key={z.range} className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">
               <span className={`w-2 h-2 rounded-full shrink-0 ${z.color}`} />
-              <span className="font-medium text-gray-600">{z.range}</span> {z.label}
+              <span className="font-medium text-gray-600 dark:text-gray-300">{z.range}</span> {z.label}
             </span>
           ))}
         </div>
@@ -404,21 +404,21 @@ function LiveStats({ device }: { device: GoveeDevice }) {
         <p className="text-2xl font-bold text-orange-600">
           {device.derniere_temperature != null ? `${device.derniere_temperature.toFixed(1)}°C` : '—'}
         </p>
-        <p className="text-xs text-gray-500">Température</p>
+        <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">Température</p>
       </div>
       <div className="bg-blue-50 rounded-xl p-3 text-center">
         <Droplets size={18} className="mx-auto text-blue-500 mb-1" />
         <p className="text-2xl font-bold text-blue-600">
           {device.derniere_humidite != null ? `${device.derniere_humidite.toFixed(0)}%` : '—'}
         </p>
-        <p className="text-xs text-gray-500">Humidité</p>
+        <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">Humidité</p>
       </div>
       <div className="bg-green-50 rounded-xl p-3 text-center">
         <Wind size={18} className="mx-auto text-green-500 mb-1" />
         <p className={`text-2xl font-bold ${vpdColor(device.derniere_vpd)}`}>
           {device.derniere_vpd != null ? `${device.derniere_vpd.toFixed(2)}` : '—'}
         </p>
-        <p className="text-xs text-gray-500">VPD kPa</p>
+        <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">VPD kPa</p>
         {device.derniere_vpd != null && (
           <p className={`text-xs font-medium mt-0.5 ${vpdColor(device.derniere_vpd)}`}>
             {vpdZone(device.derniere_vpd)}
@@ -464,16 +464,16 @@ function CsvImportPanel({
   }
 
   return (
-    <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-3">
+    <div className="bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-700 rounded-xl p-4 space-y-3">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm font-semibold text-gray-700">Importer l'historique CSV Govee</p>
-          <p className="text-xs text-gray-400">
-            Capteur : <span className="font-medium text-gray-600">{device.nom}</span>
+          <p className="text-sm font-semibold text-gray-700 dark:text-gray-200">Importer l'historique CSV Govee</p>
+          <p className="text-xs text-gray-400 dark:text-gray-500">
+            Capteur : <span className="font-medium text-gray-600 dark:text-gray-300">{device.nom}</span>
             {' — '}Export depuis l'app Govee Home → Historique → Exporter
           </p>
         </div>
-        <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+        <button onClick={onClose} className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:text-gray-300">
           <X size={16} />
         </button>
       </div>
@@ -492,7 +492,7 @@ function CsvImportPanel({
           flex items-center justify-center gap-2 w-full py-3 rounded-lg border-2 border-dashed
           text-sm font-medium cursor-pointer transition-colors
           ${importing
-            ? 'border-gray-200 text-gray-400 pointer-events-none'
+            ? 'border-gray-200 dark:border-gray-700 text-gray-400 dark:text-gray-500 pointer-events-none'
             : 'border-teal-300 text-teal-600 hover:border-teal-500 hover:bg-teal-50'}
         `}
       >
@@ -517,7 +517,7 @@ function CsvImportPanel({
         </div>
       )}
 
-      <p className="text-xs text-gray-400">
+      <p className="text-xs text-gray-400 dark:text-gray-500">
         Les relevés déjà présents (même horodatage) sont ignorés automatiquement.
         Formats pris en charge : export Govee Home (℃ ou ℉), séparateur virgule ou point-virgule.
       </p>
@@ -564,8 +564,8 @@ export default function SuiviConstantes() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">🌡 Suivi des Constantes</h1>
-          <p className="text-sm text-gray-500 mt-0.5">
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">🌡 Suivi des Constantes</h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500 mt-0.5">
             Température · Humidité · VPD — Capteurs Govee H5179
           </p>
         </div>
@@ -575,8 +575,8 @@ export default function SuiviConstantes() {
               onClick={() => setShowImport(v => !v)}
               className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors
                 ${showImport
-                  ? 'bg-gray-200 text-gray-700'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+                  ? 'bg-gray-200 text-gray-700 dark:text-gray-200'
+                  : 'bg-gray-100 text-gray-600 dark:text-gray-300 hover:bg-gray-200'}`}
             >
               <Upload size={14} />
               Import CSV
@@ -604,10 +604,10 @@ export default function SuiviConstantes() {
       )}
 
       {devices.length === 0 ? (
-        <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-12 text-center">
           <Wifi size={40} className="mx-auto text-gray-300 mb-3" />
-          <p className="text-gray-500 font-medium">Aucun capteur configuré</p>
-          <p className="text-sm text-gray-400 mt-1">
+          <p className="text-gray-500 dark:text-gray-400 dark:text-gray-500 font-medium">Aucun capteur configuré</p>
+          <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
             Ajoutez vos capteurs Govee dans la page{' '}
             <span className="text-teal-600 font-medium">Paramétrage → Capteurs Govee</span>
           </p>
@@ -616,7 +616,7 @@ export default function SuiviConstantes() {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
           {/* Panneau gauche : liste des capteurs */}
           <div className="lg:col-span-1 space-y-2">
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+            <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase tracking-wide mb-2">
               Capteurs ({devices.length})
             </p>
             {devices.map(d => (
@@ -631,13 +631,13 @@ export default function SuiviConstantes() {
 
           {/* Panneau droit : graphiques */}
           {activeDevice && (
-            <div className="lg:col-span-3 bg-white rounded-xl border border-gray-200 p-5">
+            <div className="lg:col-span-3 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5">
               {/* Titre + espace */}
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h2 className="font-semibold text-gray-800">{activeDevice.nom}</h2>
+                  <h2 className="font-semibold text-gray-800 dark:text-gray-100">{activeDevice.nom}</h2>
                   {activeDevice.nom_espace && (
-                    <p className="text-xs text-gray-400">{activeDevice.nom_espace}</p>
+                    <p className="text-xs text-gray-400 dark:text-gray-500">{activeDevice.nom_espace}</p>
                   )}
                 </div>
 
@@ -650,7 +650,7 @@ export default function SuiviConstantes() {
                       className={`px-2 py-1 rounded text-xs font-medium transition-colors
                         ${heures === w.heures
                           ? 'bg-teal-600 text-white'
-                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                          : 'bg-gray-100 text-gray-600 dark:text-gray-300 hover:bg-gray-200'
                         }`}
                     >
                       {w.label}
@@ -666,7 +666,7 @@ export default function SuiviConstantes() {
               <SensorChart device={activeDevice} heures={heures} />
 
               {activeDevice.derniere_lecture && (
-                <p className="text-xs text-gray-400 text-right mt-3">
+                <p className="text-xs text-gray-400 dark:text-gray-500 text-right mt-3">
                   Dernière lecture :{' '}
                   {new Date(activeDevice.derniere_lecture).toLocaleString('fr-FR')}
                 </p>

@@ -49,22 +49,22 @@ function ConsoForm({ conso, vapoId, onSave, onCancel, isSaving }: ConsoFormProps
   const isTerpsBall = form.type_consommable.toLowerCase().includes('terps')
 
   return (
-    <div className="bg-gray-50 rounded-xl p-4 space-y-3 border border-gray-200">
+    <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4 space-y-3 border border-gray-200 dark:border-gray-700">
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="block text-xs font-medium text-gray-600 mb-1">Type *</label>
+          <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Type *</label>
           <select value={form.type_consommable}
             onChange={e => setForm(f => ({ ...f, type_consommable: e.target.value }))}
-            className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-grow-400 bg-white">
+            className="w-full text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-grow-400 bg-white dark:bg-gray-800">
             <option value="">Choisir…</option>
             {TYPES_CONSO.map(t => <option key={t} value={t}>{t}</option>)}
           </select>
         </div>
         <div>
-          <label className="block text-xs font-medium text-gray-600 mb-1">Matière</label>
+          <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Matière</label>
           <select value={form.matiere ?? ''}
             onChange={e => setForm(f => ({ ...f, matiere: e.target.value || null }))}
-            className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-grow-400 bg-white">
+            className="w-full text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-grow-400 bg-white dark:bg-gray-800">
             <option value="">—</option>
             {MATIERES_CONSO.map(m => <option key={m} value={m}>{m}</option>)}
           </select>
@@ -73,43 +73,43 @@ function ConsoForm({ conso, vapoId, onSave, onCancel, isSaving }: ConsoFormProps
 
       {isTerpsBall && (
         <div className="w-1/2">
-          <label className="block text-xs font-medium text-gray-600 mb-1">Diamètre (mm)</label>
+          <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Diamètre (mm)</label>
           <input type="number" step="0.5" min="1" max="20"
             value={form.diametre_mm ?? ''}
             onChange={e => setForm(f => ({ ...f, diametre_mm: e.target.value ? Number(e.target.value) : null }))}
             placeholder="ex: 6"
-            className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-grow-400" />
+            className="w-full text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-grow-400" />
         </div>
       )}
 
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="block text-xs font-medium text-gray-600 mb-1">Date achat</label>
+          <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Date achat</label>
           <input type="date" value={form.date_achat ?? ''}
             onChange={e => setForm(f => ({ ...f, date_achat: e.target.value || null }))}
-            className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-grow-400" />
+            className="w-full text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-grow-400" />
         </div>
         <div>
-          <label className="block text-xs font-medium text-gray-600 mb-1">Prix achat (€)</label>
+          <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Prix achat (€)</label>
           <input type="number" step="0.01" min="0"
             value={form.prix_achat ?? ''}
             onChange={e => setForm(f => ({ ...f, prix_achat: e.target.value ? Number(e.target.value) : null }))}
             placeholder="0.00"
-            className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-grow-400" />
+            className="w-full text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-grow-400" />
         </div>
       </div>
 
       <div>
-        <label className="block text-xs font-medium text-gray-600 mb-1">Notes</label>
+        <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Notes</label>
         <input type="text" value={form.notes ?? ''}
           onChange={e => setForm(f => ({ ...f, notes: e.target.value || null }))}
           placeholder="Notes libres…"
-          className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-grow-400" />
+          className="w-full text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-grow-400" />
       </div>
 
       <div className="flex justify-end gap-2 pt-1">
         <button type="button" onClick={onCancel}
-          className="px-3 py-1.5 text-xs text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50">
+          className="px-3 py-1.5 text-xs text-gray-600 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/40">
           Annuler
         </button>
         <button type="button"
@@ -248,14 +248,14 @@ export default function NouveauVapoModal({ editVapo, onClose }: Props) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[92vh] flex flex-col">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[92vh] flex flex-col">
 
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-          <h2 className="text-lg font-bold text-gray-900">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-700">
+          <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
             {isEdit ? `Modifier — ${editVapo.nom}` : 'Nouveau vaporisateur'}
           </h2>
-          <button onClick={onClose} className="p-1.5 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100">
+          <button onClick={onClose} className="p-1.5 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
             <X size={18} />
           </button>
         </div>
@@ -265,68 +265,68 @@ export default function NouveauVapoModal({ editVapo, onClose }: Props) {
 
             {/* ── Identité ── */}
             <section>
-              <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+              <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-3 flex items-center gap-2">
                 <Package size={15} className="text-grow-600" /> Identité
               </h3>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">Marque</label>
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Marque</label>
                   <input type="text" value={form.marque ?? ''}
                     onChange={e => setForm(f => ({ ...f, marque: e.target.value || null }))}
                     placeholder="ex : Storz & Bickel, DynaVap…"
-                    className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-grow-400" />
+                    className="w-full text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-grow-400" />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">Modèle</label>
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Modèle</label>
                   <input type="text" value={form.modele ?? ''}
                     onChange={e => setForm(f => ({ ...f, modele: e.target.value || null }))}
                     placeholder="ex : Mighty+, M, Crafty+…"
-                    className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-grow-400" />
+                    className="w-full text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-grow-400" />
                 </div>
                 <div className="col-span-2">
-                  <label className="block text-xs font-medium text-gray-600 mb-1">
-                    Nom <span className="text-gray-400 font-normal">(auto-rempli, modifiable)</span>
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">
+                    Nom <span className="text-gray-400 dark:text-gray-500 font-normal">(auto-rempli, modifiable)</span>
                   </label>
                   <input type="text" required value={form.nom}
                     onChange={e => setForm(f => ({ ...f, nom: e.target.value }))}
                     placeholder="Storz & Bickel Mighty+ #1"
-                    className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-grow-400 font-medium" />
+                    className="w-full text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-grow-400 font-medium" />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">Date achat</label>
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Date achat</label>
                   <input type="date" value={form.date_achat ?? ''}
                     onChange={e => setForm(f => ({ ...f, date_achat: e.target.value || null }))}
-                    className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-grow-400" />
+                    className="w-full text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-grow-400" />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">Prix achat (€)</label>
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Prix achat (€)</label>
                   <input type="number" step="0.01" min="0"
                     value={form.prix_achat ?? ''}
                     onChange={e => setForm(f => ({ ...f, prix_achat: e.target.value ? Number(e.target.value) : null }))}
                     placeholder="0.00"
-                    className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-grow-400" />
+                    className="w-full text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-grow-400" />
                 </div>
                 <div className="col-span-2">
-                  <label className="block text-xs font-medium text-gray-600 mb-1">Numéro de série (S/N)</label>
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Numéro de série (S/N)</label>
                   <input type="text" value={form.numero_serie ?? ''}
                     onChange={e => setForm(f => ({ ...f, numero_serie: e.target.value || null }))}
                     placeholder="SN-XXXXXXXXX"
-                    className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-grow-400" />
+                    className="w-full text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-grow-400" />
                 </div>
               </div>
             </section>
 
             {/* ── Chauffe & Température ── */}
             <section>
-              <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+              <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-3 flex items-center gap-2">
                 <Thermometer size={15} className="text-orange-500" /> Chauffe & Température
               </h3>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">Type de chauffe</label>
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Type de chauffe</label>
                   <select value={form.type_chauffe ?? ''}
                     onChange={e => setForm(f => ({ ...f, type_chauffe: e.target.value || null }))}
-                    className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-grow-400 bg-white">
+                    className="w-full text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-grow-400 bg-white dark:bg-gray-800">
                     <option value="">—</option>
                     {TYPES_CHAUFFE.map(t => <option key={t} value={t}>{t}</option>)}
                   </select>
@@ -336,39 +336,39 @@ export default function NouveauVapoModal({ editVapo, onClose }: Props) {
                     <input type="checkbox" checked={form.a_eau ?? false}
                       onChange={e => setForm(f => ({ ...f, a_eau: e.target.checked }))}
                       className="w-4 h-4 accent-grow-600 rounded" />
-                    <span className="text-sm text-gray-700">À eau (chambre d'eau)</span>
+                    <span className="text-sm text-gray-700 dark:text-gray-200">À eau (chambre d'eau)</span>
                   </label>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">Temp. min (°C)</label>
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Temp. min (°C)</label>
                   <input type="number" min="0" max="300"
                     value={form.temp_min ?? ''}
                     onChange={e => setForm(f => ({ ...f, temp_min: e.target.value ? Number(e.target.value) : null }))}
                     placeholder="140"
-                    className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-grow-400" />
+                    className="w-full text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-grow-400" />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">Temp. max (°C)</label>
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Temp. max (°C)</label>
                   <input type="number" min="0" max="300"
                     value={form.temp_max ?? ''}
                     onChange={e => setForm(f => ({ ...f, temp_max: e.target.value ? Number(e.target.value) : null }))}
                     placeholder="230"
-                    className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-grow-400" />
+                    className="w-full text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-grow-400" />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">Temps de chauffe (s)</label>
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Temps de chauffe (s)</label>
                   <input type="number" min="0" max="120"
                     value={form.temps_chauffe_s ?? ''}
                     onChange={e => setForm(f => ({ ...f, temps_chauffe_s: e.target.value ? Number(e.target.value) : null }))}
                     placeholder="ex : 25"
-                    className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-grow-400" />
+                    className="w-full text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-grow-400" />
                 </div>
               </div>
             </section>
 
             {/* ── Compatibilités ── */}
             <section>
-              <h3 className="text-sm font-semibold text-gray-700 mb-3">Compatibilités</h3>
+              <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-3">Compatibilités</h3>
               <div className="flex flex-wrap gap-2">
                 {COMPATIBILITES.map(({ key, label }) => (
                   <button key={key} type="button"
@@ -376,7 +376,7 @@ export default function NouveauVapoModal({ editVapo, onClose }: Props) {
                     className={`px-3 py-1.5 text-sm rounded-full border font-medium transition-colors ${
                       compatSet.has(key)
                         ? 'bg-grow-600 text-white border-grow-600'
-                        : 'bg-white text-gray-600 border-gray-300 hover:border-grow-400'
+                        : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:border-grow-400'
                     }`}>
                     {label}
                   </button>
@@ -386,74 +386,74 @@ export default function NouveauVapoModal({ editVapo, onClose }: Props) {
 
             {/* ── Batterie & Charge ── */}
             <section>
-              <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+              <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-3 flex items-center gap-2">
                 <Battery size={15} className="text-blue-500" /> Batterie & Charge
               </h3>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">Type de batterie</label>
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Type de batterie</label>
                   <select value={form.type_batterie ?? ''}
                     onChange={e => setForm(f => ({ ...f, type_batterie: e.target.value || null }))}
-                    className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-grow-400 bg-white">
+                    className="w-full text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-grow-400 bg-white dark:bg-gray-800">
                     <option value="">—</option>
                     {TYPES_BATTERIE.map(t => <option key={t} value={t}>{t}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">Type de charge</label>
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Type de charge</label>
                   <select value={form.type_charge ?? ''}
                     onChange={e => setForm(f => ({ ...f, type_charge: e.target.value || null }))}
-                    className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-grow-400 bg-white">
+                    className="w-full text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-grow-400 bg-white dark:bg-gray-800">
                     <option value="">—</option>
                     {TYPES_CHARGE.map(t => <option key={t} value={t}>{t}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">Autonomie (sessions)</label>
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Autonomie (sessions)</label>
                   <input type="number" min="0"
                     value={form.autonomie_sessions ?? ''}
                     onChange={e => setForm(f => ({ ...f, autonomie_sessions: e.target.value ? Number(e.target.value) : null }))}
                     placeholder="ex : 8"
-                    className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-grow-400" />
+                    className="w-full text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-grow-400" />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">Capacité batterie (mAh)</label>
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Capacité batterie (mAh)</label>
                   <input type="number" min="0"
                     value={form.autonomie_mah ?? ''}
                     onChange={e => setForm(f => ({ ...f, autonomie_mah: e.target.value ? Number(e.target.value) : null }))}
                     placeholder="ex : 3500"
-                    className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-grow-400" />
+                    className="w-full text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-grow-400" />
                 </div>
               </div>
             </section>
 
             {/* ── Usage ── */}
             <section>
-              <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+              <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-3 flex items-center gap-2">
                 <Zap size={15} className="text-purple-500" /> Usage
               </h3>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">Nombre de sessions / dabs</label>
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Nombre de sessions / dabs</label>
                   <input type="number" min="0"
                     value={form.nbr_sessions ?? 0}
                     onChange={e => setForm(f => ({ ...f, nbr_sessions: Number(e.target.value) }))}
-                    className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-grow-400" />
+                    className="w-full text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-grow-400" />
                 </div>
               </div>
               <div className="mt-3">
-                <label className="block text-xs font-medium text-gray-600 mb-1">Notes</label>
+                <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Notes</label>
                 <textarea value={form.notes ?? ''}
                   onChange={e => setForm(f => ({ ...f, notes: e.target.value || null }))}
                   rows={2} placeholder="Notes libres…"
-                  className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-grow-400 resize-none" />
+                  className="w-full text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-grow-400 resize-none" />
               </div>
             </section>
 
             {/* ── Bouton submit ── */}
-            <div className="flex justify-end gap-3 pt-2 border-t border-gray-100">
+            <div className="flex justify-end gap-3 pt-2 border-t border-gray-100 dark:border-gray-700">
               <button type="button" onClick={onClose}
-                className="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-xl hover:bg-gray-50">
+                className="px-4 py-2 text-sm text-gray-600 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700/40">
                 Annuler
               </button>
               <button type="submit" disabled={saveVapo.isPending || !form.nom.trim()}
@@ -466,9 +466,9 @@ export default function NouveauVapoModal({ editVapo, onClose }: Props) {
 
           {/* ── Section consommables (mode édition uniquement) ── */}
           {isEdit && (
-            <div className="mt-6 border-t border-gray-100 pt-6">
+            <div className="mt-6 border-t border-gray-100 dark:border-gray-700 pt-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-semibold text-gray-700">Consommables & Accessoires</h3>
+                <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-200">Consommables & Accessoires</h3>
                 {!showConsoForm && (
                   <button onClick={() => { setEditConso(null); setShowConsoForm(true) }}
                     className="flex items-center gap-1.5 text-xs text-grow-600 hover:text-grow-700 font-medium px-2 py-1 rounded-lg hover:bg-grow-50">
@@ -488,25 +488,25 @@ export default function NouveauVapoModal({ editVapo, onClose }: Props) {
               )}
 
               {editVapo.consommables.length === 0 && !showConsoForm && (
-                <p className="text-xs text-gray-400 text-center py-4">Aucun consommable enregistré</p>
+                <p className="text-xs text-gray-400 dark:text-gray-500 text-center py-4">Aucun consommable enregistré</p>
               )}
 
               <div className="space-y-2 mt-3">
                 {editVapo.consommables.map(c => (
                   <div key={c.id_consommable}
-                    className="flex items-center justify-between bg-gray-50 rounded-xl px-4 py-2.5 group">
+                    className="flex items-center justify-between bg-gray-50 dark:bg-gray-700/50 rounded-xl px-4 py-2.5 group">
                     <div>
-                      <span className="text-sm font-medium text-gray-800">{c.type_consommable}</span>
-                      {c.matiere && <span className="text-xs text-gray-500 ml-2">{c.matiere}</span>}
-                      {c.diametre_mm && <span className="text-xs text-gray-400 ml-1">⌀{c.diametre_mm} mm</span>}
-                      <div className="text-xs text-gray-400 mt-0.5">
+                      <span className="text-sm font-medium text-gray-800 dark:text-gray-100">{c.type_consommable}</span>
+                      {c.matiere && <span className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 ml-2">{c.matiere}</span>}
+                      {c.diametre_mm && <span className="text-xs text-gray-400 dark:text-gray-500 ml-1">⌀{c.diametre_mm} mm</span>}
+                      <div className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
                         {c.date_achat && new Date(c.date_achat).toLocaleDateString('fr-FR')}
                         {c.prix_achat != null && ` · ${Number(c.prix_achat).toFixed(2)} €`}
                       </div>
                     </div>
                     <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button onClick={() => { setEditConso(c); setShowConsoForm(true) }}
-                        className="p-1.5 text-gray-400 hover:text-grow-600 hover:bg-white rounded-lg">
+                        className="p-1.5 text-gray-400 dark:text-gray-500 hover:text-grow-600 hover:bg-white rounded-lg">
                         ✏️
                       </button>
                       {deletingId === c.id_consommable ? (
@@ -516,7 +516,7 @@ export default function NouveauVapoModal({ editVapo, onClose }: Props) {
                         </button>
                       ) : (
                         <button onClick={() => setDeletingId(c.id_consommable)}
-                          className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg">
+                          className="p-1.5 text-gray-400 dark:text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-lg">
                           <Trash2 size={13} />
                         </button>
                       )}

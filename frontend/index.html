@@ -7,6 +7,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#2D6A4F" />
     <title>GrowManager</title>
+    <!-- Anti-FOUC : applique dark AVANT le premier rendu React -->
+    <script>
+      (function(){
+        try {
+          var t = localStorage.getItem('gm-theme');
+          if (t === 'dark' || (!t && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+          }
+        } catch(e) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

@@ -20,18 +20,18 @@ function RecetteArrosageCard({
     : null
 
   return (
-    <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+    <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm overflow-hidden">
       <div className="px-5 py-4 flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap mb-1.5">
-            <h3 className="font-semibold text-gray-900 text-sm truncate">{recette.nom_recette}</h3>
+            <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-sm truncate">{recette.nom_recette}</h3>
             {recette.type_arrosage && (
-              <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${TYPE_COLORS[recette.type_arrosage] ?? 'bg-gray-100 text-gray-600'}`}>
+              <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${TYPE_COLORS[recette.type_arrosage] ?? 'bg-gray-100 text-gray-600 dark:text-gray-300'}`}>
                 {recette.type_arrosage}
               </span>
             )}
           </div>
-          <div className="flex items-center gap-4 text-xs text-gray-500">
+          <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">
             {eauStr && (
               <span className="flex items-center gap-1">
                 <Droplets size={11} /> {eauStr}
@@ -47,7 +47,7 @@ function RecetteArrosageCard({
         </div>
         <div className="flex items-center gap-1 shrink-0">
           <button onClick={() => setExpanded(e => !e)}
-            className="p-1.5 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-50">
+            className="p-1.5 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/40">
             {expanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
           </button>
           <button onClick={onEdit}
@@ -62,7 +62,7 @@ function RecetteArrosageCard({
       </div>
 
       {expanded && (
-        <div className="border-t border-gray-50 px-5 py-3 space-y-2 bg-gray-50">
+        <div className="border-t border-gray-50 dark:border-gray-700 px-5 py-3 space-y-2 bg-gray-50 dark:bg-gray-700/50">
           {/* Eau de base */}
           {eauStr && (
             <div className="flex items-center gap-2 text-xs text-sky-700 bg-sky-50 rounded px-2 py-1">
@@ -71,13 +71,13 @@ function RecetteArrosageCard({
           )}
 
           {recette.lignes.length === 0 ? (
-            <p className="text-xs text-gray-400">Aucun amendement</p>
+            <p className="text-xs text-gray-400 dark:text-gray-500">Aucun amendement</p>
           ) : (
             recette.lignes.map((l, i) => (
               <div key={i} className="space-y-0.5">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="text-gray-700 font-medium">{l.nom_produit ?? `Produit #${l.id_produit}`}</span>
-                  <span className="text-gray-500 font-mono">{l.quantite} {l.unite}</span>
+                  <span className="text-gray-700 dark:text-gray-200 font-medium">{l.nom_produit ?? `Produit #${l.id_produit}`}</span>
+                  <span className="text-gray-500 dark:text-gray-400 dark:text-gray-500 font-mono">{l.quantite} {l.unite}</span>
                 </div>
                 {l.note_ligne && <p className="text-xs text-blue-600 pl-2">↳ {l.note_ligne}</p>}
               </div>
@@ -85,7 +85,7 @@ function RecetteArrosageCard({
           )}
 
           {recette.notes && (
-            <p className="text-xs text-gray-400 pt-1 border-t border-gray-100 mt-1">{recette.notes}</p>
+            <p className="text-xs text-gray-400 dark:text-gray-500 pt-1 border-t border-gray-100 dark:border-gray-700 mt-1">{recette.notes}</p>
           )}
         </div>
       )}
@@ -154,18 +154,18 @@ export default function RecettesArrosage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">💧 Recettes Arrosage</h1>
-          <p className="text-sm text-gray-500 mt-0.5">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">💧 Recettes Arrosage</h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500 mt-0.5">
             {recettes.length} recette{recettes.length > 1 ? 's' : ''} enregistrée{recettes.length > 1 ? 's' : ''}
           </p>
         </div>
         <div className="flex items-center gap-2">
           <button onClick={handleExport}
-            className="flex items-center gap-1.5 px-3 py-2 border border-gray-300 text-gray-600 text-sm rounded-lg hover:bg-gray-50">
+            className="flex items-center gap-1.5 px-3 py-2 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 text-sm rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/40">
             <Download size={14} /> Export CSV
           </button>
           <button onClick={() => importRef.current?.click()} disabled={importing}
-            className="flex items-center gap-1.5 px-3 py-2 border border-gray-300 text-gray-600 text-sm rounded-lg hover:bg-gray-50 disabled:opacity-50">
+            className="flex items-center gap-1.5 px-3 py-2 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 text-sm rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/40 disabled:opacity-50">
             <Upload size={14} /> {importing ? 'Import…' : 'Import CSV'}
           </button>
           <input ref={importRef} type="file" accept=".csv" className="hidden" onChange={handleImport} />
@@ -180,20 +180,20 @@ export default function RecettesArrosage() {
       {recettes.length > 0 && (
         <div className="flex flex-wrap gap-3 items-center">
           <div className="relative">
-            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500" />
             <input type="text" value={search} onChange={e => setSearch(e.target.value)}
               placeholder="Rechercher…"
-              className="pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-grow-400 w-52" />
+              className="pl-9 pr-4 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-grow-400 w-52" />
           </div>
           {types.length > 0 && (
             <div className="flex gap-1.5 flex-wrap">
               <button onClick={() => setFilterType('all')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${filterType === 'all' ? 'bg-grow-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${filterType === 'all' ? 'bg-grow-600 text-white' : 'bg-gray-100 text-gray-600 dark:text-gray-300 hover:bg-gray-200'}`}>
                 Tous
               </button>
               {types.map(t => (
                 <button key={t} onClick={() => setFilterType(t)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${filterType === t ? 'bg-grow-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${filterType === t ? 'bg-grow-600 text-white' : 'bg-gray-100 text-gray-600 dark:text-gray-300 hover:bg-gray-200'}`}>
                   {t}
                 </button>
               ))}
@@ -203,7 +203,7 @@ export default function RecettesArrosage() {
       )}
 
       {filtered.length === 0 ? (
-        <div className="text-center py-16 text-gray-400">
+        <div className="text-center py-16 text-gray-400 dark:text-gray-500">
           {recettes.length === 0 ? (
             <>
               <span className="text-5xl block mb-3 opacity-40">💧</span>

@@ -106,20 +106,20 @@ export default function NouvelleExtractionModal({ stocks, onClose }: Props) {
 
   // ── Helpers UI ────────────────────────────────────────────────────────────
   const label = (txt: string, required = false) => (
-    <label className="block text-sm font-medium text-gray-700 mb-1">
+    <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
       {txt}{required && <span className="text-red-500 ml-0.5">*</span>}
     </label>
   )
-  const inputCls = "w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-grow-500 focus:border-grow-500"
+  const inputCls = "w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm focus:ring-2 focus:ring-grow-500 focus:border-grow-500"
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[92vh]">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[92vh]">
 
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 shrink-0">
-          <h2 className="text-lg font-semibold text-gray-900">Nouvelle extraction Rosin</h2>
-          <button onClick={onClose} className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700 shrink-0">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Nouvelle extraction Rosin</h2>
+          <button onClick={onClose} className="p-1.5 rounded-lg text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
             <X size={18} />
           </button>
         </div>
@@ -143,8 +143,8 @@ export default function NouvelleExtractionModal({ stocks, onClose }: Props) {
               ))}
             </select>
             {stockSelected && (
-              <p className="mt-1 text-xs text-gray-400">
-                Stock dispo : <span className="font-medium text-gray-600">{Number(stockSelected.quantite_stock).toFixed(1)} g</span>
+              <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
+                Stock dispo : <span className="font-medium text-gray-600 dark:text-gray-300">{Number(stockSelected.quantite_stock).toFixed(1)} g</span>
               </p>
             )}
           </div>
@@ -198,12 +198,12 @@ export default function NouvelleExtractionModal({ stocks, onClose }: Props) {
             <div className="space-y-2">
               {sacs.map((v, i) => (
                 <div key={i} className="flex items-center gap-2">
-                  <span className="text-sm text-gray-500 w-12 shrink-0">Sac {i + 1}</span>
+                  <span className="text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500 w-12 shrink-0">Sac {i + 1}</span>
                   <input type="number" min="0" step="0.1" value={v}
                     onChange={e => updateSac(i, e.target.value)}
                     placeholder="0.0" required={i < 2}
-                    className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-grow-500" />
-                  <span className="text-sm text-gray-400">g</span>
+                    className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm focus:ring-2 focus:ring-grow-500" />
+                  <span className="text-sm text-gray-400 dark:text-gray-500">g</span>
                   {i >= 2 && (
                     <button type="button" onClick={() => removeSac(i)} className="p-1 text-gray-300 hover:text-red-500">
                       <Trash2 size={14} />
@@ -212,9 +212,9 @@ export default function NouvelleExtractionModal({ stocks, onClose }: Props) {
                 </div>
               ))}
             </div>
-            <div className="mt-2 flex justify-between bg-gray-50 rounded-lg px-4 py-2">
-              <span className="text-sm text-gray-500">Total entrée</span>
-              <span className="text-sm font-semibold text-gray-900">{poidsEntree.toFixed(1)} g</span>
+            <div className="mt-2 flex justify-between bg-gray-50 dark:bg-gray-700/50 rounded-lg px-4 py-2">
+              <span className="text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500">Total entrée</span>
+              <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">{poidsEntree.toFixed(1)} g</span>
             </div>
           </div>
 
@@ -232,12 +232,12 @@ export default function NouvelleExtractionModal({ stocks, onClose }: Props) {
             <div className="space-y-2">
               {presses.map((v, i) => (
                 <div key={i} className="flex items-center gap-2">
-                  <span className="text-sm text-gray-500 w-16 shrink-0">Passe {i + 1}</span>
+                  <span className="text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500 w-16 shrink-0">Passe {i + 1}</span>
                   <input type="number" min="0" step="0.01" value={v}
                     onChange={e => updatePresse(i, e.target.value)}
                     placeholder="0.00" required={i === 0}
-                    className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-purple-400" />
-                  <span className="text-sm text-gray-400">g</span>
+                    className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm focus:ring-2 focus:ring-purple-400" />
+                  <span className="text-sm text-gray-400 dark:text-gray-500">g</span>
                   {i > 0 && (
                     <button type="button" onClick={() => removePresse(i)} className="p-1 text-gray-300 hover:text-red-500">
                       <Trash2 size={14} />
@@ -285,7 +285,7 @@ export default function NouvelleExtractionModal({ stocks, onClose }: Props) {
           {/* Actions */}
           <div className="flex gap-3 pt-1 pb-1">
             <button type="button" onClick={onClose}
-              className="flex-1 px-4 py-2 rounded-xl border border-gray-300 text-gray-700 text-sm font-medium hover:bg-gray-50">
+              className="flex-1 px-4 py-2 rounded-xl border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700/40">
               Annuler
             </button>
             <button type="submit" disabled={mutation.isPending}

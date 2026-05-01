@@ -201,34 +201,34 @@ export default function NouvellerCultureModal({ onClose, onSubmit, initialData }
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[92vh] overflow-y-auto">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-2xl max-h-[92vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b sticky top-0 bg-white z-10">
+        <div className="flex items-center justify-between p-6 border-b sticky top-0 bg-white dark:bg-gray-800 z-10">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-grow-100 rounded-lg flex items-center justify-center">
               {mode === 'interne' ? <Leaf size={20} className="text-grow-600" /> : <PackageOpen size={20} className="text-amber-600" />}
             </div>
             <div>
-              <h2 className="text-xl font-bold text-gray-900">Nouvelle culture</h2>
-              <p className="text-xs text-gray-500">Étape {step} / 2</p>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Nouvelle culture</h2>
+              <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">Étape {step} / 2</p>
             </div>
           </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 p-1"><X size={20} /></button>
+          <button onClick={onClose} className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:text-gray-300 p-1"><X size={20} /></button>
         </div>
 
         {/* Mode toggle */}
         <div className="px-6 pt-4 pb-0">
-          <div className="flex rounded-lg border border-gray-200 overflow-hidden text-sm">
+          <div className="flex rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden text-sm">
             <button type="button"
               onClick={() => { setMode('interne'); setStep(1) }}
               className={`flex-1 py-2 flex items-center justify-center gap-2 transition-colors
-                ${mode === 'interne' ? 'bg-grow-600 text-white font-medium' : 'bg-white text-gray-600 hover:bg-gray-50'}`}>
+                ${mode === 'interne' ? 'bg-grow-600 text-white font-medium' : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/40'}`}>
               <Leaf size={14} /> Culture interne (graines)
             </button>
             <button type="button"
               onClick={() => setMode('externe')}
               className={`flex-1 py-2 flex items-center justify-center gap-2 transition-colors
-                ${mode === 'externe' ? 'bg-amber-500 text-white font-medium' : 'bg-white text-gray-600 hover:bg-gray-50'}`}>
+                ${mode === 'externe' ? 'bg-amber-500 text-white font-medium' : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/40'}`}>
               <PackageOpen size={14} /> Import externe
             </button>
           </div>
@@ -241,11 +241,11 @@ export default function NouvellerCultureModal({ onClose, onSubmit, initialData }
               {/* Espace + Date */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                     Espace de culture <span className="text-red-500">*</span>
                   </label>
                   <select value={idEspace} onChange={e => setIdEspace(Number(e.target.value) || '')} required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-grow-500 focus:border-transparent">
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-grow-500 focus:border-transparent">
                     <option value="">Sélectionner…</option>
                     {espacesActifs.map(e => {
                       const occupe = espacesOccupes.has(e.id_espace)
@@ -262,29 +262,29 @@ export default function NouvellerCultureModal({ onClose, onSubmit, initialData }
                   )}
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                     Date de début <span className="text-red-500">*</span>
                   </label>
                   <input type="date" value={dateDebut} onChange={e => setDateDebut(e.target.value)} required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-grow-500 focus:border-transparent" />
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-grow-500 focus:border-transparent" />
                 </div>
               </div>
 
               {/* Type culture + Éclairage */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Type de culture</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Type de culture</label>
                   <select value={typeCulture} onChange={e => { setTypeCulture(e.target.value); if (e.target.value !== 'indoor' && e.target.value !== 'greenhouse') setTypeEclairage('') }}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-grow-500 focus:border-transparent">
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-grow-500 focus:border-transparent">
                     <option value="">Non spécifié</option>
                     {TYPE_CULTURE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                   </select>
                 </div>
                 {showEclairage && (
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Type d'éclairage</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Type d'éclairage</label>
                     <select value={typeEclairage} onChange={e => setTypeEclairage(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-grow-500 focus:border-transparent">
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-grow-500 focus:border-transparent">
                       <option value="">Non spécifié</option>
                       {TYPE_ECLAIRAGE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                     </select>
@@ -294,8 +294,8 @@ export default function NouvellerCultureModal({ onClose, onSubmit, initialData }
 
               {/* But de culture (multi-sélection) */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  But de la culture <span className="text-xs text-gray-400">(sélection multiple)</span>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                  But de la culture <span className="text-xs text-gray-400 dark:text-gray-500">(sélection multiple)</span>
                 </label>
                 <div className="flex flex-wrap gap-2">
                   {butsCulture.map(b => (
@@ -304,20 +304,20 @@ export default function NouvellerCultureModal({ onClose, onSubmit, initialData }
                       className={`px-3 py-1.5 rounded-full border text-sm transition-colors
                         ${selectedButs.includes(b.valeur)
                           ? 'bg-grow-600 border-grow-600 text-white'
-                          : 'border-gray-300 text-gray-700 hover:border-grow-400 hover:bg-grow-50'}`}>
+                          : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:border-grow-400 hover:bg-grow-50'}`}>
                       {b.valeur === 'Récolte' ? '🌾' : b.valeur === 'Hunt' ? '🔍' : b.valeur === 'Reproduction' ? '🧬' : '🎯'} {b.valeur}
                     </button>
                   ))}
                   {butsCulture.length === 0 && (
-                    <span className="text-xs text-gray-400 italic">Aucun but défini — configurable dans Paramétrage</span>
+                    <span className="text-xs text-gray-400 dark:text-gray-500 italic">Aucun but défini — configurable dans Paramétrage</span>
                   )}
                 </div>
               </div>
 
               {/* Substrat par défaut */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Substrat par défaut <span className="text-xs text-gray-400">(appliqué à toutes les plantes)</span>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                  Substrat par défaut <span className="text-xs text-gray-400 dark:text-gray-500">(appliqué à toutes les plantes)</span>
                 </label>
                 <div className="grid grid-cols-3 gap-2">
                   {SUBSTRAT_OPTIONS.map(o => (
@@ -326,7 +326,7 @@ export default function NouvellerCultureModal({ onClose, onSubmit, initialData }
                       className={`px-3 py-2 rounded-lg border text-xs text-left transition-colors
                         ${substratDefaut === o.value
                           ? 'bg-grow-600 border-grow-600 text-white'
-                          : 'border-gray-200 hover:border-grow-300 hover:bg-grow-50 text-gray-700'}`}>
+                          : 'border-gray-200 dark:border-gray-700 hover:border-grow-300 hover:bg-grow-50 text-gray-700 dark:text-gray-200'}`}>
                       {o.label}
                     </button>
                   ))}
@@ -349,23 +349,23 @@ export default function NouvellerCultureModal({ onClose, onSubmit, initialData }
 
               {/* Nom optionnel */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Nom de la culture <span className="text-gray-400 text-xs">(optionnel — auto-généré si vide)</span>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                  Nom de la culture <span className="text-gray-400 dark:text-gray-500 text-xs">(optionnel — auto-généré si vide)</span>
                 </label>
                 <input type="text" value={nom} onChange={e => setNom(e.target.value)} placeholder="ex: Batch OG Kush #3"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-grow-500 focus:border-transparent" />
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-grow-500 focus:border-transparent" />
               </div>
 
               {/* Notes */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Notes</label>
                 <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={2}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm resize-none focus:ring-2 focus:ring-grow-500 focus:border-transparent" />
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm resize-none focus:ring-2 focus:ring-grow-500 focus:border-transparent" />
               </div>
 
               <div className="flex gap-3 pt-2">
                 <button type="button" onClick={onClose}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 text-sm">
+                  className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/40 text-sm">
                   Annuler
                 </button>
                 {mode === 'interne' ? (
@@ -390,16 +390,16 @@ export default function NouvellerCultureModal({ onClose, onSubmit, initialData }
             <div className="p-6 space-y-4">
               {/* Stage selector */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Étape d'entrée</label>
-                <div className="flex rounded-lg border border-gray-200 overflow-hidden text-sm">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">Étape d'entrée</label>
+                <div className="flex rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden text-sm">
                   <button type="button"
                     onClick={() => setStageExterne('sechage')}
-                    className={`flex-1 py-2 transition-colors ${stageExterne === 'sechage' ? 'bg-blue-500 text-white font-medium' : 'bg-white text-gray-600 hover:bg-gray-50'}`}>
+                    className={`flex-1 py-2 transition-colors ${stageExterne === 'sechage' ? 'bg-blue-500 text-white font-medium' : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/40'}`}>
                     🌿 Séchage
                   </button>
                   <button type="button"
                     onClick={() => setStageExterne('curing')}
-                    className={`flex-1 py-2 transition-colors ${stageExterne === 'curing' ? 'bg-purple-500 text-white font-medium' : 'bg-white text-gray-600 hover:bg-gray-50'}`}>
+                    className={`flex-1 py-2 transition-colors ${stageExterne === 'curing' ? 'bg-purple-500 text-white font-medium' : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/40'}`}>
                     🏺 Curing
                   </button>
                 </div>
@@ -410,7 +410,7 @@ export default function NouvellerCultureModal({ onClose, onSubmit, initialData }
                 {plantesExternes.map((p, idx) => (
                   <div key={idx} className={`rounded-lg border p-3 space-y-2 ${stageExterne === 'sechage' ? 'border-blue-200 bg-blue-50' : 'border-purple-200 bg-purple-50'}`}>
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Plante {idx + 1}</span>
+                      <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase tracking-wide">Plante {idx + 1}</span>
                       {plantesExternes.length > 1 && (
                         <button type="button" onClick={() => removePlantExterne(idx)} className="text-red-400 hover:text-red-600"><X size={14} /></button>
                       )}
@@ -420,25 +420,25 @@ export default function NouvellerCultureModal({ onClose, onSubmit, initialData }
                     <input type="text" placeholder="Variété (ex: OG Kush, Limon Haze…)" required
                       value={p.nom_affichage}
                       onChange={e => updatePlantExterne(idx, 'nom_affichage', e.target.value)}
-                      className="w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-grow-500 focus:border-transparent bg-white" />
+                      className="w-full px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm focus:ring-2 focus:ring-grow-500 focus:border-transparent bg-white dark:bg-gray-800" />
 
                     <div className="grid grid-cols-2 gap-2">
                       {/* Date récolte */}
                       <div>
-                        <label className="text-xs text-gray-500 block mb-0.5">Date de récolte</label>
+                        <label className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 block mb-0.5">Date de récolte</label>
                         <input type="date" value={p.date_recolte}
                           onChange={e => updatePlantExterne(idx, 'date_recolte', e.target.value)}
-                          className="w-full px-2 py-1.5 border border-gray-300 rounded-md text-sm bg-white" />
+                          className="w-full px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-800" />
                       </div>
                       {/* Poids frais (séchage) ou sec (curing) */}
                       <div>
-                        <label className="text-xs text-gray-500 block mb-0.5">
+                        <label className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 block mb-0.5">
                           {stageExterne === 'sechage' ? 'Poids frais (g)' : 'Poids sec (g)'}
                         </label>
                         <input type="number" step="0.1" min="0" placeholder="0.0"
                           value={p.poids_g}
                           onChange={e => updatePlantExterne(idx, 'poids_g', e.target.value)}
-                          className="w-full px-2 py-1.5 border border-gray-300 rounded-md text-sm bg-white" />
+                          className="w-full px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-800" />
                       </div>
                     </div>
 
@@ -446,29 +446,29 @@ export default function NouvellerCultureModal({ onClose, onSubmit, initialData }
                       <div className="grid grid-cols-2 gap-2">
                         {/* Date entrée curing */}
                         <div>
-                          <label className="text-xs text-gray-500 block mb-0.5">Début curing</label>
+                          <label className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 block mb-0.5">Début curing</label>
                           <input type="date" value={p.date_fin_sechage}
                             onChange={e => updatePlantExterne(idx, 'date_fin_sechage', e.target.value)}
-                            className="w-full px-2 py-1.5 border border-gray-300 rounded-md text-sm bg-white" />
+                            className="w-full px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-800" />
                         </div>
                         {/* Prix/g */}
                         <div>
-                          <label className="text-xs text-gray-500 block mb-0.5">Prix (€/g)</label>
+                          <label className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 block mb-0.5">Prix (€/g)</label>
                           <input type="number" step="0.01" min="0" placeholder="0.00"
                             value={p.prix_g}
                             onChange={e => updatePlantExterne(idx, 'prix_g', e.target.value)}
-                            className="w-full px-2 py-1.5 border border-gray-300 rounded-md text-sm bg-white" />
+                            className="w-full px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-800" />
                         </div>
                       </div>
                     )}
 
                     {stageExterne === 'curing' && (
                       <div>
-                        <label className="text-xs text-gray-500 block mb-0.5">Provenance</label>
+                        <label className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 block mb-0.5">Provenance</label>
                         <input type="text" placeholder="ex: Club social, Ami, Dispensaire…"
                           value={p.provenance}
                           onChange={e => updatePlantExterne(idx, 'provenance', e.target.value)}
-                          className="w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm bg-white" />
+                          className="w-full px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-800" />
                       </div>
                     )}
                   </div>
@@ -476,7 +476,7 @@ export default function NouvellerCultureModal({ onClose, onSubmit, initialData }
               </div>
 
               <button type="button" onClick={addPlantExterne}
-                className="w-full py-2 border-2 border-dashed border-gray-300 rounded-lg text-sm text-gray-500 hover:border-grow-400 hover:text-grow-600 flex items-center justify-center gap-2">
+                className="w-full py-2 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500 hover:border-grow-400 hover:text-grow-600 flex items-center justify-center gap-2">
                 <Plus size={14} /> Ajouter une variété
               </button>
 
@@ -488,7 +488,7 @@ export default function NouvellerCultureModal({ onClose, onSubmit, initialData }
 
               <div className="flex gap-3 pt-2">
                 <button type="button" onClick={() => setStep(1)}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 text-sm">
+                  className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/40 text-sm">
                   ← Retour
                 </button>
                 <button type="submit"
@@ -504,7 +504,7 @@ export default function NouvellerCultureModal({ onClose, onSubmit, initialData }
           {step === 2 && mode === 'interne' && (
             <div className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                   Variétés à cultiver <span className="text-red-500">*</span>
                 </label>
 
@@ -517,15 +517,15 @@ export default function NouvellerCultureModal({ onClose, onSubmit, initialData }
                           <span className="text-sm font-medium text-grow-800">{s.variete_nom}</span>
                           <div className="flex items-center gap-2">
                             <button type="button" onClick={() => updateNb(s.id_packgraine, -1)}
-                              className="w-6 h-6 bg-white border border-gray-300 rounded flex items-center justify-center hover:bg-gray-50">
+                              className="w-6 h-6 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded flex items-center justify-center hover:bg-gray-50 dark:hover:bg-gray-700/40">
                               <Minus size={12} />
                             </button>
                             <span className="text-sm font-bold w-4 text-center">{s.nb_plantes}</span>
                             <button type="button" onClick={() => updateNb(s.id_packgraine, 1)}
-                              className="w-6 h-6 bg-white border border-gray-300 rounded flex items-center justify-center hover:bg-gray-50">
+                              className="w-6 h-6 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded flex items-center justify-center hover:bg-gray-50 dark:hover:bg-gray-700/40">
                               <Plus size={12} />
                             </button>
-                            <span className="text-xs text-gray-500 ml-1">plant{s.nb_plantes > 1 ? 's' : ''}</span>
+                            <span className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 ml-1">plant{s.nb_plantes > 1 ? 's' : ''}</span>
                             <button type="button" onClick={() => remove(s.id_packgraine)}
                               className="ml-2 text-red-400 hover:text-red-600">
                               <X size={14} />
@@ -547,7 +547,7 @@ export default function NouvellerCultureModal({ onClose, onSubmit, initialData }
                                     : sel
                                 ))
                               }}
-                              className="flex-1 px-2 py-1.5 border border-gray-200 rounded-md text-xs focus:outline-none focus:ring-2 focus:ring-grow-500 bg-white">
+                              className="flex-1 px-2 py-1.5 border border-gray-200 dark:border-gray-700 rounded-md text-xs focus:outline-none focus:ring-2 focus:ring-grow-500 bg-white dark:bg-gray-800">
                               <option value="">🪴 Pot (optionnel)</option>
                               {pots.map(p => {
                                 const vol = p.volume_l ?? p.taille_pot
@@ -566,12 +566,12 @@ export default function NouvellerCultureModal({ onClose, onSubmit, initialData }
                                   : sel
                               ))}
                               placeholder="Vol. (L)"
-                              className="w-24 px-2 py-1.5 border border-gray-200 rounded-md text-xs focus:outline-none focus:ring-2 focus:ring-grow-500 text-right" />
+                              className="w-24 px-2 py-1.5 border border-gray-200 dark:border-gray-700 rounded-md text-xs focus:outline-none focus:ring-2 focus:ring-grow-500 text-right" />
                           </div>
                         )}
                       </div>
                     ))}
-                    <p className="text-xs text-gray-500 text-right">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 text-right">
                       Total : {selections.reduce((s, i) => s + i.nb_plantes, 0)} plante{selections.reduce((s, i) => s + i.nb_plantes, 0) > 1 ? 's' : ''}
                     </p>
                   </div>
@@ -584,26 +584,26 @@ export default function NouvellerCultureModal({ onClose, onSubmit, initialData }
                     value={searchGraine}
                     onChange={e => setSearchGraine(e.target.value)}
                     placeholder="🔍 Rechercher une variété…"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-t-lg text-sm focus:ring-2 focus:ring-grow-500 focus:border-transparent border-b-0"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-t-lg text-sm focus:ring-2 focus:ring-grow-500 focus:border-transparent border-b-0"
                   />
-                  <div className="border border-gray-200 rounded-b-lg overflow-hidden max-h-56 overflow-y-auto">
+                  <div className="border border-gray-200 dark:border-gray-700 rounded-b-lg overflow-hidden max-h-56 overflow-y-auto">
                     {(() => {
                       const available = catalogue
                         .filter(c => c.nbr_graines_restantes > 0)
                         .filter(c => !searchGraine || `${c.variete_nom} ${c.breeder_nom}`.toLowerCase().includes(searchGraine.toLowerCase()))
                         .sort((a, b) => a.variete_nom.localeCompare(b.variete_nom, 'fr', { sensitivity: 'base' }))
                       if (available.length === 0) {
-                        return <p className="text-sm text-gray-400 p-4 text-center">
+                        return <p className="text-sm text-gray-400 dark:text-gray-500 p-4 text-center">
                           {searchGraine ? 'Aucune variété trouvée' : 'Aucune graine disponible dans le stock'}
                         </p>
                       }
                       return available.map(item => (
                         <button key={item.id_packgraine} type="button" onClick={() => addGraine(item)}
                           disabled={selections.some(s => s.id_packgraine === item.id_packgraine)}
-                          className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-gray-50 border-b border-gray-100 last:border-0 disabled:opacity-40 disabled:cursor-not-allowed text-left">
+                          className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-gray-50 dark:hover:bg-gray-700/40 border-b border-gray-100 dark:border-gray-700 last:border-0 disabled:opacity-40 disabled:cursor-not-allowed text-left">
                           <div>
-                            <span className="text-sm font-medium text-gray-900">{item.variete_nom}</span>
-                            <span className="text-xs text-gray-500 ml-2">{item.breeder_nom}</span>
+                            <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{item.variete_nom}</span>
+                            <span className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 ml-2">{item.breeder_nom}</span>
                             {item.duree_flo_min && (
                               <span className="text-xs text-purple-600 ml-2">
                                 {item.duree_flo_min}{item.duree_flo_max ? `–${item.duree_flo_max}` : ''}sem
@@ -626,7 +626,7 @@ export default function NouvellerCultureModal({ onClose, onSubmit, initialData }
 
               <div className="flex gap-3 pt-2">
                 <button type="button" onClick={() => setStep(1)}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 text-sm">
+                  className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/40 text-sm">
                   ← Retour
                 </button>
                 <button type="submit" disabled={loading || !idEspace || selections.length === 0}

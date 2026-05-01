@@ -2,6 +2,41 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Dark mode — classes utilitaires réutilisables ────────────────────────── */
+@layer components {
+  /* Carte standard */
+  .card {
+    @apply bg-white rounded-xl shadow-sm border border-gray-100
+           dark:bg-gray-800 dark:border-gray-700 dark:shadow-gray-900/30;
+  }
+  /* Fond de page */
+  .page-bg {
+    @apply bg-gray-50 dark:bg-gray-900;
+  }
+  /* Texte primaire */
+  .text-primary {
+    @apply text-gray-900 dark:text-gray-100;
+  }
+  /* Texte secondaire */
+  .text-secondary {
+    @apply text-gray-500 dark:text-gray-400;
+  }
+  /* Texte muted */
+  .text-muted {
+    @apply text-gray-400 dark:text-gray-500;
+  }
+  /* Input standard */
+  .input-dark {
+    @apply bg-white border-gray-300 text-gray-900 placeholder-gray-400
+           dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-500;
+  }
+  /* Header de section */
+  .section-header {
+    @apply bg-gray-50 border-b border-gray-100
+           dark:bg-gray-700/50 dark:border-gray-700;
+  }
+}
+
 html, body, #root {
   height: 100%;
   margin: 0;

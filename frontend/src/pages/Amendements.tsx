@@ -66,7 +66,7 @@ const TYPE_COLORS: Record<string, string> = {
   Poudre:    'bg-yellow-100 text-yellow-700',
   Granulés:  'bg-amber-100 text-amber-700',
   Feuilles:  'bg-green-100 text-green-700',
-  Autre:     'bg-gray-100 text-gray-600',
+  Autre:     'bg-gray-100 text-gray-600 dark:text-gray-300',
 }
 function TypeBadge({ type }: { type?: string }) {
   const label = type || 'Autre'
@@ -109,7 +109,7 @@ function ProduitRow({
               {remove.isPending ? <Loader2 size={12} className="animate-spin" /> : 'Confirmer'}
             </button>
             <button onClick={() => setConfirm(false)}
-              className="px-3 py-1 border border-gray-300 text-gray-600 text-xs rounded hover:bg-gray-50">
+              className="px-3 py-1 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 text-xs rounded hover:bg-gray-50 dark:hover:bg-gray-700/40">
               Annuler
             </button>
           </div>
@@ -119,10 +119,10 @@ function ProduitRow({
   }
 
   const rowClass = stockZero
-    ? 'group bg-gray-50 opacity-60 hover:opacity-100 hover:bg-gray-100'
+    ? 'group bg-gray-50 dark:bg-gray-700/50 opacity-60 hover:opacity-100 hover:bg-gray-100 dark:hover:bg-gray-700'
     : lowStock
       ? 'group bg-amber-50 hover:bg-amber-100'
-      : 'group hover:bg-gray-50'
+      : 'group hover:bg-gray-50 dark:hover:bg-gray-700/40'
 
   return (
     <tr className={rowClass}>
@@ -130,10 +130,10 @@ function ProduitRow({
       <td className="px-4 py-3">
         <div className="flex items-center gap-2">
           <div>
-            <p className={`text-sm font-medium ${stockZero ? 'text-gray-500' : 'text-gray-900'}`}>
+            <p className={`text-sm font-medium ${stockZero ? 'text-gray-500 dark:text-gray-400 dark:text-gray-500' : 'text-gray-900 dark:text-gray-100'}`}>
               {item.nom_produit}
             </p>
-            {item.marque && <p className="text-xs text-gray-400">{item.marque}</p>}
+            {item.marque && <p className="text-xs text-gray-400 dark:text-gray-500">{item.marque}</p>}
           </div>
           {stockZero && (
             <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-red-100 text-red-600 shrink-0">
@@ -145,7 +145,7 @@ function ProduitRow({
       {/* Type */}
       <td className="px-4 py-3"><TypeBadge type={item.type_produit} /></td>
       {/* Conditionnement */}
-      <td className="px-4 py-3 text-sm text-gray-500">
+      <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500">
         {item.conditionnement
           ? <>{item.conditionnement}{item.volume_conditionnement ? ` · ${item.volume_conditionnement} ${item.unite_volume ?? ''}` : ''}</>
           : '—'
@@ -157,7 +157,7 @@ function ProduitRow({
           ? <span className={stockZero ? 'text-red-500' : 'text-grow-700'}>
               {item.quantite_stock} {item.unite_quantite ?? ''}
             </span>
-          : <span className="text-gray-400">—</span>
+          : <span className="text-gray-400 dark:text-gray-500">—</span>
         }
       </td>
       {/* Prix */}
@@ -165,16 +165,16 @@ function ProduitRow({
         {(() => {
           const residuel = prixResiduel(item)
           if (residuel == null) {
-            return <span className="text-gray-400">—</span>
+            return <span className="text-gray-400 dark:text-gray-500">—</span>
           }
           const condRef = item.volume_conditionnement != null
             ? `${item.volume_conditionnement} ${item.unite_volume ?? ''}`
             : null
           return (
             <div>
-              <span className="font-semibold text-gray-800">{residuel.toFixed(2)} €</span>
+              <span className="font-semibold text-gray-800 dark:text-gray-100">{residuel.toFixed(2)} €</span>
               {condRef && (
-                <p className="text-xs text-gray-400 mt-0.5">
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
                   {Number(item.prix_achat).toFixed(2)} € / {condRef}
                 </p>
               )}
@@ -183,18 +183,18 @@ function ProduitRow({
         })()}
       </td>
       {/* Date achat */}
-      <td className="px-4 py-3 text-sm text-gray-400">{fmtDate(item.date_achat)}</td>
+      <td className="px-4 py-3 text-sm text-gray-400 dark:text-gray-500">{fmtDate(item.date_achat)}</td>
       {/* Date péremption */}
       <td className="px-4 py-3 text-sm whitespace-nowrap">
         {item.date_peremption ? (
-          <span className={`inline-flex items-center gap-1 ${expired ? 'text-red-600 font-semibold' : soonExpired ? 'text-amber-600' : 'text-gray-400'}`}>
+          <span className={`inline-flex items-center gap-1 ${expired ? 'text-red-600 font-semibold' : soonExpired ? 'text-amber-600' : 'text-gray-400 dark:text-gray-500'}`}>
             {(expired || soonExpired) && <AlertCircle size={13} />}
             {fmtDate(item.date_peremption)}
           </span>
         ) : '—'}
       </td>
       {/* Dosage */}
-      <td className="px-4 py-3 text-xs text-gray-500 max-w-[160px] truncate" title={item.dosage_conseille ?? ''}>
+      <td className="px-4 py-3 text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 max-w-[160px] truncate" title={item.dosage_conseille ?? ''}>
         {item.dosage_conseille || '—'}
       </td>
       {/* Actions */}
@@ -202,15 +202,15 @@ function ProduitRow({
         <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
           {/* Recharger — toujours visible au hover */}
           <button onClick={onGestionStock}
-            className="p-1.5 text-gray-400 hover:text-grow-600 hover:bg-grow-50 rounded" title="Gérer le stock">
+            className="p-1.5 text-gray-400 dark:text-gray-500 hover:text-grow-600 hover:bg-grow-50 rounded" title="Gérer le stock">
             <PackagePlus size={14} />
           </button>
           <button onClick={onEdit}
-            className="p-1.5 text-gray-400 hover:text-grow-600 hover:bg-grow-50 rounded" title="Modifier">
+            className="p-1.5 text-gray-400 dark:text-gray-500 hover:text-grow-600 hover:bg-grow-50 rounded" title="Modifier">
             <Pencil size={14} />
           </button>
           <button onClick={() => setConfirm(true)}
-            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded" title="Supprimer">
+            className="p-1.5 text-gray-400 dark:text-gray-500 hover:text-red-600 hover:bg-red-50 rounded" title="Supprimer">
             <Trash2 size={14} />
           </button>
         </div>
@@ -286,10 +286,10 @@ export default function SolsEngraisPage() {
 
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-        <h1 className="text-3xl font-bold text-gray-900">Sols & Engrais</h1>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Sols & Engrais</h1>
         <div className="flex gap-2">
           <button onClick={() => setShowImportExport(true)}
-            className="flex items-center gap-2 px-3 py-2 border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 text-sm">
+            className="flex items-center gap-2 px-3 py-2 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/40 text-sm">
             <ArrowDownUp size={15} /> Import / Export
           </button>
           <button onClick={() => setShowModal(true)}
@@ -308,8 +308,8 @@ export default function SolsEngraisPage() {
             { label: 'Périmés',       value: String(stats.nbPerimes),         color: stats.nbPerimes > 0 ? 'red' : 'gray', },
             { label: 'Valeur stock',  value: `${stats.valeur.toFixed(2)} €`,  color: 'amber', },
           ].map(({ label, value, color }) => (
-            <div key={label} className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-              <p className="text-xs text-gray-500">{label}</p>
+            <div key={label} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-4">
+              <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">{label}</p>
               <p className={`text-2xl font-bold text-${color}-600 mt-1`}>{value}</p>
             </div>
           ))}
@@ -338,17 +338,17 @@ export default function SolsEngraisPage() {
 
       {/* Filtres */}
       {produits.length > 0 && (
-        <div className="bg-white rounded-lg shadow p-4 flex flex-wrap gap-3">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 flex flex-wrap gap-3">
           <div className="flex-1 min-w-[200px] relative">
-            <Search className="absolute left-3 top-2.5 text-gray-400" size={16} />
+            <Search className="absolute left-3 top-2.5 text-gray-400 dark:text-gray-500" size={16} />
             <input type="text" value={search} onChange={e => setSearch(e.target.value)}
               placeholder="Nom, marque, dosage…"
-              className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-grow-500" />
+              className="w-full pl-9 pr-4 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-grow-500" />
           </div>
           <div className="flex gap-2 flex-wrap">
             {allTypes.map(t => (
               <button key={t} onClick={() => setTypeFilter(typeFilter === t ? '' : t)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${typeFilter === t ? 'bg-grow-600 text-white border-grow-600' : 'bg-white text-gray-600 border-gray-200 hover:border-grow-300'}`}>
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${typeFilter === t ? 'bg-grow-600 text-white border-grow-600' : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:border-grow-300'}`}>
                 {t}
               </button>
             ))}
@@ -361,19 +361,19 @@ export default function SolsEngraisPage() {
         <EmptyState icon={Beaker} title="Aucun produit"
           description='Cliquez sur "Ajouter un produit" pour commencer votre inventaire' />
       ) : (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-gray-50 border-b border-gray-200">
+              <thead className="bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-700">
                 <tr>
                   {['Produit', 'Type', 'Conditionnement', 'Stock', 'Valeur stock', 'Date achat', 'Péremption', 'Dosage conseillé', ''].map(h => (
-                    <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">
+                    <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase tracking-wide whitespace-nowrap">
                       {h}
                     </th>
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                 {filtered.map(p => (
                   <ProduitRow
                     key={p.id_produit}
@@ -386,7 +386,7 @@ export default function SolsEngraisPage() {
               </tbody>
             </table>
           </div>
-          <div className="px-4 py-2 border-t border-gray-100 text-xs text-gray-400">
+          <div className="px-4 py-2 border-t border-gray-100 dark:border-gray-700 text-xs text-gray-400 dark:text-gray-500">
             {filtered.length} produit{filtered.length > 1 ? 's' : ''}
             {(search || typeFilter) ? ` sur ${produits.length}` : ''}
           </div>

@@ -232,13 +232,13 @@ export default function CalendrierCulture({ cultureId, plants }: Props) {
     <div className="space-y-4">
       {/* Navigation mois */}
       <div className="flex items-center justify-between">
-        <button onClick={prevMonth} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+        <button onClick={prevMonth} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
           <ChevronLeft size={20} />
         </button>
-        <h3 className="text-lg font-semibold text-gray-800">
+        <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
           {MOIS_FR[month]} {year}
         </h3>
-        <button onClick={nextMonth} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+        <button onClick={nextMonth} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
           <ChevronRight size={20} />
         </button>
       </div>
@@ -246,30 +246,30 @@ export default function CalendrierCulture({ cultureId, plants }: Props) {
       {/* Légende */}
       <div className="flex flex-wrap gap-3 text-xs">
         {(['germination', 'lampe', 'arrosage', 'stade', 'mesure', 'recolte'] as const).map(cat => (
-          <span key={cat} className="flex items-center gap-1 text-gray-600">
+          <span key={cat} className="flex items-center gap-1 text-gray-600 dark:text-gray-300">
             <span className={`w-2.5 h-2.5 rounded-full ${CATEGORY_COLORS[cat]}`} />
             {cat}
           </span>
         ))}
-        <span className="flex items-center gap-1 text-gray-600">
+        <span className="flex items-center gap-1 text-gray-600 dark:text-gray-300">
           <span className="opacity-40">⏳🌾</span>
           Récolte prévue
         </span>
       </div>
 
       {/* Grille */}
-      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
         {/* Jours de la semaine */}
-        <div className="grid grid-cols-7 border-b border-gray-200">
+        <div className="grid grid-cols-7 border-b border-gray-200 dark:border-gray-700">
           {JOURS.map(j => (
-            <div key={j} className="text-center text-xs font-semibold text-gray-500 py-2">{j}</div>
+            <div key={j} className="text-center text-xs font-semibold text-gray-500 dark:text-gray-400 dark:text-gray-500 py-2">{j}</div>
           ))}
         </div>
 
         {/* Cases */}
         <div className="grid grid-cols-7">
           {cells.map((day, idx) => {
-            if (!day) return <div key={idx} className="border-r border-b border-gray-100 min-h-[80px] bg-gray-50/30" />
+            if (!day) return <div key={idx} className="border-r border-b border-gray-100 dark:border-gray-700 min-h-[80px] bg-gray-50 dark:bg-gray-700/50/30" />
             const ds = dateStr(year, month, day)
             const dayActions = actionsByDay[ds] || []
             const isToday = ds === todayStr
@@ -283,13 +283,13 @@ export default function CalendrierCulture({ cultureId, plants }: Props) {
               <div
                 key={ds}
                 onClick={() => setSelectedDay(isSelected ? null : ds)}
-                className={`border-r border-b border-gray-100 min-h-[80px] p-1.5 cursor-pointer transition-colors
-                  ${isSelected ? 'bg-grow-50 border-grow-200' : 'hover:bg-gray-50'}
+                className={`border-r border-b border-gray-100 dark:border-gray-700 min-h-[80px] p-1.5 cursor-pointer transition-colors
+                  ${isSelected ? 'bg-grow-50 border-grow-200' : 'hover:bg-gray-50 dark:hover:bg-gray-700/40'}
                   ${isFuture ? 'opacity-60' : ''}`}
               >
                 {/* Numéro du jour */}
                 <div className={`text-xs font-semibold mb-1 w-6 h-6 flex items-center justify-center rounded-full
-                  ${isToday ? 'bg-grow-600 text-white' : 'text-gray-700'}`}>
+                  ${isToday ? 'bg-grow-600 text-white' : 'text-gray-700 dark:text-gray-200'}`}>
                   {day}
                 </div>
 
@@ -334,7 +334,7 @@ export default function CalendrierCulture({ cultureId, plants }: Props) {
                     )
                   })}
                   {dayActions.length > 8 && (
-                    <span className="text-[10px] text-gray-400">+{dayActions.length - 8}</span>
+                    <span className="text-[10px] text-gray-400 dark:text-gray-500">+{dayActions.length - 8}</span>
                   )}
                 </div>
 
@@ -365,9 +365,9 @@ export default function CalendrierCulture({ cultureId, plants }: Props) {
 
       {/* Panneau du jour sélectionné */}
       {selectedDay && (
-        <div className="bg-white border border-gray-200 rounded-xl p-4 space-y-3">
+        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 space-y-3">
           <div className="flex items-center justify-between">
-            <h4 className="font-semibold text-gray-800">
+            <h4 className="font-semibold text-gray-800 dark:text-gray-100">
               {new Date(selectedDay + 'T12:00:00').toLocaleDateString('fr-FR', {
                 weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
               })}
@@ -399,18 +399,18 @@ export default function CalendrierCulture({ cultureId, plants }: Props) {
                     <span className={`w-2.5 h-2.5 rounded-full ${WATERING_COLORS[group.type_action] ?? 'bg-blue-400'} mt-1 flex-shrink-0`} />
                     <div className="flex-1 min-w-0 space-y-0.5">
                       {/* Titre */}
-                      <p className="text-sm font-semibold text-gray-800">
+                      <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">
                         {WATERING_ICONS[group.type_action]} {WATERING_LABELS[group.type_action] ?? group.type_action}
-                        {group.volTotal ? <span className="font-normal text-gray-600"> — {formatVolume(group.volTotal)}</span> : ''}
+                        {group.volTotal ? <span className="font-normal text-gray-600 dark:text-gray-300"> — {formatVolume(group.volTotal)}</span> : ''}
                       </p>
 
                       {/* Plantes */}
                       {group.isGlobal ? (
-                        <p className="text-xs text-gray-600">
+                        <p className="text-xs text-gray-600 dark:text-gray-300">
                           🌿 Tout l'espace{group.nbPlantes ? ` (${group.nbPlantes} plantes)` : ''}
                         </p>
                       ) : group.plantNames.length > 0 ? (
-                        <p className="text-xs text-gray-600">
+                        <p className="text-xs text-gray-600 dark:text-gray-300">
                           🌿 {group.plantNames.join(', ')} ({group.plantNames.length} plante{group.plantNames.length > 1 ? 's' : ''})
                         </p>
                       ) : null}
@@ -424,21 +424,21 @@ export default function CalendrierCulture({ cultureId, plants }: Props) {
 
                       {/* pH cible */}
                       {group.phCible ? (
-                        <p className="text-xs text-gray-600">
+                        <p className="text-xs text-gray-600 dark:text-gray-300">
                           <span className="font-medium">pH cible :</span> {group.phCible}
                         </p>
                       ) : null}
 
                       {/* Recette */}
                       {group.nomRecette ? (
-                        <p className="text-xs text-gray-600">
+                        <p className="text-xs text-gray-600 dark:text-gray-300">
                           <span className="font-medium">Recette :</span> {group.nomRecette}
                         </p>
                       ) : null}
 
                       {/* Produits utilisés */}
                       {group.produitsCalcules && group.produitsCalcules.length > 0 ? (
-                        <p className="text-xs text-gray-600">
+                        <p className="text-xs text-gray-600 dark:text-gray-300">
                           <span className="font-medium">Produits :</span>{' '}
                           {group.produitsCalcules.map((p: any) =>
                             `${p.nom} ${p.quantite}${(p.unite ?? '').replace('/L', '')}`
@@ -448,7 +448,7 @@ export default function CalendrierCulture({ cultureId, plants }: Props) {
 
                       {/* Note (première action du groupe) */}
                       {group.actions[0]?.note && (
-                        <p className="text-xs text-gray-500 italic">📝 {group.actions[0].note}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 italic">📝 {group.actions[0].note}</p>
                       )}
                     </div>
                     <button
@@ -467,20 +467,20 @@ export default function CalendrierCulture({ cultureId, plants }: Props) {
                   const colorClass = def ? CATEGORY_COLORS[def.category] : 'bg-gray-400'
                   return (
                     <div key={action.id_action}
-                      className="flex items-start gap-2 p-2 bg-gray-50 rounded-lg group">
+                      className="flex items-start gap-2 p-2 bg-gray-50 dark:bg-gray-700/50 rounded-lg group">
                       <span className={`w-2.5 h-2.5 rounded-full ${colorClass} mt-1 flex-shrink-0`} />
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-800">
+                        <p className="text-sm font-medium text-gray-800 dark:text-gray-100">
                           {def?.icon} {def?.label || action.type_action}
                         </p>
                         {action.nom_plant && !action.global_culture && (
-                          <p className="text-xs text-gray-500">🌿 {action.nom_plant}</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">🌿 {action.nom_plant}</p>
                         )}
                         {action.global_culture && (
-                          <p className="text-xs text-gray-500">🌿 Tout l'espace</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">🌿 Tout l'espace</p>
                         )}
                         {action.parametres && Object.keys(action.parametres).length > 0 && (
-                          <p className="text-xs text-gray-600 mt-0.5">
+                          <p className="text-xs text-gray-600 dark:text-gray-300 mt-0.5">
                             {Object.entries(action.parametres)
                               .filter(([k]) => !['produits', 'produits_calcules', 'produits_consommes'].includes(k))
                               .map(([k, v]) => `${k}: ${v}`)
@@ -488,7 +488,7 @@ export default function CalendrierCulture({ cultureId, plants }: Props) {
                           </p>
                         )}
                         {action.note && (
-                          <p className="text-xs text-gray-500 italic mt-0.5">📝 {action.note}</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 italic mt-0.5">📝 {action.note}</p>
                         )}
                       </div>
                       <button
@@ -504,7 +504,7 @@ export default function CalendrierCulture({ cultureId, plants }: Props) {
               </div>
             )
           })() : (
-            <p className="text-sm text-gray-400 text-center py-2">Aucune action ce jour</p>
+            <p className="text-sm text-gray-400 dark:text-gray-500 text-center py-2">Aucune action ce jour</p>
           )}
         </div>
       )}

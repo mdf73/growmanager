@@ -12,12 +12,12 @@ interface Props {
 
 const UNITES_VOL = ['L', 'mL']
 
-const sel = "w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-grow-500"
-const inp = "w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-grow-500"
+const sel = "w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-grow-500"
+const inp = "w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-grow-500"
 
 function Label({ children, required }: { children: React.ReactNode; required?: boolean }) {
   return (
-    <label className="block text-xs font-medium text-gray-600 mb-1">
+    <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">
       {children}{required && <span className="text-red-400 ml-0.5">*</span>}
     </label>
   )
@@ -128,13 +128,13 @@ export default function NouvelleRecetteFermentationModal({ editRecette, onClose 
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[94vh] flex flex-col">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-3xl max-h-[94vh] flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-          <h2 className="text-lg font-bold text-gray-900">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-700">
+          <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
             {isEdit ? 'Modifier la recette fermentation' : 'Nouvelle recette fermentation'}
           </h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X size={22} /></button>
+          <button onClick={onClose} className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:text-gray-300"><X size={22} /></button>
         </div>
 
         {/* Corps */}
@@ -167,7 +167,7 @@ export default function NouvelleRecetteFermentationModal({ editRecette, onClose 
                   placeholder="Ex: 10" className={inp} />
                 <select value={form.unite_volume}
                   onChange={e => setForm(f => ({ ...f, unite_volume: e.target.value }))}
-                  className="w-20 px-2 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-grow-500">
+                  className="w-20 px-2 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-grow-500">
                   {UNITES_VOL.map(u => <option key={u} value={u}>{u}</option>)}
                 </select>
               </div>
@@ -175,14 +175,14 @@ export default function NouvelleRecetteFermentationModal({ editRecette, onClose 
             <div>
               <Label>Durée de fermentation</Label>
               <div className="relative">
-                <Clock size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <Clock size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500" />
                 <input type="number" step="1" min="0"
                   value={form.duree_fermentation}
                   onChange={e => setForm(f => ({ ...f, duree_fermentation: e.target.value }))}
                   placeholder="heures"
-                  className="w-full pl-8 pr-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-grow-500" />
+                  className="w-full pl-8 pr-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-grow-500" />
               </div>
-              <p className="text-xs text-gray-400 mt-0.5">en heures</p>
+              <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">en heures</p>
             </div>
           </div>
 
@@ -205,7 +205,7 @@ export default function NouvelleRecetteFermentationModal({ editRecette, onClose 
             </div>
 
             {lignes.length === 0 && (
-              <p className="text-sm text-gray-400 text-center py-3 border-2 border-dashed border-gray-200 rounded-lg">
+              <p className="text-sm text-gray-400 dark:text-gray-500 text-center py-3 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-lg">
                 Aucun ingrédient — cliquez sur "Ajouter" pour en ajouter
               </p>
             )}
@@ -215,12 +215,12 @@ export default function NouvelleRecetteFermentationModal({ editRecette, onClose 
                 const produit = produits.find(p => p.id_produit === l.id_produit)
                 const unites  = unitesPour(produit?.type_produit)
                 return (
-                  <div key={i} className="bg-gray-50 rounded-lg p-3 space-y-2">
+                  <div key={i} className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3 space-y-2">
                     <div className="flex items-center gap-2">
                       <GripVertical size={14} className="text-gray-300 shrink-0" />
                       <select value={l.id_produit}
                         onChange={e => updateLigne(i, 'id_produit', parseInt(e.target.value))}
-                        className="flex-1 px-2 py-1.5 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-grow-500 bg-white">
+                        className="flex-1 px-2 py-1.5 border border-gray-200 dark:border-gray-700 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-grow-500 bg-white dark:bg-gray-800">
                         <option value="">— Choisir un produit —</option>
                         {produits.map(p => (
                           <option key={p.id_produit} value={p.id_produit}>
@@ -231,10 +231,10 @@ export default function NouvelleRecetteFermentationModal({ editRecette, onClose 
                       <input type="number" step="any" min="0" value={l.quantite}
                         onChange={e => updateLigne(i, 'quantite', e.target.value)}
                         placeholder="0"
-                        className="w-20 px-2 py-1.5 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-grow-500 text-right" />
+                        className="w-20 px-2 py-1.5 border border-gray-200 dark:border-gray-700 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-grow-500 text-right" />
                       <select value={l.unite}
                         onChange={e => updateLigne(i, 'unite', e.target.value)}
-                        className="w-20 px-2 py-1.5 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-grow-500 bg-white">
+                        className="w-20 px-2 py-1.5 border border-gray-200 dark:border-gray-700 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-grow-500 bg-white dark:bg-gray-800">
                         {(unites.includes(l.unite) ? unites : ['g', 'Kg', 'mL', 'L']).map(u =>
                           <option key={u} value={u}>{u}</option>)}
                       </select>
@@ -246,7 +246,7 @@ export default function NouvelleRecetteFermentationModal({ editRecette, onClose 
                     <input type="text" value={l.note_ligne}
                       onChange={e => updateLigne(i, 'note_ligne', e.target.value)}
                       placeholder="Note (ex: ajouter en dernier, mélanger doucement)"
-                      className="w-full px-2 py-1.5 border border-gray-200 rounded-md text-xs focus:outline-none focus:ring-2 focus:ring-grow-500 text-gray-500" />
+                      className="w-full px-2 py-1.5 border border-gray-200 dark:border-gray-700 rounded-md text-xs focus:outline-none focus:ring-2 focus:ring-grow-500 text-gray-500 dark:text-gray-400 dark:text-gray-500" />
                   </div>
                 )
               })}
@@ -271,9 +271,9 @@ export default function NouvelleRecetteFermentationModal({ editRecette, onClose 
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-gray-100 flex justify-end gap-3">
+        <div className="px-6 py-4 border-t border-gray-100 dark:border-gray-700 flex justify-end gap-3">
           <button onClick={onClose}
-            className="px-4 py-2 border border-gray-300 text-gray-600 text-sm rounded-lg hover:bg-gray-50">
+            className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 text-sm rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/40">
             Annuler
           </button>
           <button onClick={() => save.mutate()} disabled={save.isPending || !form.nom_recette.trim()}

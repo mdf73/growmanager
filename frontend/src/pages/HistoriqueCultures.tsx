@@ -56,7 +56,7 @@ function CultureRow({
               {remove.isPending ? <Loader2 size={12} className="animate-spin" /> : 'Confirmer'}
             </button>
             <button onClick={() => setConfirm(false)}
-              className="px-3 py-1 border border-gray-300 text-gray-600 text-xs rounded hover:bg-gray-50">
+              className="px-3 py-1 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 text-xs rounded hover:bg-gray-50 dark:hover:bg-gray-700/40">
               Annuler
             </button>
           </div>
@@ -67,11 +67,11 @@ function CultureRow({
 
   return (
     <tr
-      className="hover:bg-gray-50 group cursor-pointer"
+      className="hover:bg-gray-50 dark:hover:bg-gray-700/40 group cursor-pointer"
       onClick={onDetail}
     >
-      <td className="px-2 py-2 text-xs text-gray-400 font-mono">#{item.id_historique_culture}</td>
-      <td className="px-2 py-2 text-xs font-medium text-gray-900 max-w-[120px] truncate"
+      <td className="px-2 py-2 text-xs text-gray-400 dark:text-gray-500 font-mono">#{item.id_historique_culture}</td>
+      <td className="px-2 py-2 text-xs font-medium text-gray-900 dark:text-gray-100 max-w-[120px] truncate"
           title={item.nom ?? item.varietes_label}>
         {item.nom
           ? item.nom
@@ -80,9 +80,9 @@ function CultureRow({
               : item.varietes_label)
         }
       </td>
-      <td className="px-2 py-2 text-xs text-gray-500 whitespace-nowrap">{fmtDate(item.date_debut)}</td>
-      <td className="px-2 py-2 text-xs text-gray-500 whitespace-nowrap">{fmtDate(item.date_fin)}</td>
-      <td className="px-2 py-2 text-xs text-gray-500 text-right">
+      <td className="px-2 py-2 text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 whitespace-nowrap">{fmtDate(item.date_debut)}</td>
+      <td className="px-2 py-2 text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 whitespace-nowrap">{fmtDate(item.date_fin)}</td>
+      <td className="px-2 py-2 text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 text-right">
         {item.duree_jours != null ? `${item.duree_jours} j` : '—'}
       </td>
       <td className="px-2 py-2 text-xs text-center">
@@ -90,18 +90,18 @@ function CultureRow({
           {item.nb_plants}
         </span>
       </td>
-      <td className="px-2 py-2 text-xs text-gray-500 text-right">
+      <td className="px-2 py-2 text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 text-right">
         {item.prix_total_graines != null ? `${Number(item.prix_total_graines).toFixed(2)} €` : '—'}
       </td>
-      <td className="px-2 py-2 text-xs text-gray-500 max-w-[80px] truncate" title={item.tente ?? ''}>{item.tente || '—'}</td>
-      <td className="px-2 py-2 text-xs text-gray-500 max-w-[90px] truncate" title={item.lampe ?? ''}>
+      <td className="px-2 py-2 text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 max-w-[80px] truncate" title={item.tente ?? ''}>{item.tente || '—'}</td>
+      <td className="px-2 py-2 text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 max-w-[90px] truncate" title={item.lampe ?? ''}>
         {item.lampe ? (item.lampe.toUpperCase().startsWith('LED') ? 'LED' : item.lampe) : '—'}
       </td>
-      <td className="px-2 py-2 text-xs text-gray-500 text-right">
+      <td className="px-2 py-2 text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 text-right">
         {item.puissance != null ? `${item.puissance}` : '—'}
       </td>
-      <td className="px-2 py-2 text-xs text-gray-500 max-w-[70px] truncate" title={item.substrat ?? ''}>{item.substrat || '—'}</td>
-      <td className="px-2 py-2 text-xs text-gray-500 max-w-[70px] truncate" title={item.engrais ?? ''}>{item.engrais || '—'}</td>
+      <td className="px-2 py-2 text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 max-w-[70px] truncate" title={item.substrat ?? ''}>{item.substrat || '—'}</td>
+      <td className="px-2 py-2 text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 max-w-[70px] truncate" title={item.engrais ?? ''}>{item.engrais || '—'}</td>
       <td className="px-2 py-2 text-xs font-bold text-grow-700 text-right">
         {item.quantite_totale != null ? `${Number(item.quantite_totale).toFixed(1)} g` : '—'}
       </td>
@@ -211,7 +211,7 @@ export default function HistoriqueCulturesPage() {
 
   const Th = ({ col, children, right = false }: { col: SortCol; children: React.ReactNode; right?: boolean }) => (
     <th onClick={() => toggleSort(col)}
-      className={`px-2 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide cursor-pointer select-none whitespace-nowrap ${right ? 'text-right' : 'text-left'}`}>
+      className={`px-2 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase tracking-wide cursor-pointer select-none whitespace-nowrap ${right ? 'text-right' : 'text-left'}`}>
       <span className="inline-flex items-center gap-1">
         {children}
         {sortCol === col && <span className="text-grow-500">{sortAsc ? '↑' : '↓'}</span>}
@@ -229,11 +229,11 @@ export default function HistoriqueCulturesPage() {
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div className="flex items-center gap-4">
-          <h1 className="text-3xl font-bold text-gray-900">Historique cultures</h1>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Historique cultures</h1>
           <select
             value={selectedYear}
             onChange={e => setSelectedYear(e.target.value === 'all' ? 'all' : parseInt(e.target.value))}
-            className="text-sm border border-gray-200 rounded-xl px-3 py-2 bg-white focus:ring-2 focus:ring-grow-400 shadow-sm"
+            className="text-sm border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-grow-400 shadow-sm"
           >
             <option value="all">Toutes les années</option>
             {availableYears.map(y => <option key={y} value={y}>{y}</option>)}
@@ -241,7 +241,7 @@ export default function HistoriqueCulturesPage() {
         </div>
         <div className="flex items-center gap-2">
           <button onClick={() => setShowImportExport(true)}
-            className="flex items-center gap-2 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 text-sm font-medium">
+            className="flex items-center gap-2 px-4 py-2.5 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700/40 text-sm font-medium">
             <ArrowUpDown size={15} />
             Import / Export
           </button>
@@ -263,15 +263,15 @@ export default function HistoriqueCulturesPage() {
             { icon: Scale, color: 'purple', label: 'Récolte totale',  value: `${stats.totalG.toFixed(1)} g` },
             { icon: Zap,   color: 'amber',  label: 'g/W moyen',       value: stats.avgGpW != null ? stats.avgGpW.toFixed(3) : '—' },
           ].map(({ icon: Icon, color, label, value }) => (
-            <div key={label} className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 flex items-center gap-3">
+            <div key={label} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-4 flex items-center gap-3">
               <div className={`p-2.5 rounded-xl bg-${color}-50`}>
                 <Icon size={20} className={`text-${color}-600`} />
               </div>
               <div>
-                <p className="text-xs text-gray-500">{label}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">{label}</p>
                 <p className={`text-xl font-bold text-${color}-700`}>{value}</p>
                 {selectedYear !== 'all' && (
-                  <p className="text-xs text-gray-400 mt-0.5">{selectedYear}</p>
+                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{selectedYear}</p>
                 )}
               </div>
             </div>
@@ -280,7 +280,7 @@ export default function HistoriqueCulturesPage() {
       )}
 
       {/* Tableau */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
         {filtered.length === 0 ? (
           <EmptyState
             icon={Leaf}
@@ -290,7 +290,7 @@ export default function HistoriqueCulturesPage() {
         ) : (
           <>
             <div className="px-5 pt-4 pb-1 flex justify-end">
-              <p className="text-xs text-gray-400">
+              <p className="text-xs text-gray-400 dark:text-gray-500">
                 {filtered.length} culture{filtered.length > 1 ? 's' : ''}
                 {selectedYear !== 'all' ? ` en ${selectedYear}` : ''} — cliquer sur une ligne pour voir le détail
               </p>
@@ -298,7 +298,7 @@ export default function HistoriqueCulturesPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="bg-gray-50 border-b border-gray-200">
+                  <tr className="bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-700">
                     <Th col="num">#</Th>
                     <Th col="varietes">Culture</Th>
                     <Th col="date_debut">Début</Th>
@@ -316,7 +316,7 @@ export default function HistoriqueCulturesPage() {
                     <th className="px-2 py-2"></th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100">
+                <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                   {filtered.map(c => (
                     <CultureRow
                       key={c.id_historique_culture}

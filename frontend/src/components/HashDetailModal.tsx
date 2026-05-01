@@ -9,9 +9,9 @@ interface Props {
 function Row({ label, value }: { label: string; value?: string | number | null }) {
   if (value == null || value === '') return null
   return (
-    <div className="flex justify-between py-1.5 border-b border-gray-100 last:border-0">
-      <span className="text-sm text-gray-500">{label}</span>
-      <span className="text-sm font-medium text-gray-900">{value}</span>
+    <div className="flex justify-between py-1.5 border-b border-gray-100 dark:border-gray-700 last:border-0">
+      <span className="text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500">{label}</span>
+      <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{value}</span>
     </div>
   )
 }
@@ -20,8 +20,8 @@ function Section({ title, icon: Icon, children }: {
   title: string; icon?: React.ElementType; children: React.ReactNode
 }) {
   return (
-    <div className="bg-gray-50 rounded-xl p-4">
-      <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3 flex items-center gap-1.5">
+    <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4">
+      <h3 className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide mb-3 flex items-center gap-1.5">
         {Icon && <Icon size={13} />}
         {title}
       </h3>
@@ -45,27 +45,27 @@ export default function HashDetailModal({ extraction, onClose }: Props) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col max-h-[92vh]">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col max-h-[92vh]">
 
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 shrink-0">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700 shrink-0">
           <div className="flex items-center gap-3">
             <span className="text-2xl">🍫</span>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-base font-semibold text-gray-900">{varieteLabel}</h2>
+                <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">{varieteLabel}</h2>
                 <span className="text-xs px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full font-medium">
                   {typLabel}
                 </span>
               </div>
-              <p className="text-xs text-gray-400 mt-0.5">
+              <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
                 {new Date(extraction.date_hashextraction).toLocaleDateString('fr-FR', {
                   weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
                 })}
               </p>
             </div>
           </div>
-          <button onClick={onClose} className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100">
+          <button onClick={onClose} className="p-1.5 rounded-lg text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
             <X size={18} />
           </button>
         </div>
@@ -105,9 +105,9 @@ export default function HashDetailModal({ extraction, onClose }: Props) {
                 <Row key={i} label={`Passage ${i + 1}`} value={`${p.duree} min`} />
               ))}
               {extraction.passages!.length > 1 && (
-                <div className="flex justify-between pt-2 mt-1 border-t border-gray-200">
-                  <span className="text-sm font-semibold text-gray-600">Durée totale</span>
-                  <span className="text-sm font-bold text-gray-900">{dureeTotaleIceo} min</span>
+                <div className="flex justify-between pt-2 mt-1 border-t border-gray-200 dark:border-gray-700">
+                  <span className="text-sm font-semibold text-gray-600 dark:text-gray-300">Durée totale</span>
+                  <span className="text-sm font-bold text-gray-900 dark:text-gray-100">{dureeTotaleIceo} min</span>
                 </div>
               )}
             </Section>
@@ -119,8 +119,8 @@ export default function HashDetailModal({ extraction, onClose }: Props) {
               {extraction.sacs!.map((s, i) => (
                 <Row key={i} label={s.maillage} value={`${Number(s.poids).toFixed(2)} g`} />
               ))}
-              <div className="flex justify-between pt-2 mt-1 border-t border-gray-200">
-                <span className="text-sm font-semibold text-gray-600">Total extrait</span>
+              <div className="flex justify-between pt-2 mt-1 border-t border-gray-200 dark:border-gray-700">
+                <span className="text-sm font-semibold text-gray-600 dark:text-gray-300">Total extrait</span>
                 <span className="text-sm font-bold text-amber-700">{extraction.quantite_extraite.toFixed(2)} g</span>
               </div>
             </Section>
@@ -129,14 +129,14 @@ export default function HashDetailModal({ extraction, onClose }: Props) {
           {/* Notes */}
           {extraction.info_hashextraction && (
             <Section title="Notes" icon={Layers}>
-              <p className="text-sm text-gray-700">{extraction.info_hashextraction}</p>
+              <p className="text-sm text-gray-700 dark:text-gray-200">{extraction.info_hashextraction}</p>
             </Section>
           )}
         </div>
 
-        <div className="px-6 py-3 border-t border-gray-100 shrink-0 flex justify-end">
+        <div className="px-6 py-3 border-t border-gray-100 dark:border-gray-700 shrink-0 flex justify-end">
           <button onClick={onClose}
-            className="px-4 py-2 bg-gray-100 text-gray-700 text-sm rounded-lg hover:bg-gray-200">
+            className="px-4 py-2 bg-gray-100 text-gray-700 dark:text-gray-200 text-sm rounded-lg hover:bg-gray-200">
             Fermer
           </button>
         </div>

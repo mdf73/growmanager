@@ -49,7 +49,7 @@ function formatDate(dateStr?: string) {
 }
 
 function dureeColor(j?: number | null) {
-  if (j == null) return 'bg-gray-100 text-gray-500'
+  if (j == null) return 'bg-gray-100 text-gray-500 dark:text-gray-400 dark:text-gray-500'
   if (j <= 5)  return 'bg-blue-50 text-blue-700'
   if (j <= 10) return 'bg-green-50 text-green-700'
   if (j <= 14) return 'bg-amber-50 text-amber-700'
@@ -190,21 +190,21 @@ function AssignerEspaceModal({
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-sm">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-sm">
         <div className="flex items-center justify-between p-5 border-b">
-          <h2 className="text-base font-bold text-gray-900">
+          <h2 className="text-base font-bold text-gray-900 dark:text-gray-100">
             🌬️ Espace de séchage — {plant.nom_affichage}
           </h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X size={18} /></button>
+          <button onClick={onClose} className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:text-gray-300"><X size={18} /></button>
         </div>
         <form onSubmit={handleSubmit} className="p-5 space-y-4">
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-700 text-sm px-3 py-2 rounded-lg">{error}</div>
           )}
 
-          <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
-            <MapPin size={13} className="text-gray-400 flex-shrink-0" />
-            <p className="text-xs text-gray-600">
+          <div className="flex items-center gap-2 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2">
+            <MapPin size={13} className="text-gray-400 dark:text-gray-500 flex-shrink-0" />
+            <p className="text-xs text-gray-600 dark:text-gray-300">
               Espace culture actuel : <strong>{plant.nom_espace || '—'}</strong>
               {plant.nom_espace_sechage && plant.nom_espace_sechage !== plant.nom_espace && (
                 <> → séchage : <strong className="text-yellow-700">{plant.nom_espace_sechage}</strong></>
@@ -213,11 +213,11 @@ function AssignerEspaceModal({
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">Espace de séchage</label>
+            <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Espace de séchage</label>
             <select
               value={idEspace}
               onChange={e => setIdEspace(e.target.value ? Number(e.target.value) : '')}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-grow-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-grow-500 focus:border-transparent"
             >
               <option value="">— Même espace que la culture —</option>
               {espaces.map(e => (
@@ -228,11 +228,11 @@ function AssignerEspaceModal({
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Méthode</label>
+              <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Méthode</label>
               <select
                 value={methode}
                 onChange={e => setMethode(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-grow-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-grow-500 focus:border-transparent"
               >
                 <option value="">— Choisir —</option>
                 <option value="Filet">Filet</option>
@@ -241,40 +241,40 @@ function AssignerEspaceModal({
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Poids humide (g)</label>
+              <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Poids humide (g)</label>
               <input
                 type="number" step="0.1" value={poids}
                 onChange={e => setPoids(e.target.value)}
                 placeholder="ex: 85"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-grow-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-grow-500 focus:border-transparent"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">T° cible (°C)</label>
+              <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">T° cible (°C)</label>
               <input
                 type="number" step="0.5" value={tempCible}
                 onChange={e => setTempCible(e.target.value)}
                 placeholder="18"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-grow-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-grow-500 focus:border-transparent"
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">HR cible (%)</label>
+              <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">HR cible (%)</label>
               <input
                 type="number" step="1" value={hygroCible}
                 onChange={e => setHygroCible(e.target.value)}
                 placeholder="60"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-grow-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-grow-500 focus:border-transparent"
               />
             </div>
           </div>
 
           <div className="flex gap-3 pt-1">
             <button type="button" onClick={onClose}
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 text-sm">
+              className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/40 text-sm">
               Annuler
             </button>
             <button type="submit" disabled={loading}
@@ -354,10 +354,10 @@ function DebutCuringModal({
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-sm">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-sm">
         <div className="flex items-center justify-between p-5 border-b">
-          <h2 className="text-base font-bold text-gray-900">🏺 Début Curing — {plant.nom_affichage}</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X size={18} /></button>
+          <h2 className="text-base font-bold text-gray-900 dark:text-gray-100">🏺 Début Curing — {plant.nom_affichage}</h2>
+          <button onClick={onClose} className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:text-gray-300"><X size={18} /></button>
         </div>
         <form onSubmit={handleSubmit} className="p-5 space-y-4">
           {error && (
@@ -365,30 +365,30 @@ function DebutCuringModal({
           )}
 
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">Date</label>
+            <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Date</label>
             <input
               type="date" value={dateAction}
               onChange={e => setDateAction(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-grow-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-grow-500 focus:border-transparent"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">
+            <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">
               Poids récolté sec (g) <span className="text-red-500">*</span>
             </label>
             <input
               type="number" step="0.1" min="0" value={poids}
               onChange={e => setPoids(e.target.value)}
               placeholder="ex: 42.5"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-grow-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-grow-500 focus:border-transparent"
             />
-            <p className="text-xs text-gray-400 mt-1">Pesée après séchage, avant mise en contenant.</p>
+            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Pesée après séchage, avant mise en contenant.</p>
           </div>
 
           {/* Type de contenant */}
-          <div className="border-t border-gray-100 pt-3">
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Type de contenant</p>
+          <div className="border-t border-gray-100 dark:border-gray-700 pt-3">
+            <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase tracking-wide mb-2">Type de contenant</p>
             <div className="grid grid-cols-2 gap-2 mb-3">
               {(['Bocal', 'Autre'] as const).map(t => (
                 <button
@@ -398,7 +398,7 @@ function DebutCuringModal({
                   className={`py-2 px-3 rounded-lg text-sm font-medium border transition-colors ${
                     typeContenant === t
                       ? 'bg-purple-600 text-white border-purple-600'
-                      : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                      : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700/40'
                   }`}
                 >
                   {t === 'Bocal' ? '🫙 Bocal' : '📦 Autre'}
@@ -412,11 +412,11 @@ function DebutCuringModal({
             <div className="space-y-3">
               {/* Sélection bocal inventaire */}
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Bocal (inventaire)</label>
+                <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Bocal (inventaire)</label>
                 <select
                   value={idMaterielBocal}
                   onChange={e => setIdMaterielBocal(e.target.value ? Number(e.target.value) : '')}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-grow-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-grow-500 focus:border-transparent"
                 >
                   <option value="">— Sélectionner un bocal —</option>
                   {bocauxFiltres.map((b: MaterielBocal) => (
@@ -430,20 +430,20 @@ function DebutCuringModal({
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">Volume (L)</label>
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Volume (L)</label>
                   <input
                     type="number" step="0.1" value={volumeL}
                     onChange={e => setVolumeL(e.target.value)}
                     placeholder="1"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-grow-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-grow-500 focus:border-transparent"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">Boveda %</label>
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Boveda %</label>
                   <select
                     value={bovedaRh}
                     onChange={e => setBovedaRh(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-grow-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-grow-500 focus:border-transparent"
                   >
                     <option value="">Sans</option>
                     <option value="58">58%</option>
@@ -458,20 +458,20 @@ function DebutCuringModal({
           {typeContenant === 'Autre' && (
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Volume (L)</label>
+                <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Volume (L)</label>
                 <input
                   type="number" step="0.1" value={volumeL}
                   onChange={e => setVolumeL(e.target.value)}
                   placeholder="ex: 2"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-grow-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-grow-500 focus:border-transparent"
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Boveda %</label>
+                <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Boveda %</label>
                 <select
                   value={bovedaRh}
                   onChange={e => setBovedaRh(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-grow-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-grow-500 focus:border-transparent"
                 >
                   <option value="">Sans</option>
                   <option value="58">58%</option>
@@ -482,14 +482,14 @@ function DebutCuringModal({
           )}
 
           {/* Espace de culture optionnel */}
-          <div className="border-t border-gray-100 pt-3">
-            <label className="block text-xs font-medium text-gray-600 mb-1">
-              Espace de curing <span className="text-gray-400 font-normal">(optionnel — si dans un espace de culture)</span>
+          <div className="border-t border-gray-100 dark:border-gray-700 pt-3">
+            <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">
+              Espace de curing <span className="text-gray-400 dark:text-gray-500 font-normal">(optionnel — si dans un espace de culture)</span>
             </label>
             <select
               value={idEspace}
               onChange={e => setIdEspace(e.target.value ? Number(e.target.value) : '')}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-grow-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-grow-500 focus:border-transparent"
             >
               <option value="">— Hors espace de culture —</option>
               {espaces.map(e => (
@@ -505,7 +505,7 @@ function DebutCuringModal({
 
           <div className="flex gap-3 pt-1">
             <button type="button" onClick={onClose}
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 text-sm">
+              className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/40 text-sm">
               Annuler
             </button>
             <button type="submit" disabled={loading || !poids}
@@ -546,18 +546,18 @@ function TerminerCuringModal({
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-sm">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-sm">
         <div className="flex items-center justify-between p-5 border-b">
-          <h2 className="text-base font-bold text-gray-900">✅ Terminer le curing — {plant.nom_affichage}</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X size={18} /></button>
+          <h2 className="text-base font-bold text-gray-900 dark:text-gray-100">✅ Terminer le curing — {plant.nom_affichage}</h2>
+          <button onClick={onClose} className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:text-gray-300"><X size={18} /></button>
         </div>
         <form onSubmit={handleSubmit} className="p-5 space-y-4">
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">Date de fin</label>
+            <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Date de fin</label>
             <input
               type="date" value={dateAction}
               onChange={e => setDateAction(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-grow-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-grow-500 focus:border-transparent"
             />
           </div>
 
@@ -582,14 +582,14 @@ function TerminerCuringModal({
             </div>
           )}
 
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">
             La plante sera marquée comme <strong>Prête</strong> et entrera dans le stock.
             {' '}Si c'est la dernière plante de la culture, celle-ci sera archivée automatiquement.
           </p>
 
           <div className="flex gap-3 pt-1">
             <button type="button" onClick={onClose}
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 text-sm">
+              className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/40 text-sm">
               Annuler
             </button>
             <button type="submit" disabled={loading}
@@ -638,10 +638,10 @@ function OuvertureBocalModal({
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-sm">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-sm">
         <div className="flex items-center justify-between p-5 border-b">
-          <h2 className="text-base font-bold text-gray-900">🫙 Ouverture bocal — {plant.nom_affichage}</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X size={18} /></button>
+          <h2 className="text-base font-bold text-gray-900 dark:text-gray-100">🫙 Ouverture bocal — {plant.nom_affichage}</h2>
+          <button onClick={onClose} className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:text-gray-300"><X size={18} /></button>
         </div>
         <form onSubmit={handleSubmit} className="p-5 space-y-4">
           {error && (
@@ -660,16 +660,16 @@ function OuvertureBocalModal({
           )}
 
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">Date</label>
+            <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Date</label>
             <input
               type="date" value={dateAction}
               onChange={e => setDateAction(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-grow-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-grow-500 focus:border-transparent"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-2">Durée d'ouverture</label>
+            <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-2">Durée d'ouverture</label>
             <div className="grid grid-cols-4 gap-2">
               {DUREES_BOCAL.map(d => (
                 <button
@@ -679,7 +679,7 @@ function OuvertureBocalModal({
                   className={`py-2 rounded-lg text-xs font-bold border transition-colors ${
                     dureeMin === d
                       ? 'bg-purple-600 text-white border-purple-600'
-                      : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                      : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700/40'
                   }`}
                 >
                   {d < 60 ? `${d} min` : '1 h'}
@@ -689,18 +689,18 @@ function OuvertureBocalModal({
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">Note <span className="font-normal text-gray-400">(optionnel)</span></label>
+            <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Note <span className="font-normal text-gray-400 dark:text-gray-500">(optionnel)</span></label>
             <input
               type="text" value={note}
               onChange={e => setNote(e.target.value)}
               placeholder="ex: odeur boisée, bonne humidité…"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-grow-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-grow-500 focus:border-transparent"
             />
           </div>
 
           <div className="flex gap-3 pt-1">
             <button type="button" onClick={onClose}
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 text-sm">
+              className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/40 text-sm">
               Annuler
             </button>
             <button type="submit" disabled={loading}
@@ -764,12 +764,12 @@ function EditCuringModal({
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-sm">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-sm">
         <div className="flex items-center justify-between p-5 border-b">
-          <h2 className="text-base font-bold text-gray-900">
+          <h2 className="text-base font-bold text-gray-900 dark:text-gray-100">
             ⚙️ Modifier le curing — {plant.nom_affichage}
           </h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X size={18} /></button>
+          <button onClick={onClose} className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:text-gray-300"><X size={18} /></button>
         </div>
         <form onSubmit={handleSubmit} className="p-5 space-y-4">
           {error && (
@@ -778,13 +778,13 @@ function EditCuringModal({
 
           {/* Espace */}
           <div>
-            <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">
+            <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wide mb-1.5">
               <MapPin size={11} className="inline mr-1" />Espace de curing
             </label>
             <select
               value={idEspace ?? ''}
               onChange={e => setIdEspace(e.target.value ? Number(e.target.value) : null)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-grow-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-grow-500 focus:border-transparent"
             >
               <option value="">— Hors espace de culture —</option>
               {espaces.map(e => (
@@ -802,13 +802,13 @@ function EditCuringModal({
           {/* Bocal inventaire */}
           {plant.type_contenant === 'Bocal' && (
             <div>
-              <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">
+              <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wide mb-1.5">
                 <Package size={11} className="inline mr-1" />Bocal (inventaire)
               </label>
               <select
                 value={idMaterielBocal ?? ''}
                 onChange={e => setIdMaterielBocal(e.target.value ? Number(e.target.value) : null)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-grow-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-grow-500 focus:border-transparent"
               >
                 <option value="">— Pas de bocal sélectionné —</option>
                 {bocaux.map((b: MaterielBocal) => (
@@ -830,7 +830,7 @@ function EditCuringModal({
 
           <div className="flex gap-3 pt-1">
             <button type="button" onClick={onClose}
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 text-sm">
+              className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/40 text-sm">
               Annuler
             </button>
             <button type="submit" disabled={loading}
@@ -877,13 +877,13 @@ function WpffModal({
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-sm">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-sm">
         <div className="flex items-center justify-between p-5 border-b">
           <div className="flex items-center gap-2">
             <Snowflake size={18} className="text-blue-500" />
-            <h2 className="text-base font-bold text-gray-900">Passer en WPFF — {plant.nom_affichage}</h2>
+            <h2 className="text-base font-bold text-gray-900 dark:text-gray-100">Passer en WPFF — {plant.nom_affichage}</h2>
           </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X size={18} /></button>
+          <button onClick={onClose} className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:text-gray-300"><X size={18} /></button>
         </div>
 
         <form onSubmit={handleSubmit} className="p-5 space-y-4">
@@ -902,27 +902,27 @@ function WpffModal({
 
           {/* Date */}
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">Date</label>
+            <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Date</label>
             <input
               type="date" value={dateAction}
               onChange={e => setDateAction(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
 
           {/* Poids — optionnel */}
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">
-              Poids <span className="font-normal text-gray-400">(optionnel)</span>
+            <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">
+              Poids <span className="font-normal text-gray-400 dark:text-gray-500">(optionnel)</span>
             </label>
             <div className="relative">
               <input
                 type="number" value={poids} min="0" step="0.1"
                 onChange={e => setPoids(e.target.value)}
                 placeholder="ex : 45.5"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-8"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-8"
               />
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">g</span>
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 dark:text-gray-500">g</span>
             </div>
             {poids && (
               <p className="text-xs text-blue-600 mt-1">
@@ -934,7 +934,7 @@ function WpffModal({
 
           <div className="flex gap-3 pt-1">
             <button type="button" onClick={onClose}
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 text-sm">
+              className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/40 text-sm">
               Annuler
             </button>
             <button type="submit" disabled={loading}
@@ -987,14 +987,14 @@ function GrapheSechage({ plant }: { plant: PlantSechage }) {
 
   if (!espaceId) {
     return (
-      <p className="text-xs text-gray-400 italic py-3 text-center">
+      <p className="text-xs text-gray-400 dark:text-gray-500 italic py-3 text-center">
         Aucun espace lié — données de capteur indisponibles.
       </p>
     )
   }
 
   if (isLoading) {
-    return <p className="text-xs text-gray-400 py-3 text-center">Chargement des données capteur…</p>
+    return <p className="text-xs text-gray-400 dark:text-gray-500 py-3 text-center">Chargement des données capteur…</p>
   }
 
   const filtered = plant.date_recolte
@@ -1003,7 +1003,7 @@ function GrapheSechage({ plant }: { plant: PlantSechage }) {
 
   if (filtered.length === 0) {
     return (
-      <p className="text-xs text-gray-400 italic py-3 text-center">
+      <p className="text-xs text-gray-400 dark:text-gray-500 italic py-3 text-center">
         Aucune donnée capteur depuis la récolte.
       </p>
     )
@@ -1050,8 +1050,8 @@ function GrapheSechage({ plant }: { plant: PlantSechage }) {
         </div>
       </div>
 
-      <div className="bg-gray-50 rounded-lg p-3">
-        <p className="text-[10px] font-medium text-gray-500 mb-2 uppercase tracking-wide">
+      <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3">
+        <p className="text-[10px] font-medium text-gray-500 dark:text-gray-400 dark:text-gray-500 mb-2 uppercase tracking-wide">
           Évolution depuis la récolte · {nomEspace}
         </p>
         <ResponsiveContainer width="100%" height={160}>
@@ -1117,10 +1117,10 @@ function PlantRow({
     : null
 
   return (
-    <div className="border border-gray-200 rounded-xl overflow-hidden">
+    <div className="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
       {/* Ligne principale */}
       <div
-        className="flex flex-col p-4 bg-white hover:bg-gray-50 cursor-pointer transition-colors gap-2"
+        className="flex flex-col p-4 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700/40 cursor-pointer transition-colors gap-2"
         onClick={() => setExpanded(e => !e)}
       >
         {/* Ligne 1 : statut + nom + chevron */}
@@ -1134,22 +1134,22 @@ function PlantRow({
           </span>
 
           <div className="flex-1 min-w-0">
-            <p className="font-semibold text-gray-900 text-sm truncate">{plant.nom_affichage}</p>
-            <p className="text-xs text-gray-500 truncate">
+            <p className="font-semibold text-gray-900 dark:text-gray-100 text-sm truncate">{plant.nom_affichage}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 truncate">
               {plant.nom_variete || '—'}
-              {plant.nom_breeder && <span className="ml-1 text-gray-400">· {plant.nom_breeder}</span>}
+              {plant.nom_breeder && <span className="ml-1 text-gray-400 dark:text-gray-500">· {plant.nom_breeder}</span>}
             </p>
           </div>
 
-          <div className="flex-shrink-0 text-gray-400">
+          <div className="flex-shrink-0 text-gray-400 dark:text-gray-500">
             {expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
           </div>
         </div>
 
         {/* Ligne 2 : métadonnées + boutons */}
         <div className="flex items-center gap-2 flex-wrap">
-          <div className="flex items-center gap-1 text-xs text-gray-500">
-            <Calendar size={11} className="text-gray-400" />
+          <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">
+            <Calendar size={11} className="text-gray-400 dark:text-gray-500" />
             <span className="whitespace-nowrap">{formatDate(plant.date_recolte)}</span>
           </div>
 
@@ -1172,11 +1172,11 @@ function PlantRow({
             <div className={`flex items-center gap-1 text-xs px-2 py-1 rounded-lg ${
               espaceEstSechage
                 ? 'bg-yellow-50 text-yellow-700 border border-yellow-200'
-                : 'bg-gray-100 text-gray-500'
+                : 'bg-gray-100 text-gray-500 dark:text-gray-400 dark:text-gray-500'
             }`}>
               <MapPin size={10} />
               <span className="truncate max-w-[120px]">{espaceAffiche}</span>
-              {plant.methode_sechage && <span className="text-gray-400">· {plant.methode_sechage}</span>}
+              {plant.methode_sechage && <span className="text-gray-400 dark:text-gray-500">· {plant.methode_sechage}</span>}
             </div>
           )}
 
@@ -1190,7 +1190,7 @@ function PlantRow({
 
           {/* Badge bocal hors espace */}
           {isBocalHorsEspace && (
-            <div className="flex items-center gap-1 text-xs px-2 py-1 rounded-lg bg-gray-100 text-gray-500">
+            <div className="flex items-center gap-1 text-xs px-2 py-1 rounded-lg bg-gray-100 text-gray-500 dark:text-gray-400 dark:text-gray-500">
               <Layers size={10} />
               <span>Hors espace</span>
             </div>
@@ -1198,16 +1198,16 @@ function PlantRow({
 
           {/* Poids humide */}
           {plant.poids_humide_g != null && plant.statut === 'sechage' && (
-            <div className="flex items-center gap-1 text-xs text-gray-500">
-              <Scale size={11} className="text-gray-400" />
+            <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">
+              <Scale size={11} className="text-gray-400 dark:text-gray-500" />
               <span>{plant.poids_humide_g}g humide</span>
             </div>
           )}
 
           {/* Poids sec */}
           {plant.poids_recolte_g != null && (
-            <div className="flex items-center gap-1 text-xs text-gray-600">
-              <Scale size={11} className="text-gray-400" />
+            <div className="flex items-center gap-1 text-xs text-gray-600 dark:text-gray-300">
+              <Scale size={11} className="text-gray-400 dark:text-gray-500" />
               <span className="font-medium">{plant.poids_recolte_g}g{plant.statut === 'curing' ? '' : ' sec'}</span>
             </div>
           )}
@@ -1243,7 +1243,7 @@ function PlantRow({
               onClick={e => { e.stopPropagation(); onAssignerEspace(plant) }}
               className={`flex-shrink-0 px-2.5 py-1.5 text-xs rounded-lg font-medium whitespace-nowrap flex items-center gap-1 ${
                 plant.id_session_sechage
-                  ? 'border border-gray-200 text-gray-500 hover:bg-gray-50'
+                  ? 'border border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 dark:text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700/40'
                   : 'border border-dashed border-yellow-300 text-yellow-600 hover:bg-yellow-50'
               }`}
             >
@@ -1256,7 +1256,7 @@ function PlantRow({
           {plant.statut === 'curing' && (
             <button
               onClick={e => { e.stopPropagation(); onEditCuring(plant) }}
-              className="flex-shrink-0 px-2.5 py-1.5 text-xs rounded-lg font-medium whitespace-nowrap flex items-center gap-1 border border-gray-200 text-gray-500 hover:bg-gray-50"
+              className="flex-shrink-0 px-2.5 py-1.5 text-xs rounded-lg font-medium whitespace-nowrap flex items-center gap-1 border border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 dark:text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700/40"
             >
               <Pencil size={11} />
               Modifier
@@ -1309,15 +1309,15 @@ function PlantRow({
 
       {/* Détail expandable */}
       {expanded && (
-        <div className="px-4 pb-4 bg-gray-50 border-t border-gray-100">
+        <div className="px-4 pb-4 bg-gray-50 dark:bg-gray-700/50 border-t border-gray-100 dark:border-gray-700">
           <div className="flex flex-wrap gap-2 mt-3 mb-1">
             {plant.nom_culture && (
-              <span className="text-[11px] bg-white border border-gray-200 rounded px-2 py-0.5 text-gray-600">
+              <span className="text-[11px] bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded px-2 py-0.5 text-gray-600 dark:text-gray-300">
                 📦 {plant.nom_culture}
               </span>
             )}
             {plant.nom_espace && (
-              <span className="text-[11px] bg-white border border-gray-200 rounded px-2 py-0.5 text-gray-600">
+              <span className="text-[11px] bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded px-2 py-0.5 text-gray-600 dark:text-gray-300">
                 🏠 Culture : {plant.nom_espace}
               </span>
             )}
@@ -1500,8 +1500,8 @@ export default function SechageCuring() {
           <Wind size={22} className="text-yellow-600" />
         </div>
         <div>
-          <h1 className="text-xl font-bold text-gray-900">Séchage &amp; Curing</h1>
-          <p className="text-sm text-gray-500">
+          <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">Séchage &amp; Curing</h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500">
             {plants.length === 0
               ? 'Aucune plante en cours'
               : `${enSechage.length} en séchage · ${enCuring.length} en curing`}
@@ -1510,7 +1510,7 @@ export default function SechageCuring() {
       </div>
 
       {isLoading && (
-        <div className="flex items-center justify-center py-16 text-gray-400 text-sm">
+        <div className="flex items-center justify-center py-16 text-gray-400 dark:text-gray-500 text-sm">
           Chargement…
         </div>
       )}
@@ -1519,8 +1519,8 @@ export default function SechageCuring() {
       {!isLoading && plants.length === 0 && (
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <div className="text-5xl mb-4">🌬️</div>
-          <p className="text-gray-500 font-medium">Aucune plante en séchage ou curing</p>
-          <p className="text-sm text-gray-400 mt-1">
+          <p className="text-gray-500 dark:text-gray-400 dark:text-gray-500 font-medium">Aucune plante en séchage ou curing</p>
+          <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
             Enregistre une action "Récolte" sur une plante pour la faire apparaître ici.
           </p>
         </div>
@@ -1533,15 +1533,15 @@ export default function SechageCuring() {
             onClick={() => setActiveTab('sechage')}
             className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg text-sm font-semibold transition-all ${
               activeTab === 'sechage'
-                ? 'bg-white shadow text-yellow-700'
-                : 'text-gray-500 hover:text-gray-700'
+                ? 'bg-white dark:bg-gray-800 shadow text-yellow-700'
+                : 'text-gray-500 dark:text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:text-gray-200'
             }`}
           >
             <span>🌬️</span>
             <span>Séchage</span>
             {enSechage.length > 0 && (
               <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${
-                activeTab === 'sechage' ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-200 text-gray-500'
+                activeTab === 'sechage' ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-200 text-gray-500 dark:text-gray-400 dark:text-gray-500'
               }`}>
                 {enSechage.length}
               </span>
@@ -1551,15 +1551,15 @@ export default function SechageCuring() {
             onClick={() => setActiveTab('curing')}
             className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg text-sm font-semibold transition-all ${
               activeTab === 'curing'
-                ? 'bg-white shadow text-purple-700'
-                : 'text-gray-500 hover:text-gray-700'
+                ? 'bg-white dark:bg-gray-800 shadow text-purple-700'
+                : 'text-gray-500 dark:text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:text-gray-200'
             }`}
           >
             <span>🏺</span>
             <span>Curing</span>
             {enCuring.length > 0 && (
               <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${
-                activeTab === 'curing' ? 'bg-purple-100 text-purple-700' : 'bg-gray-200 text-gray-500'
+                activeTab === 'curing' ? 'bg-purple-100 text-purple-700' : 'bg-gray-200 text-gray-500 dark:text-gray-400 dark:text-gray-500'
               }`}>
                 {enCuring.length}
               </span>
@@ -1574,7 +1574,7 @@ export default function SechageCuring() {
           {enSechage.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <div className="text-4xl mb-3">🌬️</div>
-              <p className="text-gray-500 font-medium">Aucune plante en séchage</p>
+              <p className="text-gray-500 dark:text-gray-400 dark:text-gray-500 font-medium">Aucune plante en séchage</p>
             </div>
           ) : (
             enSechage.map(plant => (
@@ -1599,7 +1599,7 @@ export default function SechageCuring() {
           {enCuring.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <div className="text-4xl mb-3">🏺</div>
-              <p className="text-gray-500 font-medium">Aucune plante en curing</p>
+              <p className="text-gray-500 dark:text-gray-400 dark:text-gray-500 font-medium">Aucune plante en curing</p>
             </div>
           ) : (
             enCuring.map(plant => (

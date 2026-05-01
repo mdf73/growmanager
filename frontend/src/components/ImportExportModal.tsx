@@ -183,13 +183,13 @@ export default function ImportExportModal({ onClose, defaultTab }: ImportExportM
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl flex flex-col max-h-[85vh]">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-2xl flex flex-col max-h-[85vh]">
 
         {/* Header */}
-        <div className="border-b border-gray-100 shrink-0">
+        <div className="border-b border-gray-100 dark:border-gray-700 shrink-0">
           <div className="flex items-center justify-between px-6 py-4">
-            <h2 className="text-lg font-bold text-gray-900">Import / Export</h2>
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+            <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">Import / Export</h2>
+            <button onClick={onClose} className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:text-gray-300">
               <X size={22} />
             </button>
           </div>
@@ -203,7 +203,7 @@ export default function ImportExportModal({ onClose, defaultTab }: ImportExportM
                   className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
                     tab === t.key
                       ? 'border-grow-600 text-grow-700'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      : 'border-transparent text-gray-500 dark:text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:text-gray-200 hover:border-gray-300 dark:border-gray-600'
                   }`}
                 >
                   {t.label}
@@ -218,16 +218,16 @@ export default function ImportExportModal({ onClose, defaultTab }: ImportExportM
 
           {/* ── EXPORT ── */}
           <section>
-            <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+            <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-3 flex items-center gap-2">
               <Download size={15} className="text-grow-600" />
               Exporter
             </h3>
-            <div className="flex items-center justify-between bg-gray-50 rounded-lg px-4 py-3">
+            <div className="flex items-center justify-between bg-gray-50 dark:bg-gray-700/50 rounded-lg px-4 py-3">
               <div>
-                <p className="text-sm text-gray-700">
+                <p className="text-sm text-gray-700 dark:text-gray-200">
                   Télécharger tous les <span className="font-medium">{config.label.toLowerCase()}</span> en CSV
                 </p>
-                <p className="text-xs text-gray-400 mt-0.5">
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
                   Format compatible Excel (séparateur <code>;</code>, UTF-8)
                 </p>
               </div>
@@ -243,7 +243,7 @@ export default function ImportExportModal({ onClose, defaultTab }: ImportExportM
 
           {/* ── IMPORT ── */}
           <section>
-            <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+            <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-3 flex items-center gap-2">
               <Upload size={15} className="text-grow-600" />
               Importer
             </h3>
@@ -261,7 +261,7 @@ export default function ImportExportModal({ onClose, defaultTab }: ImportExportM
                     className={`text-xs px-2 py-0.5 rounded font-mono ${
                       c.endsWith('*')
                         ? 'bg-blue-200 text-blue-800'
-                        : 'bg-white text-blue-600 border border-blue-200'
+                        : 'bg-white dark:bg-gray-800 text-blue-600 border border-blue-200'
                     }`}
                   >
                     {c}
@@ -283,7 +283,7 @@ export default function ImportExportModal({ onClose, defaultTab }: ImportExportM
                     ? 'border-grow-500 bg-grow-50'
                     : importState === 'error'
                       ? 'border-red-300 bg-red-50'
-                      : 'border-gray-300 hover:border-grow-400 hover:bg-gray-50'
+                      : 'border-gray-300 dark:border-gray-600 hover:border-grow-400 hover:bg-gray-50 dark:hover:bg-gray-700/40'
                 }`}
               >
                 <input
@@ -294,7 +294,7 @@ export default function ImportExportModal({ onClose, defaultTab }: ImportExportM
                   onChange={handleFileInput}
                 />
                 {importState === 'loading' ? (
-                  <div className="flex flex-col items-center gap-2 text-gray-500">
+                  <div className="flex flex-col items-center gap-2 text-gray-500 dark:text-gray-400 dark:text-gray-500">
                     <Loader2 size={28} className="animate-spin text-grow-600" />
                     <span className="text-sm">Import en cours…</span>
                   </div>
@@ -304,13 +304,13 @@ export default function ImportExportModal({ onClose, defaultTab }: ImportExportM
                     <p className="text-sm text-red-600">{importError}</p>
                     <button
                       onClick={e => { e.stopPropagation(); resetImport() }}
-                      className="text-xs text-gray-500 underline mt-1"
+                      className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 underline mt-1"
                     >
                       Réessayer
                     </button>
                   </div>
                 ) : (
-                  <div className="flex flex-col items-center gap-2 text-gray-400">
+                  <div className="flex flex-col items-center gap-2 text-gray-400 dark:text-gray-500">
                     <Upload size={28} />
                     <p className="text-sm">
                       <span className="text-grow-600 font-medium">Choisir un fichier</span>
@@ -363,10 +363,10 @@ export default function ImportExportModal({ onClose, defaultTab }: ImportExportM
           </section>
         </div>
 
-        <div className="px-6 py-3 border-t border-gray-100 shrink-0 flex justify-end">
+        <div className="px-6 py-3 border-t border-gray-100 dark:border-gray-700 shrink-0 flex justify-end">
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-gray-100 text-gray-700 text-sm rounded-lg hover:bg-gray-200"
+            className="px-4 py-2 bg-gray-100 text-gray-700 dark:text-gray-200 text-sm rounded-lg hover:bg-gray-200"
           >
             Fermer
           </button>
