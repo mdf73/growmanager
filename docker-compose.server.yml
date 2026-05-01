@@ -1,0 +1,62 @@
+version: '3.8'
+
+# ── GrowManager — Docker Compose PRODUCTION ───────────────────────────────
+# Usage : docker compose -f docker-compose.server.yml --env-file .env.production up -d
+# Fonctionne sur Linux (Docker Engine) et Windows (Docker Desktop).
+#
+# Architecture :
+#   db        — MySQL 8.2, données persistantes, port 3306 non exposé
+#   backend   — FastAPI uvicorn 2 workers, sans --reload
+#   frontend  — Build React statique servi par nginx, proxy /api → backend
+#               Expose le port APP_PORT (défaut : 80) vers l'extérieur
+
+services:
+
+  db:
+    image: mysql:8.2
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: growmanager
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./backend/init.sql:/docker-entrypoint-initdb.d/01_init.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "--silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    # Port 3306 intentionnellement non exposé en production
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.prod
+    restart: always
+    environment:
+      - DATABASE_URL=mysql+pymysql://${MYSQL_USER}:${MYSQL_PASSWORD}@db:3306/growmanager
+      - SECRET_KEY=${SECRET_KEY}
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - uploads_data:/app/uploads
+    # Port 8000 intentionnellement non exposé — nginx gère le routage
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+    restart: always
+    ports:
+      - "${APP_PORT:-80}:80"
+    depends_on:
+      - backend
+
+volumes:
+  mysql_data:
+    driver: local
+  uploads_data:
+    driver: local
