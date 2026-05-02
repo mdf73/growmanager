@@ -34,6 +34,7 @@ class VaporisateurBase(BaseModel):
     nom:               str
     modele:            Optional[str]   = None
     marque:            Optional[str]   = None
+    site_achat:        Optional[str]   = None
     date_achat:        Optional[date]  = None
     prix_achat:        Optional[float] = None
     numero_serie:      Optional[str]   = None

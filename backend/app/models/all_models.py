@@ -1220,6 +1220,7 @@ class Vaporisateur(Base):
     nom               = Column(String(200),  nullable=False)   # Auto : "$marque $modele #n"
     modele            = Column(String(100),  nullable=True)
     marque            = Column(String(100),  nullable=True)
+    site_achat        = Column(String(200),  nullable=True)
     date_achat        = Column(Date,         nullable=True)
     prix_achat        = Column(DECIMAL(10, 2), nullable=True)
     numero_serie      = Column(String(100),  nullable=True)    # S/N

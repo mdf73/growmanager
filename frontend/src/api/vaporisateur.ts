@@ -19,6 +19,7 @@ export interface Vaporisateur {
   nom:               string
   modele:            string | null
   marque:            string | null
+  site_achat:        string | null
   date_achat:        string | null
   prix_achat:        number | null
   numero_serie:      string | null

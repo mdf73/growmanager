@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { X, Plus, Trash2, Loader2, Thermometer, Battery, Zap, Package } from 'lucide-react'
 import { vaporisateurAPI } from '../api/vaporisateur'
 import type { Vaporisateur, VaporisateurCreate, VapoConsommable, VapoConsommableCreate } from '../api/vaporisateur'
+import { useParametreListeWithAdd } from '../api/parametres'
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 const TYPES_CHAUFFE  = ['Conduction', 'Convection', 'Mixte', 'Induction']
@@ -18,6 +19,66 @@ const TYPES_CONSO  = [
   'Terps ball', 'Screen', 'Joint', 'Embout', 'Autre',
 ]
 const MATIERES_CONSO = ['Céramique', 'Saphir', 'SiC', 'Quartz', 'Titane', 'Acier inox', 'Verre', 'Autre']
+
+// ── Select avec bouton "Ajouter" inline (partagé avec NouveauMaterielModal) ───
+const inputCls = 'w-full text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-grow-400 bg-white dark:bg-gray-800'
+
+function SelectWithAdd({
+  values, isAdding, onAddValue, value, onChange, placeholder = '—',
+}: {
+  values: string[]
+  isAdding: boolean
+  onAddValue: (v: string) => Promise<unknown>
+  value: string
+  onChange: (v: string) => void
+  placeholder?: string
+}) {
+  const [adding, setAdding] = useState(false)
+  const [newVal, setNewVal] = useState('')
+
+  const handleAdd = async () => {
+    const v = newVal.trim()
+    if (!v) return
+    await onAddValue(v)
+    onChange(v)
+    setNewVal('')
+    setAdding(false)
+  }
+
+  if (adding) {
+    return (
+      <div className="flex gap-1">
+        <input autoFocus type="text" className={`${inputCls} flex-1`}
+          value={newVal} onChange={e => setNewVal(e.target.value)}
+          onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleAdd() } if (e.key === 'Escape') setAdding(false) }}
+          placeholder="Nouvelle valeur…" />
+        <button type="button" onClick={handleAdd} disabled={isAdding || !newVal.trim()}
+          className="px-2 py-1 bg-grow-600 text-white rounded-lg text-xs hover:bg-grow-700 disabled:opacity-50">
+          {isAdding ? <Loader2 size={12} className="animate-spin" /> : <Plus size={12} />}
+        </button>
+        <button type="button" onClick={() => setAdding(false)}
+          className="px-2 py-1 border border-gray-300 dark:border-gray-600 rounded-lg text-xs text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700">
+          ✕
+        </button>
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex gap-1">
+      <select value={value} onChange={e => onChange(e.target.value)}
+        className={`${inputCls} flex-1`}>
+        <option value="">{placeholder}</option>
+        {values.map(v => <option key={v} value={v}>{v}</option>)}
+      </select>
+      <button type="button" onClick={() => setAdding(true)}
+        title="Ajouter une valeur"
+        className="px-2 py-1 border border-gray-300 dark:border-gray-600 rounded-lg text-xs text-gray-500 hover:text-grow-600 hover:border-grow-400">
+        <Plus size={12} />
+      </button>
+    </div>
+  )
+}
 
 function buildNom(marque: string, modele: string, existingNoms: string[]): string {
   if (!marque && !modele) return ''
@@ -134,6 +195,10 @@ export default function NouveauVapoModal({ editVapo, onClose }: Props) {
   const qc = useQueryClient()
   const isEdit = !!editVapo
 
+  // Listes partagées avec Materiel
+  const marques      = useParametreListeWithAdd('marques')
+  const fournisseurs = useParametreListeWithAdd('fournisseurs')
+
   // liste des vapos existants pour auto-numéroter
   const { data: allVapos = [] } = useQuery<Vaporisateur[]>({
     queryKey: ['vaporisateurs'],
@@ -146,7 +211,7 @@ export default function NouveauVapoModal({ editVapo, onClose }: Props) {
 
   // ── État du formulaire ──────────────────────────────────────────────────────
   const emptyForm = (): VaporisateurCreate => ({
-    nom: '', modele: null, marque: null,
+    nom: '', modele: null, marque: null, site_achat: null,
     date_achat: null, prix_achat: null, numero_serie: null,
     type_chauffe: null, a_eau: false,
     temp_min: null, temp_max: null,
@@ -162,6 +227,7 @@ export default function NouveauVapoModal({ editVapo, onClose }: Props) {
       nom:               editVapo.nom,
       modele:            editVapo.modele,
       marque:            editVapo.marque,
+      site_achat:        editVapo.site_achat,
       date_achat:        editVapo.date_achat,
       prix_achat:        editVapo.prix_achat,
       numero_serie:      editVapo.numero_serie,
@@ -269,12 +335,17 @@ export default function NouveauVapoModal({ editVapo, onClose }: Props) {
                 <Package size={15} className="text-grow-600" /> Identité
               </h3>
               <div className="grid grid-cols-2 gap-4">
+                {/* Row 1 : Marque + Modèle — liés pour l'auto-nom */}
                 <div>
                   <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Marque</label>
-                  <input type="text" value={form.marque ?? ''}
-                    onChange={e => setForm(f => ({ ...f, marque: e.target.value || null }))}
-                    placeholder="ex : Storz & Bickel, DynaVap…"
-                    className="w-full text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-grow-400" />
+                  <SelectWithAdd
+                    values={marques.values}
+                    isAdding={marques.isAdding}
+                    onAddValue={marques.addValue}
+                    value={form.marque ?? ''}
+                    onChange={v => setForm(f => ({ ...f, marque: v || null }))}
+                    placeholder="ex : Storz & Bickel…"
+                  />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Modèle</label>
@@ -283,6 +354,7 @@ export default function NouveauVapoModal({ editVapo, onClose }: Props) {
                     placeholder="ex : Mighty+, M, Crafty+…"
                     className="w-full text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-grow-400" />
                 </div>
+                {/* Row 2 : Nom auto */}
                 <div className="col-span-2">
                   <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">
                     Nom <span className="text-gray-400 dark:text-gray-500 font-normal">(auto-rempli, modifiable)</span>
@@ -292,12 +364,25 @@ export default function NouveauVapoModal({ editVapo, onClose }: Props) {
                     placeholder="Storz & Bickel Mighty+ #1"
                     className="w-full text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-grow-400 font-medium" />
                 </div>
+                {/* Row 3 : Fournisseur + Date achat */}
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Fournisseur</label>
+                  <SelectWithAdd
+                    values={fournisseurs.values}
+                    isAdding={fournisseurs.isAdding}
+                    onAddValue={fournisseurs.addValue}
+                    value={form.site_achat ?? ''}
+                    onChange={v => setForm(f => ({ ...f, site_achat: v || null }))}
+                    placeholder="ex : Canna-Smoke…"
+                  />
+                </div>
                 <div>
                   <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Date achat</label>
                   <input type="date" value={form.date_achat ?? ''}
                     onChange={e => setForm(f => ({ ...f, date_achat: e.target.value || null }))}
                     className="w-full text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-grow-400" />
                 </div>
+                {/* Row 4 : Prix + Numéro de série */}
                 <div>
                   <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Prix achat (€)</label>
                   <input type="number" step="0.01" min="0"
@@ -306,7 +391,7 @@ export default function NouveauVapoModal({ editVapo, onClose }: Props) {
                     placeholder="0.00"
                     className="w-full text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-grow-400" />
                 </div>
-                <div className="col-span-2">
+                <div>
                   <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Numéro de série (S/N)</label>
                   <input type="text" value={form.numero_serie ?? ''}
                     onChange={e => setForm(f => ({ ...f, numero_serie: e.target.value || null }))}

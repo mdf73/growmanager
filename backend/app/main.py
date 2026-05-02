@@ -91,7 +91,8 @@ def run_migrations():
         # SessionCuring — espace de culture optionnel + bocal inventaire
         ("SessionCuring", "id_espace",         "ALTER TABLE SessionCuring ADD COLUMN id_espace INT NULL REFERENCES EspaceCulture(id_espace)"),
         ("SessionCuring", "id_materiel_bocal", "ALTER TABLE SessionCuring ADD COLUMN id_materiel_bocal INT NULL REFERENCES Materiel(id_materiel)"),
-        # Vaporisateurs — nouvelles tables (créées via create_all, pas de migration ALTER nécessaire)
+        # Vaporisateurs — site_achat ajouté après création initiale
+        ("Vaporisateur", "site_achat", "ALTER TABLE Vaporisateur ADD COLUMN site_achat VARCHAR(200)"),
         # Feature 1 — Coûts culture
         ("HistoriqueCulture", "cout_engrais",     "ALTER TABLE HistoriqueCulture ADD COLUMN cout_engrais DECIMAL(10,2) NULL"),
         ("HistoriqueCulture", "cout_electricite", "ALTER TABLE HistoriqueCulture ADD COLUMN cout_electricite DECIMAL(10,2) NULL"),
