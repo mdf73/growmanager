@@ -1453,3 +1453,27 @@ class AppSettings(Base):
     cle    = Column(String(100), nullable=False, unique=True)
     valeur = Column(String(500), nullable=True)
     label  = Column(String(200), nullable=True)   # libellé affiché dans l'UI
+
+
+# ============ Photos (Feature 8 — V3) ============
+
+class Photo(Base):
+    """Photo attachée à une plante et/ou une culture."""
+    __tablename__ = "Photo"
+
+    id_photo       = Column(Integer,      primary_key=True, autoincrement=True)
+    filename       = Column(String(255),  nullable=False)           # nom unique sur disque
+    filepath       = Column(String(500),  nullable=False)           # chemin relatif uploads/photos/
+    thumbnail_path = Column(String(500),  nullable=True)            # chemin relatif uploads/photos/thumbs/
+    date_prise     = Column(DateTime,     nullable=False, default=datetime.utcnow)
+    notes          = Column(Text,         nullable=True)
+    id_plant       = Column(Integer,      ForeignKey("Plant.id_plant",    ondelete="SET NULL"), nullable=True)
+    id_culture     = Column(Integer,      ForeignKey("Culture.id_culture", ondelete="SET NULL"), nullable=True)
+    taille_ko      = Column(Integer,      nullable=True)
+    largeur_px     = Column(Integer,      nullable=True)
+    hauteur_px     = Column(Integer,      nullable=True)
+    created_at     = Column(DateTime,     nullable=True, default=datetime.utcnow)
+
+    # Relations
+    plant   = relationship("Plant")
+    culture = relationship("Culture")

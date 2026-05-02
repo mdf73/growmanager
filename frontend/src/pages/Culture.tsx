@@ -3,14 +3,16 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   Plus, ArrowLeft, Leaf, Calendar, Users, BarChart2,
   Flower2, Droplets, Sun, Clock, X, CheckCircle, Trash2, AlertTriangle, Loader2,
-  Pencil, Check,
+  Pencil, Check, Camera,
 } from 'lucide-react'
 import { cultureAPI, Culture, CultureWithDetails, CultureCreate } from '../api/cultures'
+import { photosAPI } from '../api/photos'
 import LoadingSpinner from '../components/LoadingSpinner'
 import CalendrierCulture from '../components/culture/CalendrierCulture'
 import PlantesTab from '../components/culture/PlantesTab'
 import StatsTab from '../components/culture/StatsTab'
 import NouvellerCultureModal from '../components/culture/NouvellerCultureModal'
+import PhotoGallery from '../components/culture/PhotoGallery'
 
 // ─── Statut badges ────────────────────────────────────────────────────────────
 const STATUT_CONFIG = {
@@ -40,6 +42,11 @@ function CultureCard({
   onDelete?: () => void
 }) {
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const { data: photoCount = 0 } = useQuery({
+    queryKey: ['photos-count', culture.id_culture],
+    queryFn: () => photosAPI.list({ id_culture: culture.id_culture }).then(p => p.length),
+    staleTime: 60_000,
+  })
   const isDeletable = culture.statut === 'terminee' || culture.statut === 'sechage_curing'
   const statut = STATUT_CONFIG[culture.statut as keyof typeof STATUT_CONFIG] || STATUT_CONFIG.active
 
@@ -167,12 +174,20 @@ function CultureCard({
         })()}
       </div>
 
-      {/* Date début */}
-      {culture.date_debut && (
-        <p className="text-xs text-gray-400 dark:text-gray-500 mt-3">
-          Démarrée le {new Date(culture.date_debut + 'T12:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
-        </p>
-      )}
+      {/* Date début + badge photos */}
+      <div className="flex items-center justify-between mt-3">
+        {culture.date_debut ? (
+          <p className="text-xs text-gray-400 dark:text-gray-500">
+            Démarrée le {new Date(culture.date_debut + 'T12:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
+          </p>
+        ) : <span />}
+        {photoCount > 0 && (
+          <span className="flex items-center gap-1 text-xs text-gray-400 dark:text-gray-500">
+            <Camera size={11} />
+            {photoCount}
+          </span>
+        )}
+      </div>
 
       {/* Confirmation suppression */}
       {confirmDelete && (
@@ -208,7 +223,7 @@ function CultureCard({
 
 // ─── Vue détail d'une culture ─────────────────────────────────────────────────
 function CultureDetail({ cultureId, onBack }: { cultureId: number; onBack: () => void }) {
-  const [activeTab, setActiveTab] = useState<'calendrier' | 'plantes' | 'stats'>('calendrier')
+  const [activeTab, setActiveTab] = useState<'calendrier' | 'plantes' | 'stats' | 'photos'>('calendrier')
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [editingName, setEditingName] = useState(false)
   const [nameValue, setNameValue] = useState('')
@@ -217,6 +232,11 @@ function CultureDetail({ cultureId, onBack }: { cultureId: number; onBack: () =>
   const { data: culture, isLoading } = useQuery<CultureWithDetails>({
     queryKey: ['culture', cultureId],
     queryFn: async () => (await cultureAPI.getById(cultureId)).data,
+  })
+
+  const { data: photosCount = 0 } = useQuery({
+    queryKey: ['photos-count', cultureId],
+    queryFn: () => photosAPI.list({ id_culture: cultureId }).then(p => p.length),
   })
 
   const closeCulture = useMutation({
@@ -257,6 +277,7 @@ function CultureDetail({ cultureId, onBack }: { cultureId: number; onBack: () =>
     { key: 'calendrier' as const, label: 'Calendrier', icon: Calendar },
     { key: 'plantes' as const,    label: `Plantes (${culture.plants.length})`, icon: Leaf },
     { key: 'stats' as const,      label: 'Stats', icon: BarChart2 },
+    { key: 'photos' as const,     label: photosCount > 0 ? `Photos (${photosCount})` : 'Photos', icon: Camera },
   ]
 
   return (
@@ -500,6 +521,9 @@ function CultureDetail({ cultureId, onBack }: { cultureId: number; onBack: () =>
         )}
         {activeTab === 'stats' && (
           <StatsTab cultureId={cultureId} />
+        )}
+        {activeTab === 'photos' && (
+          <PhotoGallery idCulture={cultureId} />
         )}
       </div>
     </div>

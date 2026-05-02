@@ -1,31 +1,27 @@
-feat: Coûts culture — calcul électricité avancé + dimmer par lampe + historique
+feat(F8): galerie photos — plantes & cultures
 
-── Calcul électricité ─────────────────────────────────────────────────
-- Source lampes : EspaceMateriel (Materiel.caracteristiques.puissance_w)
-  au lieu de CultureLampe (legacy conservé en fallback)
-- Fix import : EspaceMateriel + Materiel ajoutés en tête de cultures.py
-- Par phase : croissance 18h/j, floraison 12h/j (pivot date_debut_floraison)
-- Intensité par défaut 100% (plus de 80% hardcodé)
-- Calcul per-lampe : chaque lampe a son propre historique d'intensité
-  via id_lampe_materiel dans parametres de l'action intensite_lampe
-- Actions sans id_lampe_materiel → toutes les lampes (rétrocompat)
-- cout_electricite toujours retourné (0 si pas de lampe, plus `0 or None`)
+Backend
+- Modèle SQLAlchemy `Photo` (id_plant/id_culture FK nullable, filepath,
+  thumbnail_path, date_prise, notes, taille_ko, largeur_px, hauteur_px)
+  → table créée via create_all au démarrage
+- Router `photos.py` : POST /api/photos/upload (multipart, Pillow
+  compression JPEG + thumbnail 300×300 crop centré, max 2 Mo, exif_transpose),
+  GET /api/photos/?id_culture=&id_plant=, DELETE /api/photos/{id}
+- StaticFiles mount `/uploads` → `/app/uploads` (volume Docker persistant)
+- Pillow==10.3.0 ajouté dans requirements.txt
+- Import + include_router dans main.py
 
-── Action intensite_lampe simplifiée ──────────────────────────────────
-- actionTypes.ts : suppression champ "Avant (%)" → un seul "Intensité (%)"
-- StatsTab.tsx : graphique réduit à une seule courbe puissance_apres
+Frontend
+- `api/photos.ts` : interface Photo, photoUrl(), photosAPI.list/upload/delete
+- `components/culture/PhotoGallery.tsx` :
+    • drag-drop + clic pour upload (multi-fichiers)
+    • grille responsive (2→4 colonnes) avec thumbnails lazy-load
+    • lightbox plein écran : nav prev/next, clavier ��/→/Esc, note + date,
+      bouton suppression
+    • note optionnelle pré-remplie avant upload
+- `Culture.tsx` :
+    • onglet "Photos (N)" (Camera icon) dans la fiche culture
+    • badge photo count (🎞 N) sur chaque card de la liste
+    • query photos-count partagée entre card et detail view
 
-── Sélection lampe dans ActionModal ────────────────────────────────────
-- ActionModal.tsx : prop idEspace + useQuery espaces filtré "Lampes"
-  - 1 lampe : auto-sélection useEffect
-  - N lampes : dropdown → stocke id_lampe_materiel dans parametres
-- CalendrierCulture.tsx : prop idEspace passée à ActionModal
-- Culture.tsx : culture.id_espace passé à CalendrierCulture
-
-── Historique culture (CultureHistoriqueDetailModal) ───────────────────
-- SCard "€/g" cliquable → popup détail coûts (élec/engrais/graines/total/€/g)
-- Suppression gros bloc coûts (remplacé par la popup)
-- Suppression colonne "Prix graine" dans tableau plantes
-- Mode édition : 3 champs manuels (Électricité, Engrais, Graines)
-  → Total + €/g calculés automatiquement en temps réel (read-only)
-- HistoriqueCultureUpdate backend + frontend : 5 champs cout_* pour PATCH
+Wiki mis à jour : roadmap, database/schema-overview, api/overview
