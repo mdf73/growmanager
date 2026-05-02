@@ -259,6 +259,17 @@ export default function PhotoGallery({ idCulture, idPlant }: PhotoGalleryProps) 
               <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
                 <ZoomIn size={22} className="text-white opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
+              {/* Bouton suppression sur miniature */}
+              <button
+                className="absolute top-1.5 right-1.5 opacity-0 group-hover:opacity-100 transition-opacity bg-black/60 hover:bg-red-600 text-white rounded-full p-1.5 z-10"
+                title="Supprimer"
+                onClick={e => {
+                  e.stopPropagation()
+                  if (confirm('Supprimer cette photo ?')) deleteMut.mutate(photo.id_photo)
+                }}
+              >
+                <Trash2 size={14} />
+              </button>
               {/* Note badge */}
               {photo.notes && (
                 <div className="absolute bottom-0 left-0 right-0 px-2 py-1 bg-black/50 text-white text-xs truncate">

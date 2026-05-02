@@ -8,12 +8,17 @@ if not exist "_commit_msg.txt" (
 )
 
 echo.
+echo === Nettoyage de l'index git ===
+if exist ".git\index.lock" del ".git\index.lock"
+git restore --staged .
+
+echo.
 echo === Commit en cours ===
 type _commit_msg.txt
 echo =======================
 echo.
 
-git add .
+git add -A
 git commit -F "_commit_msg.txt"
 del "_commit_msg.txt"
 git push

@@ -1,0 +1,6 @@
+fix: affichage photos + suppression depuis miniatures
+
+- nginx.conf: /uploads/ proxifié vers backend:8000/uploads/ (FastAPI sert déjà StaticFiles)
+- vite.config.ts: ajout proxy /uploads pour mode dev (port 5173)
+- docker-compose.yml: suppression du volume uploads_data (plus nécessaire)
+- PhotoGallery: bouton poubelle sur chaque miniature au survol (en plus du lightbox)
