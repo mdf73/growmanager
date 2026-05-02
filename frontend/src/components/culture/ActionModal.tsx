@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { X, ChevronDown } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { Plant, ActionCreate } from '../../api/cultures'
 import { engraisAPI } from '../../api/engrais'
+import { espacesAPI, EspaceMateriel } from '../../api/espaces'
 import {
   ACTIONS_BY_CATEGORY, ACTION_MAP,
   CATEGORY_COLORS, CATEGORY_LABELS, ActionCategory,
@@ -15,6 +16,7 @@ interface ProduitItem {
 
 interface Props {
   cultureId: number
+  idEspace?: number
   plants: Plant[]
   initialDate: string
   initialPlantId?: number
@@ -25,7 +27,7 @@ interface Props {
 // Catégories qui s'appliquent à l'espace (pas aux plantes individuelles) par défaut
 const SPACE_CATEGORIES: ActionCategory[] = ['lampe']
 
-export default function ActionModal({ plants, initialDate, initialPlantId, onClose, onSubmit }: Props) {
+export default function ActionModal({ plants, idEspace, initialDate, initialPlantId, onClose, onSubmit }: Props) {
   const [dateAction, setDateAction] = useState(initialDate)
   // target: 'space' | 'global' | plant id (string)
   const [target, setTarget] = useState<'space' | 'global' | string>(
@@ -42,6 +44,24 @@ export default function ActionModal({ plants, initialDate, initialPlantId, onClo
     queryKey: ['produits-engrais'],
     queryFn: async () => (await engraisAPI.getAll()).data,
   })
+
+  // Lampes de l'espace de culture — utilisées pour la sélection lors d'un changement d'intensité
+  const { data: lampesEspace = [] } = useQuery<EspaceMateriel[]>({
+    queryKey: ['espace-lampes', idEspace],
+    queryFn: async () => {
+      if (!idEspace) return []
+      const espace = await espacesAPI.getById(idEspace).then(r => r.data)
+      return espace.equipements.filter(e => e.categorie === 'Lampes')
+    },
+    enabled: !!idEspace && selectedType === 'intensite_lampe',
+  })
+
+  // Auto-sélection si 1 seule lampe dans l'espace
+  useEffect(() => {
+    if (selectedType === 'intensite_lampe' && lampesEspace.length === 1) {
+      setParam('id_lampe_materiel', lampesEspace[0].id_materiel)
+    }
+  }, [selectedType, lampesEspace])
 
   const actionDef = selectedType ? ACTION_MAP[selectedType] : null
 
@@ -198,6 +218,33 @@ export default function ActionModal({ plants, initialDate, initialPlantId, onClo
               ))}
             </div>
           </div>
+
+          {/* Sélection de la lampe (uniquement pour intensite_lampe avec plusieurs lampes) */}
+          {selectedType === 'intensite_lampe' && lampesEspace.length > 0 && (
+            <div className="p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-lg space-y-2">
+              <p className="text-xs font-medium text-yellow-800 dark:text-yellow-300">💡 Lampe concernée</p>
+              {lampesEspace.length === 1 ? (
+                // Une seule lampe : sélection automatique via useEffect, juste affiché
+                <p className="text-xs text-yellow-700 dark:text-yellow-400">
+                  {lampesEspace[0].nom_materiel ?? 'Lampe'}{lampesEspace[0].marque ? ` — ${lampesEspace[0].marque}` : ''} (auto-sélectionnée)
+                </p>
+              ) : (
+                // Plusieurs lampes : dropdown de sélection
+                <select
+                  value={(params.id_lampe_materiel as number) || ''}
+                  onChange={e => setParam('id_lampe_materiel', e.target.value ? Number(e.target.value) : undefined)}
+                  className="w-full px-2 py-1.5 border border-yellow-300 dark:border-yellow-600 rounded text-sm bg-white dark:bg-gray-800"
+                >
+                  <option value="">Toutes les lampes</option>
+                  {lampesEspace.map(l => (
+                    <option key={l.id_materiel} value={l.id_materiel}>
+                      {l.nom_materiel ?? `Lampe #${l.id_materiel}`}{l.marque ? ` — ${l.marque}` : ''}
+                    </option>
+                  ))}
+                </select>
+              )}
+            </div>
+          )}
 
           {/* Champs dynamiques selon le type */}
           {actionDef && actionDef.fields && actionDef.fields.length > 0 && (

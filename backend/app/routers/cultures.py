@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models import Culture, Plant, ActionCalendrier, EspaceCulture, Graine, ProduitEngrais, Stock
-from app.models.all_models import RecetteEngrais, RecetteTCO, HistoriqueCulture, HistoriquePlant, RecetteLSO, CultureLampe, Lampe, AppSettings
+from app.models.all_models import RecetteEngrais, RecetteTCO, HistoriqueCulture, HistoriquePlant, RecetteLSO, CultureLampe, Lampe, AppSettings, EspaceMateriel, Materiel
 from app.schemas.culture import (
     CultureCreate, CultureUpdate, CultureRead, CultureWithDetails,
     PlantCreate, PlantUpdate, PlantRead,
@@ -304,18 +304,104 @@ def _compute_culture_cost(id_culture: int, db: Session, date_fin_override=None) 
     prix_kwh = float(setting.valeur) if setting and setting.valeur else 0.18
 
     # ── Puissance totale des lampes ──────────────────────────────────────────
-    lampes = (
-        db.query(Lampe)
-        .join(CultureLampe, CultureLampe.id_lampe == Lampe.id_lampe)
-        .filter(CultureLampe.id_culture == id_culture)
-        .all()
-    )
-    puissance_w = sum(l.puissance_lampe for l in lampes if l.puissance_lampe) or 0
+    # Source 1 : lampes dans l'espace de culture (Materiel.caracteristiques.puissance_w)
+    puissance_w = 0
+    if culture.id_espace:
+        equip_rows = (
+            db.query(Materiel)
+            .join(EspaceMateriel, EspaceMateriel.id_materiel == Materiel.id_materiel)
+            .filter(EspaceMateriel.id_espace == culture.id_espace)
+            .filter(Materiel.categorie == "Lampes")
+            .all()
+        )
+        for mat in equip_rows:
+            carac = mat.caracteristiques or {}
+            pw = carac.get("puissance_w")
+            if pw:
+                try:
+                    puissance_w += int(pw)
+                except (ValueError, TypeError):
+                    pass
+    # Source 2 (legacy) : CultureLampe → Lampe.puissance_lampe
+    if puissance_w == 0:
+        lampes = (
+            db.query(Lampe)
+            .join(CultureLampe, CultureLampe.id_lampe == Lampe.id_lampe)
+            .filter(CultureLampe.id_culture == id_culture)
+            .all()
+        )
+        puissance_w = sum(l.puissance_lampe for l in lampes if l.puissance_lampe) or 0
 
     # ── Coût électricité ─────────────────────────────────────────────────────
-    jours = max((date_fin - date_debut).days, 0)
-    heures_par_jour = 18  # photoperiode indoor standard
-    cout_electricite = round((puissance_w / 1000) * jours * heures_par_jour * prix_kwh, 2)
+    # Heures selon la phase : croissance = 18h, floraison = 12h
+    # Intensité : 100% par défaut, modifiée par les actions intensite_lampe (dimmer)
+    date_flo = culture.date_debut_floraison or culture.date_passage_12_12
+
+    # Récupère les changements d'intensité triés par date
+    actions_intensite = (
+        db.query(ActionCalendrier)
+        .filter(
+            ActionCalendrier.id_culture == id_culture,
+            ActionCalendrier.type_action == "intensite_lampe",
+        )
+        .order_by(ActionCalendrier.date_action)
+        .all()
+    )
+
+    def _kw_for_lamp(id_mat: int, pwr_w: int) -> float:
+        """Calcule le coût électricité d'une lampe selon son historique d'intensité.
+        Les actions sans id_lampe_materiel s'appliquent à toutes les lampes (legacy)."""
+        lamp_actions = [
+            a for a in actions_intensite
+            if (a.parametres or {}).get("id_lampe_materiel") in (None, id_mat)
+        ]
+
+        # Points de changement d'intensité pour cette lampe
+        bkpts = [(date_debut, 100.0)]
+        for act in lamp_actions:
+            d = act.date_action
+            val = (act.parametres or {}).get("puissance_apres")
+            if val is not None and date_debut <= d <= date_fin:
+                try:
+                    bkpts.append((d, float(val)))
+                except (ValueError, TypeError):
+                    pass
+        bkpts.append((date_fin, None))
+
+        kw = pwr_w / 1000
+        total = 0.0
+        for i in range(len(bkpts) - 1):
+            seg_start, intensite_pct = bkpts[i]
+            seg_end = bkpts[i + 1][0]
+            if seg_start >= seg_end:
+                continue
+            # Découpage avant/après floraison
+            if date_flo and seg_start < date_flo < seg_end:
+                subs = [(seg_start, date_flo, 18), (date_flo, seg_end, 12)]
+            else:
+                h = 12 if (date_flo and seg_start >= date_flo) else 18
+                subs = [(seg_start, seg_end, h)]
+            for sub_s, sub_e, h in subs:
+                j = max((sub_e - sub_s).days, 0)
+                total += kw * (intensite_pct / 100) * h * j * prix_kwh
+        return total
+
+    cout_electricite = 0.0
+    if culture.id_espace:
+        # Calcul per-lampe depuis l'espace de culture
+        for mat in equip_rows:
+            carac = mat.caracteristiques or {}
+            pw = carac.get("puissance_w")
+            if pw:
+                try:
+                    cout_electricite += _kw_for_lamp(mat.id_materiel, int(pw))
+                except (ValueError, TypeError):
+                    pass
+    elif puissance_w > 0:
+        # Fallback legacy : une seule "lampe" globale sans id_materiel
+        cout_electricite = _kw_for_lamp(-1, puissance_w)
+
+    cout_electricite = round(cout_electricite, 2)
 
     # ── Coût engrais (arrosages avec RecetteEngrais liée) ────────────────────
     actions_arrosage = db.query(ActionCalendrier).filter(
@@ -361,12 +447,12 @@ def _compute_culture_cost(id_culture: int, db: Session, date_fin_override=None) 
     cout_par_gramme = round(cout_total / total_g, 4) if total_g > 0 else None
 
     return {
-        "cout_engrais":     cout_engrais or None,
-        "cout_electricite": cout_electricite or None,
-        "cout_graines":     cout_graines or None,
-        "cout_total":       cout_total or None,
+        "cout_engrais":     cout_engrais if cout_engrais > 0 else None,
+        "cout_electricite": cout_electricite,   # toujours retourné (0 si pas de lampe)
+        "cout_graines":     cout_graines if cout_graines > 0 else None,
+        "cout_total":       cout_total if cout_total > 0 else None,
         "cout_par_gramme":  cout_par_gramme,
-        "puissance_w":      puissance_w or None,
+        "puissance_w":      puissance_w,        # 0 = aucune lampe liée
     }
 
 

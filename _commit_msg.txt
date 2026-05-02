@@ -1,8 +1,31 @@
-feat: Feature 3 — Docker multi-plateforme (production)
+feat: Coûts culture — calcul électricité avancé + dimmer par lampe + historique
 
-- backend/Dockerfile.prod : uvicorn 2 workers, sans --reload, mkdir uploads/
-- frontend/Dockerfile.prod : multi-stage node:20 build + nginx:alpine serve
-- frontend/nginx.prod.conf : SPA routing, proxy /api/, gzip, cache assets
-- docker-compose.server.yml : 3 services prod (db fermé, backend, frontend:80)
-- .env.production : template variables production
-- wiki/architecture/deploiement.md : guide Linux + Windows, sauvegardes, HTTPS
+── Calcul électricité ─────────────────────────────────────────────────
+- Source lampes : EspaceMateriel (Materiel.caracteristiques.puissance_w)
+  au lieu de CultureLampe (legacy conservé en fallback)
+- Fix import : EspaceMateriel + Materiel ajoutés en tête de cultures.py
+- Par phase : croissance 18h/j, floraison 12h/j (pivot date_debut_floraison)
+- Intensité par défaut 100% (plus de 80% hardcodé)
+- Calcul per-lampe : chaque lampe a son propre historique d'intensité
+  via id_lampe_materiel dans parametres de l'action intensite_lampe
+- Actions sans id_lampe_materiel → toutes les lampes (rétrocompat)
+- cout_electricite toujours retourné (0 si pas de lampe, plus `0 or None`)
+
+── Action intensite_lampe simplifiée ──────────────────────────────────
+- actionTypes.ts : suppression champ "Avant (%)" → un seul "Intensité (%)"
+- StatsTab.tsx : graphique réduit à une seule courbe puissance_apres
+
+── Sélection lampe dans ActionModal ────────────────────────────────────
+- ActionModal.tsx : prop idEspace + useQuery espaces filtré "Lampes"
+  - 1 lampe : auto-sélection useEffect
+  - N lampes : dropdown → stocke id_lampe_materiel dans parametres
+- CalendrierCulture.tsx : prop idEspace passée à ActionModal
+- Culture.tsx : culture.id_espace passé à CalendrierCulture
+
+── Historique culture (CultureHistoriqueDetailModal) ───────────────────
+- SCard "€/g" cliquable → popup détail coûts (élec/engrais/graines/total/€/g)
+- Suppression gros bloc coûts (remplacé par la popup)
+- Suppression colonne "Prix graine" dans tableau plantes
+- Mode édition : 3 champs manuels (Électricité, Engrais, Graines)
+  → Total + €/g calculés automatiquement en temps réel (read-only)
+- HistoriqueCultureUpdate backend + frontend : 5 champs cout_* pour PATCH

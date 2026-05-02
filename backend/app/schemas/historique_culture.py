@@ -53,16 +53,22 @@ class HistoriqueCultureCreate(HistoriqueCultureBase):
 
 class HistoriqueCultureUpdate(BaseModel):
     """Tous les champs sont optionnels pour un PATCH partiel."""
-    nom:          Optional[str]  = None
-    date_debut:   Optional[date] = None
-    date_fin:     Optional[date] = None
-    tente:        Optional[str]  = None
-    lampe:        Optional[str]  = None
-    puissance:    Optional[int]  = None
-    type_culture: Optional[str]  = None
-    engrais:      Optional[str]  = None
-    substrat:     Optional[str]  = None
-    notes:        Optional[str]  = None
+    nom:             Optional[str]   = None
+    date_debut:      Optional[date]  = None
+    date_fin:        Optional[date]  = None
+    tente:           Optional[str]   = None
+    lampe:           Optional[str]   = None
+    puissance:       Optional[int]   = None
+    type_culture:    Optional[str]   = None
+    engrais:         Optional[str]   = None
+    substrat:        Optional[str]   = None
+    notes:           Optional[str]   = None
+    # Coûts éditables manuellement (cultures importées)
+    cout_engrais:    Optional[float] = None
+    cout_electricite: Optional[float] = None
+    cout_graines:    Optional[float] = None
+    cout_total:      Optional[float] = None
+    cout_par_gramme: Optional[float] = None
 
 
 class HistoriqueCultureRead(HistoriqueCultureBase):

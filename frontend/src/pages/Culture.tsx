@@ -493,7 +493,7 @@ function CultureDetail({ cultureId, onBack }: { cultureId: number; onBack: () =>
       {/* Tab content */}
       <div>
         {activeTab === 'calendrier' && (
-          <CalendrierCulture cultureId={cultureId} plants={culture.plants} />
+          <CalendrierCulture cultureId={cultureId} idEspace={culture.id_espace} plants={culture.plants} />
         )}
         {activeTab === 'plantes' && (
           <PlantesTab cultureId={cultureId} plants={culture.plants} />

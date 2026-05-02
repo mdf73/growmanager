@@ -69,16 +69,22 @@ export interface HistoriqueCultureCreate {
 }
 
 export interface HistoriqueCultureUpdate {
-  nom?:          string | null
-  date_debut?:   string | null
-  date_fin?:     string | null
-  tente?:        string | null
-  lampe?:        string | null
-  puissance?:    number | null
-  type_culture?: string | null
-  engrais?:      string | null
-  substrat?:     string | null
-  notes?:        string | null
+  nom?:              string | null
+  date_debut?:       string | null
+  date_fin?:         string | null
+  tente?:            string | null
+  lampe?:            string | null
+  puissance?:        number | null
+  type_culture?:     string | null
+  engrais?:          string | null
+  substrat?:         string | null
+  notes?:            string | null
+  // Coûts éditables manuellement
+  cout_engrais?:     number | null
+  cout_electricite?: number | null
+  cout_graines?:     number | null
+  cout_total?:       number | null
+  cout_par_gramme?:  number | null
 }
 
 // ── API ───────────────────────────────────────────────────────────────────────

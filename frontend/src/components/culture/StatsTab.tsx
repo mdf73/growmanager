@@ -45,14 +45,18 @@ export default function StatsTab({ cultureId }: Props) {
             <Euro size={15} /> Estimation des coûts
           </h3>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {cout.cout_electricite != null && (
-              <div className="text-center">
-                <p className="text-xs text-indigo-500 dark:text-indigo-400 flex items-center justify-center gap-1 mb-0.5">
-                  <ZapIcon size={11} /> Électricité
+            <div className="text-center">
+              <p className="text-xs text-indigo-500 dark:text-indigo-400 flex items-center justify-center gap-1 mb-0.5">
+                <ZapIcon size={11} /> Électricité
+              </p>
+              {cout.puissance_w != null && cout.puissance_w > 0 ? (
+                <p className="text-lg font-bold text-indigo-700 dark:text-indigo-300">
+                  {(cout.cout_electricite ?? 0).toFixed(2)} €
                 </p>
-                <p className="text-lg font-bold text-indigo-700 dark:text-indigo-300">{cout.cout_electricite.toFixed(2)} €</p>
-              </div>
-            )}
+              ) : (
+                <p className="text-sm text-indigo-400 dark:text-indigo-500 italic">Aucune lampe liée</p>
+              )}
+            </div>
             {cout.cout_engrais != null && (
               <div className="text-center">
                 <p className="text-xs text-indigo-500 dark:text-indigo-400 flex items-center justify-center gap-1 mb-0.5">
@@ -79,11 +83,11 @@ export default function StatsTab({ cultureId }: Props) {
               )}
             </div>
           </div>
-          {cout.puissance_w != null && (
-            <p className="text-xs text-indigo-400 dark:text-indigo-500 mt-2 text-right">
-              Lampe(s) : {cout.puissance_w} W · 18 h/j · prix kWh depuis Paramétrage
-            </p>
-          )}
+          <p className="text-xs text-indigo-400 dark:text-indigo-500 mt-2 text-right">
+            {cout.puissance_w != null && cout.puissance_w > 0
+              ? `${cout.puissance_w} W · croissance 18h / floraison 12h · intensité depuis actions dimmer · prix kWh depuis Paramétrage`
+              : 'Liez une lampe à l\'espace de culture pour calculer le coût électricité'}
+          </p>
         </div>
       )}
 
@@ -162,8 +166,7 @@ export default function StatsTab({ cultureId }: Props) {
               <XAxis dataKey="date" tick={{ fontSize: 10 }} />
               <YAxis tick={{ fontSize: 10 }} unit="%" domain={[0, 100]} />
               <Tooltip formatter={(v: number) => `${v}%`} />
-              <Line dataKey="puissance_apres" name="Intensité après" stroke="#eab308" strokeWidth={2} dot={{ r: 3 }} />
-              <Line dataKey="puissance_avant" name="Intensité avant" stroke="#fde68a" strokeWidth={1} dot={false} strokeDasharray="4 2" />
+              <Line dataKey="puissance_apres" name="Intensité (%)" stroke="#eab308" strokeWidth={2} dot={{ r: 3 }} />
             </LineChart>
           </ResponsiveContainer>
         </div>

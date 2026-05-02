@@ -106,6 +106,7 @@ const WATERING_COLORS: Record<string, string> = {
 
 interface Props {
   cultureId: number
+  idEspace?: number
   plants: Plant[]
 }
 
@@ -121,7 +122,7 @@ function dateStr(year: number, month: number, day: number) {
   return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
 }
 
-export default function CalendrierCulture({ cultureId, plants }: Props) {
+export default function CalendrierCulture({ cultureId, idEspace, plants }: Props) {
   const today = new Date()
   const [year, setYear] = useState(today.getFullYear())
   const [month, setMonth] = useState(today.getMonth())    // 0-indexed
@@ -575,6 +576,7 @@ export default function CalendrierCulture({ cultureId, plants }: Props) {
       {showModal && (
         <ActionModal
           cultureId={cultureId}
+          idEspace={idEspace}
           plants={plants}
           initialDate={modalDate}
           onClose={() => setShowModal(false)}

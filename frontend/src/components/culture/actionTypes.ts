@@ -66,8 +66,7 @@ export const ACTION_TYPES: ActionTypeDef[] = [
     ] },
   { key: 'intensite_lampe',       label: 'Intensité de la lampe',            category: 'lampe', icon: '🔆',
     fields: [
-      { key: 'puissance_avant', label: 'Avant (%)', type: 'number', unit: '%' },
-      { key: 'puissance_apres', label: 'Après (%)', type: 'number', unit: '%' },
+      { key: 'puissance_apres', label: 'Intensité (%)', type: 'number', unit: '%', placeholder: '100' },
     ] },
   { key: 'hauteur_lampe',         label: 'Hauteur de la lampe',              category: 'lampe', icon: '📏',
     fields: [{ key: 'hauteur_cm', label: 'Hauteur', type: 'number', unit: 'cm' }] },

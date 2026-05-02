@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { X, Trash2, Loader2, Leaf, AlertTriangle, Pencil, Check } from 'lucide-react'
+import { X, Trash2, Loader2, Leaf, AlertTriangle, Pencil, Check, Zap, FlaskConical, Euro } from 'lucide-react'
 import type { HistoriqueCulture, HistoriquePlant, HistoriqueCultureUpdate } from '../api/historiqueCulture'
 import { historiqueCultureAPI } from '../api/historiqueCulture'
 
@@ -16,19 +16,24 @@ function fmtDate(d: string | null) {
   return new Date(d).toLocaleDateString('fr-FR')
 }
 
-function SCard({ label, value, sub, color = 'grow' }: { label: string; value: string; sub?: string; color?: string }) {
+function SCard({ label, value, sub, color = 'grow', onClick }: { label: string; value: string; sub?: string; color?: string; onClick?: () => void }) {
   const colors: Record<string, string> = {
     grow:   'bg-grow-50   text-grow-700   text-grow-400',
     blue:   'bg-blue-50   text-blue-700   text-blue-400',
     amber:  'bg-amber-50  text-amber-700  text-amber-400',
     purple: 'bg-purple-50 text-purple-700 text-purple-400',
+    indigo: 'bg-indigo-50 text-indigo-700 text-indigo-400',
   }
   const [bg, txt, sub_] = (colors[color] ?? colors.grow).split(' ')
   return (
-    <div className={`${bg} rounded-xl p-3`}>
+    <div
+      className={`${bg} rounded-xl p-3 ${onClick ? 'cursor-pointer hover:brightness-95 transition-all' : ''}`}
+      onClick={onClick}
+    >
       <p className={`text-xs ${sub_} mb-0.5`}>{label}</p>
       <p className={`text-xl font-bold ${txt}`}>{value}</p>
       {sub && <p className={`text-xs ${sub_} mt-0.5`}>{sub}</p>}
+      {onClick && <p className={`text-xs ${sub_} mt-1 opacity-60`}>Cliquer pour le détail</p>}
     </div>
   )
 }
@@ -61,9 +66,6 @@ function PlantLine({
       </td>
       <td className="px-4 py-2.5 text-xs text-gray-400 dark:text-gray-500 whitespace-nowrap">
         {plant.date_fin_plant ? new Date(plant.date_fin_plant).toLocaleDateString('fr-FR') : '—'}
-      </td>
-      <td className="px-4 py-2.5 text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500 text-right">
-        {plant.prix_graine != null ? `${Number(plant.prix_graine).toFixed(2)} €` : '—'}
       </td>
       <td className="px-4 py-2.5 text-sm font-semibold text-grow-700 text-right">
         {plant.quantite_recoltee != null ? `${Number(plant.quantite_recoltee).toFixed(1)} g` : '—'}
@@ -122,19 +124,25 @@ export default function CultureHistoriqueDetailModal({ culture, onClose }: Props
   const qc = useQueryClient()
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [editing, setEditing] = useState(false)
+  const [showCoutDetail, setShowCoutDetail] = useState(false)
 
   // État formulaire d'édition (initialisé avec les valeurs actuelles)
   const [form, setForm] = useState<HistoriqueCultureUpdate>({
-    nom:          culture.nom,
-    date_debut:   culture.date_debut,
-    date_fin:     culture.date_fin,
-    tente:        culture.tente,
-    lampe:        culture.lampe,
-    puissance:    culture.puissance,
-    type_culture: culture.type_culture,
-    engrais:      culture.engrais,
-    substrat:     culture.substrat,
-    notes:        culture.notes,
+    nom:             culture.nom,
+    date_debut:      culture.date_debut,
+    date_fin:        culture.date_fin,
+    tente:           culture.tente,
+    lampe:           culture.lampe,
+    puissance:       culture.puissance,
+    type_culture:    culture.type_culture,
+    engrais:         culture.engrais,
+    substrat:        culture.substrat,
+    notes:           culture.notes,
+    cout_engrais:    culture.cout_engrais,
+    cout_electricite: culture.cout_electricite,
+    cout_graines:    culture.cout_graines,
+    cout_total:      culture.cout_total,
+    cout_par_gramme: culture.cout_par_gramme,
   })
 
   const invalidate = () => qc.invalidateQueries({ queryKey: ['historique-cultures'] })
@@ -157,7 +165,6 @@ export default function CultureHistoriqueDetailModal({ culture, onClose }: Props
 
   const nbPlants       = culture.plants.length
   const totalRecolte   = culture.quantite_totale
-  const totalPrix      = culture.prix_total_graines
   const gpw            = culture.g_par_watt
   const duree          = culture.duree_jours
 
@@ -180,7 +187,7 @@ export default function CultureHistoriqueDetailModal({ culture, onClose }: Props
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-2xl flex flex-col max-h-[90vh]">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-2xl flex flex-col max-h-[90vh] relative">
 
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-700 shrink-0">
@@ -289,6 +296,79 @@ export default function CultureHistoriqueDetailModal({ culture, onClose }: Props
                   onChange={set('notes')} />
               </Field>
 
+              {/* Coûts manuels */}
+              {(() => {
+                const elec    = Number(form.cout_electricite) || 0
+                const engrais = Number(form.cout_engrais)     || 0
+                const graines = Number(form.cout_graines)     || 0
+                const total   = elec + engrais + graines
+                const poids   = Number(culture.quantite_totale) || 0
+                const pgr     = total > 0 && poids > 0 ? total / poids : null
+                return (
+                  <div className="border-t border-gray-200 dark:border-gray-600 pt-3">
+                    <p className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 mb-2 flex items-center gap-1.5">
+                      <Euro size={12} /> Coûts (saisie manuelle)
+                    </p>
+                    <div className="grid grid-cols-3 gap-3">
+                      <Field label="Électricité (€)">
+                        <input type="number" step="0.01" className={inputCls}
+                          value={form.cout_electricite ?? ''}
+                          onChange={e => {
+                            const v = e.target.value ? Number(e.target.value) : null
+                            const t = (Number(v) || 0) + engrais + graines
+                            const p = t > 0 && poids > 0 ? t / poids : null
+                            setForm(f => ({ ...f, cout_electricite: v, cout_total: t || null, cout_par_gramme: p }))
+                          }}
+                          placeholder="0.00" />
+                      </Field>
+                      <Field label="Engrais (€)">
+                        <input type="number" step="0.01" className={inputCls}
+                          value={form.cout_engrais ?? ''}
+                          onChange={e => {
+                            const v = e.target.value ? Number(e.target.value) : null
+                            const t = elec + (Number(v) || 0) + graines
+                            const p = t > 0 && poids > 0 ? t / poids : null
+                            setForm(f => ({ ...f, cout_engrais: v, cout_total: t || null, cout_par_gramme: p }))
+                          }}
+                          placeholder="0.00" />
+                      </Field>
+                      <Field label="Graines (€)">
+                        <input type="number" step="0.01" className={inputCls}
+                          value={form.cout_graines ?? ''}
+                          onChange={e => {
+                            const v = e.target.value ? Number(e.target.value) : null
+                            const t = elec + engrais + (Number(v) || 0)
+                            const p = t > 0 && poids > 0 ? t / poids : null
+                            setForm(f => ({ ...f, cout_graines: v, cout_total: t || null, cout_par_gramme: p }))
+                          }}
+                          placeholder="0.00" />
+                      </Field>
+                    </div>
+                    {/* Total et €/g calculés automatiquement */}
+                    <div className="mt-3 flex items-center gap-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg px-3 py-2">
+                      <div>
+                        <p className="text-xs text-indigo-400 dark:text-indigo-500">Total</p>
+                        <p className="text-base font-bold text-indigo-700 dark:text-indigo-300">
+                          {total > 0 ? `${total.toFixed(2)} €` : '—'}
+                        </p>
+                      </div>
+                      <div className="border-l border-indigo-200 dark:border-indigo-700 pl-4">
+                        <p className="text-xs text-indigo-400 dark:text-indigo-500">€/g</p>
+                        <p className="text-base font-bold text-purple-600 dark:text-purple-400">
+                          {pgr != null ? `${pgr.toFixed(2)} €/g` : poids === 0 ? 'pas de récolte' : '—'}
+                        </p>
+                      </div>
+                      {poids > 0 && (
+                        <p className="text-xs text-indigo-300 dark:text-indigo-600 ml-auto">sur {poids.toFixed(1)} g</p>
+                      )}
+                    </div>
+                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-1.5 italic">
+                      Total et €/g calculés automatiquement depuis les 3 postes ci-dessus.
+                    </p>
+                  </div>
+                )
+              })()}
+
               <div className="flex items-center gap-2 pt-1">
                 <button
                   onClick={() => saveCulture.mutate()}
@@ -301,7 +381,7 @@ export default function CultureHistoriqueDetailModal({ culture, onClose }: Props
                   Enregistrer
                 </button>
                 <button
-                  onClick={() => { setEditing(false); setForm({ nom: culture.nom, date_debut: culture.date_debut, date_fin: culture.date_fin, tente: culture.tente, lampe: culture.lampe, puissance: culture.puissance, type_culture: culture.type_culture, engrais: culture.engrais, substrat: culture.substrat, notes: culture.notes }) }}
+                  onClick={() => { setEditing(false); setForm({ nom: culture.nom, date_debut: culture.date_debut, date_fin: culture.date_fin, tente: culture.tente, lampe: culture.lampe, puissance: culture.puissance, type_culture: culture.type_culture, engrais: culture.engrais, substrat: culture.substrat, notes: culture.notes, cout_engrais: culture.cout_engrais, cout_electricite: culture.cout_electricite, cout_graines: culture.cout_graines, cout_total: culture.cout_total, cout_par_gramme: culture.cout_par_gramme }) }}
                   className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 text-sm rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/40"
                 >
                   Annuler
@@ -345,10 +425,16 @@ export default function CultureHistoriqueDetailModal({ culture, onClose }: Props
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <SCard label="Plants"         value={String(nbPlants)}                           color="grow"   />
               <SCard label="Récolte totale" value={totalRecolte != null ? `${Number(totalRecolte).toFixed(1)} g` : '—'} color="purple" />
-              <SCard label="Prix graines"   value={totalPrix    != null ? `${Number(totalPrix).toFixed(2)} €`   : '—'} color="blue"   />
-              <SCard label="g/W"            value={gpw          != null ? String(gpw.toFixed(3))                : '—'} color="amber"  />
+              <SCard label="g/W"            value={gpw          != null ? `${gpw.toFixed(3)} g/W`              : '—'} color="amber"  />
+              <SCard
+                label="€/g"
+                value={culture.cout_par_gramme != null ? `${Number(culture.cout_par_gramme).toFixed(2)} €/g` : '—'}
+                color="indigo"
+                onClick={culture.cout_par_gramme != null || culture.cout_total != null ? () => setShowCoutDetail(true) : undefined}
+              />
             </div>
           </section>
+
 
           {/* ── Tableau plantes ─────────────────────────────────────── */}
           <section>
@@ -366,7 +452,6 @@ export default function CultureHistoriqueDetailModal({ culture, onClose }: Props
                       <th className="px-4 py-2.5 text-xs font-semibold text-gray-500 dark:text-gray-400 dark:text-gray-500 text-left">Variété</th>
                       <th className="px-4 py-2.5 text-xs font-semibold text-gray-500 dark:text-gray-400 dark:text-gray-500 text-left">Début</th>
                       <th className="px-4 py-2.5 text-xs font-semibold text-gray-500 dark:text-gray-400 dark:text-gray-500 text-left">Fin</th>
-                      <th className="px-4 py-2.5 text-xs font-semibold text-gray-500 dark:text-gray-400 dark:text-gray-500 text-right">Prix graine</th>
                       <th className="px-4 py-2.5 text-xs font-semibold text-gray-500 dark:text-gray-400 dark:text-gray-500 text-right">Récolte</th>
                       <th className="px-4 py-2.5 text-xs font-semibold text-gray-500 dark:text-gray-400 dark:text-gray-500 text-left">Notes</th>
                       <th className="px-4 py-2.5"></th>
@@ -408,6 +493,61 @@ export default function CultureHistoriqueDetailModal({ culture, onClose }: Props
             </section>
           )}
         </div>
+
+        {/* ── Popup détail coûts ───────────────────────────────────────────── */}
+        {showCoutDetail && (
+          <div className="absolute inset-0 bg-black/40 flex items-center justify-center z-10 rounded-xl" onClick={() => setShowCoutDetail(false)}>
+            <div
+              className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-5 w-72 space-y-3"
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-bold text-indigo-800 dark:text-indigo-300 flex items-center gap-1.5">
+                  <Euro size={14} /> Détail des coûts
+                </h3>
+                <button onClick={() => setShowCoutDetail(false)} className="text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300">
+                  <X size={16} />
+                </button>
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between py-1.5 border-b border-gray-100 dark:border-gray-700">
+                  <span className="text-sm text-gray-600 dark:text-gray-300 flex items-center gap-1.5"><Zap size={13} className="text-yellow-500" /> Électricité</span>
+                  <span className="text-sm font-semibold text-gray-800 dark:text-gray-100">
+                    {culture.cout_electricite != null ? `${Number(culture.cout_electricite).toFixed(2)} €` : '—'}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between py-1.5 border-b border-gray-100 dark:border-gray-700">
+                  <span className="text-sm text-gray-600 dark:text-gray-300 flex items-center gap-1.5"><FlaskConical size={13} className="text-blue-500" /> Engrais</span>
+                  <span className="text-sm font-semibold text-gray-800 dark:text-gray-100">
+                    {culture.cout_engrais != null ? `${Number(culture.cout_engrais).toFixed(2)} €` : '—'}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between py-1.5 border-b border-gray-100 dark:border-gray-700">
+                  <span className="text-sm text-gray-600 dark:text-gray-300 flex items-center gap-1.5"><Leaf size={13} className="text-green-500" /> Graines</span>
+                  <span className="text-sm font-semibold text-gray-800 dark:text-gray-100">
+                    {culture.cout_graines != null ? `${Number(culture.cout_graines).toFixed(2)} €` : '—'}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between py-2 bg-indigo-50 dark:bg-indigo-900/30 rounded-lg px-2">
+                  <span className="text-sm font-bold text-indigo-700 dark:text-indigo-300">Total</span>
+                  <span className="text-lg font-bold text-indigo-800 dark:text-indigo-200">
+                    {culture.cout_total != null ? `${Number(culture.cout_total).toFixed(2)} €` : '—'}
+                  </span>
+                </div>
+                {culture.cout_par_gramme != null && (
+                  <div className="text-center pt-1">
+                    <span className="text-xs font-semibold text-purple-600 dark:text-purple-400">
+                      {Number(culture.cout_par_gramme).toFixed(2)} €/g
+                    </span>
+                    {culture.quantite_totale != null && (
+                      <span className="text-xs text-gray-400 ml-2">sur {Number(culture.quantite_totale).toFixed(1)} g récoltés</span>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="px-6 py-4 border-t border-gray-100 dark:border-gray-700 shrink-0 flex items-center justify-between gap-3">
           {/* Zone suppression culture */}
