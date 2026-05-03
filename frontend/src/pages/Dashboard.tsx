@@ -534,7 +534,7 @@ export default function Dashboard() {
         {/* Modules 2 & 3 : Séchage + Curing — empilés dans la 3e colonne, même hauteur que Cultures */}
         <div className="flex flex-col gap-4 h-full">
           <ModuleSechage stats={stats} onClick={() => navigate('/sechage-curing')} className="flex-1" />
-          <ModuleCuring  stats={stats} onClick={() => navigate('/sechage-curing')} className="flex-1" />
+          <ModuleCuring  stats={stats} onClick={() => navigate('/sechage-curing?tab=curing')} className="flex-1" />
         </div>
       </div>
 

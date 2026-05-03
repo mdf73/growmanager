@@ -217,3 +217,65 @@ def remove_plant_from_session(id_session: int, id_plant_sechage: int, db: Sessio
     if not ps:
         raise HTTPException(status_code=404, detail="Entrée de séchage introuvable")
 
+
+# ── WPFF — Whole Plant Fresh Frozen ───────────────────────────────────────────
+
+class WPFFPayload(BaseModel):
+    poids_g: Optional[float] = None
+    date_action: Optional[date] = None
+
+
+@router.post("/plants/{id_plant}/wpff")
+def passer_wpff(id_plant: int, payload: WPFFPayload, db: Session = Depends(get_db)):
+    """Passe une plante en WPFF (congélateur direct, sans séchage ni curing)."""
+    plant = db.query(Plant).filter(Plant.id_plant == id_plant).first()
+    if not plant:
+        raise HTTPException(status_code=404, detail="Plante introuvable")
+
+    action_date = payload.date_action or date.today()
+    poids = payload.poids_g or 0.0
+
+    # 1. Mettre à jour le statut de la plante
+    plant.statut = "wpff"
+
+    # 2. Clôturer la session de séchage active si elle existe
+    ps = db.query(PlantSechage).filter(
+        PlantSechage.id_plant == id_plant,
+        PlantSechage.date_fin_sechage.is_(None),
+    ).first()
+    if ps:
+        ps.date_fin_sechage = action_date
+        if poids:
+            ps.poids_sec_g = poids
+
+    # 3. Récupérer l'id_variete via la graine
+    id_variete = None
+    if plant.id_graine:
+        graine = db.query(Graine).filter(Graine.id_graine == plant.id_graine).first()
+        if graine:
+            id_variete = graine.id_variete
+
+    # 4. Créer l'entrée Stock WPFF
+    stock = Stock(
+        id_variete=id_variete,
+        type_stock="WPFF",
+        date_stock=action_date,
+        quantite_stock=poids,
+    )
+    db.add(stock)
+    db.flush()
+
+    # 5. Logger l'action dans le calendrier
+    action = ActionCalendrier(
+        id_plant=id_plant,
+        id_culture=plant.id_culture,
+        date_action=action_date,
+        type_action="wpff",
+        parametres={"poids_g": poids, "id_stock": stock.id_stock},
+        global_culture=False,
+    )
+    db.add(action)
+
+    db.commit()
+    return {"ok": True, "id_stock": stock.id_stock, "quantite_g": float(poids)}
+

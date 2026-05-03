@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useSearchParams } from 'react-router-dom'
 import {
   Wind, ChevronDown, ChevronUp, Thermometer, Droplets, Scale,
   Calendar, Clock, X, CheckCircle2, MapPin, Package, Layers,
@@ -1372,7 +1373,10 @@ function PlantRow({
 
 export default function SechageCuring() {
   const qc = useQueryClient()
-  const [activeTab, setActiveTab]                     = useState<'sechage' | 'curing'>('sechage')
+  const [searchParams] = useSearchParams()
+  const [activeTab, setActiveTab] = useState<'sechage' | 'curing'>(
+    searchParams.get('tab') === 'curing' ? 'curing' : 'sechage'
+  )
   const [curingModal, setCuringModal]                 = useState<PlantSechage | null>(null)
   const [finCuringModal, setFinCuringModal]           = useState<PlantSechage | null>(null)
   const [assignerEspaceModal, setAssignerEspaceModal] = useState<PlantSechage | null>(null)

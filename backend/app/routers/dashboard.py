@@ -131,13 +131,15 @@ def get_dashboard_stats(db: Session = Depends(get_db)):
     ]
     cur_min, cur_max = _minmax(curing_days)
 
-    # Module 4 : Stock
+    # Module 4 : Stock (Trim et WPFF exclus \u2014 rang\u00e9s dans Extractions)
+    EXTRACTION_TYPES = {'Trim', 'WPFF'}
     stocks = db.query(Stock).all()
-    HERBE_TYPES = {'Fleur', 'Trim', 'WPFF', 'Poussi\u00e8re'}
-    stock_total = sum(float(s.quantite_stock or 0) for s in stocks)
-    stock_herbe = sum(float(s.quantite_stock or 0) for s in stocks if s.type_stock in HERBE_TYPES)
-    stock_hash  = sum(float(s.quantite_stock or 0) for s in stocks if s.type_stock == 'Hash')
-    stock_rosin = sum(float(s.quantite_stock or 0) for s in stocks if s.type_stock == 'Rosin')
+    stocks_only = [s for s in stocks if s.type_stock not in EXTRACTION_TYPES]
+    HERBE_TYPES = {'Fleur', 'Poussi\u00e8re'}
+    stock_total = sum(float(s.quantite_stock or 0) for s in stocks_only)
+    stock_herbe = sum(float(s.quantite_stock or 0) for s in stocks_only if s.type_stock in HERBE_TYPES)
+    stock_hash  = sum(float(s.quantite_stock or 0) for s in stocks_only if s.type_stock == 'Hash')
+    stock_rosin = sum(float(s.quantite_stock or 0) for s in stocks_only if s.type_stock == 'Rosin')
 
     # Module 5 : Production
     # Base sur l'historique de production : date_fin de HistoriqueCulture
@@ -349,7 +351,9 @@ def get_dashboard(db: Session = Depends(get_db)):
         Plant.statut.in_(["germination", "veg", "floraison"])
     ).scalar() or 0
 
-    stock_total = db.query(func.sum(Stock.quantite_stock)).scalar() or 0
+    stock_total = db.query(func.sum(Stock.quantite_stock)).filter(
+        Stock.type_stock.notin_(['Trim', 'WPFF'])
+    ).scalar() or 0
 
     cultures_en_cours = db.query(func.count(Culture.id_culture)).filter(
         Culture.statut == 'active'

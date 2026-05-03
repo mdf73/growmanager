@@ -1,6 +1,11 @@
-fix: affichage photos + suppression depuis miniatures
+feat: onglet Extractions dans Stock + fix endpoint WPFF
 
-- nginx.conf: /uploads/ proxifié vers backend:8000/uploads/ (FastAPI sert déjà StaticFiles)
-- vite.config.ts: ajout proxy /uploads pour mode dev (port 5173)
-- docker-compose.yml: suppression du volume uploads_data (plus nécessaire)
-- PhotoGallery: bouton poubelle sur chaque miniature au survol (en plus du lightbox)
+- Ajout endpoint POST /api/sechage/plants/{id}/wpff (manquait côté backend)
+  → passe Plant en statut wpff, clôture PlantSechage, crée Stock WPFF, logue ActionCalendrier
+
+- Page Stock : 3 onglets (Stock / Extractions / En curing)
+  → Trim et WPFF exclus du tab Stock, déplacés dans le nouveau tab Extractions
+  → EXTRACTION_TYPES = ['Trim', 'WPFF'] comme constante partagée
+
+- Dashboard backend : stock_total/herbe/hash/rosin excluent Trim et WPFF (les deux endpoints)
+- Statistiques.tsx : stocksOnly filtre EXTRACTION_TYPES pour les stats et le badge

@@ -175,12 +175,16 @@ export default function Statistiques() {
   const [stockType, setStockType] = useState<string | 'all'>('all')
   const [cultYear,  setCultYear]  = useState<number | 'all'>('all')
 
-  // Types disponibles dans le stock
+  // Trim et WPFF = extractions, exclus du stock principal
+  const EXTRACTION_TYPES = ['Trim', 'WPFF']
+  const stocksOnly = useMemo(() => stocks.filter(s => !EXTRACTION_TYPES.includes(s.type_stock || '')), [stocks])
+
+  // Types disponibles dans le stock (hors extractions)
   const stockTypes = useMemo(() => {
     const ts = new Set<string>()
-    stocks.forEach(s => { if (s.type_stock) ts.add(s.type_stock) })
+    stocksOnly.forEach(s => { if (s.type_stock) ts.add(s.type_stock) })
     return [...ts].sort()
-  }, [stocks])
+  }, [stocksOnly])
 
   // ── Stats Graines ──────────────────────────────────────────────────────────
   const grainesStats = useMemo(() => {
@@ -210,7 +214,7 @@ export default function Statistiques() {
 
   // ── Stats Stock ────────────────────────────────────────────────────────────
   const stockStats = useMemo(() => {
-    const base   = stocks.filter(s => (s.quantite_stock ?? 0) > 0)
+    const base   = stocksOnly.filter(s => (s.quantite_stock ?? 0) > 0)
     const actifs = stockType === 'all'
       ? base
       : base.filter(s => (s.type_stock || 'Autre') === stockType)
@@ -546,7 +550,7 @@ export default function Statistiques() {
       {/* ══════════════════ MODULE STOCK ══════════════════ */}
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
         <ModuleHeader icon={Package} title="Stock"
-          badge={`${stocks.filter(s => (s.quantite_stock ?? 0) > 0).length} entrée${stocks.length > 1 ? 's' : ''} actives`}
+          badge={`${stocksOnly.filter(s => (s.quantite_stock ?? 0) > 0).length} entrée${stocksOnly.length > 1 ? 's' : ''} actives`}
         >
           <select
             value={stockType}
