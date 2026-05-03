@@ -14,8 +14,9 @@ import ImportExportModal from '../components/ImportExportModal'
 
 // ── Tri ──────────────────────────────────────────────────────────────────────
 type StockSortCol = 'variete' | 'type' | 'soustype' | 'engrais' | 'bocal' | 'quantite' | 'date' | 'age'
+type ExtractionSortCol = 'variete' | 'type' | 'quantite' | 'date' | 'age'
 type SortDir = 'asc' | 'desc'
-type CuringSortCol = 'plante' | 'variete' | 'culture' | 'session' | 'debut' | 'jours'
+type CuringSortCol = 'plante' | 'variete' | 'culture' | 'bocal' | 'debut' | 'jours' | 'jours_recolte' | 'quantite'
 
 function SortIcon({ col, current, dir }: { col: string; current: string | null; dir: SortDir }) {
   if (current !== col) return <ChevronsUpDown size={12} className="ml-1 text-gray-300 inline" />
@@ -196,6 +197,111 @@ function StockRow({ item, onEdit, onDeleted, onSortie }: {
   )
 }
 
+// ── Ligne extraction ──────────────────────────────────────────────────────────
+function ExtractionRow({ item, onEdit, onDeleted, onSortie }: {
+  item: Stock
+  onEdit: (s: Stock) => void
+  onDeleted: () => void
+  onSortie: () => void
+}) {
+  const [confirmDelete, setConfirmDelete] = useState(false)
+  const [confirmSortie, setConfirmSortie] = useState(false)
+  const isCloture = !!item.date_fin_stock
+
+  const remove = useMutation({
+    mutationFn: () => stockAPI.delete(item.id_stock),
+    onSuccess: onDeleted,
+    onError: () => setConfirmDelete(false),
+  })
+  const sortie = useMutation({
+    mutationFn: () => stockAPI.sortie(item.id_stock),
+    onSuccess: () => { setConfirmSortie(false); onSortie() },
+    onError: () => setConfirmSortie(false),
+  })
+
+  if (confirmDelete) return (
+    <tr className="bg-red-50">
+      <td colSpan={5} className="px-5 py-3 text-sm text-red-700">
+        <span className="flex items-center gap-2">
+          <AlertTriangle size={14} />
+          Supprimer <strong>{item.variete_nom ?? 'cette extraction'}</strong> ({item.quantite_stock}g) ?
+        </span>
+      </td>
+      <td className="px-5 py-3 text-right">
+        <div className="flex justify-end gap-2">
+          <button onClick={() => remove.mutate()} disabled={remove.isPending}
+            className="px-3 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700 disabled:opacity-50">
+            {remove.isPending ? <Loader2 size={12} className="animate-spin" /> : 'Confirmer'}
+          </button>
+          <button onClick={() => setConfirmDelete(false)}
+            className="px-3 py-1 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 text-xs rounded hover:bg-gray-50">
+            Annuler
+          </button>
+        </div>
+      </td>
+    </tr>
+  )
+
+  if (confirmSortie) return (
+    <tr className="bg-amber-50">
+      <td colSpan={5} className="px-5 py-3 text-sm text-amber-800">
+        <span className="flex items-center gap-2">
+          <LogOut size={14} />
+          Déclarer <strong>{item.variete_nom ?? 'cette extraction'}</strong> comme terminé (0 g restant) ?
+        </span>
+      </td>
+      <td className="px-5 py-3 text-right">
+        <div className="flex justify-end gap-2">
+          <button onClick={() => sortie.mutate()} disabled={sortie.isPending}
+            className="px-3 py-1 bg-amber-600 text-white text-xs rounded hover:bg-amber-700 disabled:opacity-50">
+            {sortie.isPending ? <Loader2 size={12} className="animate-spin" /> : 'Confirmer'}
+          </button>
+          <button onClick={() => setConfirmSortie(false)}
+            className="px-3 py-1 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 text-xs rounded hover:bg-gray-50">
+            Annuler
+          </button>
+        </div>
+      </td>
+    </tr>
+  )
+
+  const rowClass = isCloture ? 'opacity-50 bg-gray-50 dark:bg-gray-700/30' : 'hover:bg-gray-50 dark:hover:bg-gray-700/40 group'
+
+  return (
+    <tr className={rowClass}>
+      <td className="px-5 py-3 text-sm font-medium text-gray-900 dark:text-gray-100">
+        {item.variete_nom || '—'}
+        {isCloture && <span className="ml-2 text-xs text-gray-400 dark:text-gray-500 font-normal">clôturé</span>}
+      </td>
+      <td className="px-5 py-3"><TypeBadge type={item.type_stock ?? undefined} /></td>
+      <td className="px-5 py-3 text-sm font-semibold text-grow-700">
+        {isCloture ? <span className="line-through text-gray-400 dark:text-gray-500">0 g</span> : `${item.quantite_stock.toFixed(1)} g`}
+      </td>
+      <td className="px-5 py-3 text-sm text-gray-500 dark:text-gray-400">
+        {item.date_stock ? new Date(item.date_stock).toLocaleDateString('fr-FR') : '—'}
+      </td>
+      <td className="px-5 py-3 text-sm text-gray-400 dark:text-gray-500">
+        {ageLabel(item.date_stock ?? undefined)}
+      </td>
+      <td className="px-5 py-3 text-right">
+        <div className={`flex justify-end gap-1 ${isCloture ? 'opacity-0' : 'opacity-0 group-hover:opacity-100'} transition-opacity`}>
+          {!isCloture && (
+            <button onClick={() => setConfirmSortie(true)} className="p-1.5 text-gray-400 hover:text-amber-600 hover:bg-amber-50 rounded" title="Déclarer comme terminé">
+              <LogOut size={14} />
+            </button>
+          )}
+          <button onClick={() => onEdit(item)} className="p-1.5 text-gray-400 hover:text-grow-600 hover:bg-grow-50 rounded" title="Modifier">
+            <Pencil size={14} />
+          </button>
+          <button onClick={() => setConfirmDelete(true)} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded" title="Supprimer">
+            <Trash2 size={14} />
+          </button>
+        </div>
+      </td>
+    </tr>
+  )
+}
+
 // ── Curing helpers ────────────────────────────────────────────────────────────
 interface PlantWithSession extends PlantCuring {
   _session: SessionCuring
@@ -224,12 +330,14 @@ function curingBadgeClass(dateStr?: string): string {
 }
 
 const CURING_SORTABLE: [CuringSortCol, string][] = [
-  ['plante',      'Plante'],
-  ['variete',     'Variete'],
-  ['culture',     'Culture'],
-  ['session',     'Session'],
-  ['debut',       'Debut curing'],
-  ['jours',       'Jours'],
+  ['plante',       'Plante'],
+  ['variete',      'Variete'],
+  ['culture',      'Culture'],
+  ['bocal',        'Bocal'],
+  ['debut',        'Debut Curing'],
+  ['jours',        'Jours de curing'],
+  ['jours_recolte','Jours depuis récolte'],
+  ['quantite',     'Quantité'],
 ]
 
 // ── Onglet curing ─────────────────────────────────────────────────────────────
@@ -251,12 +359,14 @@ function CuringTab({ plants, isLoading }: { plants: PlantWithSession[]; isLoadin
       let av: string | number = 0
       let bv: string | number = 0
       switch (sortCol) {
-        case 'plante':      av = (a.nom_plant || '').toLowerCase();    bv = (b.nom_plant || '').toLowerCase();    break
-        case 'variete':     av = (a.nom_variete || '').toLowerCase();  bv = (b.nom_variete || '').toLowerCase();  break
-        case 'culture':     av = (a.nom_culture || '').toLowerCase();  bv = (b.nom_culture || '').toLowerCase();  break
-        case 'session':     av = labelA.toLowerCase();                  bv = labelB.toLowerCase();                  break
-        case 'debut':       av = a.date_mise_curing || '';             bv = b.date_mise_curing || '';             break
-        case 'jours':       av = curingDaysAgo(a.date_mise_curing || ''); bv = curingDaysAgo(b.date_mise_curing || ''); break
+        case 'plante':        av = (a.nom_plant || '').toLowerCase();    bv = (b.nom_plant || '').toLowerCase();    break
+        case 'variete':       av = (a.nom_variete || '').toLowerCase();  bv = (b.nom_variete || '').toLowerCase();  break
+        case 'culture':       av = (a.nom_culture || '').toLowerCase();  bv = (b.nom_culture || '').toLowerCase();  break
+        case 'bocal':         av = labelA.toLowerCase();                  bv = labelB.toLowerCase();                  break
+        case 'debut':         av = a.date_mise_curing || '';             bv = b.date_mise_curing || '';             break
+        case 'jours':         av = curingDaysAgo(a.date_mise_curing || ''); bv = curingDaysAgo(b.date_mise_curing || ''); break
+        case 'jours_recolte': av = a.date_recolte ? curingDaysAgo(a.date_recolte) : 0; bv = b.date_recolte ? curingDaysAgo(b.date_recolte) : 0; break
+        case 'quantite':      av = a.poids_debut_g ?? 0;                bv = b.poids_debut_g ?? 0;                break
       }
       if (av < bv) return sortDir === 'asc' ? -1 : 1
       if (av > bv) return sortDir === 'asc' ?  1 : -1
@@ -299,7 +409,6 @@ function CuringTab({ plants, isLoading }: { plants: PlantWithSession[]; isLoadin
                     {label}<SortIcon col={col} current={sortCol} dir={sortDir} />
                   </th>
                 ))}
-                <th className="px-4 py-3" />
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
@@ -309,7 +418,6 @@ function CuringTab({ plants, isLoading }: { plants: PlantWithSession[]; isLoadin
                   || (sess.type_contenant ? `${sess.type_contenant}${sess.volume_contenant_l ? ` ${sess.volume_contenant_l}L` : ''}` : `Session #${sess.id_session_curing}`)
                 const bovedaInfo = sess.boveda_rh ? ` · Boveda ${sess.boveda_rh}%` : ''
                 const poidsDebut = p.poids_debut_g != null ? `${p.poids_debut_g.toFixed(1)} g` : '—'
-                const poidsFinal = p.poids_final_g != null ? `${p.poids_final_g.toFixed(1)} g` : null
 
                 return (
                   <tr key={p.id_plant_curing} className="hover:bg-gray-50 dark:hover:bg-gray-700/40">
@@ -334,17 +442,16 @@ function CuringTab({ plants, isLoading }: { plants: PlantWithSession[]; isLoadin
                         {joursCuringLabel(p.date_mise_curing)}
                       </span>
                     </td>
-                    <td className="px-4 py-2.5 text-sm text-gray-600 dark:text-gray-300 whitespace-nowrap">
-                      {poidsDebut}
-                    </td>
-                    <td className="px-4 py-2.5 text-sm whitespace-nowrap">
-                      {poidsFinal
-                        ? <span className="font-medium text-grow-700">{poidsFinal}</span>
-                        : <span className="text-gray-400 dark:text-gray-500">—</span>
+                    <td className="px-4 py-2.5 whitespace-nowrap">
+                      {p.date_recolte
+                        ? <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${curingBadgeClass(p.date_recolte)}`}>
+                            J{curingDaysAgo(p.date_recolte)}
+                          </span>
+                        : <span className="text-gray-400 dark:text-gray-500 text-sm">—</span>
                       }
                     </td>
-                    <td className="px-4 py-2.5 text-xs text-gray-400 dark:text-gray-500 max-w-[180px] truncate" title={p.notes ?? undefined}>
-                      {p.notes || '—'}
+                    <td className="px-4 py-2.5 text-sm font-semibold text-grow-700 whitespace-nowrap">
+                      {poidsDebut}
                     </td>
                   </tr>
                 )
@@ -367,6 +474,8 @@ export default function StockPage() {
   const [showClotures, setShowClotures] = useState(false)
   const [sortCol,      setSortCol]      = useState<StockSortCol | null>(null)
   const [sortDir,      setSortDir]      = useState<SortDir>('asc')
+  const [extSortCol,   setExtSortCol]   = useState<ExtractionSortCol | null>(null)
+  const [extSortDir,   setExtSortDir]   = useState<SortDir>('asc')
   const [showModal,        setShowModal]        = useState(false)
   const [editStock,        setEditStock]        = useState<Stock | null>(null)
   const [showImportExport, setShowImportExport] = useState(false)
@@ -696,23 +805,39 @@ export default function StockPage() {
                       {([
                         ['variete',  'Variété'],
                         ['type',     'Type'],
-                        ['soustype', 'Spécifications'],
-                        ['bocal',    'Bocal'],
                         ['quantite', 'Quantité'],
-                        ['date',     'Date'],
-                        ['age',      'Âge / Durée'],
-                      ] as [StockSortCol, string][]).map(([col, label]) => (
-                        <th key={col} onClick={() => handleSort(col)}
+                        ['date',     'Date de récolte'],
+                        ['age',      'Jours depuis la récolte'],
+                      ] as [ExtractionSortCol, string][]).map(([col, label]) => (
+                        <th key={col}
+                          onClick={() => {
+                            if (extSortCol === col) setExtSortDir(d => d === 'asc' ? 'desc' : 'asc')
+                            else { setExtSortCol(col); setExtSortDir('asc') }
+                          }}
                           className="px-5 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase cursor-pointer select-none hover:bg-gray-100 dark:hover:bg-gray-600 whitespace-nowrap">
-                          {label}<SortIcon col={col} current={sortCol} dir={sortDir} />
+                          {label}<SortIcon col={col} current={extSortCol} dir={extSortDir} />
                         </th>
                       ))}
                       <th className="px-5 py-3 w-24"></th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                    {extractionFiltered.map(item => (
-                      <StockRow key={item.id_stock} item={item}
+                    {[...extractionFiltered].sort((a, b) => {
+                      if (!extSortCol) return 0
+                      let av: string | number, bv: string | number
+                      switch (extSortCol) {
+                        case 'variete':  av = a.variete_nom    || ''; bv = b.variete_nom    || ''; break
+                        case 'type':     av = a.type_stock     || ''; bv = b.type_stock     || ''; break
+                        case 'quantite': av = a.quantite_stock;        bv = b.quantite_stock;        break
+                        case 'date':     av = a.date_stock     || ''; bv = b.date_stock     || ''; break
+                        case 'age':      av = a.date_stock     || ''; bv = b.date_stock     || ''; break
+                        default: return 0
+                      }
+                      if (av < bv) return extSortDir === 'asc' ? -1 : 1
+                      if (av > bv) return extSortDir === 'asc' ?  1 : -1
+                      return 0
+                    }).map(item => (
+                      <ExtractionRow key={item.id_stock} item={item}
                         onEdit={s => setEditStock(s)}
                         onDeleted={() => queryClient.invalidateQueries({ queryKey: ['stock'] })}
                         onSortie={() => queryClient.invalidateQueries({ queryKey: ['stock'] })}

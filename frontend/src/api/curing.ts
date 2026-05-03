@@ -15,6 +15,7 @@ export interface PlantCuring {
   nom_variete?: string
   id_culture?: number
   nom_culture?: string
+  date_recolte?: string
 }
 
 export interface SessionCuring {

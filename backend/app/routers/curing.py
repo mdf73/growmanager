@@ -45,6 +45,7 @@ def _enrich_plant_curing(pc: PlantCuring, db: Session) -> PlantCuringRead:
         nom_variete=nom_variete,
         id_culture=id_culture,
         nom_culture=nom_culture,
+        date_recolte=plant.date_recolte if plant else None,
     )
 
 

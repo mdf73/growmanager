@@ -1,11 +1,14 @@
-feat: onglet Extractions dans Stock + fix endpoint WPFF
+feat(stock): refonte tableaux En curing et Extractions
 
-- Ajout endpoint POST /api/sechage/plants/{id}/wpff (manquait côté backend)
-  → passe Plant en statut wpff, clôture PlantSechage, crée Stock WPFF, logue ActionCalendrier
+Onglet En curing :
+- Nouvelles colonnes : Plante, Variete, Culture, Bocal, Debut Curing,
+  Jours de curing, Jours depuis la récolte, Quantité
+- Suppression colonnes Poids final et Notes
+- Ajout date_recolte dans PlantCuringRead (schema + router backend)
+- Ajout date_recolte dans interface PlantCuring (frontend)
+- CuringSortCol étendu avec jours_recolte et quantite
 
-- Page Stock : 3 onglets (Stock / Extractions / En curing)
-  → Trim et WPFF exclus du tab Stock, déplacés dans le nouveau tab Extractions
-  → EXTRACTION_TYPES = ['Trim', 'WPFF'] comme constante partagée
-
-- Dashboard backend : stock_total/herbe/hash/rosin excluent Trim et WPFF (les deux endpoints)
-- Statistiques.tsx : stocksOnly filtre EXTRACTION_TYPES pour les stats et le badge
+Onglet Extractions :
+- Nouvelles colonnes : Variété, Type, Quantité, Date de récolte, Jours depuis la récolte
+- Nouveau composant ExtractionRow dédié (ex StockRow partagé)
+- Tri indépendant extSortCol/extSortDir (type ExtractionSortCol)

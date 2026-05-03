@@ -39,6 +39,7 @@ class PlantCuringRead(BaseModel):
     nom_variete: Optional[str] = None
     id_culture: Optional[int] = None
     nom_culture: Optional[str] = None
+    date_recolte: Optional[date] = None
 
     model_config = ConfigDict(from_attributes=True)
 
