@@ -75,13 +75,6 @@ const SECTIONS = [
       { nom: 'maillages_rosin',     label: 'Maillages Rosin bags (µ)' },
     ],
   },
-  {
-    titre: 'Stock — Lampes & Engrais',
-    listes: [
-      { nom: 'lampes_stock', label: 'Lampes (pour étiquetage stock)' },
-    ],
-  },
-
   // ── Espaces & Culture ─────────────────────────────────────────────────────────
   {
     titre: 'Espaces de culture',

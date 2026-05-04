@@ -4,6 +4,7 @@ import { X, Loader2, Save, Plus } from 'lucide-react'
 import { stockAPI, Stock, BocalDisponible } from '../api/stock'
 import { varieteAPI, Variete } from '../api/varietes'
 import { useParametreListe } from '../api/parametres'
+import { materielAPI, Materiel } from '../api/materiel'
 
 interface NouveauStockModalProps {
   editStock?: Stock | null
@@ -26,14 +27,18 @@ export default function NouveauStockModal({ editStock, onClose }: NouveauStockMo
   const { values: sousTypesParam }  = useParametreListe('sous_types_stock')
   const { values: maillagesParam }  = useParametreListe('maillages_iceolator')
   const { values: typesRosinParam } = useParametreListe('types_rosin')
-  const { values: lampesParam }     = useParametreListe('lampes_stock')
+  const { data: lampesMatériel = [] } = useQuery<Materiel[]>({
+    queryKey: ['materiel'],
+    queryFn: async () => (await materielAPI.getAll()).data,
+    select: data => data.filter(m => m.categorie === 'Lampes' && !m.date_sortie_stock),
+  })
   const { values: engraisParam }    = useParametreListe('engrais')
 
   const TYPES_STOCK = typesStockParam.length > 0 ? typesStockParam : TYPES_STOCK_FB
   const SOUS_TYPES  = sousTypesParam.length  > 0 ? sousTypesParam  : SOUS_TYPES_FB
   const MAILLAGES   = maillagesParam.length  > 0 ? maillagesParam  : ['15µ', '25µ', '45µ', '73µ', '90µ', '160µ', '190µ', '220µ']
   const TYPES_ROSIN = typesRosinParam.length > 0 ? typesRosinParam : ['Flower Rosin', 'Hash Rosin']
-  const LAMPES      = lampesParam.length     > 0 ? lampesParam     : ['LED Crescience 500W', 'Soleil']
+  const LAMPES      = lampesMatériel.map(m => m.nom)
   const ENGRAIS_OPTS = engraisParam.length   > 0 ? engraisParam    : ['LSO', 'Aptus', 'Autre']
 
   const { data: varietes = [] } = useQuery<Variete[]>({

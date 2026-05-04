@@ -1,15 +1,6 @@
-feat(culture): badges statut sur CultureCard + fix filtre séchage
+refactor: lampe stock liée au matériel réel
 
-- CultureCard : badge selon statut
-  - active → arrosage + TCO (inchangé)
-  - sechage_curing → 🌬️ "En séchage depuis Xj" (amber)
-  - terminee → 🌿 "Récolte totale : X.X g" (vert, depuis total_recolte_g)
-
-- Filtres Suivi de culture : "Toutes" remplacé par "🌬️ Séchage & Curing"
-  → 3 tabs : Actives / Séchage & Curing / Terminées
-
-- Backend fix : ajout "sechage" dans statuts_finis de _maybe_close_culture
-  (cultures bloquées à "active" quand toutes plantes en sechage)
-- _enrich_culture : auto-repair via _maybe_close_culture à chaque GET
-- _enrich_culture : ajout champ total_recolte_g (somme poids_recolte_g)
-- Culture interface : ajout total_recolte_g
+NouveauStockModal — remplace useParametreListe('lampes_stock') par une
+query materielAPI filtrée sur catégorie Lampes + date_sortie_stock null.
+Supprime la section lampes_stock de la page Paramétrage (liste obsolète).
+Aucune migration DB (lampe_type reste stocké comme string/nom).
