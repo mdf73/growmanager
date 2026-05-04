@@ -34,6 +34,7 @@ export interface Culture {
   jours_culture?: number
   jours_depuis_dernier_arrosage?: number
   jours_depuis_dernier_tco?: number
+  total_recolte_g?: number | null
 }
 
 export interface CultureWithDetails extends Culture {

@@ -13,6 +13,7 @@ const STATUT_COLORS: Record<string, string> = {
   prete:       'bg-emerald-100 text-emerald-700',
   recolte:     'bg-blue-100 text-blue-700',
   abandonne:   'bg-red-100 text-red-700',
+  wpff:        'bg-cyan-100 text-cyan-700',
 }
 
 const STATUT_LABELS: Record<string, string> = {
@@ -24,6 +25,7 @@ const STATUT_LABELS: Record<string, string> = {
   prete:       'Prête ✅',
   recolte:     'Récoltée',
   abandonne:   'Abandonnée',
+  wpff:        'WPFF ❄️',
 }
 
 const SUBSTRAT_LABELS: Record<string, string> = {
@@ -105,8 +107,8 @@ export default function PlantesTab({ cultureId, plants }: Props) {
     updatePlant.mutate({ plantId, data: editValues })
   }
 
-  const actives = plants.filter(p => !['recolte', 'prete', 'abandonne'].includes(p.statut || ''))
-  const terminees = plants.filter(p => ['recolte', 'prete', 'abandonne'].includes(p.statut || ''))
+  const actives = plants.filter(p => !['recolte', 'prete', 'abandonne', 'wpff'].includes(p.statut || ''))
+  const terminees = plants.filter(p => ['recolte', 'prete', 'abandonne', 'wpff'].includes(p.statut || ''))
 
   return (
     <div className="space-y-4">

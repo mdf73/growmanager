@@ -1,13 +1,13 @@
 import { useState } from 'react'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { X, Trash2, Loader2, Leaf, AlertTriangle, Pencil, Check, Zap, FlaskConical, Euro } from 'lucide-react'
-import type { HistoriqueCulture, HistoriquePlant, HistoriqueCultureUpdate } from '../api/historiqueCulture'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { X, Trash2, Loader2, Leaf, AlertTriangle, Pencil, Check, Zap, FlaskConical, Euro, Lightbulb } from 'lucide-react'
+import type { HistoriqueCulture, HistoriquePlant, HistoriqueCultureUpdate, HistoriquePlantUpdate } from '../api/historiqueCulture'
 import { historiqueCultureAPI } from '../api/historiqueCulture'
+import { materielAPI } from '../api/materiel'
+import type { Materiel, CaractLampe } from '../api/materiel'
 
-const TENTES      = ['60x60x100', '60x120x150', '100x100x200', '120x120x200', 'Exterieur']
-const LAMPES      = ['LED Crescience', 'LED Marshydro', 'MH', 'HPS']
-const PUISSANCES  = [110, 135, 150, 550, 600]
-const TYPES       = ['Indoor', 'Outdoor']
+const TENTES = ['60x60x100', '60x120x150', '100x100x200', '120x120x200', 'Exterieur']
+const TYPES  = ['Indoor', 'Outdoor']
 const ENGRAIS_OPT = ['Living Soil (LSO)', 'Aptus', 'Hesi', 'Aucun', 'Autre']
 const SUBSTRATS   = ['LSO', 'Terre', 'Terre+Coco', 'Coco', 'NFT', 'Billes d\'argile', 'Pleine terre']
 
@@ -38,20 +38,75 @@ function SCard({ label, value, sub, color = 'grow', onClick }: { label: string; 
   )
 }
 
-// ── Ligne plante avec suppression ─────────────────────────────────────────────
+// ── Ligne plante avec édition + suppression ───────────────────────────────────
 function PlantLine({
-  plant, cultureId, onDeleted,
+  plant, cultureId, onDeleted, onUpdated,
 }: {
   plant: HistoriquePlant
   cultureId: number
   onDeleted: () => void
+  onUpdated: () => void
 }) {
   const [confirm, setConfirm] = useState(false)
+  const [editing, setEditing] = useState(false)
+  const [form, setForm] = useState<HistoriquePlantUpdate>({
+    variete_nom:       plant.variete_nom,
+    quantite_recoltee: plant.quantite_recoltee,
+    notes:             plant.notes,
+    date_debut_plant:  plant.date_debut_plant,
+    date_fin_plant:    plant.date_fin_plant,
+  })
+
   const remove = useMutation({
     mutationFn: () => historiqueCultureAPI.deletePlant(cultureId, plant.id_historique_plant),
     onSuccess: onDeleted,
     onError: () => setConfirm(false),
   })
+
+  const save = useMutation({
+    mutationFn: () => historiqueCultureAPI.updatePlant(cultureId, plant.id_historique_plant, form),
+    onSuccess: () => { onUpdated(); setEditing(false) },
+  })
+
+  const inCls = 'border border-gray-200 dark:border-gray-600 rounded px-2 py-1 text-xs w-full focus:ring-1 focus:ring-grow-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100'
+
+  if (editing) {
+    return (
+      <tr className="bg-grow-50 dark:bg-grow-900/20">
+        <td className="px-2 py-2 text-xs text-gray-400 dark:text-gray-500 font-mono text-center">P{plant.numero_plant ?? '?'}</td>
+        <td className="px-2 py-2">
+          <input className={inCls} value={form.variete_nom ?? ''} onChange={e => setForm(f => ({ ...f, variete_nom: e.target.value || null }))} />
+        </td>
+        <td className="px-2 py-2">
+          <input type="date" className={inCls} value={form.date_debut_plant ?? ''} onChange={e => setForm(f => ({ ...f, date_debut_plant: e.target.value || null }))} />
+        </td>
+        <td className="px-2 py-2">
+          <input type="date" className={inCls} value={form.date_fin_plant ?? ''} onChange={e => setForm(f => ({ ...f, date_fin_plant: e.target.value || null }))} />
+        </td>
+        <td className="px-2 py-2">
+          <input type="number" step="0.1" min="0" className={inCls}
+            value={form.quantite_recoltee ?? ''}
+            onChange={e => setForm(f => ({ ...f, quantite_recoltee: e.target.value ? Number(e.target.value) : null }))}
+            placeholder="g" />
+        </td>
+        <td className="px-2 py-2">
+          <input className={inCls} value={form.notes ?? ''} onChange={e => setForm(f => ({ ...f, notes: e.target.value || null }))} placeholder="notes…" />
+        </td>
+        <td className="px-2 py-2 text-right">
+          <div className="flex items-center justify-end gap-1">
+            <button onClick={() => save.mutate()} disabled={save.isPending}
+              className="px-2 py-1 bg-grow-600 text-white text-xs rounded hover:bg-grow-700 disabled:opacity-50">
+              {save.isPending ? <Loader2 size={10} className="animate-spin" /> : <Check size={10} />}
+            </button>
+            <button onClick={() => setEditing(false)}
+              className="px-2 py-1 border border-gray-200 dark:border-gray-600 text-gray-500 dark:text-gray-400 text-xs rounded">
+              ✕
+            </button>
+          </div>
+        </td>
+      </tr>
+    )
+  }
 
   return (
     <tr className="hover:bg-gray-50 dark:hover:bg-gray-700/40 group">
@@ -76,25 +131,26 @@ function PlantLine({
       <td className="px-4 py-2.5 text-right">
         {confirm ? (
           <div className="flex items-center justify-end gap-1">
-            <button
-              onClick={() => remove.mutate()}
-              disabled={remove.isPending}
-              className="px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 disabled:opacity-50"
-            >
+            <button onClick={() => remove.mutate()} disabled={remove.isPending}
+              className="px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 disabled:opacity-50">
               {remove.isPending ? <Loader2 size={10} className="animate-spin" /> : 'Suppr.'}
             </button>
             <button onClick={() => setConfirm(false)}
-              className="px-2 py-1 border border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 dark:text-gray-500 text-xs rounded hover:bg-gray-50 dark:hover:bg-gray-700/40">
+              className="px-2 py-1 border border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 text-xs rounded">
               ✕
             </button>
           </div>
         ) : (
-          <button
-            onClick={() => setConfirm(true)}
-            className="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded opacity-0 group-hover:opacity-100 transition-opacity"
-          >
-            <Trash2 size={13} />
-          </button>
+          <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            <button onClick={() => setEditing(true)}
+              className="p-1.5 text-gray-400 hover:text-grow-600 hover:bg-grow-50 rounded">
+              <Pencil size={12} />
+            </button>
+            <button onClick={() => setConfirm(true)}
+              className="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded">
+              <Trash2 size={12} />
+            </button>
+          </div>
         )}
       </td>
     </tr>
@@ -125,6 +181,33 @@ export default function CultureHistoriqueDetailModal({ culture, onClose }: Props
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [editing, setEditing] = useState(false)
   const [showCoutDetail, setShowCoutDetail] = useState(false)
+  const [selectedLampIds, setSelectedLampIds] = useState<number[]>([])
+
+  // Fetch lamp inventory
+  const { data: allMateriel } = useQuery({
+    queryKey: ['materiel'],
+    queryFn: () => materielAPI.getAll().then(r => r.data),
+    staleTime: 60_000,
+  })
+  const lampInventory = (allMateriel ?? []).filter(
+    m => m.categorie === 'Lampes' && !m.date_sortie_stock
+  )
+
+  const toggleLamp = (lamp: Materiel) => {
+    setSelectedLampIds(prev => {
+      const newIds = prev.includes(lamp.id_materiel)
+        ? prev.filter(i => i !== lamp.id_materiel)
+        : [...prev, lamp.id_materiel]
+      const selected = lampInventory.filter(l => newIds.includes(l.id_materiel))
+      const lampeStr = selected.map(l => l.marque ? `${l.nom} (${l.marque})` : l.nom).join(' + ') || null
+      const puissance = selected.reduce((acc, l) => {
+        const c = l.caracteristiques as CaractLampe | null
+        return acc + (c?.puissance_w ?? 0)
+      }, 0) || null
+      setForm(f => ({ ...f, lampe: lampeStr, puissance }))
+      return newIds
+    })
+  }
 
   // État formulaire d'édition (initialisé avec les valeurs actuelles)
   const [form, setForm] = useState<HistoriqueCultureUpdate>({
@@ -160,6 +243,7 @@ export default function CultureHistoriqueDetailModal({ culture, onClose }: Props
     onSuccess: () => {
       invalidate()
       setEditing(false)
+      setSelectedLampIds([])
     },
   })
 
@@ -256,20 +340,6 @@ export default function CultureHistoriqueDetailModal({ culture, onClose }: Props
                     {TENTES.map(t => <option key={t} value={t}>{t}</option>)}
                   </select>
                 </Field>
-                <Field label="Lampe">
-                  <select className={selectCls} value={form.lampe ?? ''} onChange={set('lampe')}>
-                    <option value="">—</option>
-                    {LAMPES.map(l => <option key={l} value={l}>{l}</option>)}
-                  </select>
-                </Field>
-                <Field label="Puissance (W)">
-                  <select className={selectCls}
-                    value={form.puissance != null ? String(form.puissance) : ''}
-                    onChange={set('puissance')}>
-                    <option value="">—</option>
-                    {PUISSANCES.map(p => <option key={p} value={p}>{p} W</option>)}
-                  </select>
-                </Field>
                 <Field label="Type">
                   <select className={selectCls} value={form.type_culture ?? ''} onChange={set('type_culture')}>
                     <option value="">—</option>
@@ -288,6 +358,66 @@ export default function CultureHistoriqueDetailModal({ culture, onClose }: Props
                     {SUBSTRATS.map(s => <option key={s} value={s}>{s}</option>)}
                   </select>
                 </Field>
+              </div>
+
+              {/* ── Lamp picker ──────────────────────────────────────── */}
+              <div className="border-t border-gray-200 dark:border-gray-600 pt-3">
+                <p className="text-xs font-semibold text-amber-600 dark:text-amber-400 mb-2 flex items-center gap-1.5">
+                  <Lightbulb size={12} /> Lampes utilisées
+                </p>
+                {lampInventory.length === 0 ? (
+                  <p className="text-xs text-gray-400 dark:text-gray-500 italic">Aucune lampe dans l'inventaire matériel.</p>
+                ) : (
+                  <div className="flex flex-wrap gap-2 mb-2">
+                    {lampInventory.map(lamp => {
+                      const c = lamp.caracteristiques as CaractLampe | null
+                      const isSelected = selectedLampIds.includes(lamp.id_materiel)
+                      return (
+                        <button
+                          key={lamp.id_materiel}
+                          type="button"
+                          onClick={() => toggleLamp(lamp)}
+                          className={`flex flex-col items-start px-3 py-2 rounded-lg border text-xs transition-all ${
+                            isSelected
+                              ? 'border-amber-400 bg-amber-50 dark:bg-amber-900/30 text-amber-800 dark:text-amber-200 shadow-sm'
+                              : 'border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:border-amber-300 hover:bg-amber-50/50'
+                          }`}
+                        >
+                          <span className="font-semibold">{lamp.nom}</span>
+                          {lamp.marque && <span className="text-gray-400 dark:text-gray-500">{lamp.marque}</span>}
+                          <div className="flex items-center gap-2 mt-0.5 text-gray-400 dark:text-gray-500">
+                            {c?.puissance_w != null && <span><Zap size={9} className="inline mr-0.5 text-yellow-500" />{c.puissance_w} W</span>}
+                            {c?.type && <span>{c.type}</span>}
+                          </div>
+                          {c?.spectres && c.spectres.length > 0 && (
+                            <span className="mt-0.5 text-purple-400 dark:text-purple-500">{c.spectres.join(', ')}</span>
+                          )}
+                        </button>
+                      )
+                    })}
+                  </div>
+                )}
+
+                {/* Résumé auto-calculé + override manuel */}
+                <div className="grid grid-cols-2 gap-3">
+                  <Field label="Lampe (auto-calculé ou manuel)">
+                    <input type="text" className={inputCls}
+                      value={form.lampe ?? ''}
+                      onChange={set('lampe')}
+                      placeholder="ex: LED 240W + LED 120W" />
+                  </Field>
+                  <Field label="Puissance totale (W)">
+                    <input type="number" min="0" className={inputCls}
+                      value={form.puissance ?? ''}
+                      onChange={e => setForm(f => ({ ...f, puissance: e.target.value ? Number(e.target.value) : null }))}
+                      placeholder="W" />
+                  </Field>
+                </div>
+                {selectedLampIds.length > 0 && (
+                  <p className="text-xs text-amber-500 dark:text-amber-400 mt-1 italic">
+                    {selectedLampIds.length} lampe{selectedLampIds.length > 1 ? 's' : ''} sélectionnée{selectedLampIds.length > 1 ? 's' : ''} — puissance et description auto-remplies.
+                  </p>
+                )}
               </div>
 
               <Field label="Notes">
@@ -381,7 +511,11 @@ export default function CultureHistoriqueDetailModal({ culture, onClose }: Props
                   Enregistrer
                 </button>
                 <button
-                  onClick={() => { setEditing(false); setForm({ nom: culture.nom, date_debut: culture.date_debut, date_fin: culture.date_fin, tente: culture.tente, lampe: culture.lampe, puissance: culture.puissance, type_culture: culture.type_culture, engrais: culture.engrais, substrat: culture.substrat, notes: culture.notes, cout_engrais: culture.cout_engrais, cout_electricite: culture.cout_electricite, cout_graines: culture.cout_graines, cout_total: culture.cout_total, cout_par_gramme: culture.cout_par_gramme }) }}
+                  onClick={() => {
+                    setEditing(false)
+                    setSelectedLampIds([])
+                    setForm({ nom: culture.nom, date_debut: culture.date_debut, date_fin: culture.date_fin, tente: culture.tente, lampe: culture.lampe, puissance: culture.puissance, type_culture: culture.type_culture, engrais: culture.engrais, substrat: culture.substrat, notes: culture.notes, cout_engrais: culture.cout_engrais, cout_electricite: culture.cout_electricite, cout_graines: culture.cout_graines, cout_total: culture.cout_total, cout_par_gramme: culture.cout_par_gramme })
+                  }}
                   className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 text-sm rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/40"
                 >
                   Annuler
@@ -467,6 +601,7 @@ export default function CultureHistoriqueDetailModal({ culture, onClose }: Props
                           plant={plant}
                           cultureId={culture.id_historique_culture}
                           onDeleted={invalidate}
+                          onUpdated={invalidate}
                         />
                       ))}
                   </tbody>

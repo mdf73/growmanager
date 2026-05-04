@@ -24,6 +24,17 @@ class HistoriquePlantCreate(HistoriquePlantBase):
     pass
 
 
+class HistoriquePlantUpdate(BaseModel):
+    """PATCH partiel d'une plante dans l'historique."""
+    variete_nom:       Optional[str]     = None
+    numero_plant:      Optional[int]     = None
+    date_debut_plant:  Optional[date]    = None
+    date_fin_plant:    Optional[date]    = None
+    prix_graine:       Optional[Decimal] = None
+    quantite_recoltee: Optional[Decimal] = None
+    notes:             Optional[str]     = None
+
+
 class HistoriquePlantRead(HistoriquePlantBase):
     model_config = ConfigDict(from_attributes=True)
     id_historique_plant:   int

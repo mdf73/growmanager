@@ -227,16 +227,23 @@ class WPFFPayload(BaseModel):
 
 @router.post("/plants/{id_plant}/wpff")
 def passer_wpff(id_plant: int, payload: WPFFPayload, db: Session = Depends(get_db)):
-    """Passe une plante en WPFF (congélateur direct, sans séchage ni curing)."""
+    """Passe une plante en WPFF (congélateur direct, sans séchage ni curing).
+    La plante est immédiatement considérée comme terminée (pas de curing)."""
     plant = db.query(Plant).filter(Plant.id_plant == id_plant).first()
     if not plant:
         raise HTTPException(status_code=404, detail="Plante introuvable")
 
     action_date = payload.date_action or date.today()
     poids = payload.poids_g or 0.0
+    id_culture = plant.id_culture  # stocker avant commit
 
     # 1. Mettre à jour le statut de la plante
     plant.statut = "wpff"
+    # Poids sec estimé = poids humide / 5 (WPFF → pas de séchage, ~20% de rendement sec)
+    # poids_recolte_g doit contenir le poids SEC pour les stats/coûts (cohérent avec le flow normal)
+    # Le stock WPFF garde le poids humide réel (ce qui est physiquement dans le congélo)
+    if poids:
+        plant.poids_recolte_g = round(poids / 5, 2)
 
     # 2. Clôturer la session de séchage active si elle existe
     ps = db.query(PlantSechage).filter(
@@ -268,7 +275,7 @@ def passer_wpff(id_plant: int, payload: WPFFPayload, db: Session = Depends(get_d
     # 5. Logger l'action dans le calendrier
     action = ActionCalendrier(
         id_plant=id_plant,
-        id_culture=plant.id_culture,
+        id_culture=id_culture,
         date_action=action_date,
         type_action="wpff",
         parametres={"poids_g": poids, "id_stock": stock.id_stock},
@@ -277,5 +284,16 @@ def passer_wpff(id_plant: int, payload: WPFFPayload, db: Session = Depends(get_d
     db.add(action)
 
     db.commit()
+
+    # 6. Déclencher le lifecycle de la culture
+    # WPFF = terminé immédiatement (pas de curing) → si toutes les plantes sont done,
+    # la culture passe directement en terminee sans attendre de curing.
+    if id_culture:
+        culture = db.query(Culture).filter(Culture.id_culture == id_culture).first()
+        if culture:
+            from app.routers.cultures import _maybe_close_culture, _maybe_archive_culture
+            _maybe_close_culture(culture, db)
+            _maybe_archive_culture(culture, db)
+
     return {"ok": True, "id_stock": stock.id_stock, "quantite_g": float(poids)}
 

@@ -14,6 +14,16 @@ export interface HistoriquePlant {
   notes:                 string | null
 }
 
+export interface HistoriquePlantUpdate {
+  variete_nom?:        string | null
+  numero_plant?:       number | null
+  date_debut_plant?:   string | null
+  date_fin_plant?:     string | null
+  prix_graine?:        number | null
+  quantite_recoltee?:  number | null
+  notes?:              string | null
+}
+
 export interface HistoriquePlantCreate {
   id_variete?:         number | null
   variete_nom?:        string | null
@@ -106,6 +116,9 @@ export const historiqueCultureAPI = {
 
   addPlant: (cultureId: number, plant: HistoriquePlantCreate) =>
     axios.post<HistoriquePlant>(`/api/historique-cultures/${cultureId}/plants`, plant),
+
+  updatePlant: (cultureId: number, plantId: number, data: HistoriquePlantUpdate) =>
+    axios.patch<HistoriquePlant>(`/api/historique-cultures/${cultureId}/plants/${plantId}`, data),
 
   deletePlant: (cultureId: number, plantId: number) =>
     axios.delete(`/api/historique-cultures/${cultureId}/plants/${plantId}`),

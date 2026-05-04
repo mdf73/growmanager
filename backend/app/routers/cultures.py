@@ -93,6 +93,9 @@ def _enrich_action(action: ActionCalendrier, db: Session) -> dict:
 
 def _enrich_culture(culture: Culture, db: Session) -> dict:
     plants = db.query(Plant).filter(Plant.id_culture == culture.id_culture).all()
+    # Auto-repair: si la culture est encore "active" mais toutes les plantes sont finies, on corrige
+    if culture.statut == "active" and plants:
+        _maybe_close_culture(culture, db)
     statuts_finis = {"recolte", "abandonne", "wpff"}
     nb_actives = sum(1 for p in plants if p.statut not in statuts_finis)
     jours = None
@@ -185,6 +188,7 @@ def _enrich_culture(culture: Culture, db: Session) -> dict:
         "jours_culture": jours,
         "jours_depuis_dernier_arrosage": jours_depuis_arrosage,
         "jours_depuis_dernier_tco": jours_depuis_tco,
+        "total_recolte_g": sum(float(p.poids_recolte_g) for p in plants if p.poids_recolte_g) or None,
     }
 
 
@@ -198,28 +202,27 @@ def _maybe_close_culture(culture: Culture, db: Session) -> None:
     plants = db.query(Plant).filter(Plant.id_culture == culture.id_culture).all()
     if not plants:
         return
-    statuts_finis = {"recolte", "curing", "prete", "abandonne", "wpff"}
+    statuts_finis = {"sechage", "recolte", "curing", "prete", "abandonne", "wpff"}
     all_done = all(p.statut in statuts_finis for p in plants)
     if all_done and culture.statut == "active":
-        has_recolte = any(p.statut in {"recolte", "curing", "prete", "wpff"} for p in plants)
+        has_recolte = any(p.statut in {"sechage", "recolte", "curing", "prete", "wpff"} for p in plants)
         culture.statut = "sechage_curing" if has_recolte else "terminee"
         culture.date_fin = date.today()
         db.commit()
 
 
 def _maybe_archive_culture(culture: Culture, db: Session) -> None:
-    """Archive la culture dans HistoriqueCulture quand toutes les plantes ont terminé le curing (prete ou abandonne).
-    Les poids sont additionnés. La culture passe en 'terminee'."""
+    """Archive la culture dans HistoriqueCulture quand toutes les plantes sont effectivement terminées.
+    Statuts considérés comme terminaux : curing (poids sec déjà enregistré), prete, wpff, abandonne.
+    La culture passe en 'terminee'."""
     plants = db.query(Plant).filter(Plant.id_culture == culture.id_culture).all()
     if not plants:
         return
-    # Toutes les plantes doivent avoir terminé le curing (prete), être en WPFF ou être abandonnées
-    if not all(p.statut in {"prete", "abandonne", "wpff"} for p in plants):
+    # curing = poids sec déjà enregistré au début du curing → considéré comme terminal pour l'archivage
+    STATUTS_ARCHIVES = {"curing", "prete", "abandonne", "wpff"}
+    if not all(p.statut in STATUTS_ARCHIVES for p in plants):
         return
-    # Ne pas archiver si déjà terminée
-    if culture.statut == "terminee":
-        return
-    # Ne pas créer un double archivage
+    # Ne pas créer un double archivage (le check terminee est supprimé : close_culture en avait besoin)
     existing = db.query(HistoriqueCulture).filter(
         HistoriqueCulture.id_espace == culture.id_espace,
         HistoriqueCulture.date_debut == culture.date_debut,
@@ -229,11 +232,29 @@ def _maybe_archive_culture(culture: Culture, db: Session) -> None:
 
     # Créer l'entrée historique
     today = date.today()
+
+    # Auto-populate : tente = nom de l'espace de culture
+    tente = None
+    if culture.id_espace:
+        espace = db.query(EspaceCulture).filter(EspaceCulture.id_espace == culture.id_espace).first()
+        if espace:
+            tente = espace.nom
+
+    # Auto-populate : substrat majoritaire parmi les plantes récoltées
+    substrat_auto = None
+    substrats = [p.substrat for p in plants if p.substrat and p.statut != "abandonne"]
+    if substrats:
+        from collections import Counter
+        substrat_auto = Counter(substrats).most_common(1)[0][0]
+
     historique = HistoriqueCulture(
         date_debut=culture.date_debut,
         date_fin=culture.date_fin or today,
         id_espace=culture.id_espace,
-        type_culture=culture.type_culture,
+        nom=culture.nom,
+        type_culture=culture.type_eclairage,
+        tente=tente,
+        substrat=substrat_auto,
         notes=culture.notes,
     )
     db.add(historique)
@@ -1359,11 +1380,15 @@ def close_culture(culture_id: int, db: Session = Depends(get_db)):
     culture = db.query(Culture).filter(Culture.id_culture == culture_id).first()
     if not culture:
         raise HTTPException(status_code=404, detail="Culture non trouvée")
-    culture.statut = "terminee"
-    culture.date_fin = date.today()
-    db.commit()
-    # Tenter d'archiver dans HistoriqueCulture si toutes les plantes sont terminées
+    # Tenter d'archiver AVANT de forcer le statut terminee
+    # (car _maybe_archive_culture vérifie les statuts des plantes, pas le statut de la culture)
     _maybe_archive_culture(culture, db)
+    # Si l'archivage n'a pas eu lieu (conditions non remplies), forcer la clôture manuelle
+    if culture.statut != "terminee":
+        culture.statut = "terminee"
+        if not culture.date_fin:
+            culture.date_fin = date.today()
+        db.commit()
     db.refresh(culture)
     return _enrich_culture(culture, db)
 

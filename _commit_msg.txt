@@ -1,14 +1,15 @@
-feat(stock): refonte tableaux En curing et Extractions
+feat(culture): badges statut sur CultureCard + fix filtre séchage
 
-Onglet En curing :
-- Nouvelles colonnes : Plante, Variete, Culture, Bocal, Debut Curing,
-  Jours de curing, Jours depuis la récolte, Quantité
-- Suppression colonnes Poids final et Notes
-- Ajout date_recolte dans PlantCuringRead (schema + router backend)
-- Ajout date_recolte dans interface PlantCuring (frontend)
-- CuringSortCol étendu avec jours_recolte et quantite
+- CultureCard : badge selon statut
+  - active → arrosage + TCO (inchangé)
+  - sechage_curing → 🌬️ "En séchage depuis Xj" (amber)
+  - terminee → 🌿 "Récolte totale : X.X g" (vert, depuis total_recolte_g)
 
-Onglet Extractions :
-- Nouvelles colonnes : Variété, Type, Quantité, Date de récolte, Jours depuis la récolte
-- Nouveau composant ExtractionRow dédié (ex StockRow partagé)
-- Tri indépendant extSortCol/extSortDir (type ExtractionSortCol)
+- Filtres Suivi de culture : "Toutes" remplacé par "🌬️ Séchage & Curing"
+  → 3 tabs : Actives / Séchage & Curing / Terminées
+
+- Backend fix : ajout "sechage" dans statuts_finis de _maybe_close_culture
+  (cultures bloquées à "active" quand toutes plantes en sechage)
+- _enrich_culture : auto-repair via _maybe_close_culture à chaque GET
+- _enrich_culture : ajout champ total_recolte_g (somme poids_recolte_g)
+- Culture interface : ajout total_recolte_g

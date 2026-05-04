@@ -134,9 +134,31 @@ function CultureCard({
         </div>
       </div>
 
-      {/* Badges arrosage + TCO */}
+      {/* Badge séchage (si récoltée) ou arrosage + TCO */}
       <div className="flex flex-col gap-1 mt-2">
         {(() => {
+          if (culture.statut === 'terminee') {
+            const poids = culture.total_recolte_g
+            return (
+              <div className="flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg bg-green-50 text-green-700 font-medium">
+                🌿 {poids != null ? `Récolte totale : ${poids.toFixed(1)} g` : 'Récolte clôturée'}
+              </div>
+            )
+          }
+          if (culture.statut === 'sechage_curing') {
+            const msParJour = 1000 * 60 * 60 * 24
+            const jours = culture.date_fin
+              ? Math.floor((Date.now() - new Date(culture.date_fin + 'T12:00').getTime()) / msParJour)
+              : null
+            const txt = jours === 0 ? "Séchage démarré aujourd'hui"
+              : jours != null ? `En séchage depuis ${jours}j`
+              : 'En séchage'
+            return (
+              <div className="flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg bg-amber-50 text-amber-700 font-medium">
+                🌬️ {txt}
+              </div>
+            )
+          }
           const j = culture.jours_depuis_dernier_arrosage
           if (j == null) return (
             <div className="flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg bg-gray-50 dark:bg-gray-700/50 text-gray-400 dark:text-gray-500">
@@ -155,6 +177,7 @@ function CultureCard({
           )
         })()}
         {(() => {
+          if (culture.statut === 'sechage_curing' || culture.statut === 'terminee') return null
           const j = culture.jours_depuis_dernier_tco
           if (j == null) return (
             <div className="flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg bg-gray-50 dark:bg-gray-700/50 text-gray-400 dark:text-gray-500">
@@ -534,14 +557,13 @@ function CultureDetail({ cultureId, onBack }: { cultureId: number; onBack: () =>
 export default function CulturePage() {
   const [selectedCultureId, setSelectedCultureId] = useState<number | null>(null)
   const [showNewModal, setShowNewModal] = useState(false)
-  const [filterStatut, setFilterStatut] = useState<'active' | 'terminee' | 'all'>('active')
+  const [filterStatut, setFilterStatut] = useState<'active' | 'terminee' | 'sechage_curing'>('active')
   const qc = useQueryClient()
 
   const { data: cultures = [], isLoading } = useQuery<Culture[]>({
     queryKey: ['cultures', filterStatut],
     queryFn: async () => {
-      const statut = filterStatut === 'all' ? undefined : filterStatut
-      return (await cultureAPI.getAll(statut)).data
+      return (await cultureAPI.getAll(filterStatut)).data
     },
   })
 
@@ -591,12 +613,12 @@ export default function CulturePage() {
       <div className="flex gap-2 flex-wrap">
         {[
           { key: 'active', label: '🌱 Actives' },
+          { key: 'sechage_curing', label: '🌬️ Séchage & Curing' },
           { key: 'terminee', label: '✅ Terminées' },
-          { key: 'all', label: 'Toutes' },
         ].map(f => (
           <button
             key={f.key}
-            onClick={() => setFilterStatut(f.key as typeof filterStatut)}
+            onClick={() => setFilterStatut(f.key as 'active' | 'terminee' | 'sechage_curing')}
             className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors
               ${filterStatut === f.key
                 ? 'bg-grow-600 text-white'

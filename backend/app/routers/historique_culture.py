@@ -8,7 +8,7 @@ from app.database import get_db
 from app.models.all_models import HistoriqueCulture, HistoriquePlant, Graine, Variete
 from app.schemas.historique_culture import (
     HistoriqueCultureCreate, HistoriqueCultureRead, HistoriqueCultureUpdate,
-    HistoriquePlantCreate, HistoriquePlantRead,
+    HistoriquePlantCreate, HistoriquePlantUpdate, HistoriquePlantRead,
 )
 
 router = APIRouter(prefix="/api/historique-cultures", tags=["historique_culture"])
@@ -183,6 +183,26 @@ def add_plant(
 
     plant = HistoriquePlant(id_historique_culture=id_historique_culture, **data)
     db.add(plant)
+    db.commit()
+    db.refresh(plant)
+    return plant
+
+
+@router.patch("/{id_historique_culture}/plants/{id_historique_plant}", response_model=HistoriquePlantRead)
+def update_plant(
+    id_historique_culture: int,
+    id_historique_plant: int,
+    payload: HistoriquePlantUpdate,
+    db: Session = Depends(get_db),
+):
+    plant = db.query(HistoriquePlant).filter(
+        HistoriquePlant.id_historique_plant   == id_historique_plant,
+        HistoriquePlant.id_historique_culture == id_historique_culture,
+    ).first()
+    if not plant:
+        raise HTTPException(status_code=404, detail="Plante introuvable")
+    for field, value in payload.model_dump(exclude_unset=True).items():
+        setattr(plant, field, value)
     db.commit()
     db.refresh(plant)
     return plant
