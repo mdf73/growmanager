@@ -1,6 +1,9 @@
-refactor: lampe stock liée au matériel réel
+feat(curing): ouverture bocaux en masse
 
-NouveauStockModal — remplace useParametreListe('lampes_stock') par une
-query materielAPI filtrée sur catégorie Lampes + date_sortie_stock null.
-Supprime la section lampes_stock de la page Paramétrage (liste obsolète).
-Aucune migration DB (lampe_type reste stocké comme string/nom).
+- Nouveau modal OuvertureEnMasseModal dans SechageCuring.tsx
+- Bouton "🫙 Ouvrir les bocaux" affiché sur l'onglet Curing si au moins
+  un bocal hors espace est en curing
+- Sélection/désélection des bocaux au clic, avec statut burping visible
+- Boutons Tout/Aucun pour sélection rapide
+- Choix durée + date identiques au modal individuel
+- Envoi en Promise.all pour tous les bocaux sélectionnés

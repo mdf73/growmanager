@@ -715,6 +715,184 @@ function OuvertureBocalModal({
   )
 }
 
+// ─── Modal Ouverture en masse ─────────────────────────────────────────────────
+
+function OuvertureEnMasseModal({
+  bocaux,
+  onClose,
+  onSubmit,
+}: {
+  bocaux: PlantSechage[]
+  onClose: () => void
+  onSubmit: (selected: PlantSechage[], dureeMin: number, dateAction: string) => Promise<void>
+}) {
+  const [selected, setSelected] = useState<Set<number>>(new Set(bocaux.map(p => p.id_plant)))
+  const [dureeMin, setDureeMin]       = useState<number>(15)
+  const [dateAction, setDateAction]   = useState(new Date().toISOString().slice(0, 10))
+  const [loading, setLoading]         = useState(false)
+  const [error, setError]             = useState('')
+
+  function toggle(id: number) {
+    setSelected(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  function selectAll() { setSelected(new Set(bocaux.map(p => p.id_plant))) }
+  function deselectAll() { setSelected(new Set()) }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    if (selected.size === 0) return
+    setLoading(true)
+    setError('')
+    try {
+      const choisis = bocaux.filter(p => selected.has(p.id_plant))
+      await onSubmit(choisis, dureeMin, dateAction)
+      onClose()
+    } catch (err: any) {
+      setError(err?.response?.data?.detail || err?.message || 'Erreur')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-md flex flex-col max-h-[90vh]">
+        {/* Header */}
+        <div className="flex items-center justify-between p-5 border-b border-gray-100 dark:border-gray-700 flex-shrink-0">
+          <h2 className="text-base font-bold text-gray-900 dark:text-gray-100">🫙 Ouverture en masse</h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:text-gray-300"><X size={18} /></button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="flex flex-col overflow-hidden flex-1">
+          <div className="p-5 space-y-4 overflow-y-auto flex-1">
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-700 text-sm px-3 py-2 rounded-lg">{error}</div>
+            )}
+
+            {/* Date */}
+            <div>
+              <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Date</label>
+              <input
+                type="date" value={dateAction}
+                onChange={e => setDateAction(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              />
+            </div>
+
+            {/* Durée */}
+            <div>
+              <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-2">Durée d'ouverture</label>
+              <div className="grid grid-cols-4 gap-2">
+                {DUREES_BOCAL.map(d => (
+                  <button
+                    key={d}
+                    type="button"
+                    onClick={() => setDureeMin(d)}
+                    className={`py-2 rounded-lg text-xs font-bold border transition-colors ${
+                      dureeMin === d
+                        ? 'bg-purple-600 text-white border-purple-600'
+                        : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700/40'
+                    }`}
+                  >
+                    {d < 60 ? `${d} min` : '1 h'}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Sélection bocaux */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-xs font-medium text-gray-600 dark:text-gray-300">
+                  Bocaux à ouvrir <span className="text-purple-600 font-bold">({selected.size}/{bocaux.length})</span>
+                </label>
+                <div className="flex gap-2">
+                  <button type="button" onClick={selectAll}
+                    className="text-xs text-purple-600 hover:underline">Tout</button>
+                  <span className="text-gray-300 dark:text-gray-600">|</span>
+                  <button type="button" onClick={deselectAll}
+                    className="text-xs text-gray-500 hover:underline">Aucun</button>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                {bocaux.map(plant => {
+                  const isSelected = selected.has(plant.id_plant)
+                  const burp = getBurpStatus(plant)
+                  return (
+                    <button
+                      key={plant.id_plant}
+                      type="button"
+                      onClick={() => toggle(plant.id_plant)}
+                      className={`w-full text-left px-3 py-2.5 rounded-xl border-2 transition-all ${
+                        isSelected
+                          ? 'border-purple-400 bg-purple-50 dark:bg-purple-900/20'
+                          : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-600'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        {/* Checkbox visuel */}
+                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
+                          isSelected ? 'border-purple-500 bg-purple-500' : 'border-gray-300 dark:border-gray-600'
+                        }`}>
+                          {isSelected && (
+                            <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                            </svg>
+                          )}
+                        </div>
+
+                        {/* Info plante */}
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-sm text-gray-900 dark:text-gray-100 truncate">{plant.nom_affichage}</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                            {plant.nom_variete || '—'}
+                            {plant.nom_materiel_bocal && <span className="ml-1">· {plant.nom_materiel_bocal}</span>}
+                            {plant.volume_contenant_l && <span className="ml-1">· {plant.volume_contenant_l}L</span>}
+                          </p>
+                        </div>
+
+                        {/* Badge burp */}
+                        {burp && (
+                          <div className={`flex-shrink-0 flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-medium ${burp.badgeClass}`}>
+                            <span className={`w-1.5 h-1.5 rounded-full ${burp.dot}`} />
+                            {burp.neverOpened ? 'Jamais ouvert' : burp.label}
+                            {burp.jours > burp.window && <span>⚠️</span>}
+                          </div>
+                        )}
+                      </div>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div className="flex gap-3 p-5 border-t border-gray-100 dark:border-gray-700 flex-shrink-0">
+            <button type="button" onClick={onClose}
+              className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/40 text-sm">
+              Annuler
+            </button>
+            <button type="submit" disabled={loading || selected.size === 0}
+              className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 text-sm font-medium">
+              {loading
+                ? 'Ouverture…'
+                : `🫙 Ouvrir ${selected.size} bocal${selected.size > 1 ? 'x' : ''} · ${dureeMin} min`}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
 // ─── Modal Modifier le curing ─────────────────────────────────────────────────
 
 function EditCuringModal({
@@ -1383,6 +1561,7 @@ export default function SechageCuring() {
   const [ouvertureBocalModal, setOuvertureBocalModal] = useState<PlantSechage | null>(null)
   const [editCuringModal, setEditCuringModal]         = useState<PlantSechage | null>(null)
   const [wpffModal, setWpffModal]                     = useState<PlantSechage | null>(null)
+  const [ouvertureEnMasseOpen, setOuvertureEnMasseOpen] = useState(false)
 
   const { data: plants = [], isLoading } = useQuery<PlantSechage[]>({
     queryKey: ['sechage-plants'],
@@ -1600,6 +1779,17 @@ export default function SechageCuring() {
       {/* Liste Curing */}
       {!isLoading && activeTab === 'curing' && (
         <section className="space-y-2">
+          {/* Bouton ouverture en masse — visible s'il y a des bocaux hors espace */}
+          {enCuring.some(p => p.type_contenant === 'Bocal' && !p.id_espace_curing) && (
+            <div className="flex justify-end">
+              <button
+                onClick={() => setOuvertureEnMasseOpen(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium rounded-xl shadow-sm transition-colors"
+              >
+                🫙 Ouvrir les bocaux
+              </button>
+            </div>
+          )}
           {enCuring.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <div className="text-4xl mb-3">🏺</div>
@@ -1682,6 +1872,21 @@ export default function SechageCuring() {
           onClose={() => setWpffModal(null)}
           onSubmit={async (poids, dateAction) => {
             await wpffMutation.mutateAsync({ plant: wpffModal, poids, dateAction })
+          }}
+        />
+      )}
+
+      {/* Modal Ouverture en masse */}
+      {ouvertureEnMasseOpen && (
+        <OuvertureEnMasseModal
+          bocaux={enCuring.filter(p => p.type_contenant === 'Bocal' && !p.id_espace_curing)}
+          onClose={() => setOuvertureEnMasseOpen(false)}
+          onSubmit={async (selected, dureeMin, dateAction) => {
+            await Promise.all(
+              selected.map(plant =>
+                ouvertureBocal.mutateAsync({ plant, dureeMin, dateAction })
+              )
+            )
           }}
         />
       )}
