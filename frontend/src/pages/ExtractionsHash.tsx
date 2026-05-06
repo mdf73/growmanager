@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Plus, AlertTriangle, Loader2, Trash2, TrendingUp, Weight, Percent, ArrowUpDown } from 'lucide-react'
+import { Plus, AlertTriangle, Loader2, Trash2, TrendingUp, Weight, Percent, ArrowUpDown, Search } from 'lucide-react'
 import { hashAPI } from '../api/stock'
 import type { HashExtraction } from '../api/stock'
 import LoadingSpinner from '../components/LoadingSpinner'
@@ -96,6 +96,7 @@ export default function ExtractionsHashPage() {
   const [showImportExport, setShowImportExport] = useState(false)
   const [detailItem,       setDetailItem]       = useState<HashExtraction | null>(null)
   const [selectedYear,     setSelectedYear]     = useState<number | 'all'>('all')
+  const [searchVariete,    setSearchVariete]    = useState('')
 
   const { data: extractions = [], isLoading } = useQuery<HashExtraction[]>({
     queryKey: ['hash-extractions'],
@@ -114,14 +115,20 @@ export default function ExtractionsHashPage() {
 
   // ── Extractions filtrées ──────────────────────────────────────────────────
   const filtered = useMemo(() => {
-    const list = [...extractions].sort(
+    let list = [...extractions].sort(
       (a, b) => new Date(b.date_hashextraction).getTime() - new Date(a.date_hashextraction).getTime()
     )
-    if (selectedYear === 'all') return list
-    return list.filter(
-      e => e.date_hashextraction && new Date(e.date_hashextraction).getFullYear() === selectedYear
-    )
-  }, [extractions, selectedYear])
+    if (selectedYear !== 'all') {
+      list = list.filter(
+        e => e.date_hashextraction && new Date(e.date_hashextraction).getFullYear() === selectedYear
+      )
+    }
+    const q = searchVariete.trim().toLowerCase()
+    if (q) {
+      list = list.filter(e => (e.variete_nom ?? e.nom_variete_hash ?? '').toLowerCase().includes(q))
+    }
+    return list
+  }, [extractions, selectedYear, searchVariete])
 
   // ── Stats calculées ───────────────────────────────────────────────────────
   const stats = useMemo(() => {
@@ -152,7 +159,7 @@ export default function ExtractionsHashPage() {
 
       {/* ── Header ─────────────────────────────────────────────────────────── */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center gap-3">
           <div className="flex items-center gap-3">
             <span className="text-3xl">🍫</span>
             <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Extractions Hash</h1>
@@ -165,6 +172,22 @@ export default function ExtractionsHashPage() {
             <option value="all">Toutes les années</option>
             {availableYears.map(y => <option key={y} value={y}>{y}</option>)}
           </select>
+          <div className="relative">
+            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+            <input
+              type="text"
+              placeholder="Filtrer par variété..."
+              value={searchVariete}
+              onChange={e => setSearchVariete(e.target.value)}
+              className="pl-8 pr-7 py-2 text-sm border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 focus:ring-2 focus:ring-amber-400 shadow-sm w-48"
+            />
+            {searchVariete && (
+              <button onClick={() => setSearchVariete('')}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 text-base leading-none">
+                ×
+              </button>
+            )}
+          </div>
         </div>
         <div className="flex items-center gap-2">
           <button
@@ -203,9 +226,9 @@ export default function ExtractionsHashPage() {
             </div>
           ))}
         </div>
-      ) : selectedYear !== 'all' && (
+      ) : (selectedYear !== 'all' || searchVariete.trim()) && (
         <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm px-6 py-4 text-sm text-gray-400 dark:text-gray-500 text-center">
-          Aucune extraction en {selectedYear}
+          {searchVariete.trim() ? `Aucune extraction pour cette variété` : `Aucune extraction en ${selectedYear}`}
         </div>
       )}
 
@@ -214,8 +237,14 @@ export default function ExtractionsHashPage() {
         {filtered.length === 0 ? (
           <EmptyState
             icon={() => <span className="text-5xl">🍫</span>}
-            title={selectedYear === 'all' ? 'Aucune extraction enregistrée' : `Aucune extraction en ${selectedYear}`}
-            description="Cliquez sur « Nouvelle extraction » pour commencer"
+            title={
+              searchVariete.trim()
+                ? `Aucune extraction pour cette variété`
+                : selectedYear === 'all'
+                  ? 'Aucune extraction enregistrée'
+                  : `Aucune extraction en ${selectedYear}`
+            }
+            description={searchVariete.trim() ? 'Essayez un autre filtre' : 'Cliquez sur « Nouvelle extraction » pour commencer'}
           />
         ) : (
           <>
@@ -223,7 +252,7 @@ export default function ExtractionsHashPage() {
               <p className="text-xs text-gray-400 dark:text-gray-500">Cliquez sur une ligne pour voir les détails</p>
               <p className="text-xs text-gray-400 dark:text-gray-500">
                 {filtered.length} extraction{filtered.length > 1 ? 's' : ''}
-                {selectedYear !== 'all' ? ` en ${selectedYear}` : ' au total'}
+                {searchVariete.trim() ? ` — ${searchVariete.trim()}` : selectedYear !== 'all' ? ` en ${selectedYear}` : ' au total'}
               </p>
             </div>
             <div className="overflow-x-auto">

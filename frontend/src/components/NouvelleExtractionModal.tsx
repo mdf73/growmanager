@@ -199,9 +199,9 @@ export default function NouvelleExtractionModal({ stocks, onClose }: Props) {
               {sacs.map((v, i) => (
                 <div key={i} className="flex items-center gap-2">
                   <span className="text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500 w-12 shrink-0">Sac {i + 1}</span>
-                  <input type="number" min="0" step="0.1" value={v}
+                  <input type="number" min="0" step="0.01" value={v}
                     onChange={e => updateSac(i, e.target.value)}
-                    placeholder="0.0" required={i < 2}
+                    placeholder="0.00" required={i < 2}
                     className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm focus:ring-2 focus:ring-grow-500" />
                   <span className="text-sm text-gray-400 dark:text-gray-500">g</span>
                   {i >= 2 && (
@@ -214,7 +214,7 @@ export default function NouvelleExtractionModal({ stocks, onClose }: Props) {
             </div>
             <div className="mt-2 flex justify-between bg-gray-50 dark:bg-gray-700/50 rounded-lg px-4 py-2">
               <span className="text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500">Total entrée</span>
-              <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">{poidsEntree.toFixed(1)} g</span>
+              <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">{poidsEntree.toFixed(2)} g</span>
             </div>
           </div>
 

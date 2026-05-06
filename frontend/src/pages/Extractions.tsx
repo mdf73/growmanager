@@ -77,7 +77,7 @@ function ExtractionRow({ item, onDeleted, onDetail }: { item: RosinExtraction; o
       </td>
       <td className="px-5 py-3 text-sm text-gray-500 dark:text-gray-400">{item.maillage || '---'}</td>
       <td className="px-5 py-3 text-sm text-gray-500 dark:text-gray-400">{nbPresses > 0 ? nbPresses + 'x' : '---'}</td>
-      <td className="px-5 py-3 text-sm font-semibold text-gray-700 dark:text-gray-200">{item.quantite_utilisee.toFixed(1)} g</td>
+      <td className="px-5 py-3 text-sm font-semibold text-gray-700 dark:text-gray-200">{item.quantite_utilisee.toFixed(2)} g</td>
       <td className="px-5 py-3 text-sm font-semibold text-grow-700">{item.quantite_extraite.toFixed(2)} g</td>
       <td className={'px-5 py-3 text-sm font-bold ' + rdtColor}>{rdtTxt}</td>
       <td className="px-5 py-3 text-sm text-gray-400 dark:text-gray-500">

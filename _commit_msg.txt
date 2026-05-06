@@ -1,15 +1,6 @@
-feat(vapo): session avec sélection type/stock/quantité + déduction automatique du stock
+feat: poids sac 2 décimales (rosin) + filtre variété (hash)
 
-Backend:
-- GET /vaporisateurs/stocks-vapo : retourne les stocks actifs utilisables au vapo
-  (Fleur, Hash, Rosin, Trim, WPFF, Poussière) avec variété enrichie
-- POST /vaporisateurs/{id}/session : accepte désormais un body optionnel
-  {id_stock, quantite_g} — déduit la quantité du stock et clôture si épuisé
-
-Frontend:
-- Nouveau composant NouveauSessionVapoModal.tsx :
-  - Étape 1 : sélection du type de matériau (6 types avec icônes colorées)
-  - Étape 2 : liste des stocks filtrés par type avec quantité restante
-  - Étape 3 : saisie de la quantité avec jauge visuelle
-  - Bouton confirme affiche "+1 session · -X.X g" si déduction
-- Materiel.tsx : bouton "+1 session" ouvre le modal au lieu d'incrémenter directement
+- NouvelleExtractionModal : step="0.01" sur inputs sacs, placeholder "0.00"
+- Total entrée modal + colonne tableau Extractions.tsx : .toFixed(2)
+- ExtractionsHash : ajout filtre par variété (Search input + state searchVariete)
+  combinable avec le filtre par année existant
