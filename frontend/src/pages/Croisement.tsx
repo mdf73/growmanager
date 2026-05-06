@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   Plus, X, Dna, FlaskConical, Trash2, Sparkles,
   Calendar, AlertTriangle, Clock, CheckCircle2, Leaf,
+  Pencil, ChevronUp, ChevronDown, ChevronsUpDown,
 } from 'lucide-react'
 import {
   croisementAPI,
@@ -41,6 +42,12 @@ const STATUT_META: Record<StatutCroisement, { label: string; color: string; icon
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
+
+function SortIcon({ activeCol, col, dir }: { activeCol: keyof Pollen | null; col: keyof Pollen; dir: 'asc' | 'desc' }) {
+  if (activeCol !== col) return (<ChevronsUpDown size={11} className="inline ml-0.5 opacity-40" />)
+  if (dir === 'asc') return (<ChevronUp size={11} className="inline ml-0.5 text-grow-600" />)
+  return (<ChevronDown size={11} className="inline ml-0.5 text-grow-600" />)
+}
 
 function fmtDate(d?: string) {
   if (!d) return '—'
@@ -629,6 +636,215 @@ function NouveauPollenModal({ varietes, onClose }: { varietes: Variete[]; onClos
 }
 
 // ════════════════════════════════════════════════════════════════════════════
+//  MODAL — Modifier un croisement
+// ════════════════════════════════════════════════════════════════════════════
+
+interface EditCroisementModalProps {
+  croisement: Croisement
+  varietes: Variete[]
+  pollenStock: Pollen[]
+  onClose: () => void
+}
+
+function EditCroisementModal({ croisement, varietes, pollenStock, onClose }: EditCroisementModalProps) {
+  const qc = useQueryClient()
+  const [form, setForm] = useState<CroisementUpdate>({
+    nom_croisement: croisement.nom_croisement,
+    type_croisement: croisement.type_croisement,
+    id_variete_mere: croisement.id_variete_mere,
+    pheno_mere: croisement.pheno_mere ?? '',
+    id_variete_pere: croisement.id_variete_pere,
+    id_pollen: croisement.id_pollen,
+    pheno_pere: croisement.pheno_pere ?? '',
+    pere_reverse: croisement.pere_reverse,
+    date_pollinisation: croisement.date_pollinisation,
+    methode: croisement.methode,
+    zone_pollinisee: croisement.zone_pollinisee ?? '',
+    statut: croisement.statut,
+    notes: croisement.notes ?? '',
+  })
+
+  const updateMut = useMutation({
+    mutationFn: (data: CroisementUpdate) => croisementAPI.update(croisement.id_croisement, data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['croisements'] })
+      onClose()
+    },
+  })
+
+  const f = (field: keyof CroisementUpdate, val: any) => setForm(prev => ({ ...prev, [field]: val }))
+
+  return (
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+      <div className="bg-white dark:bg-gray-800 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="sticky top-0 bg-white dark:bg-gray-800 border-b px-6 py-4 flex items-center justify-between">
+          <h2 className="text-lg font-semibold flex items-center gap-2">
+            <Pencil size={18} className="text-grow-600" /> Modifier le croisement
+          </h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"><X size={20} /></button>
+        </div>
+
+        <div className="p-6 space-y-4">
+          {/* Nom */}
+          <div>
+            <label className="block text-sm font-medium mb-1">Nom du croisement</label>
+            <input
+              type="text"
+              value={form.nom_croisement || ''}
+              onChange={e => f('nom_croisement', e.target.value)}
+              className="w-full rounded border-gray-300 dark:border-gray-600 px-3 py-2 text-sm"
+            />
+          </div>
+
+          {/* Type + Statut */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium mb-1">Type</label>
+              <select
+                value={form.type_croisement || ''}
+                onChange={e => f('type_croisement', e.target.value as TypeCroisement)}
+                className="w-full rounded border-gray-300 dark:border-gray-600 px-3 py-2 text-sm"
+              >
+                {TYPES_CROISEMENT.map(t => <option key={t.value} value={t.value}>{t.label} — {t.desc}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Statut</label>
+              <select
+                value={form.statut || 'planifie'}
+                onChange={e => f('statut', e.target.value as StatutCroisement)}
+                className="w-full rounded border-gray-300 dark:border-gray-600 px-3 py-2 text-sm"
+              >
+                <option value="planifie">Planifié</option>
+                <option value="pollinise">Pollinisé</option>
+                <option value="maturation">Maturation</option>
+                <option value="recolte">Récolté</option>
+                <option value="echec">Échec</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Parents */}
+          <div className="border rounded-lg p-4 space-y-3 bg-gray-50 dark:bg-gray-700/30">
+            <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-200 flex items-center gap-1"><Leaf size={14} className="text-pink-500" /> Parent mère</h3>
+            <div className="grid grid-cols-2 gap-3">
+              <select
+                value={form.id_variete_mere || ''}
+                onChange={e => f('id_variete_mere', Number(e.target.value) || undefined)}
+                className="w-full rounded border-gray-300 dark:border-gray-600 px-3 py-2 text-sm"
+              >
+                <option value="">— Choisir —</option>
+                {varietes.map(v => <option key={v.id_variete} value={v.id_variete}>{v.nom_variete}</option>)}
+              </select>
+              <input
+                type="text"
+                placeholder="Pheno mère"
+                value={form.pheno_mere || ''}
+                onChange={e => f('pheno_mere', e.target.value)}
+                className="w-full rounded border-gray-300 dark:border-gray-600 px-3 py-2 text-sm"
+              />
+            </div>
+
+            <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-200 flex items-center gap-1 pt-1"><Sparkles size={14} className="text-blue-500" /> Parent père</h3>
+            <div className="grid grid-cols-2 gap-3">
+              <select
+                value={form.id_variete_pere || ''}
+                onChange={e => f('id_variete_pere', Number(e.target.value) || undefined)}
+                className="w-full rounded border-gray-300 dark:border-gray-600 px-3 py-2 text-sm"
+              >
+                <option value="">— Variété directe —</option>
+                {varietes.map(v => <option key={v.id_variete} value={v.id_variete}>{v.nom_variete}</option>)}
+              </select>
+              <select
+                value={form.id_pollen || ''}
+                onChange={e => f('id_pollen', Number(e.target.value) || undefined)}
+                className="w-full rounded border-gray-300 dark:border-gray-600 px-3 py-2 text-sm"
+              >
+                <option value="">— Depuis stock pollen —</option>
+                {pollenStock.map(p => <option key={p.id_pollen} value={p.id_pollen}>{p.nom_pollen}</option>)}
+              </select>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <input
+                type="text"
+                placeholder="Pheno père"
+                value={form.pheno_pere || ''}
+                onChange={e => f('pheno_pere', e.target.value)}
+                className="w-full rounded border-gray-300 dark:border-gray-600 px-3 py-2 text-sm"
+              />
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={form.pere_reverse || false}
+                  onChange={e => f('pere_reverse', e.target.checked)}
+                />
+                Femelle reversée (STS)
+              </label>
+            </div>
+          </div>
+
+          {/* Pollinisation */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium mb-1">Date pollinisation</label>
+              <input
+                type="date"
+                value={form.date_pollinisation || ''}
+                onChange={e => f('date_pollinisation', e.target.value || undefined)}
+                className="w-full rounded border-gray-300 dark:border-gray-600 px-3 py-2 text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Méthode</label>
+              <select
+                value={form.methode || ''}
+                onChange={e => f('methode', (e.target.value as MethodePollinisation) || undefined)}
+                className="w-full rounded border-gray-300 dark:border-gray-600 px-3 py-2 text-sm"
+              >
+                <option value="">— Choisir —</option>
+                {METHODES.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Zone pollinisée</label>
+            <input
+              type="text"
+              value={form.zone_pollinisee || ''}
+              onChange={e => f('zone_pollinisee', e.target.value)}
+              className="w-full rounded border-gray-300 dark:border-gray-600 px-3 py-2 text-sm"
+            />
+          </div>
+
+          {/* Notes */}
+          <div>
+            <label className="block text-sm font-medium mb-1">Notes</label>
+            <textarea
+              rows={3}
+              value={form.notes || ''}
+              onChange={e => f('notes', e.target.value)}
+              className="w-full rounded border-gray-300 dark:border-gray-600 px-3 py-2 text-sm"
+            />
+          </div>
+        </div>
+
+        <div className="sticky bottom-0 bg-white dark:bg-gray-800 border-t px-6 py-3 flex justify-between">
+          <button onClick={onClose} className="px-4 py-2 text-sm text-gray-600 dark:text-gray-300">Annuler</button>
+          <button
+            onClick={() => updateMut.mutate(form)}
+            disabled={!form.nom_croisement || updateMut.isPending}
+            className="px-4 py-2 text-sm bg-grow-600 text-white rounded disabled:opacity-50"
+          >
+            {updateMut.isPending ? 'Enregistrement…' : 'Enregistrer les modifications'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ════════════════════════════════════════════════════════════════════════════
 //  PAGE PRINCIPALE
 // ════════════════════════════════════════════════════════════════════════════
 
@@ -637,7 +853,10 @@ export default function CroisementPage() {
   const [showNewCroisement, setShowNewCroisement] = useState(false)
   const [showNewPollen, setShowNewPollen] = useState(false)
   const [recolteCroisement, setRecolteCroisement] = useState<Croisement | null>(null)
+  const [editCroisement, setEditCroisement] = useState<Croisement | null>(null)
   const [statutFilter, setStatutFilter] = useState<StatutCroisement | 'all'>('all')
+  // Tri tableau pollen
+  const [pollenSort, setPollenSort] = useState<{ col: keyof Pollen; dir: 'asc' | 'desc' } | null>(null)
   const qc = useQueryClient()
 
   const { data: croisements = [], isLoading: loadingC } = useQuery<Croisement[]>({
@@ -657,6 +876,26 @@ export default function CroisementPage() {
     if (statutFilter === 'all') return croisements
     return croisements.filter(c => c.statut === statutFilter)
   }, [croisements, statutFilter])
+
+  const pollenSorted = useMemo(() => {
+    if (!pollenSort) return pollen
+    const { col, dir } = pollenSort
+    return [...pollen].sort((a, b) => {
+      const va = a[col] ?? ''
+      const vb = b[col] ?? ''
+      const cmp = String(va).localeCompare(String(vb), 'fr', { numeric: true })
+      return dir === 'asc' ? cmp : -cmp
+    })
+  }, [pollen, pollenSort])
+
+  const toggleSort = (col: keyof Pollen) => {
+    setPollenSort(prev =>
+      prev?.col === col
+        ? { col, dir: prev.dir === 'asc' ? 'desc' : 'asc' }
+        : { col, dir: 'asc' }
+    )
+  }
+
 
   const deleteCroisementMut = useMutation({
     mutationFn: (id: number) => croisementAPI.delete(id),
@@ -738,7 +977,7 @@ export default function CroisementPage() {
           ) : (
             <div className="grid gap-3 md:grid-cols-2">
               {filtered.map(c => {
-                const meta = STATUT_META[c.statut]
+                const meta = STATUT_META[c.statut] ?? STATUT_META['planifie']
                 const StatutIcon = meta.icon
                 return (
                   <div key={c.id_croisement} className="border rounded-lg p-4 bg-white dark:bg-gray-800 hover:shadow-sm transition">
@@ -754,10 +993,18 @@ export default function CroisementPage() {
                       </div>
                       <div className="flex gap-1">
                         <button
+                          onClick={() => setEditCroisement(c)}
+                          className="p-1 text-gray-400 dark:text-gray-500 hover:text-grow-600"
+                          title="Modifier"
+                        >
+                          <Pencil size={14} />
+                        </button>
+                        <button
                           onClick={() => {
                             if (confirm(`Supprimer "${c.nom_croisement}" ?`)) deleteCroisementMut.mutate(c.id_croisement)
                           }}
                           className="p-1 text-gray-400 dark:text-gray-500 hover:text-red-600"
+                          title="Supprimer"
                         >
                           <Trash2 size={14} />
                         </button>
@@ -837,20 +1084,30 @@ export default function CroisementPage() {
           ) : (
             <div className="bg-white dark:bg-gray-800 border rounded-lg overflow-hidden">
               <table className="w-full text-sm">
-                <thead className="bg-gray-50 dark:bg-gray-700/50 text-xs text-gray-600 dark:text-gray-300 uppercase">
+                <thead className="bg-gray-50 dark:bg-gray-700/50 text-xs text-gray-600 dark:text-gray-300 uppercase select-none">
                   <tr>
-                    <th className="px-3 py-2 text-left">Nom</th>
-                    <th className="px-3 py-2 text-left">Variété</th>
-                    <th className="px-3 py-2 text-left">Collecte</th>
-                    <th className="px-3 py-2 text-left">Stockage</th>
-                    <th className="px-3 py-2 text-right">Qté restante</th>
-                    <th className="px-3 py-2 text-left">Péremption</th>
+                    {([
+                      { col: 'nom_pollen' as keyof Pollen, label: 'Nom', align: 'text-left' },
+                      { col: 'nom_variete_source' as keyof Pollen, label: 'Variété', align: 'text-left' },
+                      { col: 'date_collecte' as keyof Pollen, label: 'Collecte', align: 'text-left' },
+                      { col: 'stockage' as keyof Pollen, label: 'Stockage', align: 'text-left' },
+                      { col: 'quantite_restante_g' as keyof Pollen, label: 'Qté restante', align: 'text-right' },
+                      { col: 'date_peremption' as keyof Pollen, label: 'Péremption', align: 'text-left' },
+                    ]).map(({ col, label, align }) => (
+                      <th
+                        key={col}
+                        className={`px-3 py-2 ${align} cursor-pointer hover:text-grow-600 transition-colors`}
+                        onClick={() => toggleSort(col)}
+                      >
+                        {label}<SortIcon activeCol={pollenSort?.col ?? null} col={col} dir={pollenSort?.dir ?? 'asc'} />
+                      </th>
+                    ))}
                     <th className="px-3 py-2 text-center">Statut</th>
                     <th className="px-3 py-2"></th>
                   </tr>
                 </thead>
                 <tbody className="divide-y">
-                  {pollen.map(p => {
+                  {pollenSorted.map(p => {
                     const d = daysUntil(p.date_peremption)
                     const alerte = d != null && d < 30 && !p.perime
                     return (
@@ -905,6 +1162,7 @@ export default function CroisementPage() {
       {showNewCroisement && <NouveauCroisementModal varietes={varietes} pollenStock={pollen} onClose={() => setShowNewCroisement(false)} />}
       {showNewPollen && <NouveauPollenModal varietes={varietes} onClose={() => setShowNewPollen(false)} />}
       {recolteCroisement && <RecolteModal croisement={recolteCroisement} onClose={() => setRecolteCroisement(null)} />}
+      {editCroisement && <EditCroisementModal croisement={editCroisement} varietes={varietes} pollenStock={pollen} onClose={() => setEditCroisement(null)} />}
     </div>
   )
 }
