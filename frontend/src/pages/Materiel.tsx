@@ -11,6 +11,7 @@ import { vaporisateurAPI } from '../api/vaporisateur'
 import type { Vaporisateur } from '../api/vaporisateur'
 import NouveauMaterielModal from '../components/NouveauMaterielModal'
 import NouveauVapoModal from '../components/NouveauVapoModal'
+import NouveauSessionVapoModal from '../components/NouveauSessionVapoModal'
 import ImportExportModal from '../components/ImportExportModal'
 import LoadingSpinner from '../components/LoadingSpinner'
 import EmptyState from '../components/EmptyState'
@@ -234,14 +235,11 @@ function VapoCard({
 }: { vapo: Vaporisateur; onEdit: () => void }) {
   const [confirm, setConfirm] = useState(false)
   const [expanded, setExpanded] = useState(false)
+  const [sessionModal, setSessionModal] = useState(false)
   const qc = useQueryClient()
 
   const deleteMut = useMutation({
     mutationFn: () => vaporisateurAPI.delete(vapo.id_vaporisateur),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['vaporisateurs'] }),
-  })
-  const sessionMut = useMutation({
-    mutationFn: () => vaporisateurAPI.addSession(vapo.id_vaporisateur),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['vaporisateurs'] }),
   })
 
@@ -347,10 +345,9 @@ function VapoCard({
             </button>
           )}
         </div>
-        <button onClick={() => sessionMut.mutate()}
-          disabled={sessionMut.isPending}
-          className="text-xs px-2.5 py-1 bg-grow-600 text-white rounded-lg hover:bg-grow-700 disabled:opacity-50 flex items-center gap-1.5">
-          {sessionMut.isPending ? <Loader2 size={11} className="animate-spin" /> : <Zap size={11} />}
+        <button onClick={() => setSessionModal(true)}
+          className="text-xs px-2.5 py-1 bg-grow-600 text-white rounded-lg hover:bg-grow-700 flex items-center gap-1.5">
+          <Zap size={11} />
           +1 session
         </button>
       </div>
@@ -369,6 +366,15 @@ function VapoCard({
             </div>
           ))}
         </div>
+      )}
+
+      {/* Modal session */}
+      {sessionModal && (
+        <NouveauSessionVapoModal
+          vapoId={vapo.id_vaporisateur}
+          vapoNom={vapo.nom}
+          onClose={() => setSessionModal(false)}
+        />
       )}
     </div>
   )
