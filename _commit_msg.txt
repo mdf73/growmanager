@@ -1,6 +1,6 @@
-feat: poids sac 2 décimales (rosin) + filtre variété (hash)
+feat(stock): renommage onglets + filtre cliquable "Pour extraction"
 
-- NouvelleExtractionModal : step="0.01" sur inputs sacs, placeholder "0.00"
-- Total entrée modal + colonne tableau Extractions.tsx : .toFixed(2)
-- ExtractionsHash : ajout filtre par variété (Search input + state searchVariete)
-  combinable avec le filtre par année existant
+- Onglets renommés : "Stock" → "En stock", "Extractions" → "Pour extraction" (En curing inchangé)
+- Onglet "Pour extraction" : cartes Trim/WPFF désormais cliquables pour filtrer le tableau
+  - State extTypeFilter, bordure cyan sur sélection, re-clic pour désélectionner
+  - Badge "Type : X ✕" dans la barre de recherche pour retirer le filtre

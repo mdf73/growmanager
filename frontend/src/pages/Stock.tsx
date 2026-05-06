@@ -476,6 +476,7 @@ export default function StockPage() {
   const [sortDir,      setSortDir]      = useState<SortDir>('asc')
   const [extSortCol,   setExtSortCol]   = useState<ExtractionSortCol | null>(null)
   const [extSortDir,   setExtSortDir]   = useState<SortDir>('asc')
+  const [extTypeFilter, setExtTypeFilter] = useState('')
   const [showModal,        setShowModal]        = useState(false)
   const [editStock,        setEditStock]        = useState<Stock | null>(null)
   const [showImportExport, setShowImportExport] = useState(false)
@@ -537,11 +538,12 @@ export default function StockPage() {
   const extractionFiltered = useMemo(() => {
     return stocks.filter(s => {
       const q = searchTerm.toLowerCase()
-      const matchSearch  = (s.variete_nom || '').toLowerCase().includes(q)
-      const matchCloture = showClotures ? true : !s.date_fin_stock
-      return matchSearch && matchCloture && EXTRACTION_TYPES.includes(s.type_stock || '')
+      const matchSearch   = (s.variete_nom || '').toLowerCase().includes(q)
+      const matchCloture  = showClotures ? true : !s.date_fin_stock
+      const matchExtType  = !extTypeFilter || s.type_stock === extTypeFilter
+      return matchSearch && matchCloture && matchExtType && EXTRACTION_TYPES.includes(s.type_stock || '')
     })
-  }, [stocks, searchTerm, showClotures])
+  }, [stocks, searchTerm, showClotures, extTypeFilter])
 
   const stats = useMemo(() => {
     const active     = stocks.filter(s => !s.date_fin_stock && !EXTRACTION_TYPES.includes(s.type_stock || ''))
@@ -621,7 +623,7 @@ export default function StockPage() {
           }`}
         >
           <Package size={14} />
-          Stock
+          En stock
           <span className={`px-1.5 py-0.5 rounded-full text-xs ${
             activeTab === 'stock' ? 'bg-grow-100 text-grow-700' : 'bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300'
           }`}>{stocks.filter(s => !s.date_fin_stock && !EXTRACTION_TYPES.includes(s.type_stock || '')).length}</span>
@@ -635,7 +637,7 @@ export default function StockPage() {
           }`}
         >
           <Snowflake size={14} />
-          Extractions
+          Pour extraction
           <span className={`px-1.5 py-0.5 rounded-full text-xs ${
             activeTab === 'extractions' ? 'bg-cyan-100 text-cyan-700' : 'bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300'
           }`}>{stocks.filter(s => !s.date_fin_stock && EXTRACTION_TYPES.includes(s.type_stock || '')).length}</span>
@@ -762,13 +764,18 @@ export default function StockPage() {
           {allExtractionTypes.length > 0 && (
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
               {allExtractionTypes.map(type => (
-                <div key={type} className="text-left rounded-lg p-4 border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+                <button key={type}
+                  onClick={() => setExtTypeFilter(extTypeFilter === type ? '' : type)}
+                  className={`text-left rounded-lg p-4 border-2 transition-colors ${
+                    extTypeFilter === type ? 'border-cyan-500 bg-cyan-50' : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-cyan-300'
+                  }`}
+                >
                   <TypeBadge type={type} />
                   <p className="text-xl font-bold text-gray-800 dark:text-gray-100 mt-2">{stats.byTypeExt[type].toFixed(1)} g</p>
                   <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
                     {stocks.filter(s => s.type_stock === type && !s.date_fin_stock).length} actif{stocks.filter(s => s.type_stock === type && !s.date_fin_stock).length > 1 ? 's' : ''}
                   </p>
-                </div>
+                </button>
               ))}
             </div>
           )}
@@ -782,6 +789,11 @@ export default function StockPage() {
                   className="w-full pl-9 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-grow-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                   value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
               </div>
+              {extTypeFilter && (
+                <button onClick={() => setExtTypeFilter('')} className="px-3 py-2 text-sm text-cyan-600 border border-cyan-200 bg-cyan-50 rounded-lg hover:bg-cyan-100">
+                  Type : {extTypeFilter} ✕
+                </button>
+              )}
               {stats.nbCloturesExt > 0 && (
                 <button onClick={() => setShowClotures(v => !v)}
                   className={`px-3 py-2 text-sm rounded-lg border transition-colors ${
