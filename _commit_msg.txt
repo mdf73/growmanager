@@ -1,31 +1,5 @@
-fix(croisement): pack graines correct + intégrité DB InnoDB + bugs suppression
+feat: gestion de version — CHANGELOG + bump-version.bat
 
-Bugs corrigés :
-- finaliser_recolte : utilise des variables locales explicites (id_variete_final,
-  id_pack_final) au lieu de c.id_variete_resultat/c.id_packgraine_resultat (valeurs
-  ORM potentiellement stale) → mauvaise variété dans le catalogue
-- finaliser_recolte : purge les graines orphelines liées à l'id_pack avant insertion
-  → protection contre réutilisation d'ID MySQL après restart (graines parasites)
-- PackGraine : retrait de duree_conservation_mois=24 dans l'INSERT de finaliser_recolte
-- RecolteModal : ajout select id_variete_existante quand creer_variete=false
-- DELETE /api/breeders/{id} : vérification graines liées avant suppression (400 au
-  lieu de crash violation FK)
-- Parametrage.tsx deleteMut : onError manquant → crashait le composant React
-- GestionModal.tsx : onError garde le dialog ouvert + affiche message backend
-
-Migrations main.py :
-- Conversion tables critiques en InnoDB (active vraies FK, empêche orphelins)
-- Nettoyage graines orphelines au démarrage (id_packgraine sans pack)
-- Correction packs avec excès de graines (conserve les nbr_graines plus récentes)
-
-Fichiers modifiés :
-  backend/app/routers/croisement.py
-  backend/app/routers/breeders.py
-  backend/app/routers/graines.py
-  backend/app/main.py
-  backend/app/models/all_models.py
-  backend/app/schemas/croisement.py
-  frontend/src/api/croisement.ts
-  frontend/src/pages/Croisement.tsx
-  frontend/src/pages/Parametrage.tsx
-  frontend/src/components/GestionModal.tsx
+- CHANGELOG.md créé (Keep a Changelog, historique complet v0.1.0)
+- bump-version.bat : script interactif patch/minor/major (npm version --no-git-tag-version)
+- wiki/log.md mis à jour
