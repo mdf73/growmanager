@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { X, Zap, Loader2, Leaf, Hash, Droplets, ChevronDown } from 'lucide-react'
+import { X, Zap, Loader2 } from 'lucide-react'
 import client from '../api/client'
 
 // ── Types ─────────────────────────────────────────────────────────────────────

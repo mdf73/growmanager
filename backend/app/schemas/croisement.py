@@ -108,9 +108,15 @@ class RecolteGrainesInput(BaseModel):
     nb_graines: int
     qualite_graines: Optional[str] = None             # bonne | moyenne | immature
     poids_graines_g: Optional[float] = None
+    # Breeder pour les graines créées
+    id_breeder: Optional[int] = None                  # breeder existant
+    nom_breeder_nouveau: Optional[str] = None          # créer un nouveau breeder à la volée
     # Toggles sorties auto
     creer_variete: bool = True
+    nom_variete_resultat: Optional[str] = None         # si None → utilise nom_croisement
+    id_variete_existante: Optional[int] = None         # si creer_variete=False → variété à lier
     creer_packgraine: bool = True
+    types_graines: str = "Regular"                     # Regular | Féminisée | Auto
 
 
 class CroisementRead(BaseModel):

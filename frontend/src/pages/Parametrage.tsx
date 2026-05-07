@@ -308,6 +308,7 @@ function BreedersEditor() {
   const deleteMut = useMutation({
     mutationFn: (id: number) => breederAPI.delete(id),
     onSuccess: invalidate,
+    onError: (e: any) => setError(e?.response?.data?.detail ?? 'Impossible de supprimer ce breeder'),
   })
 
   const startEdit = (b: Breeder) => {

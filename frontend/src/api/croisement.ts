@@ -1,6 +1,6 @@
 import client from './client'
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+// --- Types ---
 
 export type TypeCroisement = 'F1' | 'F2' | 'BX' | 'S1' | 'IBL' | 'polyhybrid'
 export type StatutCroisement = 'planifie' | 'pollinise' | 'maturation' | 'recolte' | 'echec'
@@ -8,7 +8,7 @@ export type MethodePollinisation = 'plante_entiere' | 'branche_isolee' | 'pincea
 export type QualiteGraines = 'bonne' | 'moyenne' | 'immature'
 export type StockagePollen = 'frigo' | 'congelateur' | 'ambiant'
 
-// ─── Pollen ──────────────────────────────────────────────────────────────────
+// --- Pollen ---
 
 export interface Pollen {
   id_pollen: number
@@ -46,7 +46,7 @@ export interface PollenUpdate extends Partial<PollenCreate> {
   actif?: boolean
 }
 
-// ─── Croisement ──────────────────────────────────────────────────────────────
+// --- Croisement ---
 
 export interface Croisement {
   id_croisement: number
@@ -110,11 +110,19 @@ export interface RecolteGrainesInput {
   nb_graines: number
   qualite_graines?: QualiteGraines
   poids_graines_g?: number
+  // Breeder
+  id_breeder?: number
+  nom_breeder_nouveau?: string
+  // Variete
   creer_variete?: boolean
+  nom_variete_resultat?: string
+  id_variete_existante?: number   // si creer_variete=false → variété à lier
+  // Pack + graines
   creer_packgraine?: boolean
+  types_graines?: string
 }
 
-// ─── API calls ────────────────────────────────────────────────────────────────
+// --- API calls ---
 
 export const croisementAPI = {
   // Croisements

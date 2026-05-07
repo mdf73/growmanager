@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from app.database import get_db
-from app.models import Graine, PackGraine, Breeder, Variete
+from app.models import Graine, PackGraine, Breeder, Variete, Croisement
 from app.schemas.graine import (
     GraineCreate,
     GraineRead,
@@ -216,7 +216,11 @@ def delete_pack(pack_id: int, db: Session = Depends(get_db)):
     db_pack = db.query(PackGraine).filter(PackGraine.id_packgraine == pack_id).first()
     if not db_pack:
         raise HTTPException(status_code=404, detail="Pack non trouvé")
-    db.query(Graine).filter(Graine.id_packgraine == pack_id).delete()
+    # Effacer la référence dans les croisements avant suppression (FK constraint)
+    db.query(Croisement).filter(
+        Croisement.id_packgraine_resultat == pack_id
+    ).update({"id_packgraine_resultat": None}, synchronize_session=False)
+    db.query(Graine).filter(Graine.id_packgraine == pack_id).delete(synchronize_session=False)
     db.delete(db_pack)
     db.commit()
     return {"message": "Pack supprimé"}
@@ -301,7 +305,8 @@ def get_catalogue(db: Session = Depends(get_db)):
         if first_graine:
             breeder = db.query(Breeder).filter(Breeder.id_breeder == first_graine.id_breeder).first() if first_graine.id_breeder else None
             variete = db.query(Variete).filter(Variete.id_variete == first_graine.id_variete).first() if first_graine.id_variete else None
-
+            if pack.id_packgraine >= 130:  # debug packs récents
+                print(f"[DEBUG CATALOGUE] pack={pack.id_packgraine} nbr_graines={pack.nbr_graines} remaining={remaining} graine.id_variete={first_graine.id_variete} variete_nom={variete.nom_variete if variete else 'None'} breeder_nom={breeder.nom_breeder if breeder else 'None'}", flush=True)
             catalogue.append(CatalogueItem(
                 id_packgraine=pack.id_packgraine,
                 id_fournisseur=pack.id_fournisseur,

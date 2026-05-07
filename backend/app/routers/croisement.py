@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models.all_models import Pollen, Croisement, Variete, PackGraine
+from app.models.all_models import Pollen, Croisement, Variete, PackGraine, Breeder, Graine
 from app.schemas.croisement import (
     PollenCreate, PollenUpdate, PollenRead,
     CroisementCreate, CroisementUpdate, CroisementRead,
@@ -217,10 +217,13 @@ def delete_croisement(croisement_id: int, db: Session = Depends(get_db)):
 @router.post("/{croisement_id}/recolte", response_model=CroisementRead)
 def finaliser_recolte(croisement_id: int, data: RecolteGrainesInput, db: Session = Depends(get_db)):
     """Finalise un croisement : enregistre la récolte de graines et crée
-    éventuellement une Variete + un PackGraine maison en sortie."""
+    éventuellement une Variete + un PackGraine maison + les Graine individuelles."""
     c = db.query(Croisement).filter(Croisement.id_croisement == croisement_id).first()
     if not c:
         raise HTTPException(404, "Croisement non trouvé")
+
+    print(f"[DEBUG RECOLTE PAYLOAD] id={croisement_id} nb={data.nb_graines} variete={data.nom_variete_resultat!r} breeder_id={data.id_breeder} breeder_new={data.nom_breeder_nouveau!r} type={data.types_graines!r} creer_v={data.creer_variete} creer_p={data.creer_packgraine}", flush=True)
+    print(f"[DEBUG RECOLTE STATE] c.id_variete_resultat={c.id_variete_resultat} c.id_packgraine_resultat={c.id_packgraine_resultat}", flush=True)
 
     c.date_recolte_graines = data.date_recolte_graines
     c.nb_graines = data.nb_graines
@@ -228,35 +231,89 @@ def finaliser_recolte(croisement_id: int, data: RecolteGrainesInput, db: Session
     c.poids_graines_g = data.poids_graines_g
     c.statut = "recolte"
 
-    # Construire le libellé de croisement (ex: "Mom × Dad")
+    # Construire le libellé de croisement (ex: "Mom x Dad")
     parent_mere = c.variete_mere.nom_variete if c.variete_mere else "?"
     parent_pere = (c.variete_pere.nom_variete if c.variete_pere
                    else (c.pollen.nom_pollen if c.pollen else "?"))
-    croisement_label = f"{parent_mere} × {parent_pere}"
+    croisement_label = f"{parent_mere} x {parent_pere}"
 
-    # Créer la Variete si demandé
-    if data.creer_variete and not c.id_variete_resultat:
-        v = Variete(
-            nom_variete=c.nom_croisement,
-            croisement_variete=croisement_label,
-            informations_variete=f"Issu du croisement maison #{c.id_croisement} ({c.type_croisement or 'F1'})",
-        )
-        db.add(v)
+    # ── Résoudre le breeder ────────────────────────────────────────────────
+    id_breeder: Optional[int] = data.id_breeder
+    if data.nom_breeder_nouveau:
+        b = Breeder(nom_breeder=data.nom_breeder_nouveau)
+        db.add(b)
         db.flush()
-        c.id_variete_resultat = v.id_variete
+        id_breeder = b.id_breeder
 
-    # Créer le PackGraine maison si demandé
-    if data.creer_packgraine and not c.id_packgraine_resultat:
+    # ── Nom de la variété résultante ───────────────────────────────────────
+    nom_variete = data.nom_variete_resultat or c.nom_croisement
+
+    # ── Créer ou mettre à jour la Variete ────────────────────────────────
+    id_variete_final: Optional[int] = None
+
+    if data.creer_variete:
+        if c.id_variete_resultat:
+            # Mise à jour de la variété existante
+            v_existing = db.query(Variete).filter(Variete.id_variete == c.id_variete_resultat).first()
+            if v_existing:
+                v_existing.nom_variete = nom_variete
+                v_existing.croisement_variete = croisement_label
+            id_variete_final = c.id_variete_resultat
+        else:
+            v_new = Variete(
+                nom_variete=nom_variete,
+                croisement_variete=croisement_label,
+                informations_variete=f"Issu du croisement maison #{c.id_croisement} ({c.type_croisement or 'F1'})",
+            )
+            db.add(v_new)
+            db.flush()
+            id_variete_final = v_new.id_variete
+            c.id_variete_resultat = id_variete_final
+    elif data.id_variete_existante:
+        id_variete_final = data.id_variete_existante
+        c.id_variete_resultat = id_variete_final
+
+    print(f"[DEBUG RECOLTE VARIETE] id_variete_final={id_variete_final}", flush=True)
+
+    # ── Créer un nouveau PackGraine maison (toujours neuf) ───────────────
+    id_pack_final: Optional[int] = None
+
+    if data.creer_packgraine:
         pg = PackGraine(
-            id_fournisseur=None,                          # maison → pas de fournisseur
+            id_fournisseur=None,
             nbr_graines=data.nb_graines,
             prix_achat=0,
             date_achat=data.date_recolte_graines,
-            duree_conservation_mois=24,                   # graines bien conservées ≈ 2 ans
         )
         db.add(pg)
         db.flush()
-        c.id_packgraine_resultat = pg.id_packgraine
+        id_pack_final = pg.id_packgraine
+        c.id_packgraine_resultat = id_pack_final
+
+    print(f"[DEBUG RECOLTE PACK] id_pack_final={id_pack_final} nbr_graines={data.nb_graines}", flush=True)
+
+    # ── Créer les Graine individuelles ───────────────────────────────────
+    if id_pack_final and data.nb_graines > 0:
+        # Nettoyer d'éventuelles graines orphelines qui référencent cet id_pack
+        # (peut arriver si MySQL réutilise un ID après suppression sans FK InnoDB)
+        orphelines = db.query(Graine).filter(Graine.id_packgraine == id_pack_final).count()
+        if orphelines:
+            print(f"[DEBUG RECOLTE] {orphelines} graines orphelines supprimées pour pack={id_pack_final}", flush=True)
+            db.query(Graine).filter(Graine.id_packgraine == id_pack_final).delete(synchronize_session=False)
+
+        for _ in range(data.nb_graines):
+            g = Graine(
+                id_breeder=id_breeder,
+                id_variete=id_variete_final,
+                id_packgraine=id_pack_final,
+                types_graines=data.types_graines,
+                date_achat=data.date_recolte_graines,
+                prix_achat=0,
+                utilisee=False,
+                edition_limite=False,
+            )
+            db.add(g)
+        print(f"[DEBUG RECOLTE GRAINES] {data.nb_graines} graines créées → pack={id_pack_final} variete={id_variete_final} breeder={id_breeder}", flush=True)
 
     db.commit()
     db.refresh(c)

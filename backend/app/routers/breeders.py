@@ -2,7 +2,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.database import get_db
-from app.models import Breeder
+from app.models import Breeder, Graine
 from app.schemas.breeder import BreederCreate, BreederRead
 
 router = APIRouter(prefix="/api/breeders", tags=["breeders"])
@@ -61,6 +61,14 @@ def delete_breeder(breeder_id: int, db: Session = Depends(get_db)):
     db_breeder = db.query(Breeder).filter(Breeder.id_breeder == breeder_id).first()
     if not db_breeder:
         raise HTTPException(status_code=404, detail="Breeder non trouvé")
+
+    # Vérifier qu'aucune graine n'est liée à ce breeder
+    nb_graines = db.query(Graine).filter(Graine.id_breeder == breeder_id).count()
+    if nb_graines:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Breeder lié à {nb_graines} graine(s), suppression bloquée"
+        )
 
     db.delete(db_breeder)
     db.commit()

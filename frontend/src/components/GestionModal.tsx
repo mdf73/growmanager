@@ -33,7 +33,7 @@ function BreederRow({ breeder, onSaved, onDeleted }: {
   const remove = useMutation({
     mutationFn: () => breederAPI.delete(breeder.id_breeder),
     onSuccess: () => onDeleted(),
-    onError: () => setConfirmDelete(false),
+    onError: () => { /* garde confirmDelete ouvert pour afficher remove.isError */ },
   })
 
   if (editing) {
@@ -91,7 +91,11 @@ function BreederRow({ breeder, onSaved, onDeleted }: {
           <span className="flex items-center gap-2">
             <AlertTriangle size={14} />
             Supprimer <strong>{breeder.nom_breeder}</strong> ? Cette action est irréversible.
-            {remove.isError && <span className="text-red-600 ml-2">Impossible (graines associées)</span>}
+            {remove.isError && (
+              <span className="text-red-600 ml-2">
+                {(remove.error as any)?.response?.data?.detail ?? 'Impossible de supprimer ce breeder'}
+              </span>
+            )}
           </span>
         </td>
         <td className="px-4 py-2 text-right">
@@ -246,7 +250,11 @@ function VarieteRow({ variete, onSaved, onDeleted }: {
           <span className="flex items-center gap-2">
             <AlertTriangle size={14} />
             Supprimer <strong>{variete.nom_variete}</strong> ?
-            {remove.isError && <span className="text-red-600 ml-2">Impossible (graines associées)</span>}
+            {remove.isError && (
+              <span className="text-red-600 ml-2">
+                {(remove.error as any)?.response?.data?.detail ?? 'Impossible de supprimer cette variété'}
+              </span>
+            )}
           </span>
         </td>
         <td className="px-4 py-2 text-right">

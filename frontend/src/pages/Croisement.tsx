@@ -7,12 +7,13 @@ import {
 } from 'lucide-react'
 import {
   croisementAPI,
-  Croisement, CroisementCreate, RecolteGrainesInput,
+  Croisement, CroisementCreate, CroisementUpdate, RecolteGrainesInput,
   Pollen, PollenCreate,
   TypeCroisement, StatutCroisement, MethodePollinisation,
   QualiteGraines, StockagePollen,
 } from '../api/croisement'
 import { varieteAPI, Variete } from '../api/varietes'
+import { breederAPI, Breeder } from '../api/breeders'
 import LoadingSpinner from '../components/LoadingSpinner'
 import EmptyState from '../components/EmptyState'
 
@@ -394,27 +395,57 @@ function NouveauCroisementModal({ varietes, pollenStock, onClose }: NouveauCrois
 
 function RecolteModal({ croisement, onClose }: { croisement: Croisement; onClose: () => void }) {
   const qc = useQueryClient()
+
+  // Nom de variété auto depuis les parents
+  const autoNomVariete = croisement.nom_croisement
+
   const [data, setData] = useState<RecolteGrainesInput>({
     date_recolte_graines: new Date().toISOString().slice(0, 10),
     nb_graines: 0,
     qualite_graines: 'bonne',
     creer_variete: true,
+    nom_variete_resultat: autoNomVariete,
+    id_variete_existante: undefined,
     creer_packgraine: true,
+    types_graines: croisement.pere_reverse ? 'Féminisée' : 'Regular',
+    id_breeder: undefined,
+    nom_breeder_nouveau: '',
+  })
+
+  const [nouveauBreeder, setNouveauBreeder] = useState(false)
+
+  const { data: breeders = [] } = useQuery<Breeder[]>({
+    queryKey: ['breeders'],
+    queryFn: async () => (await breederAPI.getAll()).data,
+  })
+
+  const { data: varietes = [] } = useQuery<Variete[]>({
+    queryKey: ['varietes'],
+    queryFn: async () => (await varieteAPI.getAll()).data,
   })
 
   const mut = useMutation({
-    mutationFn: () => croisementAPI.finaliserRecolte(croisement.id_croisement, data),
+    mutationFn: () => {
+      const payload: RecolteGrainesInput = {
+        ...data,
+        nom_breeder_nouveau: nouveauBreeder ? (data.nom_breeder_nouveau || undefined) : undefined,
+        id_breeder: nouveauBreeder ? undefined : data.id_breeder,
+      }
+      return croisementAPI.finaliserRecolte(croisement.id_croisement, payload)
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['croisements'] })
       qc.invalidateQueries({ queryKey: ['varietes'] })
       qc.invalidateQueries({ queryKey: ['catalogue'] })
+      qc.invalidateQueries({ queryKey: ['graines'] })
+      qc.invalidateQueries({ queryKey: ['breeders'] })
       onClose()
     },
   })
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-xl max-w-lg w-full">
+      <div className="bg-white dark:bg-gray-800 rounded-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
         <div className="border-b px-6 py-4 flex items-center justify-between">
           <h2 className="text-lg font-semibold flex items-center gap-2">
             <Sparkles size={20} className="text-green-600" /> Récolter les graines
@@ -426,6 +457,7 @@ function RecolteModal({ croisement, onClose }: { croisement: Croisement; onClose
             Croisement : <span className="font-medium text-gray-900 dark:text-gray-100">{croisement.nom_croisement}</span>
           </div>
 
+          {/* Date + nb graines */}
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-sm font-medium mb-1">Date récolte</label>
@@ -447,6 +479,7 @@ function RecolteModal({ croisement, onClose }: { croisement: Croisement; onClose
             </div>
           </div>
 
+          {/* Qualité + poids */}
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-sm font-medium mb-1">Qualité</label>
@@ -472,15 +505,108 @@ function RecolteModal({ croisement, onClose }: { croisement: Croisement; onClose
             </div>
           </div>
 
-          <div className="border-t pt-4 space-y-2">
+          {/* Type de graines */}
+          <div>
+            <label className="block text-sm font-medium mb-1">Type de graines</label>
+            <select
+              value={data.types_graines}
+              onChange={e => setData({ ...data, types_graines: e.target.value })}
+              className="w-full rounded border-gray-300 dark:border-gray-600 px-3 py-2 text-sm"
+            >
+              <option value="Regular">Regular</option>
+              <option value="Féminisée">Féminisée</option>
+              <option value="Auto">Auto</option>
+            </select>
+          </div>
+
+          {/* Breeder */}
+          <div>
+            <label className="block text-sm font-medium mb-1">Breeder</label>
+            <div className="flex gap-2 mb-2">
+              <button
+                type="button"
+                onClick={() => setNouveauBreeder(false)}
+                className={`flex-1 px-3 py-1.5 rounded text-xs font-medium ${!nouveauBreeder ? 'bg-grow-600 text-white' : 'bg-gray-100 text-gray-700 dark:text-gray-200'}`}
+              >
+                Choisir existant
+              </button>
+              <button
+                type="button"
+                onClick={() => setNouveauBreeder(true)}
+                className={`flex-1 px-3 py-1.5 rounded text-xs font-medium ${nouveauBreeder ? 'bg-grow-600 text-white' : 'bg-gray-100 text-gray-700 dark:text-gray-200'}`}
+              >
+                + Nouveau breeder
+              </button>
+            </div>
+            {!nouveauBreeder ? (
+              <select
+                value={data.id_breeder || ''}
+                onChange={e => setData({ ...data, id_breeder: Number(e.target.value) || undefined })}
+                className="w-full rounded border-gray-300 dark:border-gray-600 px-3 py-2 text-sm"
+              >
+                <option value="">— Aucun (maison) —</option>
+                {breeders.map(b => (
+                  <option key={b.id_breeder} value={b.id_breeder}>{b.nom_breeder}</option>
+                ))}
+              </select>
+            ) : (
+              <input
+                type="text"
+                placeholder="Nom du nouveau breeder"
+                value={data.nom_breeder_nouveau || ''}
+                onChange={e => setData({ ...data, nom_breeder_nouveau: e.target.value })}
+                className="w-full rounded border-gray-300 dark:border-gray-600 px-3 py-2 text-sm"
+              />
+            )}
+          </div>
+
+          {/* Variété + pack */}
+          <div className="border-t pt-4 space-y-3">
             <label className="flex items-center gap-2 text-sm">
               <input
                 type="checkbox"
                 checked={data.creer_variete}
-                onChange={e => setData({ ...data, creer_variete: e.target.checked })}
+                onChange={e => setData({ ...data, creer_variete: e.target.checked, id_variete_existante: undefined })}
               />
-              Créer la <span className="font-medium">Variété</span> "{croisement.nom_croisement}" dans le catalogue
+              Créer la <span className="font-medium">Variété</span> dans le catalogue
             </label>
+            {data.creer_variete ? (
+              <div>
+                <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Nom de la variété</label>
+                <input
+                  type="text"
+                  value={data.nom_variete_resultat || ''}
+                  onChange={e => setData({ ...data, nom_variete_resultat: e.target.value })}
+                  className="w-full rounded border-gray-300 dark:border-gray-600 px-3 py-2 text-sm"
+                  placeholder={autoNomVariete}
+                />
+                {data.nom_variete_resultat !== autoNomVariete && (
+                  <button
+                    type="button"
+                    onClick={() => setData({ ...data, nom_variete_resultat: autoNomVariete })}
+                    className="text-xs text-grow-600 underline mt-1"
+                  >
+                    Remettre la suggestion : {autoNomVariete}
+                  </button>
+                )}
+              </div>
+            ) : (
+              <div>
+                <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
+                  Lier à une variété existante <span className="text-gray-400">(optionnel)</span>
+                </label>
+                <select
+                  value={data.id_variete_existante || ''}
+                  onChange={e => setData({ ...data, id_variete_existante: Number(e.target.value) || undefined })}
+                  className="w-full rounded border-gray-300 dark:border-gray-600 px-3 py-2 text-sm"
+                >
+                  <option value="">— Aucune —</option>
+                  {varietes.map(v => (
+                    <option key={v.id_variete} value={v.id_variete}>{v.nom_variete}</option>
+                  ))}
+                </select>
+              </div>
+            )}
             <label className="flex items-center gap-2 text-sm">
               <input
                 type="checkbox"

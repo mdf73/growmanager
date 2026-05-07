@@ -167,6 +167,53 @@ def run_migrations():
                 ))
         except Exception:
             pass
+        # Migration : convertir les tables critiques en InnoDB pour appliquer les FK
+        # Sans InnoDB, les contraintes FK sont ignorées → graines orphelines possibles
+        innodb_tables = ["Breeder", "Variete", "PackGraine", "Graine", "Croisement", "Pollen"]
+        for tbl in innodb_tables:
+            try:
+                result = conn.execute(text(
+                    "SELECT ENGINE FROM INFORMATION_SCHEMA.TABLES "
+                    "WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = :tbl"
+                ), {"tbl": tbl})
+                engine_type = result.scalar()
+                if engine_type and engine_type.upper() != "INNODB":
+                    conn.execute(text(f"ALTER TABLE {tbl} ENGINE=InnoDB"))
+            except Exception:
+                pass
+
+        # Migration : supprimer les graines orphelines (id_packgraine sans pack correspondant)
+        try:
+            conn.execute(text(
+                "DELETE g FROM Graine g "
+                "LEFT JOIN PackGraine p ON g.id_packgraine = p.id_packgraine "
+                "WHERE g.id_packgraine IS NOT NULL AND p.id_packgraine IS NULL"
+            ))
+        except Exception:
+            pass
+
+        # Migration : corriger les packs avec trop de graines (doublons dus à la réutilisation d'ID)
+        # Pour chaque pack, ne conserver que les nbr_graines plus récentes (id_graine le plus élevé)
+        try:
+            result = conn.execute(text(
+                "SELECT p.id_packgraine, p.nbr_graines, COUNT(g.id_graine) as cnt "
+                "FROM PackGraine p "
+                "JOIN Graine g ON g.id_packgraine = p.id_packgraine "
+                "GROUP BY p.id_packgraine, p.nbr_graines "
+                "HAVING cnt > p.nbr_graines"
+            ))
+            surplus_packs = result.fetchall()
+            for row in surplus_packs:
+                pack_id, nbr_attendu, cnt_actuel = row
+                a_supprimer = cnt_actuel - nbr_attendu
+                # Supprimer les plus anciennes graines (id_graine le plus bas)
+                conn.execute(text(
+                    "DELETE FROM Graine WHERE id_packgraine = :pid "
+                    "ORDER BY id_graine ASC LIMIT :n"
+                ), {"pid": pack_id, "n": a_supprimer})
+        except Exception:
+            pass
+
         conn.commit()
 
 run_migrations()
