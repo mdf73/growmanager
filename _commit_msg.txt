@@ -1,6 +1,7 @@
-feat(stock): renommage onglets + filtre cliquable "Pour extraction"
+feat: classement variétés — médailles fixes + tri Culture/Conso/Score
 
-- Onglets renommés : "Stock" → "En stock", "Extractions" → "Pour extraction" (En curing inchangé)
-- Onglet "Pour extraction" : cartes Trim/WPFF désormais cliquables pour filtrer le tableau
-  - State extTypeFilter, bordure cyan sur sélection, re-clic pour désélectionner
-  - Badge "Type : X ✕" dans la barre de recherche pour retirer le filtre
+- scoreRankMap : rang basé sur note_finale desc, calculé indépendamment du tri actif
+- RankBadge et fond doré (isTop) utilisent toujours ce rang fixe
+- Tri possible sur Culture /30, Conso /70, Score global (desc par défaut)
+- Colonne Variété rendue non-triable
+- Le 🥇 reste sur la meilleure variété globale quel que soit le tri actif

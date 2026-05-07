@@ -42,6 +42,7 @@ function floAlert(varietes: PlanVariete[]) {
 
 // ── Helpers tri ──────────────────────────────────────────────────────────────
 type SortCol = 'breeder' | 'variete' | 'croisement' | 'type' | 'flo' | 'stock' | 'prix' | 'age'
+type SortColPlan = 'breeder' | 'variete' | 'type' | 'flo' | 'stock'
 type SortDir = 'asc' | 'desc'
 
 function SortIcon({ col, current, dir }: { col: SortCol; current: SortCol | null; dir: SortDir }) {
@@ -381,7 +382,14 @@ function PlanTable({ plan }: PlanTableProps) {
     nb_plantes: 1,
     taille_pot_l: '',
   })
-  const [showModal, setShowModal] = useState(false)
+  const [showModal,    setShowModal]    = useState(false)
+  const [sortColPlan,  setSortColPlan]  = useState<SortColPlan | null>(null)
+  const [sortDirPlan,  setSortDirPlan]  = useState<SortDir>('asc')
+
+  const handleSortPlan = (col: SortColPlan) => {
+    if (sortColPlan === col) setSortDirPlan(d => d === 'asc' ? 'desc' : 'asc')
+    else { setSortColPlan(col); setSortDirPlan('asc') }
+  }
 
   const updateVarieteMut = useMutation({
     mutationFn: ({ pvId, data }: { pvId: number; data: { nb_plantes?: number; taille_pot_l?: number } }) =>
@@ -416,6 +424,24 @@ function PlanTable({ plan }: PlanTableProps) {
   const existingPackIds = plan.varietes.map(v => v.id_packgraine)
   const hasEspace = !!plan.surface_m2
 
+  const sortedVarietes = useMemo(() => {
+    if (!sortColPlan) return plan.varietes
+    return [...plan.varietes].sort((a, b) => {
+      let av: string | number, bv: string | number
+      switch (sortColPlan) {
+        case 'breeder': av = (a.nom_breeder ?? '').toLowerCase(); bv = (b.nom_breeder ?? '').toLowerCase(); break
+        case 'variete': av = (a.nom_variete ?? '').toLowerCase(); bv = (b.nom_variete ?? '').toLowerCase(); break
+        case 'type':    av = a.type_graine ?? '';                 bv = b.type_graine ?? '';                 break
+        case 'flo':     av = a.duree_flo_min ?? 9999;             bv = b.duree_flo_min ?? 9999;             break
+        case 'stock':   av = a.stock_disponible;                  bv = b.stock_disponible;                  break
+        default:        return 0
+      }
+      if (av < bv) return sortDirPlan === 'asc' ? -1 : 1
+      if (av > bv) return sortDirPlan === 'asc' ? 1 : -1
+      return 0
+    })
+  }, [plan.varietes, sortColPlan, sortDirPlan])
+
   return (
     <div className="mt-3 space-y-3">
       {/* Alerte floraison */}
@@ -430,17 +456,28 @@ function PlanTable({ plan }: PlanTableProps) {
       <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
         <table className="w-full text-sm">
           <thead>
-            <tr className="bg-gray-50 dark:bg-gray-700/50 border-b">
-              <th className="px-3 py-2 text-left font-medium text-gray-500 dark:text-gray-400 dark:text-gray-500">Breeder</th>
-              <th className="px-3 py-2 text-left font-medium text-gray-500 dark:text-gray-400 dark:text-gray-500">Variété</th>
-              <th className="px-3 py-2 text-center font-medium text-gray-500 dark:text-gray-400 dark:text-gray-500">Type</th>
-              <th className="px-3 py-2 text-center font-medium text-gray-500 dark:text-gray-400 dark:text-gray-500">Flo (j)</th>
-              <th className="px-3 py-2 text-center font-medium text-gray-500 dark:text-gray-400 dark:text-gray-500">Conserv.</th>
-              <th className="px-3 py-2 text-center font-medium text-gray-500 dark:text-gray-400 dark:text-gray-500">Stock</th>
-              <th className="px-3 py-2 text-center font-medium text-gray-500 dark:text-gray-400 dark:text-gray-500">Nb plantes</th>
-              <th className="px-3 py-2 text-center font-medium text-gray-500 dark:text-gray-400 dark:text-gray-500">Taille pot</th>
+            <tr className="bg-gray-50 dark:bg-gray-700/50 border-b text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+              {([
+                ['breeder', 'Breeder',   'text-left'],
+                ['variete', 'Variété',   'text-left'],
+                ['type',    'Type',      'text-center'],
+                ['flo',     'Flo (j)',   'text-center'],
+                [null,      'Conserv.',  'text-center'],
+                ['stock',   'Stock',     'text-center'],
+                [null,      'Nb plantes','text-center'],
+                [null,      'Taille pot','text-center'],
+              ] as [SortColPlan | null, string, string][]).map(([col, label, align]) => (
+                <th
+                  key={label}
+                  onClick={col ? () => handleSortPlan(col) : undefined}
+                  className={`px-3 py-2 ${align} select-none ${col ? 'cursor-pointer hover:text-gray-700 dark:hover:text-gray-200' : ''}`}
+                >
+                  {label}
+                  {col && <SortIcon col={col as SortCol} current={sortColPlan as SortCol | null} dir={sortDirPlan} />}
+                </th>
+              ))}
               {hasEspace && (
-                <th className="px-3 py-2 text-center font-medium text-gray-500 dark:text-gray-400 dark:text-gray-500">Nb pots</th>
+                <th className="px-3 py-2 text-center">Nb pots</th>
               )}
               <th className="px-3 py-2 w-28"></th>
             </tr>
@@ -456,7 +493,7 @@ function PlanTable({ plan }: PlanTableProps) {
                 </td>
               </tr>
             ) : (
-              plan.varietes.map(pv => {
+              sortedVarietes.map(pv => {
                 const isEditing = editingId === pv.id_plan_variete
                 const nbPots =
                   hasEspace && pv.taille_pot_l

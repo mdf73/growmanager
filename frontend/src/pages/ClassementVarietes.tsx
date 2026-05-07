@@ -1,11 +1,22 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Plus, Trophy, Download, X, Leaf, Wind, FlaskConical, Pencil, Trash2 } from 'lucide-react'
+import { Plus, Trophy, Download, X, Leaf, Wind, FlaskConical, Pencil, Trash2, ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-react'
 import { notationVarieteAPI, NotationRead, NotationCreate, NotationUpdate, ExtractionStatsMap } from '../api/notationVariete'
 import { varieteAPI, Variete } from '../api/varietes'
 import { breederAPI, Breeder } from '../api/breeders'
 import { planCultureAPI, CatalogueItem } from '../api/planCulture'
 import TerpeneMultiSelect, { TerpeneBadges, parseTerpenes } from '../components/TerpeneMultiSelect'
+
+// ── Tri ───────────────────────────────────────────────────────────────────────
+type SortColClassement = 'culture' | 'conso' | 'score'
+type SortDirC = 'asc' | 'desc'
+
+function SortIconC({ col, current, dir }: { col: SortColClassement; current: SortColClassement; dir: SortDirC }) {
+  if (current !== col) return <ChevronsUpDown size={11} className="ml-1 text-gray-400 inline" />
+  return dir === 'asc'
+    ? <ChevronUp size={11} className="ml-1 text-grow-400 inline" />
+    : <ChevronDown size={11} className="ml-1 text-grow-400 inline" />
+}
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -712,6 +723,13 @@ export default function ClassementVarietes() {
   const [editTarget, setEditTarget] = useState<NotationRead | null>(null)
   const [detailTarget, setDetailTarget] = useState<NotationRead | null>(null)
   const [search, setSearch] = useState('')
+  const [sortCol, setSortCol] = useState<SortColClassement>('score')
+  const [sortDir, setSortDir] = useState<SortDirC>('desc')
+
+  const handleSort = (col: SortColClassement) => {
+    if (sortCol === col) setSortDir(d => d === 'asc' ? 'desc' : 'asc')
+    else { setSortCol(col); setSortDir('desc') }
+  }
 
   const { data: notations = [], isLoading } = useQuery({
     queryKey: ['notations'],
@@ -778,11 +796,33 @@ export default function ClassementVarietes() {
     }
   }
 
-  const filtered = notations.filter(
-    n =>
-      n.nom_variete.toLowerCase().includes(search.toLowerCase()) ||
-      (n.breeder ?? '').toLowerCase().includes(search.toLowerCase())
-  )
+  const filtered = useMemo(() => {
+    const base = notations.filter(
+      n =>
+        n.nom_variete.toLowerCase().includes(search.toLowerCase()) ||
+        (n.breeder ?? '').toLowerCase().includes(search.toLowerCase())
+    )
+    return [...base].sort((a, b) => {
+      let av: string | number, bv: string | number
+      switch (sortCol) {
+        case 'culture': av = a.total_culture ?? 0;        bv = b.total_culture ?? 0;        break
+        case 'conso':   av = a.total_consommation ?? 0;   bv = b.total_consommation ?? 0;   break
+        case 'score':   av = a.note_finale ?? 0;          bv = b.note_finale ?? 0;          break
+        default:        return 0
+      }
+      if (av < bv) return sortDir === 'asc' ? -1 : 1
+      if (av > bv) return sortDir === 'asc' ? 1 : -1
+      return 0
+    })
+  }, [notations, search, sortCol, sortDir])
+
+  // Rang fixe basé sur le score global desc — indépendant du tri actif
+  const scoreRankMap = useMemo(() => {
+    const sorted = [...notations].sort((a, b) => (b.note_finale ?? 0) - (a.note_finale ?? 0))
+    const map = new Map<number, number>()
+    sorted.forEach((n, i) => map.set(n.id_notation, i + 1))
+    return map
+  }, [notations])
 
   return (
     <div className="space-y-6">
@@ -836,19 +876,34 @@ export default function ClassementVarietes() {
       ) : (
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border overflow-hidden">
           {/* En-tête tableau */}
-          <div className="hidden sm:grid sm:grid-cols-[56px_1fr_120px_120px_120px] gap-3 px-5 py-3 bg-gray-50 dark:bg-gray-700/50 border-b text-xs font-semibold text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase tracking-wide">
+          <div className="hidden sm:grid sm:grid-cols-[56px_1fr_120px_120px_120px] gap-3 px-5 py-3 bg-gray-50 dark:bg-gray-700/50 border-b text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
             <div className="text-center">#</div>
             <div>Variété</div>
-            <div className="text-center">🌿 Culture</div>
-            <div className="text-center">💨 Conso</div>
-            <div className="text-center">Score</div>
+            <div
+              onClick={() => handleSort('culture')}
+              className="cursor-pointer select-none hover:text-gray-700 dark:hover:text-gray-200 text-center flex items-center justify-center gap-1"
+            >
+              🌿 Culture <SortIconC col="culture" current={sortCol} dir={sortDir} />
+            </div>
+            <div
+              onClick={() => handleSort('conso')}
+              className="cursor-pointer select-none hover:text-gray-700 dark:hover:text-gray-200 text-center flex items-center justify-center gap-1"
+            >
+              💨 Conso <SortIconC col="conso" current={sortCol} dir={sortDir} />
+            </div>
+            <div
+              onClick={() => handleSort('score')}
+              className="cursor-pointer select-none hover:text-gray-700 dark:hover:text-gray-200 text-center flex items-center justify-center gap-1"
+            >
+              Score <SortIconC col="score" current={sortCol} dir={sortDir} />
+            </div>
           </div>
 
           <div className="divide-y">
             {filtered.map((n, i) => {
               const nf = n.note_finale ?? 0
               const pct = nf
-              const isTop = i === 0
+              const isTop = (scoreRankMap.get(n.id_notation) ?? 999) === 1
               const exStat = extractionStats[n.nom_variete]
 
               return (
@@ -861,7 +916,7 @@ export default function ClassementVarietes() {
                 >
                   {/* Mobile layout */}
                   <div className="sm:hidden flex items-center gap-3 px-4 py-3">
-                    <RankBadge rank={i + 1} />
+                    <RankBadge rank={scoreRankMap.get(n.id_notation) ?? i + 1} />
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold text-gray-800 dark:text-gray-100 truncate">{n.nom_variete}</p>
                       <div className="flex flex-wrap items-center gap-1 mt-0.5">
@@ -891,7 +946,7 @@ export default function ClassementVarietes() {
                   {/* Desktop layout */}
                   <div className="hidden sm:grid sm:grid-cols-[56px_1fr_120px_120px_120px] gap-3 items-center px-5 py-4">
                     <div className="flex justify-center">
-                      <RankBadge rank={i + 1} />
+                      <RankBadge rank={scoreRankMap.get(n.id_notation) ?? i + 1} />
                     </div>
 
                     <div className="min-w-0">

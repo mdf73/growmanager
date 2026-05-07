@@ -1,3 +1,5 @@
+declare const __APP_VERSION__: string
+
 import { ReactNode, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import {
@@ -276,7 +278,7 @@ export default function Layout({ children }: LayoutProps) {
       <aside className="hidden lg:flex lg:flex-col w-64 bg-grow-600 text-white">
         <div className="p-6 border-b border-grow-700">
           <h1 className="text-2xl font-bold">GrowManager</h1>
-          <p className="text-sm text-grow-200 mt-1">v0.1.0</p>
+          <p className="text-sm text-grow-200 mt-1">v{__APP_VERSION__}</p>
         </div>
 
         <nav className="flex-1 p-4 overflow-y-auto">

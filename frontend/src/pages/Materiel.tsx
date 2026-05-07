@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   Plus, ArrowUpDown, Pencil, Trash2, Loader2, AlertTriangle,
-  ChevronDown, ChevronRight, Wrench, Euro, Hash, Tag, Wind,
+  ChevronDown, ChevronRight, ChevronUp, ChevronsUpDown, Wrench, Euro, Hash, Tag, Wind,
   Thermometer, Battery, Zap, Droplets, Package,
 } from 'lucide-react'
 import { materielAPI, CATEGORIES } from '../api/materiel'
@@ -380,6 +380,17 @@ function VapoCard({
   )
 }
 
+// ── Tri ───────────────────────────────────────────────────────────────────────
+type SortColMateriel = 'id' | 'nom' | 'marque' | 'code_serial' | 'date_achat' | 'prix' | 'age' | 'etat'
+type SortDirM = 'asc' | 'desc'
+
+function SortIconM({ col, current, dir }: { col: SortColMateriel; current: SortColMateriel | null; dir: SortDirM }) {
+  if (current !== col) return <ChevronsUpDown size={11} className="ml-1 text-gray-300 inline" />
+  return dir === 'asc'
+    ? <ChevronUp size={11} className="ml-1 text-grow-600 inline" />
+    : <ChevronDown size={11} className="ml-1 text-grow-600 inline" />
+}
+
 // ── Page ──────────────────────────────────────────────────────────────────────
 export default function MaterielPage() {
   const qc = useQueryClient()
@@ -394,6 +405,13 @@ export default function MaterielPage() {
   const [viewMode,     setViewMode]     = useState<'liste' | 'groupe'>('liste')
   const [search,       setSearch]       = useState('')
   const [vapoSearch,   setVapoSearch]   = useState('')
+  const [sortCol,      setSortCol]      = useState<SortColMateriel | null>(null)
+  const [sortDir,      setSortDir]      = useState<SortDirM>('asc')
+
+  const handleSort = (col: SortColMateriel) => {
+    if (sortCol === col) setSortDir(d => d === 'asc' ? 'desc' : 'asc')
+    else { setSortCol(col); setSortDir('asc') }
+  }
 
   const { data: items = [], isLoading } = useQuery<Materiel[]>({
     queryKey: ['materiel'],
@@ -422,7 +440,7 @@ export default function MaterielPage() {
 
   // ── Filtrage ──────────────────────────────────────────────────────────────
   const filtered = useMemo(() => {
-    return items.filter(i => {
+    const base = items.filter(i => {
       if (catFilter !== 'all' && i.categorie !== catFilter) return false
       if (etatFilter !== 'all' && (i.etat || '') !== etatFilter) return false
       if (search) {
@@ -435,7 +453,25 @@ export default function MaterielPage() {
       }
       return true
     })
-  }, [items, catFilter, etatFilter, search])
+    if (!sortCol) return base
+    return [...base].sort((a, b) => {
+      let av: string | number, bv: string | number
+      switch (sortCol) {
+        case 'id':         av = a.id_materiel;                   bv = b.id_materiel;                   break
+        case 'nom':        av = a.nom.toLowerCase();             bv = b.nom.toLowerCase();             break
+        case 'marque':     av = (a.marque ?? '').toLowerCase();  bv = (b.marque ?? '').toLowerCase();  break
+        case 'code_serial': av = (a.code_barre_serial ?? '').toLowerCase(); bv = (b.code_barre_serial ?? '').toLowerCase(); break
+        case 'date_achat': av = a.date_achat ?? '';              bv = b.date_achat ?? '';              break
+        case 'prix':       av = Number(a.prix_achat ?? -1);      bv = Number(b.prix_achat ?? -1);      break
+        case 'age':        av = a.age_jours ?? 0;                bv = b.age_jours ?? 0;                break
+        case 'etat':       av = a.etat ?? '';                    bv = b.etat ?? '';                    break
+        default:           return 0
+      }
+      if (av < bv) return sortDir === 'asc' ? -1 : 1
+      if (av > bv) return sortDir === 'asc' ? 1 : -1
+      return 0
+    })
+  }, [items, catFilter, etatFilter, search, sortCol, sortDir])
 
   // ── Groupement (vue groupée) ───────────────────────────────────────────────
   const grouped = useMemo(() => {
@@ -573,15 +609,31 @@ export default function MaterielPage() {
                 <tr className="bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-700 text-xs font-semibold text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase tracking-wide">
                   {viewMode === 'liste' ? (
                     <>
-                      <th className="px-3 py-2.5 text-left">#</th>
-                      <th className="px-3 py-2.5 text-left">Nom</th>
-                      <th className="px-3 py-2.5 text-left">Marque</th>
-                      <th className="px-3 py-2.5 text-left">Code / S/N</th>
-                      <th className="px-3 py-2.5 text-left">Date achat</th>
-                      <th className="px-3 py-2.5 text-right">Prix</th>
-                      <th className="px-3 py-2.5 text-left">Âge</th>
-                      <th className="px-3 py-2.5 text-left">Caractéristiques</th>
-                      <th className="px-3 py-2.5 text-left">État</th>
+                      <th
+                        onClick={() => handleSort('id')}
+                        className="px-3 py-2.5 text-left cursor-pointer select-none hover:text-gray-700 dark:hover:text-gray-200"
+                      >
+                        #<SortIconM col="id" current={sortCol} dir={sortDir} />
+                      </th>
+                      {([
+                        ['nom',        'Nom',             'text-left'],
+                        ['marque',     'Marque',          'text-left'],
+                        ['code_serial', 'Code / S/N',      'text-left'],
+                        ['date_achat', 'Date achat',      'text-left'],
+                        ['prix',       'Prix',            'text-right'],
+                        ['age',        'Âge',             'text-left'],
+                        [null,         'Caractéristiques','text-left'],
+                        ['etat',       'État',            'text-left'],
+                      ] as [SortColMateriel | null, string, string][]).map(([col, label, align]) => (
+                        <th
+                          key={label}
+                          onClick={col ? () => handleSort(col) : undefined}
+                          className={`px-3 py-2.5 ${align} select-none ${col ? 'cursor-pointer hover:text-gray-700 dark:hover:text-gray-200' : ''}`}
+                        >
+                          {label}
+                          {col && <SortIconM col={col} current={sortCol} dir={sortDir} />}
+                        </th>
+                      ))}
                       <th className="px-3 py-2.5"></th>
                     </>
                   ) : (

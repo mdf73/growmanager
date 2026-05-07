@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   Plus, Search, Pencil, Trash2, Loader2, AlertTriangle,
   ArrowDownUp, AlertCircle, Beaker, PackagePlus,
+  ChevronUp, ChevronDown, ChevronsUpDown,
 } from 'lucide-react'
 import { engraisAPI, ProduitEngrais } from '../api/engrais'
 import LoadingSpinner from '../components/LoadingSpinner'
@@ -57,6 +58,17 @@ function isLowStock(item: ProduitEngrais): boolean {
   const stockBase = toBase(item.quantite_stock,         item.unite_quantite)
   if (condBase === 0) return false
   return stockBase < condBase * 0.1
+}
+
+// ── Tri ───────────────────────────────────────────────────────────────────────
+type SortColEngrais = 'nom_produit' | 'type_produit' | 'quantite_stock' | 'valeur' | 'date_achat' | 'date_peremption'
+type SortDir = 'asc' | 'desc'
+
+function SortIcon({ col, current, dir }: { col: SortColEngrais; current: SortColEngrais | null; dir: SortDir }) {
+  if (current !== col) return <ChevronsUpDown size={11} className="ml-1 text-gray-300 inline" />
+  return dir === 'asc'
+    ? <ChevronUp size={11} className="ml-1 text-grow-600 inline" />
+    : <ChevronDown size={11} className="ml-1 text-grow-600 inline" />
 }
 
 // ── Badges type ───────────────────────────────────────────────────────────────
@@ -228,6 +240,13 @@ export default function SolsEngraisPage() {
   const [editProduit,      setEditProduit]      = useState<ProduitEngrais | null>(null)
   const [gestionStockProd, setGestionStockProd] = useState<ProduitEngrais | null>(null)
   const [showImportExport, setShowImportExport] = useState(false)
+  const [sortCol,          setSortCol]          = useState<SortColEngrais | null>(null)
+  const [sortDir,          setSortDir]          = useState<SortDir>('asc')
+
+  const handleSort = (col: SortColEngrais) => {
+    if (sortCol === col) setSortDir(d => d === 'asc' ? 'desc' : 'asc')
+    else { setSortCol(col); setSortDir('asc') }
+  }
 
   const { data: produits = [], isLoading } = useQuery<ProduitEngrais[]>({
     queryKey: ['engrais'],
@@ -236,14 +255,30 @@ export default function SolsEngraisPage() {
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase()
-    return produits.filter(p => {
+    const base = produits.filter(p => {
       const matchSearch = p.nom_produit.toLowerCase().includes(q)
         || (p.marque ?? '').toLowerCase().includes(q)
         || (p.dosage_conseille ?? '').toLowerCase().includes(q)
       const matchType = !typeFilter || p.type_produit === typeFilter
       return matchSearch && matchType
     })
-  }, [produits, search, typeFilter])
+    if (!sortCol) return base
+    return [...base].sort((a, b) => {
+      let av: string | number, bv: string | number
+      switch (sortCol) {
+        case 'nom_produit':    av = a.nom_produit.toLowerCase();    bv = b.nom_produit.toLowerCase();    break
+        case 'type_produit':   av = a.type_produit ?? '';           bv = b.type_produit ?? '';           break
+        case 'quantite_stock': av = Number(a.quantite_stock ?? -1); bv = Number(b.quantite_stock ?? -1); break
+        case 'valeur':         av = prixResiduel(a) ?? -1;          bv = prixResiduel(b) ?? -1;          break
+        case 'date_achat':     av = a.date_achat ?? '';             bv = b.date_achat ?? '';             break
+        case 'date_peremption':av = a.date_peremption ?? '';        bv = b.date_peremption ?? '';        break
+        default:               return 0
+      }
+      if (av < bv) return sortDir === 'asc' ? -1 : 1
+      if (av > bv) return sortDir === 'asc' ? 1 : -1
+      return 0
+    })
+  }, [produits, search, typeFilter, sortCol, sortDir])
 
   const stats = useMemo(() => {
     const nbTotal    = produits.length
@@ -366,9 +401,24 @@ export default function SolsEngraisPage() {
             <table className="w-full text-sm">
               <thead className="bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-700">
                 <tr>
-                  {['Produit', 'Type', 'Conditionnement', 'Stock', 'Valeur stock', 'Date achat', 'Péremption', 'Dosage conseillé', ''].map(h => (
-                    <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase tracking-wide whitespace-nowrap">
-                      {h}
+                  {([
+                    ['nom_produit',     'Produit'],
+                    ['type_produit',    'Type'],
+                    [null,              'Conditionnement'],
+                    ['quantite_stock',  'Stock'],
+                    ['valeur',          'Valeur stock'],
+                    ['date_achat',      'Date achat'],
+                    ['date_peremption', 'Péremption'],
+                    [null,              'Dosage conseillé'],
+                    [null,              ''],
+                  ] as [SortColEngrais | null, string][]).map(([col, label]) => (
+                    <th
+                      key={label}
+                      onClick={col ? () => handleSort(col) : undefined}
+                      className={`px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide whitespace-nowrap select-none ${col ? 'cursor-pointer hover:text-gray-700 dark:hover:text-gray-200' : ''}`}
+                    >
+                      {label}
+                      {col && <SortIcon col={col} current={sortCol} dir={sortDir} />}
                     </th>
                   ))}
                 </tr>
