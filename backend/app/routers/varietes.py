@@ -2,7 +2,10 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.database import get_db
-from app.models import Variete
+from app.models import (
+    Variete, Graine, Stock,
+    Croisement, Pollen, HistoriquePlant, HashExtraction,
+)
 from app.schemas.variete import VarieteCreate, VarieteRead
 
 router = APIRouter(prefix="/api/varietes", tags=["varietes"])
@@ -59,10 +62,47 @@ def update_variete(
 
 @router.delete("/{variete_id}")
 def delete_variete(variete_id: int, db: Session = Depends(get_db)):
-    """Supprime une variété"""
+    """Supprime une variété en gérant proprement les FK dépendantes."""
     db_variete = db.query(Variete).filter(Variete.id_variete == variete_id).first()
     if not db_variete:
         raise HTTPException(status_code=404, detail="Variété non trouvée")
+
+    # ── FK non-nullables : bloquer si des enregistrements existent ────────────
+    nb_graines = db.query(Graine).filter(Graine.id_variete == variete_id).count()
+    if nb_graines:
+        raise HTTPException(
+            status_code=409,
+            detail=f"Impossible de supprimer : {nb_graines} graine(s) référencent cette variété. "
+                   "Supprimez ou réassignez-les d'abord.",
+        )
+
+    nb_stocks = db.query(Stock).filter(Stock.id_variete == variete_id).count()
+    if nb_stocks:
+        raise HTTPException(
+            status_code=409,
+            detail=f"Impossible de supprimer : {nb_stocks} entrée(s) de stock référencent cette variété. "
+                   "Supprimez ou réassignez-les d'abord.",
+        )
+
+    # ── FK nullables : mettre à NULL avant suppression ────────────────────────
+    db.query(Croisement).filter(Croisement.id_variete_mere == variete_id).update(
+        {Croisement.id_variete_mere: None}, synchronize_session=False
+    )
+    db.query(Croisement).filter(Croisement.id_variete_pere == variete_id).update(
+        {Croisement.id_variete_pere: None}, synchronize_session=False
+    )
+    db.query(Croisement).filter(Croisement.id_variete_resultat == variete_id).update(
+        {Croisement.id_variete_resultat: None}, synchronize_session=False
+    )
+    db.query(Pollen).filter(Pollen.id_variete_source == variete_id).update(
+        {Pollen.id_variete_source: None}, synchronize_session=False
+    )
+    db.query(HistoriquePlant).filter(HistoriquePlant.id_variete == variete_id).update(
+        {HistoriquePlant.id_variete: None}, synchronize_session=False
+    )
+    db.query(HashExtraction).filter(HashExtraction.id_variete == variete_id).update(
+        {HashExtraction.id_variete: None}, synchronize_session=False
+    )
 
     db.delete(db_variete)
     db.commit()

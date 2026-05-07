@@ -1,5 +1,6 @@
-feat: gestion de version — CHANGELOG + bump-version.bat
+fix: suppression variété bloquée par FK Croisement.id_variete_resultat (#1451)
 
-- CHANGELOG.md créé (Keep a Changelog, historique complet v0.1.0)
-- bump-version.bat : script interactif patch/minor/major (npm version --no-git-tag-version)
-- wiki/log.md mis à jour
+- DELETE /api/varietes/{id} : mise à NULL des FK nullables avant suppression
+  (Croisement ×3, Pollen, HistoriquePlant, HashExtraction)
+- Vérifications bloquantes 409 si Graine ou Stock référencent la variété
+- Wiki api/graines.md + log.md mis à jour
