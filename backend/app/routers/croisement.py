@@ -222,9 +222,6 @@ def finaliser_recolte(croisement_id: int, data: RecolteGrainesInput, db: Session
     if not c:
         raise HTTPException(404, "Croisement non trouvé")
 
-    print(f"[DEBUG RECOLTE PAYLOAD] id={croisement_id} nb={data.nb_graines} variete={data.nom_variete_resultat!r} breeder_id={data.id_breeder} breeder_new={data.nom_breeder_nouveau!r} type={data.types_graines!r} creer_v={data.creer_variete} creer_p={data.creer_packgraine}", flush=True)
-    print(f"[DEBUG RECOLTE STATE] c.id_variete_resultat={c.id_variete_resultat} c.id_packgraine_resultat={c.id_packgraine_resultat}", flush=True)
-
     c.date_recolte_graines = data.date_recolte_graines
     c.nb_graines = data.nb_graines
     c.qualite_graines = data.qualite_graines

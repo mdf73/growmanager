@@ -11,7 +11,7 @@ from app.services.govee_poller import start_poller
 app = FastAPI(
     title="GrowManager API",
     description="API pour la gestion de cultures de cannabis",
-    version="0.1.0",
+    version="1.0.0",
 )
 
 # Configuration CORS pour le développement
@@ -278,7 +278,7 @@ def read_root():
     """Endpoint racine"""
     return {
         "message": "Bienvenue sur l'API GrowManager",
-        "version": "0.1.0",
+        "version": "1.0.0",
         "docs": "/docs",
     }
 

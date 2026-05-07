@@ -17,6 +17,19 @@ Versioning : [Semantic Versioning](https://semver.org/lang/fr/) — `MAJOR.MINOR
 
 ---
 
+## [1.0.0] — 2026-05-07
+
+Première version stable. Audit complet et correction de tous les bugs latents avant release.
+
+### Corrigé
+
+- Page Recettes Arrosage orpheline : route `/recettes/arrosage` ajoutée dans App.tsx et entrée nav ajoutée dans Layout.tsx (page, API, backend et modal existaient mais n'étaient pas accessibles via l'UI)
+- Label nav trompeur : `/recettes/schemas-engrais` était affiché "Arrosages" — renommé en "Schémas d'engrais"
+- Suppression de 3 `print()` de debug laissés dans `croisement.py` et `graines.py`
+- Variable morte `thumb_path_rel` supprimée dans `photos.py` (bloc `except` de l'upload)
+
+---
+
 ## [0.1.0] — 2026-05-07
 
 Version initiale publique. MVP complet avec toutes les features V3.
@@ -78,5 +91,6 @@ Version initiale publique. MVP complet avec toutes les features V3.
 ---
 
 <!-- Liens de comparaison (à renseigner avec l'URL GitHub) -->
-[Unreleased]: https://github.com/mdf73/growmanager/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/mdf73/growmanager/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/mdf73/growmanager/compare/v0.1.0...v1.0.0
 [0.1.0]: https://github.com/mdf73/growmanager/releases/tag/v0.1.0

@@ -1,6 +1,11 @@
-fix: suppression variété bloquée par FK Croisement.id_variete_resultat (#1451)
+chore: bump to v1.0.0 — audit complet + corrections bugs latents
 
-- DELETE /api/varietes/{id} : mise à NULL des FK nullables avant suppression
-  (Croisement ×3, Pollen, HistoriquePlant, HashExtraction)
-- Vérifications bloquantes 409 si Graine ou Stock référencent la variété
-- Wiki api/graines.md + log.md mis à jour
+Bugs corrigés :
+- RecettesArrosage : page/API/backend existaient mais aucune route dans App.tsx ni
+  entrée dans la nav → route /recettes/arrosage ajoutée + entrée nav ajoutée
+- Label nav trompeur : /recettes/schemas-engrais affiché "Arrosages" → renommé
+  "Schémas d'engrais" (Arrosages est maintenant le bon label pour /recettes/arrosage)
+- Suppression de 3 print() de debug dans croisement.py et graines.py
+- Variable morte thumb_path_rel supprimée dans photos.py
+
+Version : 0.1.0 → 1.0.0 (frontend/package.json, backend/main.py, CHANGELOG.md)

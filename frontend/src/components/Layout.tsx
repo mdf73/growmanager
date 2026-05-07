@@ -80,7 +80,8 @@ const navItems: NavItem[] = [
         label: 'Recettes',
         icon: NotebookPen,
         children: [
-          { path: '/recettes/schemas-engrais', label: 'Arrosages',                    icon: Droplets },
+          { path: '/recettes/arrosage',        label: 'Arrosages',                    icon: Droplets },
+          { path: '/recettes/schemas-engrais', label: 'Schémas d\'engrais',            icon: FlaskConical },
           { path: '/recettes/tco',             label: 'Thés de Compost (TCO)',         emoji: '🍵' },
           { path: '/recettes/lso',             label: 'Living Soil Organique (LSO)',   emoji: '🌿' },
           { path: '/recettes/reamendement',    label: 'Réamendement sols',             emoji: '🪱' },

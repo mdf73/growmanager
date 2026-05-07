@@ -16,6 +16,7 @@ import RecettesTCO from './pages/RecettesTCO'
 import RecettesLSO from './pages/RecettesLSO'
 import RecettesReamendement from './pages/RecettesReamendement'
 import RecettesFermentation from './pages/RecettesFermentation'
+import RecettesArrosage from './pages/RecettesArrosage'
 import SuiviSolsVivants from './pages/SuiviSolsVivants'
 import EspacesCulture from './pages/EspacesCulture'
 import SechageCuring from './pages/SechageCuring'
@@ -46,6 +47,7 @@ function App() {
           <Route path="/recettes/lso" element={<RecettesLSO />} />
           <Route path="/recettes/reamendement" element={<RecettesReamendement />} />
           <Route path="/recettes/fermentation" element={<RecettesFermentation />} />
+          <Route path="/recettes/arrosage" element={<RecettesArrosage />} />
           <Route path="/suivi-sols-vivants" element={<SuiviSolsVivants />} />
           <Route path="/espaces-culture" element={<EspacesCulture />} />
           <Route path="/sechage-curing" element={<SechageCuring />} />

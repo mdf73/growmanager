@@ -305,8 +305,6 @@ def get_catalogue(db: Session = Depends(get_db)):
         if first_graine:
             breeder = db.query(Breeder).filter(Breeder.id_breeder == first_graine.id_breeder).first() if first_graine.id_breeder else None
             variete = db.query(Variete).filter(Variete.id_variete == first_graine.id_variete).first() if first_graine.id_variete else None
-            if pack.id_packgraine >= 130:  # debug packs récents
-                print(f"[DEBUG CATALOGUE] pack={pack.id_packgraine} nbr_graines={pack.nbr_graines} remaining={remaining} graine.id_variete={first_graine.id_variete} variete_nom={variete.nom_variete if variete else 'None'} breeder_nom={breeder.nom_breeder if breeder else 'None'}", flush=True)
             catalogue.append(CatalogueItem(
                 id_packgraine=pack.id_packgraine,
                 id_fournisseur=pack.id_fournisseur,

@@ -145,7 +145,6 @@ async def upload_photo(
         import shutil
         shutil.copy(src_path, dest_path)
         meta = {"taille_ko": len(content) // 1024, "largeur_px": None, "hauteur_px": None}
-        thumb_path_rel = None
     finally:
         if os.path.exists(src_path):
             os.remove(src_path)
