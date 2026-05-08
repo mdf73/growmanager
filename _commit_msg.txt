@@ -1,11 +1,10 @@
-chore: bump to v1.0.0 — audit complet + corrections bugs latents
+feat(culture): sélecteur de graines en stock pour ajout de plante
 
-Bugs corrigés :
-- RecettesArrosage : page/API/backend existaient mais aucune route dans App.tsx ni
-  entrée dans la nav → route /recettes/arrosage ajoutée + entrée nav ajoutée
-- Label nav trompeur : /recettes/schemas-engrais affiché "Arrosages" → renommé
-  "Schémas d'engrais" (Arrosages est maintenant le bon label pour /recettes/arrosage)
-- Suppression de 3 print() de debug dans croisement.py et graines.py
-- Variable morte thumb_path_rel supprimée dans photos.py
-
-Version : 0.1.0 → 1.0.0 (frontend/package.json, backend/main.py, CHANGELOG.md)
+- Remplace le formulaire texte libre par un panneau de sélection
+- Liste les packs de graines avec nbr_graines_restantes > 0 (GET /catalogue)
+- Barre de recherche filtrante (breeder + variété)
+- Badge vert/orange selon le stock restant
+- Bouton + par ligne : récupère la première graine dispo du pack,
+  crée la plante avec id_graine associé
+- Invalide le cache catalogue après ajout
+- Wiki mis à jour : features/plant-lifecycle.md

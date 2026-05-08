@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
-import { Leaf, Edit2, Check, X, Plus, Trash2, AlertTriangle, ArrowRightLeft } from 'lucide-react'
+import { Leaf, Edit2, Check, X, Plus, Trash2, AlertTriangle, ArrowRightLeft, Sprout, Search } from 'lucide-react'
 import { Plant, plantAPI, PlantUpdate, cultureUtilsAPI, PotItem, RecetteSolItem } from '../../api/cultures'
+import { catalogueAPI, packCompletAPI, CatalogueItem } from '../../api/graines'
 import TransfertPlantModal from './TransfertPlantModal'
 
 const STATUT_COLORS: Record<string, string> = {
@@ -46,8 +47,9 @@ interface Props {
 export default function PlantesTab({ cultureId, plants }: Props) {
   const [editingId, setEditingId] = useState<number | null>(null)
   const [editValues, setEditValues] = useState<PlantUpdate>({})
-  const [showAddForm, setShowAddForm] = useState(false)
-  const [newPlantName, setNewPlantName] = useState('')
+  const [showSeedPicker, setShowSeedPicker] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [addingPackId, setAddingPackId] = useState<number | null>(null)
   const [transferPlant, setTransferPlant] = useState<Plant | null>(null)
   const qc = useQueryClient()
 
@@ -61,6 +63,12 @@ export default function PlantesTab({ cultureId, plants }: Props) {
     queryFn: async () => (await cultureUtilsAPI.getRecettesSol()).data,
   })
 
+  const { data: catalogue = [], isLoading: catalogueLoading } = useQuery<CatalogueItem[]>({
+    queryKey: ['catalogue'],
+    queryFn: async () => (await catalogueAPI.get()).data,
+    enabled: showSeedPicker,
+  })
+
   const updatePlant = useMutation({
     mutationFn: ({ plantId, data }: { plantId: number; data: PlantUpdate }) =>
       plantAPI.update(cultureId, plantId, data),
@@ -70,19 +78,28 @@ export default function PlantesTab({ cultureId, plants }: Props) {
     },
   })
 
-  const addPlant = useMutation({
-    mutationFn: (nom: string) =>
-      plantAPI.add(cultureId, {
-        nom_affichage: nom,
+  const addFromPack = useMutation({
+    mutationFn: async (pack: CatalogueItem) => {
+      setAddingPackId(pack.id_packgraine)
+      // Récupère les graines de ce pack et prend la première disponible
+      const res = await packCompletAPI.getGraines(pack.id_packgraine)
+      const available = res.data.filter(g => !g.utilisee)
+      if (available.length === 0) throw new Error('Plus de graines disponibles')
+      const graine = available[0]
+      return plantAPI.add(cultureId, {
+        nom_affichage: pack.variete_nom,
         origine: 'graine',
         statut: 'germination',
         numero_plant: plants.length + 1,
-      } as Omit<Plant, 'id_plant' | 'id_culture'>),
+        id_graine: graine.id_graine,
+      } as Omit<Plant, 'id_plant' | 'id_culture'>)
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['culture', cultureId] })
-      setNewPlantName('')
-      setShowAddForm(false)
+      qc.invalidateQueries({ queryKey: ['catalogue'] })
+      setAddingPackId(null)
     },
+    onError: () => setAddingPackId(null),
   })
 
   const deletePlant = useMutation({
@@ -123,44 +140,54 @@ export default function PlantesTab({ cultureId, plants }: Props) {
 
       {/* Header with add button */}
       <div className="flex items-center justify-between">
-        <span className="text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500">{plants.length} plante{plants.length > 1 ? 's' : ''}</span>
+        <span className="text-sm text-gray-500 dark:text-gray-400">{plants.length} plante{plants.length > 1 ? 's' : ''}</span>
         <button
-          onClick={() => setShowAddForm(v => !v)}
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-grow-600 text-white rounded-lg text-xs hover:bg-grow-700"
+          onClick={() => { setShowSeedPicker(v => !v); setSearchQuery('') }}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs transition-colors ${
+            showSeedPicker
+              ? 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200'
+              : 'bg-grow-600 text-white hover:bg-grow-700'
+          }`}
         >
-          <Plus size={13} /> Ajouter une plante
+          {showSeedPicker ? <X size={13} /> : <Plus size={13} />}
+          {showSeedPicker ? 'Fermer' : 'Ajouter une plante'}
         </button>
       </div>
 
-      {/* Add plant inline form */}
-      {showAddForm && (
-        <div className="bg-grow-50 border border-grow-200 rounded-xl p-3 flex items-center gap-2">
-          <input
-            autoFocus
-            type="text"
-            placeholder="Nom de la plante (ex: OG Kush #4)"
-            value={newPlantName}
-            onChange={e => setNewPlantName(e.target.value)}
-            onKeyDown={e => {
-              if (e.key === 'Enter' && newPlantName.trim()) addPlant.mutate(newPlantName.trim())
-              if (e.key === 'Escape') setShowAddForm(false)
-            }}
-            className="flex-1 px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-grow-500 focus:border-transparent"
+      {/* Seed picker panel */}
+      {showSeedPicker && (
+        <div className="border border-grow-200 dark:border-grow-800 rounded-xl overflow-hidden">
+          {/* Search bar */}
+          <div className="flex items-center gap-2 px-3 py-2 bg-grow-50 dark:bg-grow-900/20 border-b border-grow-200 dark:border-grow-800">
+            <Search size={14} className="text-grow-500 flex-shrink-0" />
+            <input
+              autoFocus
+              type="text"
+              placeholder="Rechercher une variété…"
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              className="flex-1 bg-transparent text-sm outline-none placeholder-gray-400 dark:placeholder-gray-500 text-gray-800 dark:text-gray-100"
+            />
+            {searchQuery && (
+              <button onClick={() => setSearchQuery('')} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                <X size={13} />
+              </button>
+            )}
+          </div>
+
+          {/* Seed list */}
+          <SeedList
+            catalogue={catalogue}
+            loading={catalogueLoading}
+            searchQuery={searchQuery}
+            addingPackId={addingPackId}
+            isPending={addFromPack.isPending}
+            onAdd={pack => addFromPack.mutate(pack)}
           />
-          <button
-            onClick={() => { if (newPlantName.trim()) addPlant.mutate(newPlantName.trim()) }}
-            disabled={!newPlantName.trim() || addPlant.isPending}
-            className="px-3 py-1.5 bg-grow-600 text-white rounded-lg text-xs hover:bg-grow-700 disabled:opacity-50"
-          >
-            <Check size={13} />
-          </button>
-          <button onClick={() => setShowAddForm(false)} className="px-2 py-1.5 text-gray-500 dark:text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:text-gray-200">
-            <X size={13} />
-          </button>
         </div>
       )}
 
-      {plants.length === 0 && !showAddForm && (
+      {plants.length === 0 && !showSeedPicker && (
         <div className="text-center py-12 text-gray-400 dark:text-gray-500">
           <Leaf size={40} className="mx-auto mb-3 opacity-30" />
           <p>Aucune plante dans cette culture</p>
@@ -210,6 +237,94 @@ export default function PlantesTab({ cultureId, plants }: Props) {
           </div>
         </section>
       )}
+    </div>
+  )
+}
+
+function SeedList({
+  catalogue, loading, searchQuery, addingPackId, isPending, onAdd
+}: {
+  catalogue: CatalogueItem[]
+  loading: boolean
+  searchQuery: string
+  addingPackId: number | null
+  isPending: boolean
+  onAdd: (pack: CatalogueItem) => void
+}) {
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-8 text-gray-400 text-sm gap-2 bg-white dark:bg-gray-800">
+        <Sprout size={16} className="animate-pulse" /> Chargement…
+      </div>
+    )
+  }
+
+  const available = catalogue.filter(p => p.nbr_graines_restantes > 0)
+
+  if (available.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-8 text-gray-400 dark:text-gray-500 text-sm gap-2 bg-white dark:bg-gray-800">
+        <Sprout size={24} className="opacity-40" />
+        <span>Aucune graine en stock</span>
+      </div>
+    )
+  }
+
+  const filtered = searchQuery.trim()
+    ? available.filter(p =>
+        `${p.breeder_nom} ${p.variete_nom}`.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : available
+
+  if (filtered.length === 0) {
+    return (
+      <div className="py-6 text-center text-sm text-gray-400 dark:text-gray-500 bg-white dark:bg-gray-800">
+        Aucune variété ne correspond à « {searchQuery} »
+      </div>
+    )
+  }
+
+  return (
+    <div className="max-h-64 overflow-y-auto divide-y divide-gray-100 dark:divide-gray-700/60 bg-white dark:bg-gray-800">
+      {filtered.map(pack => {
+        const isAdding = addingPackId === pack.id_packgraine
+        return (
+          <div
+            key={pack.id_packgraine}
+            className="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 dark:hover:bg-gray-700/40 transition-colors"
+          >
+            <Leaf size={13} className="text-grow-500 flex-shrink-0" />
+            <div className="flex-1 min-w-0">
+              <span className="text-sm font-medium text-gray-800 dark:text-gray-100 truncate block">
+                {pack.variete_nom}
+              </span>
+              <span className="text-xs text-gray-500 dark:text-gray-400">
+                {pack.breeder_nom}
+                {pack.duree_flo_min ? ` · ${pack.duree_flo_min}${pack.duree_flo_max ? `–${pack.duree_flo_max}` : ''} sem` : ''}
+              </span>
+            </div>
+            <span className={`text-xs px-2 py-0.5 rounded-full flex-shrink-0 font-medium ${
+              pack.nbr_graines_restantes === 1
+                ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400'
+                : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+            }`}>
+              {pack.nbr_graines_restantes} graine{pack.nbr_graines_restantes > 1 ? 's' : ''}
+            </span>
+            <button
+              onClick={() => onAdd(pack)}
+              disabled={isAdding || isPending}
+              title={`Ajouter une plante — ${pack.variete_nom}`}
+              className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-full bg-grow-600 text-white hover:bg-grow-700 disabled:opacity-50 transition-colors"
+            >
+              {isAdding ? (
+                <span className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <Plus size={14} />
+              )}
+            </button>
+          </div>
+        )
+      })}
     </div>
   )
 }
