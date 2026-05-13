@@ -1,13 +1,14 @@
 declare const __APP_VERSION__: string
 
-import { ReactNode, useState } from 'react'
+import { ReactNode, useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import {
   Menu, X, Home, Sprout, Leaf, Package, Beaker,
   BookOpen, Wrench, Settings, BarChart2, FlaskConical,
   ChevronDown, ChevronRight, NotebookPen, Boxes, Wind, Dna, Droplets, Thermometer, ClipboardList, Trophy, Cigarette,
-  Moon, Sun,
+  Moon, Sun, Search,
 } from 'lucide-react'
+import GlobalSearch from './GlobalSearch'
 import clsx from 'clsx'
 import { useDarkMode } from '../hooks/useDarkMode'
 
@@ -230,8 +231,21 @@ function NavGroup({
 // ── Layout principal ──────────────────────────────────────────────────────────
 export default function Layout({ children }: LayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [searchOpen, setSearchOpen] = useState(false)
   const location = useLocation()
   const { isDark, toggle: toggleDark } = useDarkMode()
+
+  // Ctrl+K / Cmd+K → ouvrir la recherche globale
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault()
+        setSearchOpen(prev => !prev)
+      }
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [])
 
   const renderNav = (closeSidebar?: () => void) =>
     navItems.map((item, i) => {
@@ -280,6 +294,16 @@ export default function Layout({ children }: LayoutProps) {
         <div className="p-6 border-b border-grow-700">
           <h1 className="text-2xl font-bold">GrowManager</h1>
           <p className="text-sm text-grow-200 mt-1">v{__APP_VERSION__}</p>
+          {/* Bouton recherche globale */}
+          <button
+            onClick={() => setSearchOpen(true)}
+            className="mt-3 w-full flex items-center gap-2 px-3 py-2 rounded-lg bg-grow-700/60 hover:bg-grow-700 text-grow-200 hover:text-white transition-colors text-sm"
+            title="Recherche globale (Ctrl+K)"
+          >
+            <Search size={14} />
+            <span className="flex-1 text-left">Rechercher…</span>
+            <kbd className="text-xs opacity-60 font-mono">Ctrl+K</kbd>
+          </button>
         </div>
 
         <nav className="flex-1 p-4 overflow-y-auto">
@@ -333,6 +357,13 @@ export default function Layout({ children }: LayoutProps) {
             <h1 className="text-lg font-bold text-grow-600 dark:text-grow-400">GrowManager</h1>
             <div className="flex items-center gap-2">
               <button
+                onClick={() => setSearchOpen(true)}
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-gray-500 dark:text-gray-400 transition-colors"
+                title="Recherche globale"
+              >
+                <Search size={20} />
+              </button>
+              <button
                 onClick={toggleDark}
                 className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-gray-500 dark:text-gray-400 dark:text-gray-500 transition-colors"
               >
@@ -354,6 +385,9 @@ export default function Layout({ children }: LayoutProps) {
             {children}
           </div>
         </main>
+
+        {/* Palette Recherche Globale */}
+        {searchOpen && <GlobalSearch onClose={() => setSearchOpen(false)} />}
 
         {/* Bottom Navigation Mobile */}
         <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">

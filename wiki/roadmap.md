@@ -27,7 +27,7 @@ Source : `Documentation/GrowManager_Specifications_v4.docx` + `Documentation/gro
 | H | Rappels bocaux / burping | ✅ DONE | `GET /api/dashboard/burping-reminders` · `ModuleBurping` Dashboard · fréquences alignées sur SechageCuring.tsx (1j/3j/7j/14j) · conditionnel si aucune session |
 | I | QR codes / étiquettes | ❌ À faire | Pas de lib QR |
 | J | Déduction stock engrais | ✅ DONE | Déjà implémenté dans cultures.py (lignes 455–489) — recette + liste manuelle |
-| K | Recherche globale | ❌ À faire | Pas de router `/search`, pas de Ctrl+K |
+| K | Recherche globale | ✅ DONE | `GET /api/search` · `GlobalSearch.tsx` · Ctrl+K · validé 2026-05-13 |
 | L | Export PDF fiche culture | ❌ À faire | WeasyPrint non installé |
 | M | PPFD / DLI | ✅ DONE | Widget StatsTab — PPFD + DLI + photopériode auto · cibles veg/floraison · alerte si surface manquante |
 
@@ -46,7 +46,7 @@ Source : `Documentation/GrowManager_Specifications_v4.docx` + `Documentation/gro
 
 **Sprint 3 — Features riches**
 7. ✅ **F** Traçabilité bocal → graine — `GET /api/materiel/{id}/bocal-timeline` · `BocalTimelineDrawer.tsx` · bouton "🔍 Origine" SechageCuring · `GET /api/stock/{id}/origine` · `StockOriginDrawer.tsx` · clic ligne Stock · `id_plant` FK + plant picker NouveauStockModal · `GET /api/cultures/plants-by-variete/{id}` · validé 2026-05-13
-8. **K** Recherche globale — `GET /api/search`, palette Ctrl+K frontend, résultats groupés
+8. ✅ **K** Recherche globale — `GET /api/search?q=` (cultures, plantes, variétés, breeders, stock) · `GlobalSearch.tsx` palette · Ctrl+K shortcut · bouton sidebar desktop + header mobile · navigation clavier ↑↓↵ · validé 2026-05-13
 9. **D** Vue calendrier global — page mensuelle, toutes cultures, tous événements
 
 **Sprint 4 — Features lourdes**

@@ -1,5 +1,14 @@
-feat(graines): tri alphabétique par défaut — breeder A→Z puis variété A→Z
+feat: V4-K recherche globale Ctrl+K
 
-- Graines.tsx : useMemo filtered — quand sortCol est null, applique
-  localeCompare(fr) sur breeder_nom puis variete_nom
-- Wiki log + frontend/pages.md mis à jour
+- backend/app/routers/search.py : GET /api/search?q= → résultats groupés
+  (cultures, plantes, variétés, breeders, stock actif) · prefix /api/search
+- backend/app/main.py : enregistrement du router search
+- frontend/src/api/search.ts : searchAPI.search(q)
+- frontend/src/components/GlobalSearch.tsx : palette modale, navigation
+  clavier ↑↓↵, debounce 250ms, backdrop blur, résultats groupés par catégorie
+- frontend/src/components/Layout.tsx : Ctrl+K listener + bouton sidebar
+  desktop + bouton header mobile + rendu GlobalSearch
+
+fix: prefix router corrigé /search → /api/search
+
+Wiki roadmap mis à jour : K → ✅ DONE
