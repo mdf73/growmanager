@@ -63,6 +63,7 @@ Searchable/sortable archive of past grow cycles. Shows date, varieties, plant co
 ### Graines (`/graines`)
 Seed catalogue management.
 - Searchable, filterable by type (Regular/Féminisée/Auto), sortable
+- **Tri par défaut** (2026-05-13) : alphabétique breeder A→Z, puis variété A→Z à l'intérieur de chaque breeder (`localeCompare` fr, insensible à la casse). Les colonnes cliquables restent fonctionnelles — cliquer un en-tête applique son tri ; revenir à l'état sans tri restaure l'ordre alphabétique par défaut.
 - GestionModal for breeders/varieties management
 - NouveauPackModal / DetailPackModal for pack management
 - Toggle `utilisee` flag per seed

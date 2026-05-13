@@ -1,12 +1,5 @@
-fix: race condition création variété dans NouveauPackModal
+feat(graines): tri alphabétique par défaut — breeder A→Z puis variété A→Z
 
-La variété était bien créée en DB mais le select affichait
-"— Sélectionner —" car invalidateQueries est async : le cache
-n'était pas encore mis à jour quand le select redevenait visible.
-
-- addVariete, addBreeder, addFournisseur : invalidateQueries → setQueryData
-  (mise à jour immédiate du cache, select correct instantanément)
-- Ajout affichage erreur si addVariete.isError
-
-Fichier : frontend/src/components/NouveauPackModal.tsx
-Wiki : wiki/log.md
+- Graines.tsx : useMemo filtered — quand sortCol est null, applique
+  localeCompare(fr) sur breeder_nom puis variete_nom
+- Wiki log + frontend/pages.md mis à jour

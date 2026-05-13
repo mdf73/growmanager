@@ -75,7 +75,13 @@ export default function Graines() {
       return matchSearch && matchType && matchStock
     })
 
-    if (!sortCol) return base
+    if (!sortCol) {
+      return [...base].sort((a, b) => {
+        const breederCmp = a.breeder_nom.localeCompare(b.breeder_nom, 'fr', { sensitivity: 'base' })
+        if (breederCmp !== 0) return breederCmp
+        return a.variete_nom.localeCompare(b.variete_nom, 'fr', { sensitivity: 'base' })
+      })
+    }
     return [...base].sort((a, b) => {
       let av: string | number, bv: string | number
       switch (sortCol) {

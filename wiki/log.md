@@ -8,6 +8,16 @@ Operations: `bootstrap`, `ingest`, `query`, `lint`, `update`
 
 ---
 
+## [2026-05-13] update | Tri alphabétique par défaut dans le catalogue graines
+
+**Feature :** Le tableau `/graines` est désormais trié par défaut par breeder A→Z, puis variété A→Z à l'intérieur de chaque breeder.
+
+**Changement :** Dans `Graines.tsx`, le `useMemo` `filtered` retournait `base` sans tri quand `sortCol === null`. Remplacé par un `.sort()` avec `localeCompare('fr', { sensitivity: 'base' })` sur breeder puis variété. Les colonnes cliquables ne sont pas affectées.
+
+**Fichier modifié :** `frontend/src/pages/Graines.tsx`
+
+---
+
 ## [2026-05-13] update | Bugfix — race condition création variété dans NouveauPackModal
 
 **Bug corrigé :** Dans `NouveauPackModal.tsx`, l'ajout d'une nouvelle variété via le bouton `+` semblait ne pas fonctionner.
