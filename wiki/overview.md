@@ -1,6 +1,6 @@
 ---
 type: architecture
-updated: 2026-04-24
+updated: 2026-05-13
 sources: [main.py, Documentation/claude.md, Documentation/PHASE1_SUMMARY.txt]
 ---
 
@@ -82,15 +82,21 @@ Migrations: no Alembic — startup `run_migrations()` in `main.py` runs `ALTER T
 
 ## Versions
 
-- Python 3.11
-- FastAPI 0.111
-- SQLAlchemy 2.0.30
-- React 18.3.1
-- Vite 5.3.1
-- React Router 6.23.1
-- TanStack Query 5.40.0
-- Axios 1.7.2
-- Tailwind 3.4.4
+**Application : v3.1.0** (frontend `package.json` + backend `main.py` synchronisés)
+
+| Composant | Version |
+|---|---|
+| Python | 3.11 |
+| FastAPI | 0.111 |
+| SQLAlchemy | 2.0.30 |
+| React | 18.3.1 |
+| Vite | 5.3.1 |
+| React Router | 6.23.1 |
+| TanStack Query | 5.40.0 |
+| Axios | 1.7.2 |
+| Tailwind | 3.4.4 |
+
+> Règle : à chaque `bump-version.bat`, mettre à jour aussi `backend/app/main.py` (2 occurrences : `FastAPI(version=...)` et la route `GET /`).
 
 ## See Also
 

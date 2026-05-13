@@ -1,14 +1,5 @@
-feat(F): traçabilité stock → origine (variété + cultures + plantes)
+chore: sync backend version to v3.1.0
 
-Backend:
-- GET /api/stock/{id}/origine — remonte la chaîne via id_variete :
-  variete (nom, croisement, infos, lien_web) + bocal info + cultures_source
-  (cultures ayant cultivé cette variété → plants → graine/breeder + séchage + curing + poids)
-- Modèles Pydantic inline : StockOrigineResponse, _CultureSource, _PlantOrigine, _GrainePlant, _VarieteDetail, _BocalInfo
-
-Frontend:
-- frontend/src/api/stock.ts — types StockOrigine, CultureSource, PlantOrigine, GrainePlant + stockAPI.origine()
-- frontend/src/components/StockOriginDrawer.tsx — drawer latéral : résumé (cultures/plantes/g), variété + génétique, bocal, cartes cultures avec leurs plantes (graine, breeder, type, séchage/curing, poids)
-- frontend/src/pages/Stock.tsx — StockRow cliquable (clic hors boutons → ouvre drawer) + state origineStockId + import + rendu drawer
-
-Wiki: api/stock-extractions.md + api/infrastructure.md mis à jour
+- main.py FastAPI version "1.0.0" → "3.1.0" (était désynchronisé depuis le bump frontend)
+- Racine GET / version string idem
+- Restauration working tree : 9 fichiers modifiés non commités remis à HEAD (Feature F intacte)
