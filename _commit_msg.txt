@@ -1,5 +1,6 @@
-chore: sync backend version to v3.1.0
+chore: sync backend version to v3.1.0 + script déploiement Linux
 
-- main.py FastAPI version "1.0.0" → "3.1.0" (était désynchronisé depuis le bump frontend)
+- main.py FastAPI version "1.0.0" → "3.1.0" (synchronisé avec package.json)
 - Racine GET / version string idem
 - Restauration working tree : 9 fichiers modifiés non commités remis à HEAD (Feature F intacte)
+- Ajout update.sh : script de mise à jour production Linux (git pull + docker compose --build)

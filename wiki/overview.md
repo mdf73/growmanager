@@ -27,6 +27,8 @@ Cannabis cultivation management application. Tracks grow cycles, plants, seeds, 
 
 ## Launch Commands
 
+### Développement (Windows)
+
 ```bash
 # Start everything
 docker-compose up -d
@@ -43,6 +45,22 @@ docker-compose logs -f backend
 # Connect to MySQL
 docker exec -it growmanager-db-1 mysql -u root -p growmanager
 ```
+
+### Production (Linux)
+
+Premier déploiement :
+```bash
+git clone <repo>
+cp .env.example .env   # puis éditer les mots de passe
+docker compose -f docker-compose.server.yml up -d --build
+```
+
+Mises à jour suivantes (après un push depuis Windows) :
+```bash
+./update.sh
+```
+
+> `update.sh` fait : `git pull` + `docker compose -f docker-compose.server.yml up -d --build` + vérification des conteneurs.
 
 ## Key File Paths
 
