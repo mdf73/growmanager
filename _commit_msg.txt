@@ -1,38 +1,12 @@
-feat(stock): Feature F complète — traçabilité + plant picker
+fix: race condition création variété dans NouveauPackModal
 
-## Feature F — Traçabilité bocal → graine (Sprint 3) ✅
+La variété était bien créée en DB mais le select affichait
+"— Sélectionner —" car invalidateQueries est async : le cache
+n'était pas encore mis à jour quand le select redevenait visible.
 
-### Traçabilité (sessions précédentes)
-- Backend: GET /api/materiel/{id}/bocal-timeline — chaîne Materiel → SessionCuring → Plant → Graine → Variete/Breeder
-- Frontend: BocalTimelineDrawer.tsx — drawer droite avec summary + cards par session
-- SechageCuring.tsx: bouton "🔍 Origine" sur plantes en curing avec bocal assigné
-- Backend: GET /api/stock/{id}/origine — deux chemins (précis via id_plant, large via id_variete)
-- Frontend: StockOriginDrawer.tsx + clic ligne Stock.tsx → drawer traçabilité
+- addVariete, addBreeder, addFournisseur : invalidateQueries → setQueryData
+  (mise à jour immédiate du cache, select correct instantanément)
+- Ajout affichage erreur si addVariete.isError
 
-### id_plant sur Stock + plant picker (cette session)
-- Migration SQL: ALTER TABLE Stock ADD COLUMN id_plant INT NULL REFERENCES Plant(id_plant)
-- Backend models: id_plant FK + relationship Plant sur Stock
-- Backend schemas: id_plant dans StockBase/StockWithVariete + plant_nom/plant_culture_nom enrichis
-- Backend routers/stock.py: enrichissement plant_nom + deux chemins /origine (précis/large)
-- Backend routers/cultures.py: GET /cultures/plants-by-variete/{id_variete} — liste des plantes d'une variété
-- Frontend api/cultures.ts: interface PlantForStock + cultureAPI.getPlantsByVariete()
-- Stock.tsx: affichage plant_nom (ex: "OG Kush #3") comme label principal, variete_nom en subtitle
-- NouveauStockModal.tsx: champ "Plante (optionnel)" après sélection variété, reset automatique au changement de variété
-
-Files changed:
-  backend/app/main.py
-  backend/app/models/all_models.py
-  backend/app/schemas/stock.py
-  backend/app/routers/stock.py
-  backend/app/routers/cultures.py
-  backend/app/routers/materiel.py
-  frontend/src/api/stock.ts
-  frontend/src/api/cultures.ts
-  frontend/src/api/materiel.ts
-  frontend/src/pages/Stock.tsx
-  frontend/src/pages/SechageCuring.tsx
-  frontend/src/components/BocalTimelineDrawer.tsx (new)
-  frontend/src/components/StockOriginDrawer.tsx (new)
-  frontend/src/components/NouveauStockModal.tsx
-  wiki/roadmap.md
-  wiki/api/stock-extractions.md
+Fichier : frontend/src/components/NouveauPackModal.tsx
+Wiki : wiki/log.md

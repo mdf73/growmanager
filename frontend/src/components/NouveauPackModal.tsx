@@ -59,7 +59,7 @@ export default function NouveauPackModal({ onClose, editPack }: NouveauPackModal
   const addBreeder = useMutation({
     mutationFn: (nom: string) => client.post<Breeder>('/breeders/', { nom_breeder: nom }),
     onSuccess: (res) => {
-      queryClient.invalidateQueries({ queryKey: ['breeders'] })
+      queryClient.setQueryData<Breeder[]>(['breeders'], (old = []) => [...old, res.data])
       setForm(f => ({ ...f, id_breeder: res.data.id_breeder }))
       setNewBreederName(''); setShowNewBreeder(false)
     },
@@ -67,7 +67,8 @@ export default function NouveauPackModal({ onClose, editPack }: NouveauPackModal
   const addVariete = useMutation({
     mutationFn: (nom: string) => client.post<Variete>('/varietes/', { nom_variete: nom }),
     onSuccess: (res) => {
-      queryClient.invalidateQueries({ queryKey: ['varietes'] })
+      // Mise à jour immédiate du cache pour éviter le flash "— Sélectionner —"
+      queryClient.setQueryData<Variete[]>(['varietes'], (old = []) => [...old, res.data])
       setForm(f => ({ ...f, id_variete: res.data.id_variete, croisement_variete: '' }))
       setNewVarieteName(''); setShowNewVariete(false)
     },
@@ -75,7 +76,7 @@ export default function NouveauPackModal({ onClose, editPack }: NouveauPackModal
   const addFournisseur = useMutation({
     mutationFn: (nom: string) => fournisseurAPI.create({ nom_fournisseur: nom }),
     onSuccess: (res) => {
-      queryClient.invalidateQueries({ queryKey: ['fournisseurs'] })
+      queryClient.setQueryData<{ id_fournisseur: number; nom_fournisseur: string }[]>(['fournisseurs'], (old = []) => [...old, res.data])
       setForm(f => ({ ...f, id_fournisseur: res.data.id_fournisseur }))
       setNewFournisseurName(''); setShowNewFournisseur(false)
     },
@@ -224,6 +225,7 @@ export default function NouveauPackModal({ onClose, editPack }: NouveauPackModal
               </div>
             )}
             {errors.id_variete && <p className="text-xs text-red-500">{errors.id_variete}</p>}
+            {addVariete.isError && <p className="text-xs text-red-500">Erreur lors de la création de la variété</p>}
           </div>
 
           {/* Croisement — toujours visible, auto-rempli depuis la variété */}

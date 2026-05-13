@@ -8,6 +8,21 @@ Operations: `bootstrap`, `ingest`, `query`, `lint`, `update`
 
 ---
 
+## [2026-05-13] update | Bugfix — race condition création variété dans NouveauPackModal
+
+**Bug corrigé :** Dans `NouveauPackModal.tsx`, l'ajout d'une nouvelle variété via le bouton `+` semblait ne pas fonctionner.
+
+**Cause racine :** Race condition entre `queryClient.invalidateQueries` (async) et le rendu du `<select>`. Après création de la variété, `setShowNewVariete(false)` basculait immédiatement sur le select, mais le cache n'était pas encore mis à jour. Le select affichait "— Sélectionner —" car aucune option ne correspondait à l'ID retourné, donnant l'impression que la création avait échoué (alors que la variété était bien créée en DB).
+
+**Fix appliqué :**
+- `addVariete.onSuccess` : `invalidateQueries` → `setQueryData` pour mise à jour immédiate du cache
+- Même fix appliqué sur `addBreeder` et `addFournisseur` (même pattern, même risque)
+- Ajout d'un message d'erreur `addVariete.isError` sous le champ variété
+
+**Fichier modifié :** `frontend/src/components/NouveauPackModal.tsx`
+
+---
+
 ## [2026-04-29] update | Setup Git + workflow CI
 
 Mise en place du versioning Git et du workflow de commit.
