@@ -195,6 +195,14 @@ export interface Stats {
   nb_actions_total: number
 }
 
+export interface PlantForStock {
+  id_plant:    number
+  nom_affichage: string
+  statut:      string | null
+  id_culture:  number
+  nom_culture: string | null
+}
+
 export interface PlantSechage {
   id_plant: number
   id_culture: number
@@ -283,6 +291,8 @@ export const cultureAPI = {
     client.get<any[]>('/cultures/sechage/eligible'),
   getCuringEligible: () =>
     client.get<any[]>('/cultures/curing/eligible'),
+  getPlantsByVariete: (idVariete: number) =>
+    client.get<PlantForStock[]>(`/cultures/plants-by-variete/${idVariete}`),
 }
 
 export const plantAPI = {

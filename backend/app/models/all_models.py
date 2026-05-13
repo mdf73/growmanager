@@ -585,6 +585,7 @@ class Stock(Base):
     id_variete = Column(Integer, ForeignKey("Variete.id_variete"))
     id_bocal = Column(Integer, ForeignKey("Bocal.id_bocal"))
     id_materiel_bocal = Column(Integer, ForeignKey("Materiel.id_materiel"), nullable=True)
+    id_plant = Column(Integer, ForeignKey("Plant.id_plant"), nullable=True)   # V4-F traçabilité
     type_stock = Column(String(50))
     sous_type_stock = Column(String(50))
     lampe_type = Column(String(50))
@@ -601,6 +602,7 @@ class Stock(Base):
     variete = relationship("Variete", back_populates="stocks")
     bocal = relationship("Bocal", back_populates="stocks")
     materiel_bocal = relationship("Materiel", foreign_keys=[id_materiel_bocal])
+    plant = relationship("Plant", foreign_keys=[id_plant])
     rosin_extractions = relationship("RosinExtraction", back_populates="stock_source")
 
 

@@ -170,9 +170,17 @@ function StockRow({ item, onEdit, onDeleted, onSortie, onOrigine }: {
 
   return (
     <tr className={rowClass} onClick={e => { if (!(e.target as HTMLElement).closest('button')) onOrigine(item.id_stock) }} title="Cliquer pour voir l'origine">
-      <td className="px-5 py-3 text-sm font-medium text-gray-900 dark:text-gray-100">
-        {item.variete_nom || '—'}
-        {isCloture && <span className="ml-2 text-xs text-gray-400 dark:text-gray-500 font-normal">clôturé {item.date_fin_stock ? new Date(item.date_fin_stock).toLocaleDateString('fr-FR') : ''}</span>}
+      <td className="px-5 py-3">
+        <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+          {item.plant_nom ?? item.variete_nom ?? '—'}
+          {isCloture && <span className="ml-2 text-xs text-gray-400 dark:text-gray-500 font-normal">clôturé {item.date_fin_stock ? new Date(item.date_fin_stock).toLocaleDateString('fr-FR') : ''}</span>}
+        </div>
+        {item.plant_nom && item.plant_culture_nom && (
+          <div className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{item.plant_culture_nom}</div>
+        )}
+        {item.plant_nom && !item.plant_culture_nom && item.variete_nom && (
+          <div className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{item.variete_nom}</div>
+        )}
       </td>
       <td className="px-5 py-3"><TypeBadge type={item.type_stock ?? undefined} /></td>
       <td className="px-5 py-3 text-sm text-gray-500 dark:text-gray-400">{specs}</td>

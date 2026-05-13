@@ -9,6 +9,7 @@ class StockBase(BaseModel):
     id_variete:        Optional[int]   = None
     id_bocal:          Optional[int]   = None
     id_materiel_bocal: Optional[int]   = None
+    id_plant:          Optional[int]   = None   # V4-F traçabilité
     type_stock:        Optional[str]   = None
     sous_type_stock:   Optional[str]   = None
     lampe_type:        Optional[str]   = None
@@ -31,11 +32,13 @@ class StockRead(StockBase):
 
 
 class StockWithVariete(StockRead):
-    """Stock enrichi avec variété + bocal Materiel"""
+    """Stock enrichi avec variété + bocal Materiel + plante"""
     variete_nom:       Optional[str]   = None
     bocal_taille:      Optional[int]   = None   # ancien système
     bocal_nom:         Optional[str]   = None   # nom du bocal Materiel
     bocal_volume_ml:   Optional[float] = None   # volume du bocal Materiel
+    plant_nom:         Optional[str]   = None   # nom_affichage de la plante liée (V4-F)
+    plant_culture_nom: Optional[str]   = None   # nom de la culture de la plante (V4-F)
     model_config = ConfigDict(from_attributes=True)
 
 

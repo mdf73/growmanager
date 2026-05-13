@@ -1157,6 +1157,29 @@ def list_plants_eligible_curing(db: Session = Depends(get_db)):
     return result
 
 
+@router.get("/plants-by-variete/{id_variete}")
+def get_plants_by_variete(id_variete: int, db: Session = Depends(get_db)):
+    """Retourne toutes les plantes d'une variété donnée (pour picker stock)."""
+    plants = (
+        db.query(Plant)
+        .join(Graine, Plant.id_graine == Graine.id_graine)
+        .filter(Graine.id_variete == id_variete)
+        .order_by(Plant.id_plant.asc())
+        .all()
+    )
+    result = []
+    for plant in plants:
+        culture = db.query(Culture).filter(Culture.id_culture == plant.id_culture).first()
+        result.append({
+            "id_plant":      plant.id_plant,
+            "nom_affichage": plant.nom_affichage,
+            "statut":        plant.statut,
+            "id_culture":    plant.id_culture,
+            "nom_culture":   culture.nom if culture else None,
+        })
+    return result
+
+
 @router.get("/{culture_id}", response_model=CultureWithDetails)
 def get_culture(culture_id: int, db: Session = Depends(get_db)):
     culture = db.query(Culture).filter(Culture.id_culture == culture_id).first()

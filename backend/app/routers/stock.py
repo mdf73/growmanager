@@ -9,7 +9,7 @@ from app.database import get_db
 from app.models import Stock, Variete, Bocal
 from app.models.all_models import (
     Materiel, Plant, Culture, Graine, Breeder,
-    SessionCuring, PlantCuring, PlantSechage, SessionSechage,
+    SessionCuring, PlantCuring, PlantSechage, SessionSechage, Variete as VarieteModel,
 )
 from app.schemas.stock import StockCreate, StockRead, StockWithVariete, BocalDisponible
 import json
@@ -36,11 +36,23 @@ def _enrich(stock: Stock, db: Session) -> StockWithVariete:
         except Exception:
             pass
 
+    # V4-F — enrichissement plante
+    plant_nom = None
+    plant_culture_nom = None
+    if stock.id_plant:
+        plant = db.query(Plant).filter(Plant.id_plant == stock.id_plant).first()
+        if plant:
+            plant_nom = plant.nom_affichage
+            culture = db.query(Culture).filter(Culture.id_culture == plant.id_culture).first()
+            if culture:
+                plant_culture_nom = culture.nom
+
     return StockWithVariete(
         id_stock=          stock.id_stock,
         id_variete=        stock.id_variete,
         id_bocal=          stock.id_bocal,
         id_materiel_bocal= stock.id_materiel_bocal,
+        id_plant=          stock.id_plant,
         type_stock=        stock.type_stock,
         sous_type_stock=   stock.sous_type_stock,
         lampe_type=        stock.lampe_type,
@@ -55,6 +67,8 @@ def _enrich(stock: Stock, db: Session) -> StockWithVariete:
         bocal_taille=      bocal.taille_bocal  if bocal   else None,
         bocal_nom=         mat_bocal.nom        if mat_bocal else None,
         bocal_volume_ml=   bocal_volume_ml,
+        plant_nom=         plant_nom,
+        plant_culture_nom= plant_culture_nom,
     )
 
 
@@ -140,6 +154,7 @@ def create_stock(stock: StockCreate, db: Session = Depends(get_db)):
         id_variete=        stock.id_variete,
         id_bocal=          stock.id_bocal,
         id_materiel_bocal= stock.id_materiel_bocal,
+        id_plant=          stock.id_plant,
         type_stock=        stock.type_stock,
         sous_type_stock=   stock.sous_type_stock,
         lampe_type=        stock.lampe_type,
@@ -169,6 +184,7 @@ def update_stock(stock_id: int, stock: StockCreate, db: Session = Depends(get_db
     db_stock.id_variete        = stock.id_variete
     db_stock.id_bocal          = stock.id_bocal
     db_stock.id_materiel_bocal = stock.id_materiel_bocal
+    db_stock.id_plant          = stock.id_plant
     db_stock.type_stock        = stock.type_stock
     db_stock.sous_type_stock   = stock.sous_type_stock
     db_stock.lampe_type        = stock.lampe_type
@@ -369,17 +385,34 @@ def stock_origine(stock_id: int, db: Session = Depends(get_db)):
                 pass
             bocal_out = _BocalInfo(id_materiel=mat.id_materiel, nom=mat.nom, volume_ml=vol)
 
-    # ── Cultures source (via id_variete → plants → graines) ──────────────────
+    # ── Cultures source ───────────────────────────────────────────────────────
+    # Si id_plant connu → culture unique, plante unique (traçabilité précise)
+    # Sinon → toutes les cultures qui ont cultivé cette variété
     cultures_out: List[_CultureSource] = []
-    if s.id_variete:
-        # Toutes les plantes dont la graine est de cette variété
+
+    if s.id_plant:
+        # Chemin précis : on connaît la plante exacte
+        direct_plant = db.query(Plant).filter(Plant.id_plant == s.id_plant).first()
+        if direct_plant and direct_plant.id_culture:
+            c = db.query(Culture).filter(Culture.id_culture == direct_plant.id_culture).first()
+            if c:
+                cultures_out.append(_CultureSource(
+                    id_culture=c.id_culture,
+                    nom=c.nom,
+                    statut=c.statut,
+                    date_debut=c.date_debut,
+                    date_passage_12_12=c.date_passage_12_12,
+                    date_debut_floraison=c.date_debut_floraison,
+                    plants=[_build_plant_origine(direct_plant, db)],
+                ))
+    elif s.id_variete:
+        # Chemin large : toutes les plantes de cette variété (héritage / stock sans plante)
         plants_with_variete = (
             db.query(Plant)
             .join(Graine, Graine.id_graine == Plant.id_graine)
             .filter(Graine.id_variete == s.id_variete)
             .all()
         )
-        # Regrouper par culture
         culture_map: dict[int, list[Plant]] = {}
         for plant in plants_with_variete:
             culture_map.setdefault(plant.id_culture, []).append(plant)

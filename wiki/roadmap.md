@@ -22,7 +22,7 @@ Source : `Documentation/GrowManager_Specifications_v4.docx` + `Documentation/gro
 | C | Timer de flush | ✅ DONE | `date_debut_flush` sur Culture (migration + schema + router) · bouton Culture.tsx · badge 🚿 J+X Dashboard |
 | D | Vue calendrier global | ❌ À faire | Aucune page calendrier |
 | E | Comparaison inter-cultures | ❌ À faire | — |
-| F | Traçabilité bocal → graine | ✅ DONE | `GET /api/materiel/{id}/bocal-timeline` · `BocalTimelineDrawer.tsx` · bouton "🔍 Origine" SechageCuring · `GET /api/stock/{id}/origine` · `StockOriginDrawer.tsx` · clic ligne Stock → drawer · validé 2026-05-13 |
+| F | Traçabilité bocal → graine | ✅ DONE | `GET /api/materiel/{id}/bocal-timeline` · `BocalTimelineDrawer.tsx` · bouton "🔍 Origine" SechageCuring · `GET /api/stock/{id}/origine` · `StockOriginDrawer.tsx` · clic ligne Stock → drawer · `id_plant` FK sur Stock · `GET /api/cultures/plants-by-variete/{id}` · plant picker dans NouveauStockModal · validé 2026-05-13 |
 | G | Alertes stock bas | ✅ DONE | `StockAlertSeuil` table · `quantite_initiale` sur Stock · `/api/stock-alert-seuils` CRUD+check · badge Dashboard · bandeau Stock.tsx · onglet Paramétrage · validé 2026-05-11 · bugfix 2026-05-13 : colonne `quantite_initiale` absente du modèle + migration SQL + `s.variete.nom` → `s.variete.nom_variete` |
 | H | Rappels bocaux / burping | ✅ DONE | `GET /api/dashboard/burping-reminders` · `ModuleBurping` Dashboard · fréquences alignées sur SechageCuring.tsx (1j/3j/7j/14j) · conditionnel si aucune session |
 | I | QR codes / étiquettes | ❌ À faire | Pas de lib QR |
@@ -45,7 +45,7 @@ Source : `Documentation/GrowManager_Specifications_v4.docx` + `Documentation/gro
 6. ✅ **B** IPM / traitements — champs produit/dose/méthode/delai_recolte_j sur `traitement` · endpoint `GET /api/dashboard/ipm-warnings` · ModuleIPM Dashboard conditionnel · badge 🔴 si <7j restants · validé 2026-05-13
 
 **Sprint 3 — Features riches**
-7. ✅ **F** Traçabilité bocal → graine — `GET /api/materiel/{id}/bocal-timeline` · `BocalTimelineDrawer.tsx` · bouton "🔍 Origine" SechageCuring · validé 2026-05-13
+7. ✅ **F** Traçabilité bocal → graine — `GET /api/materiel/{id}/bocal-timeline` · `BocalTimelineDrawer.tsx` · bouton "🔍 Origine" SechageCuring · `GET /api/stock/{id}/origine` · `StockOriginDrawer.tsx` · clic ligne Stock · `id_plant` FK + plant picker NouveauStockModal · `GET /api/cultures/plants-by-variete/{id}` · validé 2026-05-13
 8. **K** Recherche globale — `GET /api/search`, palette Ctrl+K frontend, résultats groupés
 9. **D** Vue calendrier global — page mensuelle, toutes cultures, tous événements
 

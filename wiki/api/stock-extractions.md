@@ -23,9 +23,20 @@ Router: `stock.py` | Prefix: `/api/stock`
 
 **Note:** `/bocaux-disponibles` is a static route — must be declared before `/{id}`. → [[architecture/patterns]]
 
+### id_plant sur Stock
+
+Chaque entrée de stock peut être liée à une plante précise via `id_plant` (FK nullable → `Plant`). Quand renseigné :
+- La page Stock affiche `plant_nom` (ex: "OG Kush #3") à la place de `variete_nom`
+- Le drawer `StockOriginDrawer` utilise le chemin direct `id_plant → Plant → Graine → Culture`
+- Le formulaire `NouveauStockModal` propose un select "Plante (optionnel)" après la sélection de variété, chargé via `GET /api/cultures/plants-by-variete/{id_variete}`
+
+Migration : `ALTER TABLE Stock ADD COLUMN id_plant INT NULL REFERENCES Plant(id_plant)`
+
 ### StockOrigineResponse (Feature F)
 
-Retourne la chaîne de traçabilité d'un stock en remontant via `id_variete` :
+Retourne la chaîne de traçabilité d'un stock. Deux chemins selon la donnée disponible :
+- **Chemin précis** (`id_plant` renseigné) : 1 plante directe → 1 culture
+- **Chemin large** (`id_variete` uniquement) : toutes les plantes de la variété via `Graine.id_variete` → groupées par culture
 
 ```
 StockOrigineResponse {

@@ -5,6 +5,7 @@ import { stockAPI, Stock, BocalDisponible } from '../api/stock'
 import { varieteAPI, Variete } from '../api/varietes'
 import { useParametreListe } from '../api/parametres'
 import { materielAPI, Materiel } from '../api/materiel'
+import { cultureAPI, PlantForStock } from '../api/cultures'
 
 interface NouveauStockModalProps {
   editStock?: Stock | null
@@ -54,6 +55,7 @@ export default function NouveauStockModal({ editStock, onClose }: NouveauStockMo
 
   const [form, setForm] = useState({
     id_variete:        editStock?.id_variete        ?? (undefined as number | undefined),
+    id_plant:          editStock?.id_plant          ?? (undefined as number | undefined),
     id_materiel_bocal: editStock?.id_materiel_bocal ?? (undefined as number | undefined),
     type_stock:        editStock?.type_stock        ?? 'Fleur',
     sous_type_stock:   editStock?.sous_type_stock   ?? 'Indoor',
@@ -64,6 +66,13 @@ export default function NouveauStockModal({ editStock, onClose }: NouveauStockMo
     type_rosin:        editStock?.type_rosin        ?? '',
     quantite_stock:    editStock ? String(editStock.quantite_stock) : '',
     date_stock:        editStock?.date_stock        ?? today(),
+  })
+
+  const { data: plantsByVariete = [] } = useQuery<PlantForStock[]>({
+    queryKey: ['plants-by-variete', form.id_variete],
+    queryFn: async () =>
+      (await cultureAPI.getPlantsByVariete(form.id_variete!)).data,
+    enabled: !!form.id_variete,
   })
 
   const [saveAndNewMode, setSaveAndNewMode] = useState(false)
@@ -91,6 +100,7 @@ export default function NouveauStockModal({ editStock, onClose }: NouveauStockMo
     mutationFn: () => {
       const payload = {
         id_variete:        form.id_variete ?? null,
+        id_plant:          form.id_plant ?? null,
         id_bocal:          editStock?.id_bocal ?? null,
         id_materiel_bocal: form.id_materiel_bocal ?? null,
         type_stock:      form.type_stock,
@@ -116,6 +126,7 @@ export default function NouveauStockModal({ editStock, onClose }: NouveauStockMo
         setForm(f => ({
           ...f,
           id_variete:        undefined,
+          id_plant:          undefined,
           id_materiel_bocal: undefined,
           quantite_stock:    '',
           date_stock:        today(),
@@ -153,7 +164,11 @@ export default function NouveauStockModal({ editStock, onClose }: NouveauStockMo
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Variété</label>
             <select
               value={form.id_variete ?? ''}
-              onChange={e => setForm(f => ({ ...f, id_variete: e.target.value ? Number(e.target.value) : undefined }))}
+              onChange={e => setForm(f => ({
+                ...f,
+                id_variete: e.target.value ? Number(e.target.value) : undefined,
+                id_plant: undefined,  // reset plante si variété change
+              }))}
               className={sel}
             >
               <option value="">— Non renseignée —</option>
@@ -162,6 +177,35 @@ export default function NouveauStockModal({ editStock, onClose }: NouveauStockMo
               ))}
             </select>
           </div>
+
+          {/* Plante (optionnel) — affiché uniquement si une variété est sélectionnée */}
+          {form.id_variete && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                🌿 Plante <span className="text-gray-400 text-xs font-normal">(optionnel)</span>
+              </label>
+              <select
+                value={form.id_plant ?? ''}
+                onChange={e => setForm(f => ({
+                  ...f,
+                  id_plant: e.target.value ? Number(e.target.value) : undefined,
+                }))}
+                className={sel}
+              >
+                <option value="">— Non renseignée —</option>
+                {plantsByVariete.map(p => (
+                  <option key={p.id_plant} value={p.id_plant}>
+                    {p.nom_affichage}{p.nom_culture ? ` · ${p.nom_culture}` : ''}{p.statut ? ` (${p.statut})` : ''}
+                  </option>
+                ))}
+              </select>
+              {plantsByVariete.length === 0 && (
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                  Aucune plante connue pour cette variété
+                </p>
+              )}
+            </div>
+          )}
 
           {/* Type de stock */}
           <div>

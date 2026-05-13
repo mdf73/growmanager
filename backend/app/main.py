@@ -107,6 +107,8 @@ def run_migrations():
         ("ActionCalendrier", "ec_sortant",  "ALTER TABLE ActionCalendrier ADD COLUMN ec_sortant DECIMAL(4,2) NULL"),
         # V4-C — Timer de flush
         ("Culture", "date_debut_flush", "ALTER TABLE Culture ADD COLUMN date_debut_flush DATE NULL"),
+        # V4-F — Traçabilité stock → plante
+        ("Stock", "id_plant", "ALTER TABLE Stock ADD COLUMN id_plant INT NULL REFERENCES Plant(id_plant)"),
     ]
     # Créer les tables manquantes (ProduitEngrais, TemperatureLog, etc.)
     Base.metadata.create_all(bind=engine)

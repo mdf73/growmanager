@@ -5,6 +5,7 @@ export interface Stock {
   id_variete?:       number | null
   id_bocal?:         number | null
   id_materiel_bocal?: number | null
+  id_plant?:         number | null          // V4-F traçabilité
   type_stock?:       string | null
   sous_type_stock?:  string | null
   lampe_type?:       string | null
@@ -19,6 +20,8 @@ export interface Stock {
   bocal_taille?:     number
   bocal_nom?:        string | null
   bocal_volume_ml?:  number | null
+  plant_nom?:        string | null          // V4-F : nom_affichage de la plante liée
+  plant_culture_nom?: string | null         // V4-F : nom de la culture de la plante
 }
 
 export interface BocalDisponible {
