@@ -1,25 +1,14 @@
-feat(ipm): Feature B — IPM / traitements complet + bugfix Feature G
+feat(F): traçabilité stock → origine (variété + cultures + plantes)
 
-── Feature B : IPM / traitements ──────────────────────────────────────
-- actionTypes.ts : action `traitement` → `Traitement IPM` avec 4 champs
-    · produit (texte libre)
-    · dose (nombre, mL/L)
-    · méthode (select: spray foliaire / arrosage racinaire / sol / autre)
-    · delai_recolte_j (nombre de jours avant récolte autorisée)
+Backend:
+- GET /api/stock/{id}/origine — remonte la chaîne via id_variete :
+  variete (nom, croisement, infos, lien_web) + bocal info + cultures_source
+  (cultures ayant cultivé cette variété → plants → graine/breeder + séchage + curing + poids)
+- Modèles Pydantic inline : StockOrigineResponse, _CultureSource, _PlantOrigine, _GrainePlant, _VarieteDetail, _BocalInfo
 
-- dashboard.py : GET /api/dashboard/ipm-warnings
-    · liste les traitements actifs dont le délai n'est pas écoulé
-    · champ alerte_rouge = True si jours_restants < 7
-    · trié par urgence croissante
+Frontend:
+- frontend/src/api/stock.ts — types StockOrigine, CultureSource, PlantOrigine, GrainePlant + stockAPI.origine()
+- frontend/src/components/StockOriginDrawer.tsx — drawer latéral : résumé (cultures/plantes/g), variété + génétique, bocal, cartes cultures avec leurs plantes (graine, breeder, type, séchage/curing, poids)
+- frontend/src/pages/Stock.tsx — StockRow cliquable (clic hors boutons → ouvre drawer) + state origineStockId + import + rendu drawer
 
-- dashboard.ts : interface IpmWarning + dashboardAPI.getIpmWarnings()
-
-- Dashboard.tsx : ModuleIPM conditionnel
-    · visible uniquement si traitements actifs
-    · badge rouge si < 7j restants
-    · inséré entre capteurs et modules culture
-
-── Bugfix Feature G : alertes stock ───────────────────────────────────
-- all_models.py : colonne quantite_initiale ajoutée au modèle Stock
-- migration_stock_quantite_initiale.sql : ALTER TABLE + rétro-remplissage
-- stock_alert_seuils.py : s.variete.nom -> s.variete.nom_variete
+Wiki: api/stock-extractions.md + api/infrastructure.md mis à jour

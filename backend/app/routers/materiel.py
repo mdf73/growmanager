@@ -1,14 +1,18 @@
 """Router Materiel — CRUD + export CSV"""
 from datetime import date, datetime
-from typing import List
+from typing import List, Optional
 import csv, io
 
 from fastapi import APIRouter, Depends, HTTPException, Response
 from sqlalchemy.orm import Session
+from pydantic import BaseModel
 
 from sqlalchemy import exists
 from app.database import get_db
-from app.models.all_models import Materiel, Stock, SessionCuring
+from app.models.all_models import (
+    Materiel, Stock, SessionCuring, SessionSechage,
+    PlantCuring, PlantSechage, Plant, Culture, Graine, Variete, Breeder,
+)
 from app.schemas.materiel import MaterielCreate, MaterielRead, MaterielUpdate
 
 router = APIRouter(prefix="/api/materiel", tags=["materiel"])
@@ -105,6 +109,191 @@ def delete(id_materiel: int, db: Session = Depends(get_db)):
     row = _load(db, id_materiel)
     db.delete(row)
     db.commit()
+
+
+# ── Timeline traçabilité bocal ─────────────────────────────────────────────────
+
+class _VarieteMin(BaseModel):
+    id_variete: int
+    nom_variete: str
+
+class _BreederMin(BaseModel):
+    id_breeder: int
+    nom_breeder: str
+
+class _GraineMin(BaseModel):
+    id_graine: int
+    types_graines: Optional[str]
+    variete: Optional[_VarieteMin]
+    breeder: Optional[_BreederMin]
+
+class _CultureMin(BaseModel):
+    id_culture: int
+    nom: str
+    date_debut: Optional[date]
+    date_passage_12_12: Optional[date]
+    date_debut_floraison: Optional[date]
+    date_recolte_estimee: Optional[date]
+
+class _SechageMin(BaseModel):
+    id_session_sechage: int
+    nom: Optional[str]
+    date_debut: Optional[date]
+    date_fin: Optional[date]
+
+class _PlantTimeline(BaseModel):
+    id_plant: int
+    nom_affichage: str
+    date_recolte: Optional[date]
+    poids_recolte_g: Optional[float]
+    poids_debut_curing_g: Optional[float]
+    poids_final_curing_g: Optional[float]
+    graine: Optional[_GraineMin]
+    culture: Optional[_CultureMin]
+    sechage: Optional[_SechageMin]
+
+class _SessionCuringTimeline(BaseModel):
+    id_session_curing: int
+    nom: Optional[str]
+    date_debut: Optional[date]
+    date_fin: Optional[date]
+    statut: Optional[str]
+    plants: List[_PlantTimeline]
+
+class _StockTimeline(BaseModel):
+    id_stock: int
+    type_stock: Optional[str]
+    sous_type_stock: Optional[str]
+    quantite_stock: Optional[float]
+    date_stock: Optional[date]
+    date_fin_stock: Optional[date]
+    variete: Optional[_VarieteMin]
+
+class BocalTimelineResponse(BaseModel):
+    bocal: MaterielRead
+    sessions_curing: List[_SessionCuringTimeline]
+    stocks: List[_StockTimeline]
+
+
+@router.get("/{id_materiel}/bocal-timeline", response_model=BocalTimelineResponse)
+def bocal_timeline(id_materiel: int, db: Session = Depends(get_db)):
+    """Retourne la chaîne de traçabilité complète d'un bocal : sessions curing → plantes → graines/cultures/séchage + stocks liés."""
+    bocal = _load(db, id_materiel)
+
+    # ── Sessions de curing liées ───────────────────────────────────────────────
+    sessions_curing_rows = db.query(SessionCuring).filter(
+        SessionCuring.id_materiel_bocal == id_materiel
+    ).order_by(SessionCuring.date_debut.desc()).all()
+
+    sessions_out = []
+    for sc in sessions_curing_rows:
+        plants_out = []
+        for pc in sc.plants:
+            plant = db.query(Plant).filter(Plant.id_plant == pc.id_plant).first()
+            if not plant:
+                continue
+
+            # Graine + variete + breeder
+            graine_out = None
+            if plant.id_graine:
+                g = db.query(Graine).filter(Graine.id_graine == plant.id_graine).first()
+                if g:
+                    variete_out = None
+                    breeder_out = None
+                    if g.id_variete:
+                        v = db.query(Variete).filter(Variete.id_variete == g.id_variete).first()
+                        if v:
+                            variete_out = _VarieteMin(id_variete=v.id_variete, nom_variete=v.nom_variete)
+                    if g.id_breeder:
+                        b = db.query(Breeder).filter(Breeder.id_breeder == g.id_breeder).first()
+                        if b:
+                            breeder_out = _BreederMin(id_breeder=b.id_breeder, nom_breeder=b.nom_breeder)
+                    graine_out = _GraineMin(
+                        id_graine=g.id_graine,
+                        types_graines=g.types_graines,
+                        variete=variete_out,
+                        breeder=breeder_out,
+                    )
+
+            # Culture
+            culture_out = None
+            if plant.id_culture:
+                c = db.query(Culture).filter(Culture.id_culture == plant.id_culture).first()
+                if c:
+                    culture_out = _CultureMin(
+                        id_culture=c.id_culture,
+                        nom=c.nom,
+                        date_debut=c.date_debut,
+                        date_passage_12_12=c.date_passage_12_12,
+                        date_debut_floraison=c.date_debut_floraison,
+                        date_recolte_estimee=c.date_recolte_estimee,
+                    )
+
+            # Séchage (chercher la session de séchage la plus récente pour cette plante)
+            sechage_out = None
+            ps = db.query(PlantSechage).filter(
+                PlantSechage.id_plant == plant.id_plant
+            ).order_by(PlantSechage.date_mise_sechage.desc()).first()
+            if ps:
+                ss = db.query(SessionSechage).filter(
+                    SessionSechage.id_session_sechage == ps.id_session_sechage
+                ).first()
+                if ss:
+                    sechage_out = _SechageMin(
+                        id_session_sechage=ss.id_session_sechage,
+                        nom=ss.nom,
+                        date_debut=ss.date_debut,
+                        date_fin=ss.date_fin,
+                    )
+
+            plants_out.append(_PlantTimeline(
+                id_plant=plant.id_plant,
+                nom_affichage=plant.nom_affichage,
+                date_recolte=plant.date_recolte,
+                poids_recolte_g=float(plant.poids_recolte_g) if plant.poids_recolte_g else None,
+                poids_debut_curing_g=float(pc.poids_debut_g) if pc.poids_debut_g else None,
+                poids_final_curing_g=float(pc.poids_final_g) if pc.poids_final_g else None,
+                graine=graine_out,
+                culture=culture_out,
+                sechage=sechage_out,
+            ))
+
+        sessions_out.append(_SessionCuringTimeline(
+            id_session_curing=sc.id_session_curing,
+            nom=sc.nom,
+            date_debut=sc.date_debut,
+            date_fin=sc.date_fin,
+            statut=sc.statut,
+            plants=plants_out,
+        ))
+
+    # ── Stocks liés ───────────────────────────────────────────────────────────
+    stocks_rows = db.query(Stock).filter(
+        Stock.id_materiel_bocal == id_materiel
+    ).order_by(Stock.date_stock.desc()).all()
+
+    stocks_out = []
+    for s in stocks_rows:
+        variete_out = None
+        if s.id_variete:
+            v = db.query(Variete).filter(Variete.id_variete == s.id_variete).first()
+            if v:
+                variete_out = _VarieteMin(id_variete=v.id_variete, nom_variete=v.nom_variete)
+        stocks_out.append(_StockTimeline(
+            id_stock=s.id_stock,
+            type_stock=s.type_stock,
+            sous_type_stock=s.sous_type_stock,
+            quantite_stock=float(s.quantite_stock) if s.quantite_stock else None,
+            date_stock=s.date_stock,
+            date_fin_stock=s.date_fin_stock,
+            variete=variete_out,
+        ))
+
+    return BocalTimelineResponse(
+        bocal=_enrich(bocal),
+        sessions_curing=sessions_out,
+        stocks=stocks_out,
+    )
 
 
 # ── Export CSV ────────────────────────────────────────────────────────────────

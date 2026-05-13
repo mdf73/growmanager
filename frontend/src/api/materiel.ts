@@ -120,6 +120,63 @@ export interface MaterielCreate {
 
 export type MaterielUpdate = Partial<MaterielCreate>
 
+// ── Types timeline bocal ──────────────────────────────────────────────────────
+export interface VarieteMin { id_variete: number; nom_variete: string }
+export interface BreederMin { id_breeder: number; nom_breeder: string }
+export interface GraineMin {
+  id_graine: number
+  types_graines: string | null
+  variete: VarieteMin | null
+  breeder: BreederMin | null
+}
+export interface CultureMin {
+  id_culture: number
+  nom: string
+  date_debut: string | null
+  date_passage_12_12: string | null
+  date_debut_floraison: string | null
+  date_recolte_estimee: string | null
+}
+export interface SechageMin {
+  id_session_sechage: number
+  nom: string | null
+  date_debut: string | null
+  date_fin: string | null
+}
+export interface PlantTimeline {
+  id_plant: number
+  nom_affichage: string
+  date_recolte: string | null
+  poids_recolte_g: number | null
+  poids_debut_curing_g: number | null
+  poids_final_curing_g: number | null
+  graine: GraineMin | null
+  culture: CultureMin | null
+  sechage: SechageMin | null
+}
+export interface SessionCuringTimeline {
+  id_session_curing: number
+  nom: string | null
+  date_debut: string | null
+  date_fin: string | null
+  statut: string | null
+  plants: PlantTimeline[]
+}
+export interface StockTimeline {
+  id_stock: number
+  type_stock: string | null
+  sous_type_stock: string | null
+  quantite_stock: number | null
+  date_stock: string | null
+  date_fin_stock: string | null
+  variete: VarieteMin | null
+}
+export interface BocalTimeline {
+  bocal: Materiel
+  sessions_curing: SessionCuringTimeline[]
+  stocks: StockTimeline[]
+}
+
 // ── API ───────────────────────────────────────────────────────────────────────
 export const materielAPI = {
   getAll: () =>
@@ -136,4 +193,7 @@ export const materielAPI = {
 
   exportCsv: () =>
     axios.get('/api/materiel/export/csv', { responseType: 'blob' }),
+
+  bocalTimeline: (id: number) =>
+    axios.get<BocalTimeline>(`/api/materiel/${id}/bocal-timeline`),
 }

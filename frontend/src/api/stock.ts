@@ -91,6 +91,50 @@ export interface ExtractionStats {
   nombre_extractions: number
 }
 
+// ── Types traçabilité origine ─────────────────────────────────────────────────
+export interface BreederMin { id_breeder: number; nom_breeder: string }
+export interface VarieteDetail {
+  id_variete: number
+  nom_variete: string
+  croisement_variete: string | null
+  informations_variete: string | null
+  lien_web: string | null
+}
+export interface GrainePlant {
+  id_graine: number
+  types_graines: string | null
+  breeder: BreederMin | null
+}
+export interface PlantOrigine {
+  id_plant: number
+  nom_affichage: string
+  date_recolte: string | null
+  poids_recolte_g: number | null
+  statut: string | null
+  graine: GrainePlant | null
+  sechage_date_debut: string | null
+  sechage_date_fin: string | null
+  curing_date_debut: string | null
+  poids_debut_curing_g: number | null
+  poids_final_curing_g: number | null
+}
+export interface CultureSource {
+  id_culture: number
+  nom: string
+  statut: string | null
+  date_debut: string | null
+  date_passage_12_12: string | null
+  date_debut_floraison: string | null
+  plants: PlantOrigine[]
+}
+export interface BocalInfo { id_materiel: number; nom: string; volume_ml: number | null }
+export interface StockOrigine {
+  stock: Stock
+  variete: VarieteDetail | null
+  bocal: BocalInfo | null
+  cultures_source: CultureSource[]
+}
+
 export const stockAPI = {
   getAll:  ()                                          => client.get<Stock[]>('/stock/'),
   getById: (id: number)                                => client.get<Stock>(`/stock/${id}`),
@@ -102,6 +146,9 @@ export const stockAPI = {
     client.get<BocalDisponible[]>('/stock/bocaux-disponibles', {
       params: currentStockId ? { current_stock_id: currentStockId } : undefined,
     }),
+
+  origine: (stockId: number) =>
+    client.get<StockOrigine>(`/stock/${stockId}/origine`),
 }
 
 export const rosinAPI = {

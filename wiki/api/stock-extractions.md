@@ -15,12 +15,33 @@ Router: `stock.py` | Prefix: `/api/stock`
 | GET | `/` | — | `list[StockWithVariete]` | All stock entries |
 | GET | `/{id}` | — | `StockWithVariete` | Single entry |
 | GET | `/bocaux-disponibles` | query: `current_stock_id?` | `list[BocalDisponible]` | Available jars (not in use) |
+| GET | `/{id}/origine` | — | `StockOrigineResponse` | Feature F — traçabilité complète : variété, bocal, cultures source, plantes |
 | POST | `/` | `StockCreate` | `StockRead` | Add stock entry |
 | PUT | `/{id}` | `StockCreate` | `StockRead` | Update stock |
 | POST | `/{id}/sortie` | — | `StockWithVariete` | Mark as consumed (sets `date_fin_stock`) |
 | DELETE | `/{id}` | — | 204 | Hard delete |
 
 **Note:** `/bocaux-disponibles` is a static route — must be declared before `/{id}`. → [[architecture/patterns]]
+
+### StockOrigineResponse (Feature F)
+
+Retourne la chaîne de traçabilité d'un stock en remontant via `id_variete` :
+
+```
+StockOrigineResponse {
+  stock: StockWithVariete
+  variete: { nom_variete, croisement_variete, informations_variete, lien_web } | None
+  bocal: { nom, volume_ml } | None
+  cultures_source: CultureSource[]   // cultures ayant cultivé cette variété
+    → plants: PlantOrigine[]
+        → graine: { types_graines, breeder }
+        → sechage: date_debut / date_fin
+        → curing: date_debut + poids début/fin
+        → poids_recolte_g, date_recolte
+}
+```
+
+Frontend : `StockOriginDrawer.tsx` — clic sur une ligne de la page Stock.tsx ouvre le drawer.
 
 `StockWithVariete` includes enriched variete name.
 

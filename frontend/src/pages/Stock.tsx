@@ -12,6 +12,7 @@ import LoadingSpinner from '../components/LoadingSpinner'
 import EmptyState from '../components/EmptyState'
 import NouveauStockModal from '../components/NouveauStockModal'
 import ImportExportModal from '../components/ImportExportModal'
+import StockOriginDrawer from '../components/StockOriginDrawer'
 
 // ── Tri ──────────────────────────────────────────────────────────────────────
 type StockSortCol = 'variete' | 'type' | 'soustype' | 'engrais' | 'bocal' | 'quantite' | 'date' | 'age'
@@ -69,11 +70,12 @@ function TypeBadge({ type }: { type?: string }) {
 }
 
 // ── Ligne stock avec confirmation ─────────────────────────────────────────────
-function StockRow({ item, onEdit, onDeleted, onSortie }: {
+function StockRow({ item, onEdit, onDeleted, onSortie, onOrigine }: {
   item: Stock
   onEdit: (s: Stock) => void
   onDeleted: () => void
   onSortie: () => void
+  onOrigine: (id: number) => void
 }) {
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [confirmSortie, setConfirmSortie] = useState(false)
@@ -162,10 +164,12 @@ function StockRow({ item, onEdit, onDeleted, onSortie }: {
     ? <span className="text-xs text-gray-400 dark:text-gray-500 italic">{durationLabel(item.date_stock ?? undefined, item.date_fin_stock ?? undefined)}</span>
     : <span className="text-sm text-gray-400 dark:text-gray-500">{ageLabel(item.date_stock ?? undefined)}</span>
 
-  const rowClass = isCloture ? 'opacity-50 bg-gray-50 dark:bg-gray-700/30' : 'hover:bg-gray-50 dark:hover:bg-gray-700/40 group'
+  const rowClass = isCloture
+    ? 'opacity-50 bg-gray-50 dark:bg-gray-700/30'
+    : 'hover:bg-violet-50/40 dark:hover:bg-violet-900/10 group cursor-pointer'
 
   return (
-    <tr className={rowClass}>
+    <tr className={rowClass} onClick={e => { if (!(e.target as HTMLElement).closest('button')) onOrigine(item.id_stock) }} title="Cliquer pour voir l'origine">
       <td className="px-5 py-3 text-sm font-medium text-gray-900 dark:text-gray-100">
         {item.variete_nom || '—'}
         {isCloture && <span className="ml-2 text-xs text-gray-400 dark:text-gray-500 font-normal">clôturé {item.date_fin_stock ? new Date(item.date_fin_stock).toLocaleDateString('fr-FR') : ''}</span>}
@@ -481,6 +485,7 @@ export default function StockPage() {
   const [showModal,        setShowModal]        = useState(false)
   const [editStock,        setEditStock]        = useState<Stock | null>(null)
   const [showImportExport, setShowImportExport] = useState(false)
+  const [origineStockId,   setOrigineStockId]   = useState<number | null>(null)
 
   const handleSort = (col: StockSortCol) => {
     if (sortCol === col) setSortDir(d => d === 'asc' ? 'desc' : 'asc')
@@ -579,6 +584,14 @@ export default function StockPage() {
         <NouveauStockModal editStock={editStock} onClose={() => { setShowModal(false); setEditStock(null) }} />
       )}
       {showImportExport && <ImportExportModal onClose={() => setShowImportExport(false)} />}
+
+      {/* Drawer traçabilité origine */}
+      {origineStockId && (
+        <StockOriginDrawer
+          stockId={origineStockId}
+          onClose={() => setOrigineStockId(null)}
+        />
+      )}
 
       {/* Bandeau alertes stock */}
       {stockAlerts.some(a => a.nb_bocaux_bas > 0 || a.alerte_total) && (
@@ -789,6 +802,7 @@ export default function StockPage() {
                         onEdit={s => setEditStock(s)}
                         onDeleted={() => queryClient.invalidateQueries({ queryKey: ['stock'] })}
                         onSortie={() => queryClient.invalidateQueries({ queryKey: ['stock'] })}
+                        onOrigine={id => setOrigineStockId(id)}
                       />
                     ))}
                   </tbody>

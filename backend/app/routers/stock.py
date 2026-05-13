@@ -1,11 +1,16 @@
 """Routers pour Stock"""
 from datetime import date
+from typing import Optional, List
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import and_
+from pydantic import BaseModel
 from app.database import get_db
 from app.models import Stock, Variete, Bocal
-from app.models.all_models import Materiel
+from app.models.all_models import (
+    Materiel, Plant, Culture, Graine, Breeder,
+    SessionCuring, PlantCuring, PlantSechage, SessionSechage,
+)
 from app.schemas.stock import StockCreate, StockRead, StockWithVariete, BocalDisponible
 import json
 
@@ -216,3 +221,189 @@ def delete_stock(stock_id: int, db: Session = Depends(get_db)):
     # Le bocal est libéré automatiquement car la ligne est supprimée
     db.delete(db_stock)
     db.commit()
+
+
+# ── GET origine (traçabilité) ──────────────────────────────────────────────────
+
+class _BreederMin(BaseModel):
+    id_breeder: int
+    nom_breeder: str
+
+class _VarieteDetail(BaseModel):
+    id_variete: int
+    nom_variete: str
+    croisement_variete: Optional[str]
+    informations_variete: Optional[str]
+    lien_web: Optional[str]
+
+class _GrainePlant(BaseModel):
+    id_graine: int
+    types_graines: Optional[str]
+    breeder: Optional[_BreederMin]
+
+class _PlantOrigine(BaseModel):
+    id_plant: int
+    nom_affichage: str
+    date_recolte: Optional[date]
+    poids_recolte_g: Optional[float]
+    statut: Optional[str]
+    graine: Optional[_GrainePlant]
+    sechage_date_debut: Optional[date]
+    sechage_date_fin: Optional[date]
+    curing_date_debut: Optional[date]
+    poids_debut_curing_g: Optional[float]
+    poids_final_curing_g: Optional[float]
+
+class _CultureSource(BaseModel):
+    id_culture: int
+    nom: str
+    statut: Optional[str]
+    date_debut: Optional[date]
+    date_passage_12_12: Optional[date]
+    date_debut_floraison: Optional[date]
+    plants: List[_PlantOrigine]
+
+class _BocalInfo(BaseModel):
+    id_materiel: int
+    nom: str
+    volume_ml: Optional[float]
+
+class StockOrigineResponse(BaseModel):
+    stock: StockWithVariete
+    variete: Optional[_VarieteDetail]
+    bocal: Optional[_BocalInfo]
+    cultures_source: List[_CultureSource]
+
+
+def _build_plant_origine(plant: Plant, db: Session) -> _PlantOrigine:
+    """Enrichit une plante avec graine, breeder, séchage, curing."""
+    graine_out = None
+    if plant.id_graine:
+        g = db.query(Graine).filter(Graine.id_graine == plant.id_graine).first()
+        if g:
+            breeder_out = None
+            if g.id_breeder:
+                b = db.query(Breeder).filter(Breeder.id_breeder == g.id_breeder).first()
+                if b:
+                    breeder_out = _BreederMin(id_breeder=b.id_breeder, nom_breeder=b.nom_breeder)
+            graine_out = _GrainePlant(
+                id_graine=g.id_graine,
+                types_graines=g.types_graines,
+                breeder=breeder_out,
+            )
+
+    # Séchage le plus récent
+    sech_debut = sech_fin = None
+    ps = db.query(PlantSechage).filter(
+        PlantSechage.id_plant == plant.id_plant
+    ).order_by(PlantSechage.date_mise_sechage.desc()).first()
+    if ps:
+        ss = db.query(SessionSechage).filter(
+            SessionSechage.id_session_sechage == ps.id_session_sechage
+        ).first()
+        if ss:
+            sech_debut, sech_fin = ss.date_debut, ss.date_fin
+
+    # Curing le plus récent
+    cur_debut = poids_debut = poids_final = None
+    pc = db.query(PlantCuring).filter(
+        PlantCuring.id_plant == plant.id_plant
+    ).order_by(PlantCuring.date_mise_curing.desc()).first()
+    if pc:
+        sc = db.query(SessionCuring).filter(
+            SessionCuring.id_session_curing == pc.id_session_curing
+        ).first()
+        if sc:
+            cur_debut = sc.date_debut
+        poids_debut  = float(pc.poids_debut_g)  if pc.poids_debut_g  else None
+        poids_final  = float(pc.poids_final_g)  if pc.poids_final_g  else None
+
+    return _PlantOrigine(
+        id_plant=plant.id_plant,
+        nom_affichage=plant.nom_affichage,
+        date_recolte=plant.date_recolte,
+        poids_recolte_g=float(plant.poids_recolte_g) if plant.poids_recolte_g else None,
+        statut=plant.statut,
+        graine=graine_out,
+        sechage_date_debut=sech_debut,
+        sechage_date_fin=sech_fin,
+        curing_date_debut=cur_debut,
+        poids_debut_curing_g=poids_debut,
+        poids_final_curing_g=poids_final,
+    )
+
+
+@router.get("/{stock_id}/origine", response_model=StockOrigineResponse)
+def stock_origine(stock_id: int, db: Session = Depends(get_db)):
+    """Retourne la traçabilité complète d'un stock : variété, bocal, cultures source et leurs plantes."""
+    s = db.query(Stock).filter(Stock.id_stock == stock_id).first()
+    if not s:
+        raise HTTPException(status_code=404, detail="Stock non trouvé")
+
+    enriched = _enrich(s, db)
+
+    # ── Variété ───────────────────────────────────────────────────────────────
+    variete_out = None
+    if s.id_variete:
+        v = db.query(Variete).filter(Variete.id_variete == s.id_variete).first()
+        if v:
+            variete_out = _VarieteDetail(
+                id_variete=v.id_variete,
+                nom_variete=v.nom_variete,
+                croisement_variete=v.croisement_variete,
+                informations_variete=v.informations_variete,
+                lien_web=v.lien_web,
+            )
+
+    # ── Bocal ─────────────────────────────────────────────────────────────────
+    bocal_out = None
+    if s.id_materiel_bocal:
+        mat = db.query(Materiel).filter(Materiel.id_materiel == s.id_materiel_bocal).first()
+        if mat:
+            vol = None
+            try:
+                c = mat.caracteristiques if isinstance(mat.caracteristiques, dict) \
+                    else json.loads(mat.caracteristiques or '{}')
+                vol = c.get("volume_ml")
+            except Exception:
+                pass
+            bocal_out = _BocalInfo(id_materiel=mat.id_materiel, nom=mat.nom, volume_ml=vol)
+
+    # ── Cultures source (via id_variete → plants → graines) ──────────────────
+    cultures_out: List[_CultureSource] = []
+    if s.id_variete:
+        # Toutes les plantes dont la graine est de cette variété
+        plants_with_variete = (
+            db.query(Plant)
+            .join(Graine, Graine.id_graine == Plant.id_graine)
+            .filter(Graine.id_variete == s.id_variete)
+            .all()
+        )
+        # Regrouper par culture
+        culture_map: dict[int, list[Plant]] = {}
+        for plant in plants_with_variete:
+            culture_map.setdefault(plant.id_culture, []).append(plant)
+
+        for id_culture, culture_plants in culture_map.items():
+            c = db.query(Culture).filter(Culture.id_culture == id_culture).first()
+            if not c:
+                continue
+            plants_out = [_build_plant_origine(p, db) for p in culture_plants]
+            cultures_out.append(_CultureSource(
+                id_culture=c.id_culture,
+                nom=c.nom,
+                statut=c.statut,
+                date_debut=c.date_debut,
+                date_passage_12_12=c.date_passage_12_12,
+                date_debut_floraison=c.date_debut_floraison,
+                plants=plants_out,
+            ))
+        # Tri par date de début (plus récente en premier)
+        cultures_out.sort(key=lambda x: x.date_debut or date.min, reverse=True)
+
+    return StockOrigineResponse(
+        stock=enriched,
+        variete=variete_out,
+        bocal=bocal_out,
+        cultures_source=cultures_out,
+    )

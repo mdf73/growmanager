@@ -16,6 +16,7 @@ import { sechageAPI } from '../api/sechage'
 import { curingAPI } from '../api/curing'
 import type { EspaceCulture } from '../api/espaces'
 import client from '../api/client'
+import BocalTimelineDrawer from '../components/BocalTimelineDrawer'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -1265,6 +1266,7 @@ function PlantRow({
   onOuvertureBocal,
   onEditCuring,
   onWpff,
+  onTracabilite,
 }: {
   plant: PlantSechage
   onDebutCuring: (plant: PlantSechage) => void
@@ -1273,6 +1275,7 @@ function PlantRow({
   onOuvertureBocal: (plant: PlantSechage) => void
   onEditCuring: (plant: PlantSechage) => void
   onWpff: (plant: PlantSechage) => void
+  onTracabilite?: (idMateriel: number) => void
 }) {
   const [expanded, setExpanded] = useState(false)
   // R+X : jours depuis la récolte (toujours croissant)
@@ -1462,6 +1465,17 @@ function PlantRow({
             </button>
           )}
 
+          {/* Bouton traçabilité bocal */}
+          {plant.statut === 'curing' && plant.id_materiel_bocal && onTracabilite && (
+            <button
+              onClick={e => { e.stopPropagation(); onTracabilite(plant.id_materiel_bocal!) }}
+              title="Voir la traçabilité de ce bocal"
+              className="flex-shrink-0 px-2.5 py-1.5 text-xs rounded-lg font-medium whitespace-nowrap flex items-center gap-1 border border-violet-200 text-violet-600 hover:bg-violet-50 dark:border-violet-700 dark:text-violet-400 dark:hover:bg-violet-900/30"
+            >
+              🔍 Origine
+            </button>
+          )}
+
           {/* Bouton ouvrir bocal (curing bocal hors espace) */}
           {isBocalHorsEspace && (
             <button
@@ -1582,6 +1596,7 @@ export default function SechageCuring() {
   const [editCuringModal, setEditCuringModal]         = useState<PlantSechage | null>(null)
   const [wpffModal, setWpffModal]                     = useState<PlantSechage | null>(null)
   const [ouvertureEnMasseOpen, setOuvertureEnMasseOpen] = useState(false)
+  const [timelineBocalId, setTimelineBocalId]           = useState<number | null>(null)
 
   const { data: plants = [], isLoading } = useQuery<PlantSechage[]>({
     queryKey: ['sechage-plants'],
@@ -1826,6 +1841,7 @@ export default function SechageCuring() {
                 onOuvertureBocal={p => setOuvertureBocalModal(p)}
                 onEditCuring={p => setEditCuringModal(p)}
                 onWpff={p => setWpffModal(p)}
+                onTracabilite={id => setTimelineBocalId(id)}
               />
             ))
           )}
@@ -1908,6 +1924,14 @@ export default function SechageCuring() {
               )
             )
           }}
+        />
+      )}
+
+      {/* Drawer Traçabilité bocal */}
+      {timelineBocalId && (
+        <BocalTimelineDrawer
+          idMateriel={timelineBocalId}
+          onClose={() => setTimelineBocalId(null)}
         />
       )}
     </div>

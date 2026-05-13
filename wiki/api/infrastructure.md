@@ -67,6 +67,27 @@ Router: `materiel.py` | Prefix: `/api/materiel`
 | PATCH | `/{id}` | `MaterielUpdate` | `MaterielRead` | Partial update |
 | DELETE | `/{id}` | — | 204 | |
 | GET | `/export/csv` | — | CSV file | |
+| GET | `/{id}/bocal-timeline` | — | `BocalTimelineResponse` | Feature F — traçabilité bocal → graine (depuis SechageCuring) |
+
+### BocalTimelineResponse (Feature F)
+
+Retourne la chaîne de traçabilité complète d'un bocal d'inventaire (Materiel catégorie Bocaux) :
+
+```
+BocalTimelineResponse {
+  bocal: MaterielRead
+  sessions_curing: SessionCuringTimeline[]   // sessions de curing liées (id_materiel_bocal)
+    → plants: PlantTimeline[]
+        → graine: { types_graines, variete, breeder }
+        → culture: { nom, date_debut, date_passage_12_12, date_debut_floraison }
+        → sechage: { nom, date_debut, date_fin }
+        → poids_recolte_g, poids_debut_curing_g, poids_final_curing_g
+  stocks: StockTimeline[]                    // entrées Stock liées (id_materiel_bocal)
+    → variete, type_stock, quantite_stock, date_stock
+}
+```
+
+Frontend : composant `BocalTimelineDrawer.tsx` — bouton "🔍 Origine" sur les plantes en curing dans `SechageCuring.tsx`.
 
 ## Configurable Parameters
 
