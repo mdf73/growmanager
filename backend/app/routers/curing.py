@@ -11,6 +11,7 @@ from app.schemas.curing import (
     SessionCuringCreate, SessionCuringUpdate, SessionCuringRead,
     PlantCuringCreate, PlantCuringUpdate, PlantCuringRead,
 )
+from app.routers.culture_helpers import _maybe_close_culture, _maybe_archive_culture
 
 router = APIRouter(prefix="/api/curing", tags=["curing"])
 
@@ -115,6 +116,7 @@ def create_session(payload: SessionCuringCreate, db: Session = Depends(get_db)):
     db.add(s)
     db.flush()
     # Ajouter les plantes fournies
+    cultures_a_verifier = set()
     for p in payload.plants:
         plant = db.query(Plant).filter(Plant.id_plant == p.id_plant).first()
         if not plant:
@@ -130,6 +132,15 @@ def create_session(payload: SessionCuringCreate, db: Session = Depends(get_db)):
         db.add(pc)
         # Mettre à jour le statut de la plante
         plant.statut = "curing"
+        if plant.id_culture:
+            cultures_a_verifier.add(plant.id_culture)
+    db.flush()
+    # Vérifier si les cultures concernées doivent être fermées / archivées
+    for id_culture in cultures_a_verifier:
+        culture = db.query(Culture).filter(Culture.id_culture == id_culture).first()
+        if culture:
+            _maybe_close_culture(culture, db)
+            _maybe_archive_culture(culture, db)
     db.commit()
     db.refresh(s)
     return _enrich_session(s, db)
@@ -184,6 +195,13 @@ def add_plant_to_session(id_session: int, payload: PlantCuringCreate, db: Sessio
     )
     db.add(pc)
     plant.statut = "curing"
+    db.flush()
+    # Vérifier si la culture doit être fermée / archivée
+    if plant.id_culture:
+        culture = db.query(Culture).filter(Culture.id_culture == plant.id_culture).first()
+        if culture:
+            _maybe_close_culture(culture, db)
+            _maybe_archive_culture(culture, db)
     db.commit()
     db.refresh(pc)
     return _enrich_plant_curing(pc, db)

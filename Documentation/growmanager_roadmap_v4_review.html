@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: system-ui, sans-serif; background: var(--bg-primary, #0f172a); color: var(--text-primary, #f1f5f9); padding: 16px; font-size: 13px; }
+  h2 { font-size: 15px; font-weight: 700; margin-bottom: 12px; color: #e2e8f0; }
+  .section-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #94a3b8; margin-bottom: 8px; margin-top: 16px; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+  .stat-card { background: #1e293b; border-radius: 8px; padding: 12px; text-align: center; }
+  .stat-num { font-size: 28px; font-weight: 800; line-height: 1; }
+  .stat-label { font-size: 10px; color: #94a3b8; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .card { background: #1e293b; border-radius: 8px; padding: 12px; }
+  .feature-row { display: flex; align-items: flex-start; gap: 8px; padding: 6px 0; border-bottom: 1px solid #334155; }
+  .feature-row:last-child { border-bottom: none; }
+  .badge { font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 10px; white-space: nowrap; flex-shrink: 0; margin-top: 1px; }
+  .done { background: #14532d; color: #4ade80; }
+  .pending { background: #312e81; color: #a5b4fc; }
+  .feature-name { font-size: 12px; font-weight: 600; color: #e2e8f0; }
+  .feature-desc { font-size: 11px; color: #94a3b8; margin-top: 2px; }
+  .tag { font-size: 10px; background: #0f172a; border: 1px solid #334155; border-radius: 4px; padding: 1px 5px; color: #64748b; margin-left: auto; flex-shrink: 0; }
+  .v4-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .v4-item { background: #1e293b; border-radius: 6px; padding: 8px 10px; }
+  .v4-label { font-size: 10px; font-weight: 700; color: #818cf8; }
+  .v4-name { font-size: 11px; color: #e2e8f0; margin-top: 2px; }
+  .v4-desc { font-size: 10px; color: #64748b; margin-top: 2px; }
+  .stack-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+  .chip { font-size: 10px; padding: 2px 8px; background: #0f172a; border: 1px solid #334155; border-radius: 4px; color: #94a3b8; }
+  .green { color: #4ade80; }
+  .blue { color: #60a5fa; }
+  .amber { color: #fbbf24; }
+  hr { border: none; border-top: 1px solid #1e293b; margin: 12px 0; }
+</style>
+</head>
+<body>
+
+<h2>GrowManager — État du projet (v1.0.0)</h2>
+
+<div class="grid3">
+  <div class="stat-card"><div class="stat-num green">33</div><div class="stat-label">Routers backend</div></div>
+  <div class="stat-card"><div class="stat-num blue">26</div><div class="stat-label">Pages frontend</div></div>
+  <div class="stat-card"><div class="stat-num amber">13</div><div class="stat-label">Features V4 backlog</div></div>
+</div>
+
+<div class="stack-row">
+  <span class="chip">React 18 + TypeScript</span>
+  <span class="chip">FastAPI 0.111</span>
+  <span class="chip">MySQL + SQLAlchemy 2.0</span>
+  <span class="chip">Docker Compose</span>
+  <span class="chip">TanStack Query v5</span>
+  <span class="chip">Tailwind 3</span>
+</div>
+
+<div class="section-title" style="margin-top:16px;">V3 — Features (6/7 done)</div>
+<div class="card">
+  <div class="feature-row">
+    <span class="badge done">✓ DONE</span>
+    <div><div class="feature-name">1. Coûts de culture</div><div class="feature-desc">Colonnes cout_* sur HistoriqueCulture · élec + engrais + graines · €/g dans Stats</div></div>
+    <span class="tag">2026-05-01</span>
+  </div>
+  <div class="feature-row">
+    <span class="badge done">✓ DONE</span>
+    <div><div class="feature-name">4. Refonte Paramétrage</div><div class="feature-desc">AppSettings · Section Économique · 6 nouvelles listes · 3 tabs nav</div></div>
+    <span class="tag">2026-05-01</span>
+  </div>
+  <div class="feature-row">
+    <span class="badge done">✓ DONE</span>
+    <div><div class="feature-name">5. Page Consommation</div><div class="feature-desc">SessionConsommation · CRUD + stats · graphique 7j · projection stock</div></div>
+    <span class="tag">2026-05-01</span>
+  </div>
+  <div class="feature-row">
+    <span class="badge done">✓ DONE</span>
+    <div><div class="feature-name">6. Mode Dark</div><div class="feature-desc">darkMode: 'class' · anti-FOUC · toggle sidebar/header · 58 fichiers passés</div></div>
+    <span class="tag">2026-05-01</span>
+  </div>
+  <div class="feature-row">
+    <span class="badge done">✓ DONE</span>
+    <div><div class="feature-name">3. Docker multi-plateforme</div><div class="feature-desc">docker-compose.server.yml · Dockerfile.prod backend + frontend · nginx SPA</div></div>
+    <span class="tag">2026-05-01</span>
+  </div>
+  <div class="feature-row">
+    <span class="badge done">✓ DONE</span>
+    <div><div class="feature-name">8. Galerie photos</div><div class="feature-desc">Table Photo · upload Pillow + thumbnail · PhotoGallery + lightbox · badge count</div></div>
+    <span class="tag">2026-05-02</span>
+  </div>
+  <div class="feature-row">
+    <span class="badge pending">⏳ TODO</span>
+    <div><div class="feature-name">7. App Android</div><div class="feature-desc">Option A: TWA (Bubblewrap) — Option B: Capacitor (native)</div></div>
+    <span class="tag">backlog</span>
+  </div>
+  <div class="feature-row">
+    <span class="badge pending">⏳ TODO</span>
+    <div><div class="feature-name">2. Multi-utilisateur</div><div class="feature-desc">Auth JWT · isolation user_id · inscription/connexion · rôles admin/user</div></div>
+    <span class="tag">backlog</span>
+  </div>
+</div>
+
+<div class="section-title">V4 — Backlog (proposé 2026-05-09)</div>
+<div class="v4-grid">
+  <div class="v4-item"><div class="v4-label">A · Suivi culture</div><div class="v4-name">pH & EC par arrosage</div><div class="v4-desc">Champs ph/ec sur ActionCalendrier + mini-graphique StatsTab</div></div>
+  <div class="v4-item"><div class="v4-label">B · Suivi culture</div><div class="v4-name">IPM / traitements</div><div class="v4-desc">Nouveau type action + délai avant récolte + badge rouge &lt;7j</div></div>
+  <div class="v4-item"><div class="v4-label">C · Suivi culture</div><div class="v4-name">Timer de flush</div><div class="v4-desc">date_debut_flush sur Culture + badge dashboard 🚿 J+X</div></div>
+  <div class="v4-item"><div class="v4-label">D · Analytics</div><div class="v4-name">Vue calendrier global</div><div class="v4-desc">Grille mensuelle — toutes cultures — tous événements</div></div>
+  <div class="v4-item"><div class="v4-label">E · Analytics</div><div class="v4-name">Comparaison inter-cultures</div><div class="v4-desc">Sélecteur 2-3 cultures · tableau comparatif · courbes superposées</div></div>
+  <div class="v4-item"><div class="v4-label">F · Stock</div><div class="v4-name">Traçabilité bocal → graine</div><div class="v4-desc">Timeline graine → culture → récolte → bocal · taux perte total</div></div>
+  <div class="v4-item"><div class="v4-label">G · Alertes</div><div class="v4-name">Alertes stock bas</div><div class="v4-desc">Seuils dans AppSettings · badge rouge Dashboard · bandeau Stock</div></div>
+  <div class="v4-item"><div class="v4-label">H · Alertes</div><div class="v4-name">Rappels bocaux / burping</div><div class="v4-desc">Prochaine ouverture recommandée · section "À faire" Dashboard</div></div>
+  <div class="v4-item"><div class="v4-label">I · Stock</div><div class="v4-name">QR codes / étiquettes</div><div class="v4-desc">PDF/PNG par bocal · QR pointant vers /stock?id=</div></div>
+  <div class="v4-item"><div class="v4-label">J · Stock</div><div class="v4-name">Déduction stock engrais</div><div class="v4-desc">stock_actuel sur ProduitEngrais · décrémenté à l'arrosage</div></div>
+  <div class="v4-item"><div class="v4-label">K · UX</div><div class="v4-name">Recherche globale</div><div class="v4-desc">Ctrl+K · GET /api/search · résultats groupés par catégorie</div></div>
+  <div class="v4-item"><div class="v4-label">L · UX</div><div class="v4-name">Export PDF fiche culture</div><div class="v4-desc">WeasyPrint · infos + plantes + coûts + photos + actions</div></div>
+  <div class="v4-item"><div class="v4-label">M · Calculs</div><div class="v4-name">PPFD / DLI</div><div class="v4-desc">Calcul côté frontend · widget StatsTab · valeurs cibles veg/flo</div></div>
+</div>
+
+<div class="section-title">Dernier commit</div>
+<div class="card" style="font-size:11px; color:#94a3b8;">
+  <span style="color:#818cf8; font-weight:600;">df95c2e</span> — feat(culture): sélecteur de graines en stock pour ajout de plante<br>
+  <span style="margin-top:4px; display:block;">v1.0.0 — audit complet + corrections bugs latents (2026-05-07)</span>
+</div>
+
+</body>
+</html>

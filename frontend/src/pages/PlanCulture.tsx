@@ -824,6 +824,9 @@ function EspaceSection({ espace, plans }: EspaceSectionProps) {
                   <div className="px-2 text-center min-w-[120px]">
                     <span className="text-sm font-semibold text-gray-800 dark:text-gray-100 truncate block max-w-[160px]">
                       {selectedPlan?.nom ?? '—'}
+                      {selectedPlan?.statut === 'lance' && (
+                        <span className="ml-1.5 text-[10px] font-medium bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-400 px-1.5 py-0.5 rounded-full">Lancé</span>
+                      )}
                     </span>
                     <span className="text-[10px] text-gray-400 dark:text-gray-500">
                       {currentIndex + 1} / {plans.length}
@@ -992,6 +995,9 @@ function EspaceSection({ espace, plans }: EspaceSectionProps) {
           onClose={() => setShowLancerModal(false)}
           onSubmit={async (data: CultureCreate) => {
             await cultureAPI.create(data)
+            // Marquer le plan comme lancé
+            await planCultureAPI.update(selectedPlan.id_plan, { statut: 'lance' })
+            qc.invalidateQueries({ queryKey: ['plan-culture'] })
             qc.invalidateQueries({ queryKey: ['cultures'] })
             setShowLancerModal(false)
             navigate('/culture')

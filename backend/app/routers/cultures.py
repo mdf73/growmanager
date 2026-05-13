@@ -692,6 +692,7 @@ def _handle_action_effects(action: ActionCalendrier, culture: Culture, db: Sessi
                         engrais_type=engrais_type,
                         date_stock=action.date_action,
                         quantite_stock=poids,
+                        quantite_initiale=poids,   # V4-G — référence pour alertes %
                     )
                     db.add(stock_entry)
         _maybe_close_culture(culture, db)

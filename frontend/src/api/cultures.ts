@@ -21,6 +21,7 @@ export interface Culture {
   date_fin?: string
   date_passage_12_12?: string
   date_debut_floraison?: string
+  date_debut_flush?: string
   date_recolte_estimee?: string
   date_recolte_min?: string
   date_recolte_max?: string
@@ -157,6 +158,10 @@ export interface ActionCreate {
   note?: string
   global_culture?: boolean
   space_only?: boolean
+  ph_entrant?: number
+  ph_sortant?: number
+  ec_entrant?: number
+  ec_sortant?: number
 }
 
 export interface PlantUpdate {
@@ -174,10 +179,19 @@ export interface PlantUpdate {
   notes?: string
 }
 
+export interface PhEcPoint {
+  date: string
+  ph_entrant: number | null
+  ph_sortant: number | null
+  ec_entrant: number | null
+  ec_sortant: number | null
+}
+
 export interface Stats {
   hauteurs: Record<string, { date: string; hauteur_cm: number }[]>
   arrosages: { date: string; volume_ml: number; type: string }[]
   intensites_lampe: { date: string; puissance_avant: number; puissance_apres: number }[]
+  ph_ec: PhEcPoint[]
   nb_actions_total: number
 }
 

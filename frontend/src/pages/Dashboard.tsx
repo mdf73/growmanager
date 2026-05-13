@@ -4,8 +4,9 @@ import {
   Leaf, Wind, Package, Sprout, Beaker,
   TrendingUp, Scissors, Thermometer, Wifi, WifiOff, Droplets,
 } from 'lucide-react'
-import { dashboardAPI, DashboardFullStats, BoxArrosageStats } from '../api/dashboard'
+import { dashboardAPI, DashboardFullStats, BoxArrosageStats, IpmWarning } from '../api/dashboard'
 import { capteursAPI, GoveeDevice } from '../api/capteurs'
+import { stockAlertSeuilsAPI, StockAlertResult } from '../api/stockAlertSeuils'
 import LoadingSpinner from '../components/LoadingSpinner'
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
@@ -250,9 +251,26 @@ function ModuleCuring({ stats, onClick, className }: { stats: DashboardFullStats
 
 // ── Module 4 : Stock ───────────────────────────────────────────────────────────
 function ModuleStock({ stats, onClick }: { stats: DashboardFullStats; onClick: () => void }) {
+  const { data: alerts = [] } = useQuery<StockAlertResult[]>({
+    queryKey: ['stock-alerts'],
+    queryFn:  async () => (await stockAlertSeuilsAPI.check()).data,
+    refetchInterval: 60_000,
+  })
+
+  const hasAlert = alerts.some(a => a.nb_bocaux_bas > 0 || a.alerte_total)
+  const nbBocauxBas = alerts.reduce((acc, a) => acc + a.nb_bocaux_bas, 0)
+
   return (
     <Module onClick={onClick}>
-      <ModuleTitle icon={<Package size={16} />} label="Stock" color="text-gray-700 dark:text-gray-200" />
+      <div className="flex items-center justify-between">
+        <ModuleTitle icon={<Package size={16} />} label="Stock" color="text-gray-700 dark:text-gray-200" />
+        {hasAlert && (
+          <span className="flex items-center gap-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400
+                           text-xs font-bold px-2 py-0.5 rounded-full border border-red-200 dark:border-red-700">
+            ⚠ {nbBocauxBas > 0 ? `${nbBocauxBas} bocal${nbBocauxBas > 1 ? 'x' : ''}` : 'Stock bas'}
+          </span>
+        )}
+      </div>
       <div className="space-y-2">
         <StatRow
           label="Total global"
@@ -277,6 +295,14 @@ function ModuleStock({ stats, onClick }: { stats: DashboardFullStats; onClick: (
           />
         </div>
       </div>
+      {hasAlert && alerts.map(a => (
+        a.alerte_total ? (
+          <div key={`total-${a.type_stock}`}
+               className="text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 rounded px-2 py-1">
+            Stock total {a.type_stock.toLowerCase()} : {a.total_g} g (seuil {a.seuil_total_g} g)
+          </div>
+        ) : null
+      ))}
     </Module>
   )
 }
@@ -491,6 +517,85 @@ function BoxArrosageRow({ box }: { box: BoxArrosageStats }) {
   )
 }
 
+// ── Module IPM : Traitements en cours ────────────────────────────────────────
+
+const METHODE_LABELS: Record<string, string> = {
+  spray_foliaire:     '🌿 Spray foliaire',
+  arrosage_racinaire: '💧 Arrosage racinaire',
+  sol:                '🌱 Sol',
+  autre:              '• Autre',
+}
+
+function IpmRow({ w }: { w: IpmWarning }) {
+  const urgentClass = w.alerte_rouge
+    ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-700'
+    : 'bg-orange-50 dark:bg-orange-900/10 border-orange-100 dark:border-orange-700/50'
+
+  return (
+    <div className={`flex items-start gap-3 p-2.5 rounded-lg border ${urgentClass}`}>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-1.5 flex-wrap">
+          {w.alerte_rouge && (
+            <span className="text-xs font-bold bg-red-500 text-white px-1.5 py-0.5 rounded-full shrink-0">
+              🔴 {w.jours_restants}j restant{w.jours_restants > 1 ? 's' : ''}
+            </span>
+          )}
+          {!w.alerte_rouge && (
+            <span className="text-xs font-semibold text-orange-700 dark:text-orange-400 shrink-0">
+              ⏳ {w.jours_restants}j restant{w.jours_restants > 1 ? 's' : ''}
+            </span>
+          )}
+          <span className="text-xs font-semibold text-gray-800 dark:text-gray-100 truncate">
+            {w.produit || 'Traitement'}
+          </span>
+        </div>
+        <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+          {w.culture_nom}{w.plant_nom ? ` — ${w.plant_nom}` : ''}
+          {w.methode ? ` · ${METHODE_LABELS[w.methode] ?? w.methode}` : ''}
+          {w.dose != null ? ` · ${w.dose} mL/L` : ''}
+        </p>
+        <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+          Appliqué le {new Date(w.date_traitement).toLocaleDateString('fr-FR')} · délai {w.delai_recolte_j}j
+        </p>
+      </div>
+    </div>
+  )
+}
+
+function ModuleIPM({ onClick }: { onClick: () => void }) {
+  const { data: warnings = [] } = useQuery<IpmWarning[]>({
+    queryKey: ['ipm-warnings'],
+    queryFn:  async () => (await dashboardAPI.getIpmWarnings()).data,
+    refetchInterval: 60_000,
+  })
+
+  if (warnings.length === 0) return null
+
+  const nbRouge = warnings.filter(w => w.alerte_rouge).length
+
+  return (
+    <Module onClick={onClick} clickable={true}>
+      <div className="flex items-center justify-between">
+        <ModuleTitle icon={<span className="text-base">💊</span>} label="Traitements IPM actifs" color="text-orange-700" />
+        {nbRouge > 0 && (
+          <span className="flex items-center gap-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400
+                           text-xs font-bold px-2 py-0.5 rounded-full border border-red-200 dark:border-red-700">
+            🔴 {nbRouge} alerte{nbRouge > 1 ? 's' : ''}
+          </span>
+        )}
+      </div>
+      <div className="space-y-2">
+        {warnings.map(w => (
+          <IpmRow key={w.id_action} w={w} />
+        ))}
+      </div>
+      <p className="text-xs text-gray-400 dark:text-gray-500">
+        Traitements dont le délai avant récolte n'est pas écoulé · rouge = &lt;7j restants
+      </p>
+    </Module>
+  )
+}
+
 // ── Page principale ────────────────────────────────────────────────────────────
 export default function Dashboard() {
   const navigate = useNavigate()
@@ -523,6 +628,9 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 gap-4">
         <ModuleCapteurs onClick={() => navigate('/suivi-constantes')} />
       </div>
+
+      {/* Ligne 1b : Traitements IPM actifs (conditionnel — masqué si aucun) */}
+      <ModuleIPM onClick={() => navigate('/culture')} />
 
       {/* Ligne 2 : Culture (large) + Séchage & Curing empilés */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-stretch">

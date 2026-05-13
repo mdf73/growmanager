@@ -595,6 +595,7 @@ class Stock(Base):
     date_stock = Column(Date)
     date_fin_stock = Column(Date, nullable=True)     # date de clôture (sortie manuelle ou stock=0)
     quantite_stock = Column(DECIMAL(10, 2))
+    quantite_initiale = Column(DECIMAL(10, 2), nullable=True)   # quantité à la création (pour calcul % restant)
 
     # Relations
     variete = relationship("Variete", back_populates="stocks")
@@ -1478,3 +1479,16 @@ class Photo(Base):
     # Relations
     plant   = relationship("Plant")
     culture = relationship("Culture")
+
+
+# ============ Alertes stock (Feature G — V4) ============
+
+class StockAlertSeuil(Base):
+    """Seuils d'alerte par type de stock. Extensible a tous les types (Hash, Rosin...)."""
+    __tablename__ = "StockAlertSeuil"
+
+    type_stock      = Column(String(50),     primary_key=True)
+    seuil_bocal_g   = Column(DECIMAL(10, 2), nullable=True)
+    seuil_bocal_pct = Column(DECIMAL(5, 1),  nullable=True)
+    seuil_total_g   = Column(DECIMAL(10, 2), nullable=True)
+    actif           = Column(Boolean,        nullable=False, default=True)

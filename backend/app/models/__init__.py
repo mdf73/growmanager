@@ -53,6 +53,7 @@ from app.models.all_models import (
     Croisement,
     HistoriqueCulture,
     HistoriquePlant,
+    StockAlertSeuil,
 )
 
 __all__ = [
@@ -109,4 +110,5 @@ __all__ = [
     "Croisement",
     "HistoriqueCulture",
     "HistoriquePlant",
+    "StockAlertSeuil",
 ]

@@ -7,6 +7,7 @@ import {
 } from 'lucide-react'
 import { stockAPI, Stock } from '../api/stock'
 import { curingAPI, SessionCuring, PlantCuring } from '../api/curing'
+import { stockAlertSeuilsAPI, StockAlertResult } from '../api/stockAlertSeuils'
 import LoadingSpinner from '../components/LoadingSpinner'
 import EmptyState from '../components/EmptyState'
 import NouveauStockModal from '../components/NouveauStockModal'
@@ -492,6 +493,12 @@ export default function StockPage() {
     queryFn: async (): Promise<Stock[]> => (await stockAPI.getAll()).data,
   })
 
+  const { data: stockAlerts = [] } = useQuery<StockAlertResult[]>({
+    queryKey: ['stock-alerts'],
+    queryFn: async () => (await stockAlertSeuilsAPI.check()).data,
+    refetchInterval: 60_000,
+  })
+
   const { data: curingSessions = [], isLoading: curingLoading } = useQuery({
     queryKey: ['curing-sessions-active'],
     queryFn: (): Promise<SessionCuring[]> => curingAPI.list('active'),
@@ -572,6 +579,44 @@ export default function StockPage() {
         <NouveauStockModal editStock={editStock} onClose={() => { setShowModal(false); setEditStock(null) }} />
       )}
       {showImportExport && <ImportExportModal onClose={() => setShowImportExport(false)} />}
+
+      {/* Bandeau alertes stock */}
+      {stockAlerts.some(a => a.nb_bocaux_bas > 0 || a.alerte_total) && (
+        <div className="rounded-xl border border-red-200 dark:border-red-700 bg-red-50 dark:bg-red-900/20 px-4 py-3 space-y-2">
+          <div className="flex items-center gap-2 text-red-700 dark:text-red-400 font-semibold text-sm">
+            <AlertTriangle size={16} />
+            Alertes stock
+          </div>
+          {stockAlerts.map(alert => (
+            <div key={alert.type_stock}>
+              {alert.bocaux_bas.map(bocal => (
+                <div key={bocal.id_stock}
+                     className="flex items-center justify-between text-sm py-1 border-b border-red-100 dark:border-red-800 last:border-0">
+                  <span className="text-red-700 dark:text-red-300">
+                    {bocal.variete_nom || `Stock #${bocal.id_stock}`}
+                    <span className="text-xs text-red-500 dark:text-red-400 ml-1">({alert.type_stock})</span>
+                  </span>
+                  <span className="text-red-600 dark:text-red-400 font-mono text-xs">
+                    {bocal.quantite_stock.toFixed(1)} g
+                    {bocal.pct_restant != null && ` · ${bocal.pct_restant}%`}
+                    {bocal.raison === 'pct' && ' ⬇ % bas'}
+                    {bocal.raison === 'g' && ' ⬇ qté basse'}
+                    {bocal.raison === 'g+pct' && ' ⬇ qté+% bas'}
+                  </span>
+                </div>
+              ))}
+              {alert.alerte_total && (
+                <div className="flex items-center justify-between text-sm py-1">
+                  <span className="text-red-700 dark:text-red-300 italic">Total {alert.type_stock}</span>
+                  <span className="text-red-600 dark:text-red-400 font-mono text-xs">
+                    {alert.total_g} g (seuil : {alert.seuil_total_g} g)
+                  </span>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">

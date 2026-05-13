@@ -288,6 +288,15 @@ function CultureDetail({ cultureId, onBack }: { cultureId: number; onBack: () =>
     },
   })
 
+  const toggleFlush = useMutation({
+    mutationFn: (dateFlush: string | null) =>
+      cultureAPI.update(cultureId, { date_debut_flush: dateFlush } as any),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['culture', cultureId] })
+      qc.invalidateQueries({ queryKey: ['dashboard-arrosage-boxes'] })
+    },
+  })
+
   if (isLoading) return <LoadingSpinner />
   if (!culture) return <div className="text-gray-400 dark:text-gray-500 text-center py-12">Culture introuvable</div>
 
@@ -368,7 +377,26 @@ function CultureDetail({ cultureId, onBack }: { cultureId: number; onBack: () =>
           )}
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
-          {culture.statut === 'active' && (
+          {culture.statut === 'active' && culture.phase === 'floraison' && (
+            culture.date_debut_flush ? (
+              <button
+                onClick={() => toggleFlush.mutate(null)}
+                className="flex items-center gap-1.5 px-3 py-2 border border-blue-300 dark:border-blue-700 rounded-lg text-sm text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50"
+                title="Arrêter le timer de flush"
+              >
+                <Droplets size={15} /> 🚿 J+{Math.floor((Date.now() - new Date(culture.date_debut_flush + 'T12:00').getTime()) / 86400000)}
+              </button>
+            ) : (
+              <button
+                onClick={() => toggleFlush.mutate(new Date().toISOString().slice(0, 10))}
+                className="flex items-center gap-1.5 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-600 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:border-blue-300 hover:text-blue-700"
+                title="Démarrer le flush"
+              >
+                <Droplets size={15} /> Flush
+              </button>
+            )
+          )}
+          {(culture.statut === 'active' || culture.statut === 'sechage_curing') && (
             <button
               onClick={() => { if (confirm('Clôturer cette culture manuellement ?')) closeCulture.mutate() }}
               className="flex items-center gap-1.5 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/40"
@@ -543,7 +571,7 @@ function CultureDetail({ cultureId, onBack }: { cultureId: number; onBack: () =>
           <PlantesTab cultureId={cultureId} plants={culture.plants} />
         )}
         {activeTab === 'stats' && (
-          <StatsTab cultureId={cultureId} />
+          <StatsTab cultureId={cultureId} idEspace={culture.id_espace} phase={culture.phase} />
         )}
         {activeTab === 'photos' && (
           <PhotoGallery idCulture={cultureId} />

@@ -117,8 +117,19 @@ export const ACTION_TYPES: ActionTypeDef[] = [
     fields: [{ key: 'note', label: 'Description', type: 'text', placeholder: 'Type de maladie observée…' }] },
   { key: 'detection_parasite',    label: 'Détection de parasite',            category: 'mesure', icon: '🐛',
     fields: [{ key: 'note', label: 'Description', type: 'text', placeholder: 'Type de parasite observé…' }] },
-  { key: 'traitement',            label: 'Traitement',                       category: 'mesure', icon: '💊',
-    fields: [{ key: 'note', label: 'Description', type: 'text', placeholder: 'Traitement appliqué…' }] },
+  { key: 'traitement',            label: 'Traitement IPM',                   category: 'mesure', icon: '💊',
+    fields: [
+      { key: 'produit',         label: 'Produit',               type: 'text',   placeholder: 'Ex: Pyrèthre, Savon noir, Neem…' },
+      { key: 'dose',            label: 'Dose',                  type: 'number', unit: 'mL/L', placeholder: '5' },
+      { key: 'methode',         label: 'Méthode d\'application', type: 'select',
+        options: [
+          { value: 'spray_foliaire',    label: '🌿 Spray foliaire' },
+          { value: 'arrosage_racinaire', label: '💧 Arrosage racinaire' },
+          { value: 'sol',              label: '🌱 Application au sol' },
+          { value: 'autre',            label: '• Autre' },
+        ] },
+      { key: 'delai_recolte_j', label: 'Délai avant récolte',   type: 'number', unit: 'jours', placeholder: '14' },
+    ] },
   { key: 'deces_plante',          label: 'Décès de la plante',               category: 'mesure', icon: '💀' },
 
   // ── Récolte ───────────────────────────────────────────────────────────────────

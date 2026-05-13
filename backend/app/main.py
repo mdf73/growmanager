@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy import text
 from app.database import Base, engine
-from app.routers import breeders, varietes, graines, cultures, stock, extractions, dashboard, fournisseurs, import_export, historique_culture, materiel, parametre, engrais, recette_engrais, recette_tco, recette_lso, recette_reamendement, recette_arrosage, recette_fermentation, suivi_sol_vivant, espaces, capteurs, plan_culture, preparation_substrat, notation_variete, vaporisateur, sechage, curing, croisement, app_settings, consommation, photos
+from app.routers import breeders, varietes, graines, cultures, stock, extractions, dashboard, fournisseurs, import_export, historique_culture, materiel, parametre, engrais, recette_engrais, recette_tco, recette_lso, recette_reamendement, recette_arrosage, recette_fermentation, suivi_sol_vivant, espaces, capteurs, plan_culture, preparation_substrat, notation_variete, vaporisateur, sechage, curing, croisement, app_settings, consommation, photos, stock_alert_seuils
 from app.services.govee_poller import start_poller
 
 # Création de l'application FastAPI
@@ -100,6 +100,13 @@ def run_migrations():
         ("HistoriqueCulture", "cout_total",       "ALTER TABLE HistoriqueCulture ADD COLUMN cout_total DECIMAL(10,2) NULL"),
         ("HistoriqueCulture", "cout_par_gramme",  "ALTER TABLE HistoriqueCulture ADD COLUMN cout_par_gramme DECIMAL(10,4) NULL"),
         # Feature 5 — SessionConsommation créée via create_all
+        # V4-A — pH & EC par arrosage
+        ("ActionCalendrier", "ph_entrant",  "ALTER TABLE ActionCalendrier ADD COLUMN ph_entrant DECIMAL(4,2) NULL"),
+        ("ActionCalendrier", "ph_sortant",  "ALTER TABLE ActionCalendrier ADD COLUMN ph_sortant DECIMAL(4,2) NULL"),
+        ("ActionCalendrier", "ec_entrant",  "ALTER TABLE ActionCalendrier ADD COLUMN ec_entrant DECIMAL(4,2) NULL"),
+        ("ActionCalendrier", "ec_sortant",  "ALTER TABLE ActionCalendrier ADD COLUMN ec_sortant DECIMAL(4,2) NULL"),
+        # V4-C — Timer de flush
+        ("Culture", "date_debut_flush", "ALTER TABLE Culture ADD COLUMN date_debut_flush DATE NULL"),
     ]
     # Créer les tables manquantes (ProduitEngrais, TemperatureLog, etc.)
     Base.metadata.create_all(bind=engine)
@@ -214,6 +221,20 @@ def run_migrations():
         except Exception:
             pass
 
+        # Migration V4-G : ajout quantite_initiale sur Stock
+        try:
+            result = conn.execute(text(
+                "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS "
+                "WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'Stock' "
+                "AND COLUMN_NAME = 'quantite_initiale'"
+            ))
+            if result.fetchone() is None:
+                conn.execute(text(
+                    "ALTER TABLE `Stock` ADD COLUMN `quantite_initiale` DECIMAL(10,2) NULL"
+                ))
+        except Exception:
+            pass
+
         conn.commit()
 
 run_migrations()
@@ -225,6 +246,7 @@ def seed_parametres():
     try:
         parametre.seed_defaults(db)
         app_settings.seed_defaults(db)
+        stock_alert_seuils.seed_defaults(db)
     finally:
         db.close()
 
@@ -263,6 +285,7 @@ app.include_router(croisement.router)
 app.include_router(app_settings.router)
 app.include_router(consommation.router)
 app.include_router(photos.router)
+app.include_router(stock_alert_seuils.router)
 
 # Fichiers statiques — photos uploadées
 import os

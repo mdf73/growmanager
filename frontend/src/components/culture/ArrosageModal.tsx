@@ -12,7 +12,7 @@
  *  • prete              — Plante prête (stock consommable)
  */
 import { useState, useMemo } from 'react'
-import { X, Droplets, FlaskConical, Leaf, Beaker, Flower2, Scale, RotateCcw, AlertTriangle, CheckCircle2, Trophy } from 'lucide-react'
+import { X, Droplets, FlaskConical, Leaf, Beaker, Flower2, Scale, RotateCcw, AlertTriangle, CheckCircle2, Trophy, ChevronDown, ChevronUp } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { Plant, ActionCreate, actionAPI, cultureUtilsAPI, PotItem, DernierTCO } from '../../api/cultures'
 import { recetteEngraisAPI, RecetteEngrais } from '../../api/recetteEngrais'
@@ -53,6 +53,13 @@ export default function ArrosageModal({ cultureId, plants, initialDate, onClose,
   const [note, setNote]                   = useState('')
   const [loading, setLoading]             = useState(false)
   const [error, setError]                 = useState('')
+  const [mesuresOpen, setMesuresOpen]     = useState(false)
+
+  // ── Champs pH & EC ─────────────────────────────────────────────────────────────────────────────────────
+  const [phEntrant, setPhEntrant]         = useState<number | ''>('')
+  const [phSortant, setPhSortant]         = useState<number | ''>('')
+  const [ecEntrant, setEcEntrant]         = useState<number | ''>('')
+  const [ecSortant, setEcSortant]         = useState<number | ''>('')
 
   // Raccourcis lisibilité
   const targetGlobal = selectedPlantIds === null
@@ -281,6 +288,15 @@ export default function ArrosageModal({ cultureId, plants, initialDate, onClose,
       }
     }
 
+    // Champs pH & EC (uniquement pour les arrosages)
+    const isArrosageAvecMesures = ['arrosage_eau', 'arrosage_engrais', 'arrosage_tco'].includes(selectedType)
+    const mesures = isArrosageAvecMesures ? {
+      ph_entrant: phEntrant !== '' ? Number(phEntrant) : undefined,
+      ph_sortant: phSortant !== '' ? Number(phSortant) : undefined,
+      ec_entrant: ecEntrant !== '' ? Number(ecEntrant) : undefined,
+      ec_sortant: ecSortant !== '' ? Number(ecSortant) : undefined,
+    } : {}
+
     try {
       if (['recolte', 'debut_curing', 'prete'].includes(selectedType)) {
         // Toujours une seule plante spécifique
@@ -291,6 +307,7 @@ export default function ArrosageModal({ cultureId, plants, initialDate, onClose,
           parametres: params,
           note: note || undefined,
           global_culture: false,
+          ...mesures,
         })
       } else if (targetGlobal) {
         // Action globale unique — volume_l = total, volume_par_plante_l stocké dans params
@@ -301,6 +318,7 @@ export default function ArrosageModal({ cultureId, plants, initialDate, onClose,
           parametres: params,
           note: note || undefined,
           global_culture: true,
+          ...mesures,
         })
       } else {
         // Une action par plante sélectionnée — volume_l = par plante
@@ -312,6 +330,7 @@ export default function ArrosageModal({ cultureId, plants, initialDate, onClose,
             parametres: paramsParPlante,
             note: note || undefined,
             global_culture: false,
+            ...mesures,
           })
         ))
       }
@@ -789,6 +808,70 @@ export default function ArrosageModal({ cultureId, plants, initialDate, onClose,
               </div>
               {!recolteTargetId && (
                 <p className="text-xs text-red-500 mt-2">⚠️ Sélectionne une plante spécifique ci-dessus.</p>
+              )}
+            </div>
+          )}
+
+
+          {/* Bloc Mesures pH et EC (arrosages uniquement) */}
+          {['arrosage_eau', 'arrosage_engrais', 'arrosage_tco'].includes(selectedType) && (
+            <div className="border border-gray-200 dark:border-gray-600 rounded-lg overflow-hidden">
+              <button
+                type="button"
+                onClick={() => setMesuresOpen(o => !o)}
+                className="w-full flex items-center justify-between px-3 py-2.5 bg-gray-50 dark:bg-gray-700/50 text-xs font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              >
+                <span className="flex items-center gap-2">
+                  Mesures pH et EC
+                  {(phEntrant !== '' || phSortant !== '' || ecEntrant !== '' || ecSortant !== '') && (
+                    <span className="bg-teal-100 dark:bg-teal-900/40 text-teal-700 dark:text-teal-300 text-[10px] px-1.5 py-0.5 rounded-full font-normal">renseigne</span>
+                  )}
+                </span>
+                {mesuresOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+              </button>
+
+              {mesuresOpen && (
+                <div className="p-3 space-y-3">
+                  <p className="text-[10px] text-gray-400 dark:text-gray-500">Tous les champs sont optionnels</p>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs text-gray-600 dark:text-gray-300 mb-1">pH entrant</label>
+                      <div className="flex items-center gap-1.5">
+                        <input type="number" value={phEntrant} onChange={e => setPhEntrant(Number(e.target.value) || '')}
+                          min={0} max={14} step={0.1} placeholder="ex: 6.2"
+                          className="flex-1 px-2.5 py-1.5 border border-gray-300 dark:border-gray-600 rounded text-sm" />
+                        <span className="text-xs text-gray-500 dark:text-gray-400">pH</span>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-600 dark:text-gray-300 mb-1">pH sortant</label>
+                      <div className="flex items-center gap-1.5">
+                        <input type="number" value={phSortant} onChange={e => setPhSortant(Number(e.target.value) || '')}
+                          min={0} max={14} step={0.1} placeholder="ex: 6.8"
+                          className="flex-1 px-2.5 py-1.5 border border-gray-300 dark:border-gray-600 rounded text-sm" />
+                        <span className="text-xs text-gray-500 dark:text-gray-400">pH</span>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-600 dark:text-gray-300 mb-1">EC entrant</label>
+                      <div className="flex items-center gap-1.5">
+                        <input type="number" value={ecEntrant} onChange={e => setEcEntrant(Number(e.target.value) || '')}
+                          min={0} step={0.1} placeholder="ex: 1.8"
+                          className="flex-1 px-2.5 py-1.5 border border-gray-300 dark:border-gray-600 rounded text-sm" />
+                        <span className="text-xs text-gray-500 dark:text-gray-400">mS</span>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-600 dark:text-gray-300 mb-1">EC sortant</label>
+                      <div className="flex items-center gap-1.5">
+                        <input type="number" value={ecSortant} onChange={e => setEcSortant(Number(e.target.value) || '')}
+                          min={0} step={0.1} placeholder="ex: 0.4"
+                          className="flex-1 px-2.5 py-1.5 border border-gray-300 dark:border-gray-600 rounded text-sm" />
+                        <span className="text-xs text-gray-500 dark:text-gray-400">mS</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               )}
             </div>
           )}

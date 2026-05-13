@@ -111,12 +111,18 @@ export default function NouvellerCultureModal({ onClose, onSubmit, initialData }
     queryFn: async () => (await parametresAPI.getList('buts_culture')).data,
   })
 
-  // Cultures actives — pour bloquer les espaces déjà occupés
+  // Cultures actives + séchage/curing — pour bloquer les espaces déjà occupés
   const { data: culturesActives = [] } = useQuery<Culture[]>({
     queryKey: ['cultures', 'active'],
     queryFn: async () => (await cultureAPI.getAll('active')).data,
   })
-  const espacesOccupes = new Set(culturesActives.map(c => c.id_espace).filter(Boolean) as number[])
+  const { data: culturesSechage = [] } = useQuery<Culture[]>({
+    queryKey: ['cultures', 'sechage_curing'],
+    queryFn: async () => (await cultureAPI.getAll('sechage_curing')).data,
+  })
+  // Un espace est occupé si une culture active OU en séchage/curing y est liée
+  const culturesOccupantes = [...culturesActives, ...culturesSechage]
+  const espacesOccupes = new Set(culturesOccupantes.map(c => c.id_espace).filter(Boolean) as number[])
 
   const espacesActifs = espaces.filter(e => e.statut === 'Actif' || !e.statut)
   const showEclairage = typeCulture === 'indoor' || typeCulture === 'greenhouse'
@@ -246,7 +252,7 @@ export default function NouvellerCultureModal({ onClose, onSubmit, initialData }
                     <option value="">Sélectionner…</option>
                     {espacesActifs.map(e => {
                       const occupe = espacesOccupes.has(e.id_espace)
-                      const culture = culturesActives.find(c => c.id_espace === e.id_espace)
+                      const culture = culturesOccupantes.find(c => c.id_espace === e.id_espace)
                       return (
                         <option key={e.id_espace} value={e.id_espace} disabled={occupe}>
                           {occupe ? '🔒 ' : ''}{e.nom}{e.surface_m2 ? ` (${e.surface_m2} m²)` : ''}{occupe && culture ? ` — ${culture.nom}` : ''}

@@ -1,10 +1,70 @@
 ---
 type: roadmap
-updated: 2026-04-24
-sources: [Documentation/claude.md, Documentation/Instructions de reprises v1.txt]
+updated: 2026-05-11
+sources: [Documentation/claude.md, Documentation/Instructions de reprises v1.txt, Documentation/GrowManager_Specifications_v4.docx]
+sprint1_completed: 2026-05-10
 ---
 
 # Roadmap & Pending TODOs
+
+---
+
+## V4 Backlog — Bilan & Plan d'action (review 2026-05-10)
+
+Source : `Documentation/GrowManager_Specifications_v4.docx` + `Documentation/growmanager_roadmap_v4_review.html`
+
+### Statut par feature
+
+| Feature | Titre | État | Notes |
+|---------|-------|------|-------|
+| A | pH & EC par arrosage | ✅ DONE | Colonnes DB + ArrosageModal + graphiques StatsTab |
+| B | IPM / traitements | ✅ DONE | Champs produit/dose/méthode/delai_recolte_j · endpoint ipm-warnings · ModuleIPM Dashboard (conditionnel, badge 🔴 <7j) · validé 2026-05-13 |
+| C | Timer de flush | ✅ DONE | `date_debut_flush` sur Culture (migration + schema + router) · bouton Culture.tsx · badge 🚿 J+X Dashboard |
+| D | Vue calendrier global | ❌ À faire | Aucune page calendrier |
+| E | Comparaison inter-cultures | ❌ À faire | — |
+| F | Traçabilité bocal → graine | ❌ À faire | — |
+| G | Alertes stock bas | ✅ DONE | `StockAlertSeuil` table · `quantite_initiale` sur Stock · `/api/stock-alert-seuils` CRUD+check · badge Dashboard · bandeau Stock.tsx · onglet Paramétrage · validé 2026-05-11 · bugfix 2026-05-13 : colonne `quantite_initiale` absente du modèle + migration SQL + `s.variete.nom` → `s.variete.nom_variete` |
+| H | Rappels bocaux / burping | ✅ DONE | `GET /api/dashboard/burping-reminders` · `ModuleBurping` Dashboard · fréquences alignées sur SechageCuring.tsx (1j/3j/7j/14j) · conditionnel si aucune session |
+| I | QR codes / étiquettes | ❌ À faire | Pas de lib QR |
+| J | Déduction stock engrais | ✅ DONE | Déjà implémenté dans cultures.py (lignes 455–489) — recette + liste manuelle |
+| K | Recherche globale | ❌ À faire | Pas de router `/search`, pas de Ctrl+K |
+| L | Export PDF fiche culture | ❌ À faire | WeasyPrint non installé |
+| M | PPFD / DLI | ✅ DONE | Widget StatsTab — PPFD + DLI + photopériode auto · cibles veg/floraison · alerte si surface manquante |
+
+### Plan d'action — sprints par ratio valeur/effort
+
+**Sprint 1 — Quick wins ✅ COMPLÉTÉ 2026-05-10**
+1. ✅ **M** PPFD / DLI — widget StatsTab, efficacité 2.5 µmol/J, cibles veg/floraison, 0 migration
+2. ✅ **C** Timer de flush — colonne `date_debut_flush` Culture + bouton Culture.tsx + badge 🚿 J+X Dashboard
+3. ✅ **J** Déduction stock engrais — déjà implémentée (arrosage_engrais via recette ou liste manuelle)
+4. ✅ **Launch Culture** depuis PlanCulture — `planCultureAPI.update({ statut: 'lance' })` post-création + badge "Lancé"
+
+**Sprint 2 — Alertes & UX**
+4. ✅ **H** Rappels bocaux / burping — `GET /api/dashboard/burping-reminders` · ModuleBurping Dashboard · fréquences 1j/3j/7j/14j · validé 2026-05-11
+5. ✅ **G** Alertes stock bas — `StockAlertSeuil` table · `quantite_initiale` Stock · CRUD+check endpoint · badge Dashboard · bandeau Stock · onglet Paramétrage · validé 2026-05-11
+6. ✅ **B** IPM / traitements — champs produit/dose/méthode/delai_recolte_j sur `traitement` · endpoint `GET /api/dashboard/ipm-warnings` · ModuleIPM Dashboard conditionnel · badge 🔴 si <7j restants · validé 2026-05-13
+
+**Sprint 3 — Features riches**
+7. **F** Traçabilité bocal → graine — endpoint timeline + page/drawer visualisation
+8. **K** Recherche globale — `GET /api/search`, palette Ctrl+K frontend, résultats groupés
+9. **D** Vue calendrier global — page mensuelle, toutes cultures, tous événements
+
+**Sprint 4 — Features lourdes**
+10. **E** Comparaison inter-cultures — sélecteur 2-3 cultures, tableau + courbes superposées
+11. **I** QR codes / étiquettes — lib qrcode, PDF imprimable par bocal
+12. **L** Export PDF fiche culture — WeasyPrint, fiche complète
+
+### Protocole de review specs (à réutiliser pour V5+)
+
+Pour refaire ce type d'analyse :
+1. Lire `wiki/index.md` → état général
+2. Lire `wiki/roadmap.md` → TODOs ouverts pré-V4
+3. Extraire `Documentation/GrowManager_Specifications_vX.docx` avec python-docx
+4. Lire `Documentation/growmanager_roadmap_vX_review.html` → synthèse visuelle
+5. Vérifier le code réel : `backend/app/models/all_models.py`, `backend/app/routers/`, `frontend/src/pages/`, `frontend/src/components/`, `requirements.txt`, `package.json`
+6. Produire : tableau bilan (✅/⚠️/❌) + plan en sprints valeur/effort
+
+---
 
 ## High Priority (From Active Session Checkpoint)
 

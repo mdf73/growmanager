@@ -89,6 +89,11 @@ class ActionCreate(BaseModel):
     note: Optional[str] = None
     global_culture: bool = False
     space_only: bool = False             # True → enregistre uniquement sur l'espace (pas par plante)
+    # V4-A — pH & EC
+    ph_entrant: Optional[float] = None
+    ph_sortant: Optional[float] = None
+    ec_entrant: Optional[float] = None
+    ec_sortant: Optional[float] = None
 
 
 class ActionRead(BaseModel):
@@ -102,6 +107,11 @@ class ActionRead(BaseModel):
     global_culture: bool
     created_at: Optional[datetime] = None
     nom_plant: Optional[str] = None
+    # V4-A — pH & EC
+    ph_entrant: Optional[float] = None
+    ph_sortant: Optional[float] = None
+    ec_entrant: Optional[float] = None
+    ec_sortant: Optional[float] = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -157,6 +167,7 @@ class CultureUpdate(BaseModel):
     date_recolte_estimee: Optional[date] = None
     date_passage_12_12: Optional[date] = None
     date_debut_floraison: Optional[date] = None
+    date_debut_flush: Optional[date] = None
     phase: Optional[str] = None
     type_culture: Optional[str] = None
     type_eclairage: Optional[str] = None
@@ -174,6 +185,7 @@ class CultureRead(BaseModel):
     date_fin: Optional[date] = None
     date_passage_12_12: Optional[date] = None
     date_debut_floraison: Optional[date] = None
+    date_debut_flush: Optional[date] = None
     date_recolte_estimee: Optional[date] = None   # max — conservé pour rétro-compat
     date_recolte_min: Optional[date] = None        # première récolte prévue (plante la plus rapide)
     date_recolte_max: Optional[date] = None        # dernière récolte prévue (plante la plus lente)

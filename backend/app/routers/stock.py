@@ -145,6 +145,7 @@ def create_stock(stock: StockCreate, db: Session = Depends(get_db)):
         date_stock=        stock.date_stock,
         date_fin_stock=    stock.date_fin_stock,
         quantite_stock=    stock.quantite_stock,
+        quantite_initiale= stock.quantite_stock,   # V4-G — référence pour alertes %
     )
     db.add(db_stock)
     db.commit()

@@ -24,6 +24,24 @@ Mise en place du versioning Git et du workflow de commit.
 
 ---
 
+## [2026-05-10] update | Sprint 1 V4 — PPFD/DLI, timer flush, launch culture, déduction engrais
+
+**Features validées :**
+
+- **M — PPFD / DLI** : widget dans `StatsTab.tsx` — calcul PPFD (µmol/m²/s) et DLI (mol/m²/j) depuis puissance lampe + surface espace. Photopériode auto (18h veg / 12h floraison). Indicateurs colorés vs cibles. Fallback si données manquantes. Props `idEspace` + `phase` passés depuis `Culture.tsx`.
+
+- **C — Timer de flush** : colonne `date_debut_flush DATE NULL` sur `Culture` (migration auto `main.py`). Exposée dans `CultureUpdate`, `CultureRead`, serializer `cultures.py`. Bouton toggle dans `Culture.tsx` (visible en phase floraison). Badge 🚿 J+X dans `Dashboard.tsx` via `BoxArrosageStats` enrichi.
+
+- **Launch Culture** : `PlanCulture.tsx` appelle `planCultureAPI.update({ statut: 'lance' })` après création. Badge "Lancé" visible dans le sélecteur de plans.
+
+- **J — Déduction stock engrais** : déjà implémentée dans `cultures.py` (arrosage_engrais via recette RecetteEngrais ou liste manuelle, `max(0, ...)`). Roadmap mise à jour (fausse ❌ → ✅).
+
+**Fix** : `espaceAPI` → `espacesAPI` dans `StatsTab.tsx` (nom correct de l'export).
+
+**Pages wiki mises à jour :** `roadmap.md` — Sprint 1 marqué complété, statuts M/C/J mis à jour.
+
+---
+
 ## [2026-04-28] update | Bugfix — nommage des plantes
 
 **Bug corrigé :** `_build_plant_name()` dans `routers/cultures.py` utilisait `plant_counter` (compteur incrémental de la boucle de création) au lieu de `graine.id_graine`.

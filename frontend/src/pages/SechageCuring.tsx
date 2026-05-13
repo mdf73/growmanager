@@ -1279,6 +1279,14 @@ function PlantRow({
   const recolteJ = joursDepuis(plant.date_recolte)
   // J+X : jours depuis le début du curing (date_fin_sechage) — uniquement en curing
   const curingJ = plant.statut === 'curing' ? joursDepuis(plant.date_fin_sechage) : null
+  const CURING_SUGGERE_J = 28
+  const curingProgress = curingJ != null ? Math.min(curingJ / CURING_SUGGERE_J, 1) : null
+  const curingReady = curingJ != null && curingJ >= CURING_SUGGERE_J
+  const curingBadgeClass =
+    curingJ == null ? '' :
+    curingJ >= CURING_SUGGERE_J ? 'bg-green-100 text-green-700' :
+    curingJ >= 14 ? 'bg-amber-100 text-amber-700' :
+    'bg-orange-100 text-orange-700'
   // Pour les plantes en séchage on garde l'ancienne logique
   const dureeJ = plant.statut === 'sechage' ? (plant.duree_sechage_j ?? recolteJ) : recolteJ
 
@@ -1338,11 +1346,23 @@ function PlantRow({
             <span className="text-xs font-bold">{dureeJ != null ? `R+${dureeJ}` : '—'}</span>
           </div>
 
-          {/* J+X : jours de curing (uniquement en curing) */}
+          {/* J+X : jours de curing avec progression suggérée (uniquement en curing) */}
           {curingJ != null && (
-            <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-purple-100 text-purple-700">
-              <Clock size={11} />
-              <span className="text-xs font-bold">J+{curingJ}</span>
+            <div className={`flex flex-col gap-0.5 px-2 py-1 rounded-lg ${curingBadgeClass}`}>
+              <div className="flex items-center gap-1.5">
+                <Clock size={11} />
+                <span className="text-xs font-bold">
+                  {curingReady ? '✓ ' : ''}J+{curingJ}
+                  <span className="font-normal opacity-60"> / {CURING_SUGGERE_J}j</span>
+                </span>
+              </div>
+              {/* Barre de progression */}
+              <div className="w-full h-1 rounded-full bg-black/10 overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all ${curingReady ? 'bg-green-500' : curingJ >= 14 ? 'bg-amber-500' : 'bg-orange-500'}`}
+                  style={{ width: `${(curingProgress ?? 0) * 100}%` }}
+                />
+              </div>
             </div>
           )}
 

@@ -280,6 +280,24 @@ def add_arrosage(suivi_id: int, payload: dict, db: Session = Depends(get_db)):
     from pydantic import TypeAdapter
     e = TypeAdapter(SuiviArrosageCreate).validate_python(payload)
     db.add(SuiviArrosage(id_suivi=suivi_id, **e.model_dump()))
+
+    # ── Déduction stock engrais ───────────────────────────────────────────────
+    if e.id_recette_engrais and e.volume_eau_l:
+        recette = db.query(RecetteEngrais).filter(
+            RecetteEngrais.id_recette == e.id_recette_engrais
+        ).first()
+        if recette:
+            volume_l = float(e.volume_eau_l)
+            for ligne in db.query(RecetteEngraisLigne).filter(
+                RecetteEngraisLigne.id_recette == recette.id_recette
+            ).all():
+                qte_calculee = float(ligne.dosage) * volume_l  # dosage en mL/L ou g/L
+                prod = db.query(ProduitEngrais).filter(
+                    ProduitEngrais.id_produit == ligne.id_produit
+                ).first()
+                if prod and prod.quantite_stock is not None:
+                    prod.quantite_stock = max(0, float(prod.quantite_stock) - qte_calculee)
+
     db.commit(); db.refresh(s)
     return _enrich(s, db)
 

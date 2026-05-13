@@ -48,9 +48,43 @@ export interface BoxArrosageStats {
   box_label?: string
   derniere_arrosage?: string   // ISO date "YYYY-MM-DD"
   jours_depuis_arrosage?: number
+  date_debut_flush?: string    // ISO date — V4-C timer flush
+  jours_flush?: number         // jours depuis début du flush
+}
+
+export interface BurpingReminder {
+  id_session_curing: number
+  nom: string
+  type_contenant?: string
+  date_debut?: string             // ISO date "YYYY-MM-DD"
+  jours_curing: number
+  derniere_ouverture?: string     // ISO date "YYYY-MM-DD"
+  jours_depuis_ouverture: number
+  frequence_recommandee_j: number // 1 | 3 | 7 | 14
+  frequence_label: string         // "1x/jour" | "1x/3j" | "1x/7j" | "1x/2sem"
+  a_ouvrir_aujourd_hui: boolean
+  nb_plantes: number
+}
+
+export interface IpmWarning {
+  id_action: number
+  id_culture: number
+  culture_nom: string
+  id_plant?: number
+  plant_nom?: string
+  date_traitement: string      // ISO date "YYYY-MM-DD"
+  produit?: string
+  dose?: number
+  methode?: string
+  delai_recolte_j: number
+  jours_ecoules: number
+  jours_restants: number
+  alerte_rouge: boolean        // True si < 7j restants
 }
 
 export const dashboardAPI = {
-  getStats:        () => client.get<DashboardFullStats>('/dashboard/stats'),
-  getArrosageBoxes: () => client.get<BoxArrosageStats[]>('/dashboard/arrosage-boxes'),
+  getStats:            () => client.get<DashboardFullStats>('/dashboard/stats'),
+  getArrosageBoxes:    () => client.get<BoxArrosageStats[]>('/dashboard/arrosage-boxes'),
+  getBurpingReminders: () => client.get<BurpingReminder[]>('/dashboard/burping-reminders'),
+  getIpmWarnings:      () => client.get<IpmWarning[]>('/dashboard/ipm-warnings'),
 }

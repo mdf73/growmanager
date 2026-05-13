@@ -5,7 +5,7 @@ from sqlalchemy import func
 from datetime import datetime, timedelta, date as date_type
 from typing import Optional
 from app.database import get_db
-from app.models import Plant, Stock, Culture, RosinExtraction, Graine, PackGraine, ActionCalendrier, Box, GoveeDevice, TemperatureLog, SessionSechage, HistoriqueCulture, HistoriquePlant
+from app.models import Plant, Stock, Culture, RosinExtraction, Graine, PackGraine, ActionCalendrier, Box, GoveeDevice, TemperatureLog, SessionSechage, SessionCuring, PlantCuring, HistoriqueCulture, HistoriquePlant
 from pydantic import BaseModel
 
 router = APIRouter(prefix="/api", tags=["dashboard"])
@@ -69,6 +69,41 @@ class BoxArrosageStats(BaseModel):
     box_label: Optional[str] = None
     derniere_arrosage: Optional[date_type] = None
     jours_depuis_arrosage: Optional[int] = None
+    date_debut_flush: Optional[date_type] = None
+    jours_flush: Optional[int] = None
+
+
+class BurpingReminder(BaseModel):
+    """Rappel d'ouverture bocal pour une session de curing active."""
+    id_session_curing: int
+    nom: str
+    type_contenant: Optional[str] = None
+    date_debut: Optional[date_type] = None
+    jours_curing: int
+    derniere_ouverture: Optional[date_type] = None
+    jours_depuis_ouverture: int
+    frequence_recommandee_j: int   # 1 | 3 | 7 | 14
+    frequence_label: str           # "1x/jour" | "1x/3j" | "1x/7j" | "1x/2sem"
+    a_ouvrir_aujourd_hui: bool
+    nb_plantes: int
+
+
+def _get_burp_frequency(jours_curing: int) -> tuple[int, str]:
+    """Retourne (fenetre_j, label) selon l'age du curing.
+    Aligne sur bocalBurpWindow() dans SechageCuring.tsx :
+      J0-7   -> 1j  (chaque jour)
+      J8-14  -> 3j  (tous les 2-3j)
+      J15-28 -> 7j  (toutes les sem.)
+      J29+   -> 14j (toutes les 2 sem.)
+    """
+    if jours_curing <= 7:
+        return 1, "1x/jour"
+    elif jours_curing <= 14:
+        return 3, "1x/3j"
+    elif jours_curing <= 28:
+        return 7, "1x/7j"
+    else:
+        return 14, "1x/2sem"
 
 
 def _minmax(lst: list):
@@ -131,19 +166,17 @@ def get_dashboard_stats(db: Session = Depends(get_db)):
     ]
     cur_min, cur_max = _minmax(curing_days)
 
-    # Module 4 : Stock (Trim et WPFF exclus \u2014 rang\u00e9s dans Extractions)
+    # Module 4 : Stock (Trim et WPFF exclus — rangés dans Extractions)
     EXTRACTION_TYPES = {'Trim', 'WPFF'}
     stocks = db.query(Stock).all()
     stocks_only = [s for s in stocks if s.type_stock not in EXTRACTION_TYPES]
-    HERBE_TYPES = {'Fleur', 'Poussi\u00e8re'}
+    HERBE_TYPES = {'Fleur', 'Poussière'}
     stock_total = sum(float(s.quantite_stock or 0) for s in stocks_only)
     stock_herbe = sum(float(s.quantite_stock or 0) for s in stocks_only if s.type_stock in HERBE_TYPES)
     stock_hash  = sum(float(s.quantite_stock or 0) for s in stocks_only if s.type_stock == 'Hash')
     stock_rosin = sum(float(s.quantite_stock or 0) for s in stocks_only if s.type_stock == 'Rosin')
 
     # Module 5 : Production
-    # Base sur l'historique de production : date_fin de HistoriqueCulture
-    # determine l'annee/mois de recolte ; somme de quantite_recoltee des HistoriquePlant.
     debut_annee = today.replace(month=1, day=1)
     debut_mois  = today.replace(day=1)
     debut_30j   = today - timedelta(days=30)
@@ -205,9 +238,9 @@ def get_dashboard_stats(db: Session = Depends(get_db)):
         ).first()
         if first:
             t = (first.types_graines or '').strip().lower()
-            if t == 'f\u00e9minis\u00e9e':
+            if t == 'féminisée':
                 graines_fem += remaining
-            elif t == 'r\u00e9guli\u00e8re':
+            elif t == 'régulière':
                 graines_reg += remaining
             if first.id_variete:
                 varietes_ids.add(first.id_variete)
@@ -332,15 +365,167 @@ def get_arrosage_boxes(db: Session = Depends(get_db)):
         derniere_arrosage = last_action.date_action if last_action else None
         jours = (today - derniere_arrosage).days if derniere_arrosage else None
 
+        date_flush = getattr(culture, 'date_debut_flush', None)
+        jours_flush = (today - date_flush).days if date_flush else None
+
         result.append(BoxArrosageStats(
             id_culture=culture.id_culture,
             culture_nom=culture.nom or f"Culture #{culture.id_culture}",
             box_label=box_label,
             derniere_arrosage=derniere_arrosage,
             jours_depuis_arrosage=jours,
+            date_debut_flush=date_flush,
+            jours_flush=jours_flush,
         ))
 
     result.sort(key=lambda x: (x.jours_depuis_arrosage is None, -(x.jours_depuis_arrosage or 0)))
+    return result
+
+
+@router.get("/dashboard/burping-reminders", response_model=list[BurpingReminder])
+def get_burping_reminders(db: Session = Depends(get_db)):
+    """Rappels d'ouverture bocaux (burping) pour toutes les sessions de curing actives."""
+    today = date_type.today()
+
+    sessions = db.query(SessionCuring).filter(SessionCuring.statut == 'active').all()
+    result = []
+
+    for session in sessions:
+        # Nombre de jours depuis le debut du curing
+        jours_curing = (today - session.date_debut).days if session.date_debut else 0
+
+        # Plantes dans cette session
+        plant_curings = db.query(PlantCuring).filter(
+            PlantCuring.id_session_curing == session.id_session_curing
+        ).all()
+        plant_ids = [pc.id_plant for pc in plant_curings]
+        nb_plantes = len(plant_ids)
+
+        # Derniere ouverture bocal pour cette session (n'importe quelle plante)
+        derniere_ouverture: Optional[date_type] = None
+        if plant_ids:
+            last_action = (
+                db.query(ActionCalendrier)
+                .filter(
+                    ActionCalendrier.id_plant.in_(plant_ids),
+                    ActionCalendrier.type_action == 'ouverture_bocal',
+                )
+                .order_by(ActionCalendrier.date_action.desc())
+                .first()
+            )
+            if last_action:
+                derniere_ouverture = last_action.date_action
+
+        # Reference pour le delai : derniere ouverture ou date de debut
+        ref_date = derniere_ouverture if derniere_ouverture else session.date_debut
+        jours_depuis_ouverture = (today - ref_date).days if ref_date else 0
+
+        # Frequence recommandee (alignee sur bocalBurpWindow dans SechageCuring.tsx)
+        frequence_j, frequence_label = _get_burp_frequency(jours_curing)
+
+        # A ouvrir aujourd'hui si jours depuis derniere ouverture >= fenetre recommandee
+        a_ouvrir = jours_depuis_ouverture >= frequence_j
+
+        result.append(BurpingReminder(
+            id_session_curing=session.id_session_curing,
+            nom=session.nom or f"Session #{session.id_session_curing}",
+            type_contenant=session.type_contenant,
+            date_debut=session.date_debut,
+            jours_curing=jours_curing,
+            derniere_ouverture=derniere_ouverture,
+            jours_depuis_ouverture=jours_depuis_ouverture,
+            frequence_recommandee_j=frequence_j,
+            frequence_label=frequence_label,
+            a_ouvrir_aujourd_hui=a_ouvrir,
+            nb_plantes=nb_plantes,
+        ))
+
+    # Tri : urgents en premier, puis par anciennete de curing
+    result.sort(key=lambda x: (not x.a_ouvrir_aujourd_hui, -x.jours_depuis_ouverture))
+    return result
+
+
+class IpmWarning(BaseModel):
+    """Avertissement IPM : traitement actif dont le délai avant récolte n'est pas écoulé."""
+    id_action: int
+    id_culture: int
+    culture_nom: str
+    id_plant: Optional[int] = None
+    plant_nom: Optional[str] = None
+    date_traitement: date_type
+    produit: Optional[str] = None
+    dose: Optional[float] = None
+    methode: Optional[str] = None
+    delai_recolte_j: int          # délai total en jours (saisi lors du traitement)
+    jours_ecoules: int            # jours depuis la date du traitement
+    jours_restants: int           # jours restants avant fin du délai
+    alerte_rouge: bool            # True si < 7j restants avant fin du délai
+
+
+@router.get("/dashboard/ipm-warnings", response_model=list[IpmWarning])
+def get_ipm_warnings(db: Session = Depends(get_db)):
+    """Retourne les traitements IPM dont le délai avant récolte n'est pas encore écoulé.
+    Seules les actions de type 'traitement' avec un champ 'delai_recolte_j' dans
+    les parametres JSON sont prises en compte."""
+    today = date_type.today()
+
+    # Récupère toutes les actions de type traitement ayant un délai renseigné
+    actions = (
+        db.query(ActionCalendrier)
+        .filter(ActionCalendrier.type_action == 'traitement')
+        .order_by(ActionCalendrier.date_action.desc())
+        .all()
+    )
+
+    result = []
+    for action in actions:
+        params = action.parametres or {}
+        raw_delai = params.get('delai_recolte_j')
+        if raw_delai is None:
+            continue
+        try:
+            delai_j = int(raw_delai)
+        except (ValueError, TypeError):
+            continue
+        if delai_j <= 0:
+            continue
+
+        jours_ecoules = (today - action.date_action).days
+        jours_restants = delai_j - jours_ecoules
+
+        # On n'affiche que les traitements dont le délai n'est pas encore écoulé
+        if jours_restants <= 0:
+            continue
+
+        # Infos culture
+        culture = db.query(Culture).filter(Culture.id_culture == action.id_culture).first()
+        culture_nom = (culture.nom if culture else None) or f"Culture #{action.id_culture}"
+
+        # Infos plante (si traitement ciblé)
+        plant_nom: Optional[str] = None
+        if action.id_plant:
+            plant = db.query(Plant).filter(Plant.id_plant == action.id_plant).first()
+            if plant:
+                plant_nom = plant.nom_affichage
+
+        result.append(IpmWarning(
+            id_action=action.id_action,
+            id_culture=action.id_culture,
+            culture_nom=culture_nom,
+            id_plant=action.id_plant,
+            plant_nom=plant_nom,
+            date_traitement=action.date_action,
+            produit=params.get('produit'),
+            dose=float(params['dose']) if params.get('dose') is not None else None,
+            methode=params.get('methode'),
+            delai_recolte_j=delai_j,
+            jours_ecoules=jours_ecoules,
+            jours_restants=jours_restants,
+            alerte_rouge=jours_restants < 7,
+        ))
+
+    # Urgents en premier
+    result.sort(key=lambda x: x.jours_restants)
     return result
 
 

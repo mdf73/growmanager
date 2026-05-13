@@ -1,10 +1,25 @@
-feat(culture): sélecteur de graines en stock pour ajout de plante
+feat(ipm): Feature B — IPM / traitements complet + bugfix Feature G
 
-- Remplace le formulaire texte libre par un panneau de sélection
-- Liste les packs de graines avec nbr_graines_restantes > 0 (GET /catalogue)
-- Barre de recherche filtrante (breeder + variété)
-- Badge vert/orange selon le stock restant
-- Bouton + par ligne : récupère la première graine dispo du pack,
-  crée la plante avec id_graine associé
-- Invalide le cache catalogue après ajout
-- Wiki mis à jour : features/plant-lifecycle.md
+── Feature B : IPM / traitements ──────────────────────────────────────
+- actionTypes.ts : action `traitement` → `Traitement IPM` avec 4 champs
+    · produit (texte libre)
+    · dose (nombre, mL/L)
+    · méthode (select: spray foliaire / arrosage racinaire / sol / autre)
+    · delai_recolte_j (nombre de jours avant récolte autorisée)
+
+- dashboard.py : GET /api/dashboard/ipm-warnings
+    · liste les traitements actifs dont le délai n'est pas écoulé
+    · champ alerte_rouge = True si jours_restants < 7
+    · trié par urgence croissante
+
+- dashboard.ts : interface IpmWarning + dashboardAPI.getIpmWarnings()
+
+- Dashboard.tsx : ModuleIPM conditionnel
+    · visible uniquement si traitements actifs
+    · badge rouge si < 7j restants
+    · inséré entre capteurs et modules culture
+
+── Bugfix Feature G : alertes stock ───────────────────────────────────
+- all_models.py : colonne quantite_initiale ajoutée au modèle Stock
+- migration_stock_quantite_initiale.sql : ALTER TABLE + rétro-remplissage
+- stock_alert_seuils.py : s.variete.nom -> s.variete.nom_variete

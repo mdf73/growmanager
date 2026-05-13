@@ -12,6 +12,7 @@ import type { Breeder } from '../api/breeders'
 import { varieteAPI } from '../api/varietes'
 import type { Variete } from '../api/varietes'
 import { capteursAPI, GoveeDevice, GoveeDeviceCreate, GoveeConfig, GmailImportResult, PollResult, GoveeCloudDevice } from '../api/capteurs'
+import { stockAlertSeuilsAPI, StockAlertSeuil, SeuilUpsert } from '../api/stockAlertSeuils'
 
 // ── Définition de toutes les listes et leur groupement ────────────────────────
 const SECTIONS = [
@@ -1631,8 +1632,213 @@ function BackupSection() {
 }
 
 
+
+// ── Section alertes stock ─────────────────────────────────────────────────────
+
+const STOCK_TYPES_CONNUS = ['Fleur', 'Hash', 'Rosin', 'Trim', 'WPFF', 'Poussière']
+
+function StockAlertSeuilsSection() {
+  const queryClient = useQueryClient()
+  const [editing, setEditing] = useState<string | null>(null)
+  const [newType, setNewType] = useState('')
+  const [form, setForm] = useState<SeuilUpsert>({ seuil_bocal_g: null, seuil_bocal_pct: null, seuil_total_g: null, actif: true })
+
+  const { data: seuils = [], isLoading } = useQuery<StockAlertSeuil[]>({
+    queryKey: ['stock-alert-seuils'],
+    queryFn: async () => (await stockAlertSeuilsAPI.getAll()).data,
+  })
+
+  const upsertMut = useMutation({
+    mutationFn: ({ type, payload }: { type: string; payload: SeuilUpsert }) =>
+      stockAlertSeuilsAPI.upsert(type, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['stock-alert-seuils'] })
+      queryClient.invalidateQueries({ queryKey: ['stock-alerts'] })
+      setEditing(null)
+      setNewType('')
+    },
+  })
+
+  const deleteMut = useMutation({
+    mutationFn: (type: string) => stockAlertSeuilsAPI.delete(type),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['stock-alert-seuils'] })
+      queryClient.invalidateQueries({ queryKey: ['stock-alerts'] })
+    },
+  })
+
+  function startEdit(s: StockAlertSeuil) {
+    setEditing(s.type_stock)
+    setForm({ seuil_bocal_g: s.seuil_bocal_g ?? null, seuil_bocal_pct: s.seuil_bocal_pct ?? null, seuil_total_g: s.seuil_total_g ?? null, actif: s.actif })
+  }
+
+  function startNew() {
+    setEditing('__new__')
+    setNewType('')
+    setForm({ seuil_bocal_g: 10, seuil_bocal_pct: 10, seuil_total_g: 100, actif: true })
+  }
+
+  function save() {
+    const type = editing === '__new__' ? newType.trim() : editing!
+    if (!type) return
+    upsertMut.mutate({ type, payload: form })
+  }
+
+  if (isLoading) return <div className="text-sm text-gray-400 py-4">Chargement…</div>
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-gray-500 dark:text-gray-400">
+          Définissez les seuils d’alerte par type de stock. Une alerte apparaît sur le dashboard et en haut de la page Stock.
+        </p>
+        <button
+          onClick={startNew}
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-grow-600 text-white rounded-lg hover:bg-grow-700 text-sm font-medium"
+        >
+          <Plus size={14} /> Nouveau
+        </button>
+      </div>
+
+      {seuils.length === 0 && editing !== '__new__' && (
+        <p className="text-sm text-gray-400 dark:text-gray-500 italic">Aucun seuil configuré.</p>
+      )}
+
+      <div className="space-y-3">
+        {editing === '__new__' && (
+          <div className="rounded-xl border-2 border-grow-200 dark:border-grow-700 bg-grow-50 dark:bg-grow-900/10 p-4 space-y-3">
+            <div>
+              <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1">Type de stock</label>
+              <div className="flex gap-2">
+                <select
+                  value={newType}
+                  onChange={e => setNewType(e.target.value)}
+                  className="flex-1 border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-1.5 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                >
+                  <option value="">— Choisir —</option>
+                  {STOCK_TYPES_CONNUS.filter(t => !seuils.some(s => s.type_stock === t)).map(t => (
+                    <option key={t} value={t}>{t}</option>
+                  ))}
+                </select>
+                <input
+                  type="text"
+                  placeholder="ou saisir un type…"
+                  value={newType}
+                  onChange={e => setNewType(e.target.value)}
+                  className="flex-1 border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-1.5 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                />
+              </div>
+            </div>
+            <SeuilFormFields form={form} onChange={setForm} />
+            <div className="flex gap-2 justify-end">
+              <button onClick={() => setEditing(null)} className="px-3 py-1.5 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">Annuler</button>
+              <button onClick={save} disabled={!newType.trim() || upsertMut.isPending}
+                className="px-3 py-1.5 text-sm bg-grow-600 text-white rounded-lg hover:bg-grow-700 disabled:opacity-50">
+                {upsertMut.isPending ? 'Sauvegarde…' : 'Créer'}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {seuils.map(s => (
+          <div key={s.type_stock} className="rounded-xl border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
+            {editing === s.type_stock ? (
+              <div className="space-y-3">
+                <p className="font-semibold text-sm text-gray-800 dark:text-gray-100">{s.type_stock}</p>
+                <SeuilFormFields form={form} onChange={setForm} />
+                <div className="flex gap-2 justify-end">
+                  <button onClick={() => setEditing(null)} className="px-3 py-1.5 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">Annuler</button>
+                  <button onClick={save} disabled={upsertMut.isPending}
+                    className="px-3 py-1.5 text-sm bg-grow-600 text-white rounded-lg hover:bg-grow-700 disabled:opacity-50">
+                    {upsertMut.isPending ? 'Sauvegarde…' : 'Sauvegarder'}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-sm text-gray-800 dark:text-gray-100">{s.type_stock}</span>
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${s.actif ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                      {s.actif ? 'Actif' : 'Inactif'}
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap gap-3 mt-1.5 text-xs text-gray-500 dark:text-gray-400">
+                    {s.seuil_bocal_g != null && <span>Bocal &lt; <b>{s.seuil_bocal_g} g</b></span>}
+                    {s.seuil_bocal_pct != null && <span>Bocal &lt; <b>{s.seuil_bocal_pct}%</b></span>}
+                    {s.seuil_total_g != null && <span>Total &lt; <b>{s.seuil_total_g} g</b></span>}
+                    {!s.seuil_bocal_g && !s.seuil_bocal_pct && !s.seuil_total_g && <span className="italic">Aucun seuil défini</span>}
+                  </div>
+                </div>
+                <div className="flex items-center gap-1 shrink-0">
+                  <button onClick={() => startEdit(s)} className="p-1.5 text-gray-400 hover:text-grow-600 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg">
+                    <Pencil size={14} />
+                  </button>
+                  <button onClick={() => deleteMut.mutate(s.type_stock)} className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg">
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function SeuilFormFields({ form, onChange }: { form: SeuilUpsert; onChange: (f: SeuilUpsert) => void }) {
+  const num = (v: number | null | undefined) => v == null ? '' : String(v)
+  const parse = (s: string) => s === '' ? null : parseFloat(s)
+
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div>
+        <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Seuil bocal (g)</label>
+        <input type="number" min="0" step="0.1" placeholder="ex. 10"
+          value={num(form.seuil_bocal_g)}
+          onChange={e => onChange({ ...form, seuil_bocal_g: parse(e.target.value) })}
+          className="w-full border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-1.5 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+        />
+        <p className="text-xs text-gray-400 mt-0.5">Alerte si le bocal contient moins de X grammes</p>
+      </div>
+      <div>
+        <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Seuil bocal (%)</label>
+        <input type="number" min="0" max="100" step="1" placeholder="ex. 10"
+          value={num(form.seuil_bocal_pct)}
+          onChange={e => onChange({ ...form, seuil_bocal_pct: parse(e.target.value) })}
+          className="w-full border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-1.5 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+        />
+        <p className="text-xs text-gray-400 mt-0.5">Alerte si il reste moins de X% du stock initial</p>
+      </div>
+      <div>
+        <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Seuil total (g)</label>
+        <input type="number" min="0" step="1" placeholder="ex. 100"
+          value={num(form.seuil_total_g)}
+          onChange={e => onChange({ ...form, seuil_total_g: parse(e.target.value) })}
+          className="w-full border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-1.5 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+        />
+        <p className="text-xs text-gray-400 mt-0.5">Alerte si le total du type est sous ce seuil</p>
+      </div>
+      <div className="flex items-center gap-2 pt-4">
+        <label className="relative inline-flex items-center cursor-pointer">
+          <input type="checkbox" checked={form.actif} onChange={e => onChange({ ...form, actif: e.target.checked })}
+            className="sr-only peer" />
+          <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700
+                          peer-checked:after:translate-x-full peer-checked:after:border-white
+                          after:content-[''] after:absolute after:top-[2px] after:left-[2px]
+                          after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4
+                          after:transition-all peer-checked:bg-grow-600" />
+          <span className="ml-2 text-sm text-gray-700 dark:text-gray-200">Alertes actives</span>
+        </label>
+      </div>
+    </div>
+  )
+}
+
+
 // ── Page ──────────────────────────────────────────────────────────────────────
-type TabId = 'general' | 'backup' | 'capteurs'
+type TabId = 'general' | 'backup' | 'capteurs' | 'alertes'
 
 export default function ParametragePage() {
   const [activeTab, setActiveTab] = useState<TabId>('general')
@@ -1641,6 +1847,7 @@ export default function ParametragePage() {
     { id: 'general',  label: 'Général' },
     { id: 'backup',   label: 'Sauvegarde et restaurations' },
     { id: 'capteurs', label: 'Capteurs' },
+    { id: 'alertes',  label: '⚠ Alertes Stock' },
   ]
 
   return (
@@ -1654,7 +1861,7 @@ export default function ParametragePage() {
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Paramétrage</h1>
           <p className="text-sm text-gray-400 dark:text-gray-500 mt-0.5">
-            Gérez les valeurs des listes déroulantes utilisées dans toute l'application
+            Gérez les valeurs des listes déroulantes utilisées dans toute l’application
           </p>
         </div>
       </div>
@@ -1724,6 +1931,21 @@ export default function ParametragePage() {
       {activeTab === 'capteurs' && (
         <div className="space-y-8">
           <GoveeSection />
+        </div>
+      )}
+
+      {/* Tab — Alertes Stock */}
+      {activeTab === 'alertes' && (
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50">
+            <h2 className="text-base font-semibold text-gray-800 dark:text-gray-100">Alertes Stock</h2>
+            <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+              Seuils d’alerte par type de stock — apparaissent sur le dashboard et en haut de la page Stock
+            </p>
+          </div>
+          <div className="p-6">
+            <StockAlertSeuilsSection />
+          </div>
         </div>
       )}
 
