@@ -28,7 +28,7 @@ Source : `Documentation/GrowManager_Specifications_v4.docx` + `Documentation/gro
 | I | QR codes / étiquettes | ✅ DONE | `qrcode[pil]` + `fpdf2` · `GET /api/stock/{id}/label` → PDF 100×60 mm (QR + variété + type/LSO + engrais + quantité + date + bocal) · bouton 🖨️ par ligne Stock.tsx · QR encode `http://growmanager/stock?id={id}` · URL locale via hosts + nginx + `GROWMANAGER_URL` env · `vite.config.ts` allowedHosts · validé 2026-05-14 |
 | J | Déduction stock engrais | ✅ DONE | Déjà implémenté dans cultures.py (lignes 455–489) — recette + liste manuelle |
 | K | Recherche globale | ✅ DONE | `GET /api/search` · `GlobalSearch.tsx` · Ctrl+K · validé 2026-05-13 |
-| L | Export PDF fiche culture | ❌ À faire | WeasyPrint non installé |
+| L | Export PDF fiche culture | ✅ DONE | fpdf2 · `GET /api/cultures/{id}/export/pdf` · bouton 📄 PDF CultureDetail · fiche A4 : header, infos, plantes, actions, coûts, notes · validé 2026-05-14 |
 | M | PPFD / DLI | ✅ DONE | Widget StatsTab — PPFD + DLI + photopériode auto · cibles veg/floraison · alerte si surface manquante |
 
 ### Plan d'action — sprints par ratio valeur/effort
@@ -52,7 +52,7 @@ Source : `Documentation/GrowManager_Specifications_v4.docx` + `Documentation/gro
 **Sprint 4 — Features lourdes**
 10. ✅ **E** Comparaison inter-cultures — sélecteur 2-3 cultures · tableau (espace/lampe/TCO/coûts/volumes) · graphiques hauteurs+arrosages · fix double-comptage volume global · détail coût/recette · validé 2026-05-14
 11. ✅ **I** QR codes / étiquettes — `qrcode[pil]` + `fpdf2` · endpoint `/api/stock/{id}/label` · PDF 100×60 mm · bouton 🖨️ Stock.tsx · validé 2026-05-14
-12. **L** Export PDF fiche culture — WeasyPrint, fiche complète
+12. ✅ **L** Export PDF fiche culture — fpdf2 · endpoint `/api/cultures/{id}/export/pdf` · bouton 📄 PDF dans CultureDetail · fiche A4 complète · validé 2026-05-14
 
 ### Protocole de review specs (à réutiliser pour V5+)
 

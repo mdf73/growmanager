@@ -8,6 +8,27 @@ Operations: `bootstrap`, `ingest`, `query`, `lint`, `update`
 
 ---
 
+## [2026-05-14] update | Sprint L — Export PDF fiche culture
+
+**Feature :** Export PDF complet d'une fiche culture, généré côté backend avec fpdf2 (déjà présent dans requirements.txt).
+
+**Backend :** `GET /api/cultures/{id}/export/pdf` dans `cultures.py`
+- Fiche A4 portrait avec header vert brand, footer paginé
+- Sections : Informations générales (2 colonnes dates + infos) · Tableau des plantes (variété, statut, substrat, pot, récolte) · Résumé des actions (comptage par type, grille 3 colonnes) · Coûts (électricité, engrais, graines, total, €/g) · Notes si présentes
+- Réutilise `_compute_culture_cost()` et `_enrich_plant()` existants
+- Streaming PDF via `StreamingResponse` + header `Content-Disposition`
+
+**Frontend :** Bouton `📄 PDF` dans `CultureDetail` (Culture.tsx)
+- Bouton toujours visible (tous statuts) · import `FileDown` depuis lucide-react
+- `handleExportPdf` : fetch → blob → `URL.createObjectURL` → download nommé `fiche_{nom}.pdf`
+- Spinner `Loader2` pendant la génération
+
+**Fichiers modifiés :**
+- `backend/app/routers/cultures.py` — endpoint `/{culture_id}/export/pdf`
+- `frontend/src/pages/Culture.tsx` — bouton PDF + handler
+
+---
+
 ## [2026-05-13] update | Tri alphabétique par défaut dans le catalogue graines
 
 **Feature :** Le tableau `/graines` est désormais trié par défaut par breeder A→Z, puis variété A→Z à l'intérieur de chaque breeder.

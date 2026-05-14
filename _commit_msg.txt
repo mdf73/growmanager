@@ -1,19 +1,13 @@
-feat(E): comparaison inter-cultures — Sprint 4
+feat(L): Export PDF fiche culture — fpdf2, endpoint + bouton
 
-- GET /api/cultures/compare?ids=1,2,3 : endpoint multi-culture (durées, rendement,
-  coûts, espace, lampes, LSO/TCO, marques engrais, hauteurs, arrosages cumulés)
-- ComparaisonCultures.tsx (/comparaison-cultures) :
-  · sélecteur dropdown 2-3 cultures (actives + terminées + séchage)
-  · tableau comparatif avec highlight meilleure valeur
-  · détail TCO par type (Croissance/Floraison/Stretch/Correctif) pour LSO
-  · graphiques hauteurs superposées + arrosages cumulés (axe X continu J0→Jmax)
-  · détail coût engrais par recette avec coût/L (diagnostic anomalies)
-  · volumes arrosage total et engrais séparés
+- GET /api/cultures/{id}/export/pdf → fiche A4 complète
+  Header vert brand · infos générales 2 colonnes · tableau plantes
+  résumé actions · coûts (elec/engrais/graines/total/€g) · notes
 
-bugfix: double-comptage volume arrosage en mode global
-  · _compute_culture_cost et compare utilisent volume_par_plante_l
-    quand global_culture=False pour éviter N× overcounting
+- Frontend : bouton 📄 PDF dans CultureDetail (tous statuts)
+  FileDown icon · spinner · download nommé fiche_{nom}.pdf
 
-bugfix: axe X graphiques → ticks réguliers (5/10/20/30j selon durée)
+- Bugfixes : Action -> ActionCalendrier, nom_plant -> nom_affichage,
+  date_fin_vegetatif -> date_debut_floraison, date_recolte -> date_fin
 
-wiki: Feature E marquée DONE, pages.md + log.md mis à jour
+- Wiki : roadmap L ✅ + log sprint L

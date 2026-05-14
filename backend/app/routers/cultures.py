@@ -2063,3 +2063,288 @@ def get_stats(culture_id: int, db: Session = Depends(get_db)):
         "intensites_lampe": intensites,
         "nb_actions_total": len(actions),
     }
+
+
+
+
+# ==============================================================================
+# EXPORT PDF -- Fiche culture complete
+# ==============================================================================
+
+@router.get("/{culture_id}/export/pdf")
+def export_culture_pdf(culture_id: int, db: Session = Depends(get_db)):
+    # Generate a complete A4 PDF sheet for a culture.
+    try:
+        from fpdf import FPDF
+        from fastapi.responses import StreamingResponse
+        import io
+    except ImportError:
+        raise HTTPException(status_code=501, detail="fpdf2 non disponible.")
+
+    culture = db.query(Culture).filter(Culture.id_culture == culture_id).first()
+    if not culture:
+        raise HTTPException(status_code=404, detail="Culture non trouvee")
+
+    plants = db.query(Plant).filter(Plant.id_culture == culture_id).all()
+    actions = (
+        db.query(ActionCalendrier)
+        .filter(ActionCalendrier.id_culture == culture_id)
+        .order_by(ActionCalendrier.date_action)
+        .all()
+    )
+
+    # -- Espace info ----------------------------------------------------------
+    espace = db.query(EspaceCulture).filter(
+        EspaceCulture.id_espace == culture.id_espace
+    ).first() if culture.id_espace else None
+    espace_nom = espace.nom if espace else "-"
+
+    # -- Enrich plants --------------------------------------------------------
+    plants_enriched = []
+    for p in plants:
+        enriched = _enrich_plant(p, db)
+        variete_nom = enriched.get("variete_nom") or "-"
+        statut = enriched.get("statut") or "-"
+        substrat = enriched.get("substrat") or "-"
+        vol = p.volume_pot_l
+        pot_str = (f"{vol:.0f}L") if vol else "-"
+        poids = enriched.get("poids_recolte_g")
+        poids_str = (f"{poids:.1f}g") if poids else "-"
+        plants_enriched.append({
+            "nom": p.nom_affichage or "-",
+            "variete": variete_nom,
+            "statut": statut,
+            "substrat": substrat,
+            "pot": pot_str,
+            "poids": poids_str,
+        })
+
+    # -- Action summary -------------------------------------------------------
+    ACTION_LABELS = {
+        "arrosage":            "Arrosages",
+        "arrosage_engrais":    "Arrosages engrais",
+        "preparation_tco":     "Preparations TCO",
+        "lollipopping":        "Lollipopping",
+        "defoliation":         "Defoliations",
+        "palissage":           "Palissage",
+        "debut_floraison":     "Debut floraison",
+        "traitement":          "Traitements",
+        "recolte":             "Recoltes",
+        "note":                "Notes",
+    }
+    action_counts = {}
+    for a in actions:
+        t = a.type_action or "autre"
+        action_counts[t] = action_counts.get(t, 0) + 1
+
+    # -- Costs ----------------------------------------------------------------
+    costs = _compute_culture_cost(culture_id, db)
+
+    # -- Durations ------------------------------------------------------------
+    import datetime as _dt
+    duree_veg = None
+    duree_flo = None
+    duree_total = None
+    if culture.date_debut and culture.date_debut_floraison:
+        duree_veg = (culture.date_debut_floraison - culture.date_debut).days
+    if culture.date_debut_floraison and culture.date_fin:
+        duree_flo = (culture.date_fin - culture.date_debut_floraison).days
+    if culture.date_debut and culture.date_fin:
+        duree_total = (culture.date_fin - culture.date_debut).days
+
+    def _safe(text):
+        if text is None:
+            return "-"
+        s = str(text)
+        return s.encode("latin-1", errors="replace").decode("latin-1")
+
+    # -- Brand colours --------------------------------------------------------
+    VERT_R, VERT_G, VERT_B   = 34, 139, 34
+    BLANC_R, BLANC_G, BLANC_B = 255, 255, 255
+    GRIS_R,  GRIS_G,  GRIS_B  = 245, 245, 245
+    TEXT_R,  TEXT_G,  TEXT_B  = 30, 30, 30
+
+    # -------------------------------------------------------------------------
+    # Build PDF A4 (210 x 297 mm)
+    # -------------------------------------------------------------------------
+    today = _dt.date.today()
+
+    class GrowPDF(FPDF):
+        def header(self):
+            # Green header bar
+            self.set_fill_color(VERT_R, VERT_G, VERT_B)
+            self.rect(0, 0, 210, 22, "F")
+            self.set_text_color(BLANC_R, BLANC_G, BLANC_B)
+            self.set_font("Helvetica", "B", 14)
+            self.set_y(5)
+            self.cell(0, 8, _safe(f"GrowManager -- Fiche Culture #{culture_id}"), align="C", new_x="LMARGIN", new_y="NEXT")
+            self.set_font("Helvetica", "", 8)
+            self.cell(0, 5, _safe(f"{culture.nom}  |  {espace_nom}  |  {culture.statut or ''}"), align="C", new_x="LMARGIN", new_y="NEXT")
+            self.set_text_color(TEXT_R, TEXT_G, TEXT_B)
+            self.ln(4)
+
+        def footer(self):
+            self.set_y(-12)
+            self.set_font("Helvetica", "I", 7)
+            self.set_text_color(150, 150, 150)
+            self.cell(
+                0, 5,
+                _safe(f"GrowManager  |  Fiche culture #{culture_id}  |  {today.strftime('%d/%m/%Y')}  |  Page {self.page_no()}"),
+                align="C"
+            )
+
+    pdf = GrowPDF(orientation="P", unit="mm", format="A4")
+    pdf.set_margins(14, 28, 14)
+    pdf.set_auto_page_break(auto=True, margin=16)
+    pdf.add_page()
+    pdf.set_text_color(TEXT_R, TEXT_G, TEXT_B)
+
+    # -------------------------------------------------------------------------
+    # Section 1 -- Informations generales (2 colonnes)
+    # -------------------------------------------------------------------------
+    def section_title(title):
+        pdf.set_font("Helvetica", "B", 10)
+        pdf.set_fill_color(VERT_R, VERT_G, VERT_B)
+        pdf.set_text_color(BLANC_R, BLANC_G, BLANC_B)
+        pdf.cell(0, 7, _safe(f"  {title}"), fill=True, new_x="LMARGIN", new_y="NEXT")
+        pdf.set_text_color(TEXT_R, TEXT_G, TEXT_B)
+        pdf.ln(2)
+
+    def kv_row(key, val, col_w=91, col_gap=10):
+        pdf.set_font("Helvetica", "B", 8)
+        pdf.cell(42, 5, _safe(key + " :"), border=0)
+        pdf.set_font("Helvetica", "", 8)
+        pdf.cell(col_w - 42, 5, _safe(val), border=0, new_x="LMARGIN", new_y="NEXT")
+
+    section_title("Informations generales")
+
+    # Col gauche
+    col_x_left  = 14
+    col_x_right = 115
+    col_w = 91
+
+    left_rows = [
+        ("Nom",          culture.nom or "-"),
+        ("Espace",       espace_nom),
+        ("Statut",       culture.statut or "-"),
+        ("But",          culture.but_culture or "-"),
+        ("Nb plantes",   str(len(plants))),
+    ]
+    right_rows = [
+        ("Debut veg",    str(culture.date_debut) if culture.date_debut else "-"),
+        ("12/12",        str(culture.date_passage_12_12) if culture.date_passage_12_12 else "-"),
+        ("Debut flo",    str(culture.date_debut_floraison) if culture.date_debut_floraison else "-"),
+        ("Fin / Recolte", str(culture.date_fin) if culture.date_fin else "-"),
+        ("Duree veg",    (f"{duree_veg}j") if duree_veg else "-"),
+        ("Duree flo",    (f"{duree_flo}j") if duree_flo else "-"),
+        ("Duree totale", (f"{duree_total}j") if duree_total else "-"),
+    ]
+
+    max_rows = max(len(left_rows), len(right_rows))
+    y_start = pdf.get_y()
+    for i in range(max_rows):
+        y = y_start + i * 5.5
+        # Left col
+        if i < len(left_rows):
+            k, v = left_rows[i]
+            pdf.set_xy(col_x_left, y)
+            pdf.set_font("Helvetica", "B", 8)
+            pdf.cell(38, 5, _safe(k + " :"))
+            pdf.set_font("Helvetica", "", 8)
+            pdf.cell(col_w - 38, 5, _safe(v))
+        # Right col
+        if i < len(right_rows):
+            k, v = right_rows[i]
+            pdf.set_xy(col_x_right, y)
+            pdf.set_font("Helvetica", "B", 8)
+            pdf.cell(38, 5, _safe(k + " :"))
+            pdf.set_font("Helvetica", "", 8)
+            pdf.cell(col_w - 38, 5, _safe(v))
+
+    pdf.set_y(y_start + max_rows * 5.5 + 4)
+
+    # -------------------------------------------------------------------------
+    # Section 2 -- Tableau des plantes
+    # -------------------------------------------------------------------------
+    if plants_enriched:
+        section_title("Plantes")
+        headers   = ["Nom",    "Variete",  "Statut",  "Substrat", "Pot",  "Poids"]
+        col_ws    = [30,        50,          24,         38,         14,     20]
+        pdf.set_font("Helvetica", "B", 7)
+        pdf.set_fill_color(220, 240, 220)
+        for h, w in zip(headers, col_ws):
+            pdf.cell(w, 6, _safe(h), border=1, fill=True, align="C")
+        pdf.ln()
+        pdf.set_font("Helvetica", "", 7)
+        for idx, p in enumerate(plants_enriched):
+            fill = idx % 2 == 0
+            pdf.set_fill_color(GRIS_R, GRIS_G, GRIS_B)
+            row_vals = [p["nom"], p["variete"], p["statut"], p["substrat"], p["pot"], p["poids"]]
+            for val, w in zip(row_vals, col_ws):
+                pdf.cell(w, 5.5, _safe(val), border=1, fill=fill, align="C")
+            pdf.ln()
+        pdf.ln(3)
+
+    # -------------------------------------------------------------------------
+    # Section 3 -- Resume actions
+    # -------------------------------------------------------------------------
+    if action_counts:
+        section_title("Resume des actions")
+        pdf.set_font("Helvetica", "", 8)
+        items = []
+        for t, cnt in sorted(action_counts.items()):
+            label = ACTION_LABELS.get(t, t)
+            items.append(f"{label}: {cnt}")
+        # 3-column grid
+        col_w3 = 58
+        for i, item in enumerate(items):
+            if i > 0 and i % 3 == 0:
+                pdf.ln()
+            pdf.set_font("Helvetica", "B", 8)
+            pdf.cell(col_w3, 5.5, _safe(item))
+        pdf.ln(5)
+
+    # -------------------------------------------------------------------------
+    # Section 4 -- Couts
+    # -------------------------------------------------------------------------
+    section_title("Couts")
+    pdf.set_font("Helvetica", "", 8)
+    cost_rows = [
+        ("Electricite",  f"{costs.get('cout_electricite_eur', 0):.2f} EUR"),
+        ("Engrais",      f"{costs.get('cout_engrais_eur', 0):.2f} EUR"),
+        ("Graines",      f"{costs.get('cout_graines_eur', 0):.2f} EUR"),
+        ("Total",        f"{costs.get('cout_total_eur', 0):.2f} EUR"),
+    ]
+    poids_total = costs.get("poids_total_g", 0)
+    if poids_total:
+        cout_total = costs.get("cout_total_eur", 0)
+        cpg = cout_total / poids_total if poids_total > 0 else 0
+        cost_rows.append(("Cout / gramme", f"{cpg:.2f} EUR/g"))
+        cost_rows.append(("Rendement",     f"{poids_total:.1f} g"))
+
+    for k, v in cost_rows:
+        pdf.set_font("Helvetica", "B", 8)
+        pdf.cell(50, 5.5, _safe(k + " :"))
+        pdf.set_font("Helvetica", "", 8)
+        pdf.cell(80, 5.5, _safe(v), new_x="LMARGIN", new_y="NEXT")
+    pdf.ln(3)
+
+    # -------------------------------------------------------------------------
+    # Section 5 -- Notes
+    # -------------------------------------------------------------------------
+    if culture.notes:
+        section_title("Notes")
+        pdf.set_font("Helvetica", "", 8)
+        pdf.multi_cell(0, 5, _safe(culture.notes))
+        pdf.ln(3)
+
+    # -- Output ---------------------------------------------------------------
+    pdf_bytes = pdf.output()
+    safe_nom  = (culture.nom or f"culture_{culture_id}").replace(" ", "_")
+    filename  = f"fiche_{safe_nom}.pdf"
+
+    return StreamingResponse(
+        io.BytesIO(bytes(pdf_bytes)),
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )

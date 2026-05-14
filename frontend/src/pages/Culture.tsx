@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   Plus, ArrowLeft, Leaf, Calendar, Users, BarChart2,
   Flower2, Droplets, Sun, Clock, X, CheckCircle, Trash2, AlertTriangle, Loader2,
-  Pencil, Check, Camera,
+  Pencil, Check, Camera, FileDown,
 } from 'lucide-react'
 import { cultureAPI, Culture, CultureWithDetails, CultureCreate } from '../api/cultures'
 import { photosAPI } from '../api/photos'
@@ -297,6 +297,27 @@ function CultureDetail({ cultureId, onBack }: { cultureId: number; onBack: () =>
     },
   })
 
+  const [exportingPdf, setExportingPdf] = useState(false)
+  const handleExportPdf = async () => {
+    setExportingPdf(true)
+    try {
+      const response = await fetch(`/api/cultures/${cultureId}/export/pdf`)
+      if (!response.ok) throw new Error('Erreur génération PDF')
+      const blob = await response.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      const nom = culture?.nom?.replace(/\s+/g, '_') || `culture_${cultureId}`
+      a.download = `fiche_${nom}.pdf`
+      a.click()
+      URL.revokeObjectURL(url)
+    } catch (e) {
+      alert('Impossible de générer le PDF.')
+    } finally {
+      setExportingPdf(false)
+    }
+  }
+
   if (isLoading) return <LoadingSpinner />
   if (!culture) return <div className="text-gray-400 dark:text-gray-500 text-center py-12">Culture introuvable</div>
 
@@ -396,6 +417,20 @@ function CultureDetail({ cultureId, onBack }: { cultureId: number; onBack: () =>
               </button>
             )
           )}
+          {/* Export PDF — toujours visible */}
+          <button
+            onClick={handleExportPdf}
+            disabled={exportingPdf}
+            className="flex items-center gap-1.5 px-3 py-2 border border-grow-300 dark:border-grow-700 rounded-lg text-sm text-grow-700 dark:text-grow-300 bg-grow-50 dark:bg-grow-900/20 hover:bg-grow-100 dark:hover:bg-grow-900/40 disabled:opacity-50"
+            title="Exporter la fiche culture en PDF"
+          >
+            {exportingPdf
+              ? <Loader2 size={15} className="animate-spin" />
+              : <FileDown size={15} />
+            }
+            PDF
+          </button>
+
           {(culture.statut === 'active' || culture.statut === 'sechage_curing') && (
             <button
               onClick={() => { if (confirm('Clôturer cette culture manuellement ?')) closeCulture.mutate() }}
