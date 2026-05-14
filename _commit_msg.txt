@@ -1,21 +1,5 @@
-feat(D): Vue calendrier global mensuelle
+fix(nav): Calendrier global en tête du groupe Culture
 
-- backend/app/routers/calendrier.py
-    GET /api/calendrier?year=&month= — tous les ActionCalendrier du mois, toutes cultures
-    GET /api/calendrier/cultures-actives — liste cultures pour légende/filtres
-
-- backend/app/main.py — import + include_router calendrier
-
-- frontend/src/api/calendrier.ts — types CalendrierEvent + CultureRef, getCalendrierEvents(), getCulturesRef()
-
-- frontend/src/pages/CalendrierGlobal.tsx
-    Grille mensuelle 7 cols (lun→dim), navigation mois, bouton Aujourd'hui
-    Events color-codés par culture (8 couleurs rotation)
-    Clic chip → EventDrawer (détail : culture, plant, type, parametres JSON, note)
-    Filtre multi-culture (FilterButton)
-    Légende couleurs + stats rapides mois (total, cultures actives, arrosages, traitements)
-
-- frontend/src/App.tsx — route /calendrier
-- frontend/src/components/Layout.tsx — item "Calendrier global" dans groupe Culture, CalendarDays icon
-
-- wiki: roadmap D ✅, api/overview, frontend/overview, frontend/pages
+- frontend/src/components/Layout.tsx
+    Déplacement de l'item "Calendrier global" en première position
+    dans le sous-menu Culture (avant "Suivi de culture")

@@ -53,6 +53,7 @@ const navItems: NavItem[] = [
     label: 'Culture',
     icon: Leaf,
     children: [
+      { path: '/calendrier',             label: 'Calendrier global',      icon: CalendarDays },
       { path: '/culture',               label: 'Suivi de culture',      icon: Leaf },
       { path: '/sechage-curing',        label: 'Séchage & Curing',      icon: Wind },
       { path: '/croisement',            label: 'Croisements',            icon: Dna },
@@ -60,7 +61,6 @@ const navItems: NavItem[] = [
       { path: '/plan-culture',          label: 'Préparer une culture',  icon: ClipboardList },
       { path: '/preparation-substrat',  label: 'Préparer un substrat',  emoji: '🪴' },
       { path: '/historique-cultures',   label: 'Historique cultures',   icon: BookOpen },
-      { path: '/calendrier',             label: 'Calendrier global',      icon: CalendarDays },
     ],
   },
   { path: '/stock',                label: 'Stock',                  icon: Package },
