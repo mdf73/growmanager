@@ -25,7 +25,7 @@ Source : `Documentation/GrowManager_Specifications_v4.docx` + `Documentation/gro
 | F | Traçabilité bocal → graine | ✅ DONE | `GET /api/materiel/{id}/bocal-timeline` · `BocalTimelineDrawer.tsx` · bouton "🔍 Origine" SechageCuring · `GET /api/stock/{id}/origine` · `StockOriginDrawer.tsx` · clic ligne Stock → drawer · `id_plant` FK sur Stock · `GET /api/cultures/plants-by-variete/{id}` · plant picker dans NouveauStockModal · validé 2026-05-13 |
 | G | Alertes stock bas | ✅ DONE | `StockAlertSeuil` table · `quantite_initiale` sur Stock · `/api/stock-alert-seuils` CRUD+check · badge Dashboard · bandeau Stock.tsx · onglet Paramétrage · validé 2026-05-11 · bugfix 2026-05-13 : colonne `quantite_initiale` absente du modèle + migration SQL + `s.variete.nom` → `s.variete.nom_variete` |
 | H | Rappels bocaux / burping | ✅ DONE | `GET /api/dashboard/burping-reminders` · `ModuleBurping` Dashboard · fréquences alignées sur SechageCuring.tsx (1j/3j/7j/14j) · conditionnel si aucune session |
-| I | QR codes / étiquettes | ❌ À faire | Pas de lib QR |
+| I | QR codes / étiquettes | ✅ DONE | `qrcode[pil]` + `fpdf2` · `GET /api/stock/{id}/label` → PDF 100×60 mm (QR + variété + type/LSO + engrais + quantité + date + bocal) · bouton 🖨️ par ligne Stock.tsx · QR encode `http://growmanager/stock?id={id}` · URL locale via hosts + nginx + `GROWMANAGER_URL` env · `vite.config.ts` allowedHosts · validé 2026-05-14 |
 | J | Déduction stock engrais | ✅ DONE | Déjà implémenté dans cultures.py (lignes 455–489) — recette + liste manuelle |
 | K | Recherche globale | ✅ DONE | `GET /api/search` · `GlobalSearch.tsx` · Ctrl+K · validé 2026-05-13 |
 | L | Export PDF fiche culture | ❌ À faire | WeasyPrint non installé |
@@ -51,7 +51,7 @@ Source : `Documentation/GrowManager_Specifications_v4.docx` + `Documentation/gro
 
 **Sprint 4 — Features lourdes**
 10. **E** Comparaison inter-cultures — sélecteur 2-3 cultures, tableau + courbes superposées
-11. **I** QR codes / étiquettes — lib qrcode, PDF imprimable par bocal
+11. ✅ **I** QR codes / étiquettes — `qrcode[pil]` + `fpdf2` · endpoint `/api/stock/{id}/label` · PDF 100×60 mm · bouton 🖨️ Stock.tsx · validé 2026-05-14
 12. **L** Export PDF fiche culture — WeasyPrint, fiche complète
 
 ### Protocole de review specs (à réutiliser pour V5+)

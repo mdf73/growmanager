@@ -1,7 +1,13 @@
 """Routers pour Stock"""
 from datetime import date
 from typing import Optional, List
+import io
+import json
+import os
+import tempfile
+
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import and_
 from pydantic import BaseModel
@@ -12,7 +18,14 @@ from app.models.all_models import (
     SessionCuring, PlantCuring, PlantSechage, SessionSechage, Variete as VarieteModel,
 )
 from app.schemas.stock import StockCreate, StockRead, StockWithVariete, BocalDisponible
-import json
+
+# ── Imports QR / PDF (optionnels — ne plante pas si lib absente) ─────────────
+try:
+    import qrcode
+    from fpdf import FPDF
+    _QR_AVAILABLE = True
+except ImportError:
+    _QR_AVAILABLE = False
 
 router = APIRouter(prefix="/api/stock", tags=["stock"])
 
@@ -439,4 +452,158 @@ def stock_origine(stock_id: int, db: Session = Depends(get_db)):
         variete=variete_out,
         bocal=bocal_out,
         cultures_source=cultures_out,
+    )
+
+
+# ── GET label PDF ─────────────────────────────────────────────────────────────
+
+@router.get("/{stock_id}/label")
+def stock_label(stock_id: int, db: Session = Depends(get_db)):
+    """
+    Génère un PDF étiquette imprimable (100×60 mm) pour un bocal de stock.
+    Contient : QR code (id stock), variété, type, quantité, date, bocal.
+    """
+    if not _QR_AVAILABLE:
+        raise HTTPException(
+            status_code=501,
+            detail="Librairies qrcode / fpdf2 non installées dans le conteneur."
+        )
+
+    s = db.query(Stock).filter(Stock.id_stock == stock_id).first()
+    if not s:
+        raise HTTPException(status_code=404, detail="Stock non trouvé")
+
+    enriched = _enrich(s, db)
+
+    # ── Données label ─────────────────────────────────────────────────────────
+    variete_label = enriched.variete_nom or "—"
+    if enriched.plant_nom:
+        variete_label = f"{enriched.plant_nom} ({variete_label})"
+
+    # Type : "Fleur LSO", "Hash · 73µ · Ice-o-lator", "Engrais · BioBizz"…
+    is_lso = enriched.sous_type_stock and "lso" in enriched.sous_type_stock.lower()
+    type_label = enriched.type_stock or ""
+    if is_lso:
+        type_label += " LSO"
+    elif enriched.sous_type_stock:
+        type_label += f" · {enriched.sous_type_stock}"
+    if enriched.maillage:
+        type_label += f" · {enriched.maillage}"
+    if enriched.type_hash:
+        type_label += f" · {enriched.type_hash}"
+    if enriched.type_rosin:
+        type_label += f" · {enriched.type_rosin}"
+
+    # Engrais
+    engrais_label = enriched.engrais_type or None
+
+    bocal_label = enriched.bocal_nom or enriched.bocal_taille or "—"
+    if enriched.bocal_volume_ml:
+        bocal_label += f" ({int(enriched.bocal_volume_ml)} ml)"
+
+    quantite_label = f"{enriched.quantite_stock:.1f} g"
+    date_label = enriched.date_stock.strftime("%d/%m/%Y") if enriched.date_stock else "—"
+
+    base_url = os.getenv("GROWMANAGER_URL", "http://growmanager").rstrip("/")
+    qr_data = f"{base_url}/stock?id={stock_id}"
+
+    # ── QR code → fichier temp PNG ────────────────────────────────────────────
+    qr = qrcode.QRCode(
+        version=1,
+        error_correction=qrcode.constants.ERROR_CORRECT_M,
+        box_size=8,
+        border=2,
+    )
+    qr.add_data(qr_data)
+    qr.make(fit=True)
+    qr_img = qr.make_image(fill_color="black", back_color="white")
+
+    tmp_qr = tempfile.NamedTemporaryFile(suffix=".png", delete=False)
+    try:
+        qr_img.save(tmp_qr.name)
+        tmp_qr.close()
+
+        # ── PDF 100×60 mm ─────────────────────────────────────────────────────
+        pdf = FPDF(orientation="L", unit="mm", format=(60, 100))
+        pdf.add_page()
+        pdf.set_margins(3, 3, 3)
+        pdf.set_auto_page_break(False)
+
+        # Ligne décorative supérieure
+        pdf.set_fill_color(34, 139, 34)          # vert forêt
+        pdf.rect(0, 0, 100, 5, style="F")
+
+        # QR code (côté gauche)
+        qr_size = 42
+        pdf.image(tmp_qr.name, x=3, y=7, w=qr_size, h=qr_size)
+
+        # Texte (côté droit)
+        x_txt = qr_size + 6
+        w_txt = 100 - x_txt - 3
+
+        # ID stock petit
+        pdf.set_xy(x_txt, 7)
+        pdf.set_font("Helvetica", style="", size=7)
+        pdf.set_text_color(120, 120, 120)
+        pdf.cell(w_txt, 4, f"#{stock_id}", ln=True)
+
+        # Variété — gros titre
+        pdf.set_xy(x_txt, 12)
+        pdf.set_font("Helvetica", style="B", size=11)
+        pdf.set_text_color(20, 20, 20)
+        pdf.multi_cell(w_txt, 5, variete_label, ln=True)
+
+        # Type
+        pdf.set_x(x_txt)
+        pdf.set_font("Helvetica", style="", size=9)
+        pdf.set_text_color(50, 50, 50)
+        pdf.multi_cell(w_txt, 4, type_label, ln=True)
+
+        # Séparateur
+        y_sep = pdf.get_y() + 1
+        pdf.set_draw_color(200, 200, 200)
+        pdf.line(x_txt, y_sep, 97, y_sep)
+
+        # Quantité + date
+        pdf.set_xy(x_txt, y_sep + 2)
+        pdf.set_font("Helvetica", style="B", size=10)
+        pdf.set_text_color(34, 139, 34)
+        pdf.cell(w_txt / 2, 5, quantite_label)
+        pdf.set_font("Helvetica", style="", size=8)
+        pdf.set_text_color(80, 80, 80)
+        pdf.cell(w_txt / 2, 5, date_label, ln=True)
+
+        # Bocal
+        pdf.set_x(x_txt)
+        pdf.set_font("Helvetica", style="", size=7)
+        pdf.set_text_color(100, 100, 100)
+        pdf.cell(w_txt, 4, f"Bocal : {bocal_label}", ln=True)
+
+        # Engrais (si renseigné)
+        if engrais_label:
+            pdf.set_x(x_txt)
+            pdf.set_font("Helvetica", style="", size=7)
+            pdf.set_text_color(100, 100, 100)
+            pdf.cell(w_txt, 4, f"Engrais : {engrais_label}", ln=True)
+
+        # Ligne décorative inférieure
+        pdf.set_fill_color(34, 139, 34)
+        pdf.rect(0, 55, 100, 5, style="F")
+
+        # Watermark GrowManager
+        pdf.set_xy(0, 55.5)
+        pdf.set_font("Helvetica", style="I", size=6)
+        pdf.set_text_color(255, 255, 255)
+        pdf.cell(100, 3, "GrowManager", align="R")
+
+        pdf_bytes = pdf.output()
+
+    finally:
+        os.unlink(tmp_qr.name)
+
+    filename = f"label_stock_{stock_id}.pdf"
+    return StreamingResponse(
+        io.BytesIO(bytes(pdf_bytes)),
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )

@@ -16,6 +16,7 @@ Router: `stock.py` | Prefix: `/api/stock`
 | GET | `/{id}` | — | `StockWithVariete` | Single entry |
 | GET | `/bocaux-disponibles` | query: `current_stock_id?` | `list[BocalDisponible]` | Available jars (not in use) |
 | GET | `/{id}/origine` | — | `StockOrigineResponse` | Feature F — traçabilité complète : variété, bocal, cultures source, plantes |
+| GET | `/{id}/label` | — | `application/pdf` | Feature I — PDF étiquette 100×60 mm : QR code + variété + type + quantité + date + bocal |
 | POST | `/` | `StockCreate` | `StockRead` | Add stock entry |
 | PUT | `/{id}` | `StockCreate` | `StockRead` | Update stock |
 | POST | `/{id}/sortie` | — | `StockWithVariete` | Mark as consumed (sets `date_fin_stock`) |

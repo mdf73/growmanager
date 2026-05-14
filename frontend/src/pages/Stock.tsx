@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   Plus, Search, Package, Pencil, Trash2, Loader2, AlertTriangle,
   ChevronUp, ChevronDown, ChevronsUpDown, ArrowDownUp, LogOut,
-  FlaskConical, Snowflake,
+  FlaskConical, Snowflake, Printer,
 } from 'lucide-react'
 import { stockAPI, Stock } from '../api/stock'
 import { curingAPI, SessionCuring, PlantCuring } from '../api/curing'
@@ -70,12 +70,13 @@ function TypeBadge({ type }: { type?: string }) {
 }
 
 // ── Ligne stock avec confirmation ─────────────────────────────────────────────
-function StockRow({ item, onEdit, onDeleted, onSortie, onOrigine }: {
+function StockRow({ item, onEdit, onDeleted, onSortie, onOrigine, onLabel }: {
   item: Stock
   onEdit: (s: Stock) => void
   onDeleted: () => void
   onSortie: () => void
   onOrigine: (id: number) => void
+  onLabel: (id: number) => void
 }) {
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [confirmSortie, setConfirmSortie] = useState(false)
@@ -198,6 +199,9 @@ function StockRow({ item, onEdit, onDeleted, onSortie, onOrigine }: {
               <LogOut size={14} />
             </button>
           )}
+          <button onClick={() => onLabel(item.id_stock)} className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded" title="Télécharger l'étiquette PDF">
+            <Printer size={14} />
+          </button>
           <button onClick={() => onEdit(item)} className="p-1.5 text-gray-400 hover:text-grow-600 hover:bg-grow-50 rounded" title="Modifier">
             <Pencil size={14} />
           </button>
@@ -811,6 +815,7 @@ export default function StockPage() {
                         onDeleted={() => queryClient.invalidateQueries({ queryKey: ['stock'] })}
                         onSortie={() => queryClient.invalidateQueries({ queryKey: ['stock'] })}
                         onOrigine={id => setOrigineStockId(id)}
+                        onLabel={id => stockAPI.downloadLabel(id)}
                       />
                     ))}
                   </tbody>

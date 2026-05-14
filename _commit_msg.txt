@@ -1,5 +1,20 @@
-fix(nav): Calendrier global en tête du groupe Culture
+feat(I): QR codes / étiquettes bocal + URL http://growmanager
 
-- frontend/src/components/Layout.tsx
-    Déplacement de l'item "Calendrier global" en première position
-    dans le sous-menu Culture (avant "Suivi de culture")
+Backend:
+- qrcode[pil]==7.4.2 + fpdf2==2.7.9 dans requirements.txt
+- GET /api/stock/{id}/label → PDF 100×60 mm
+  - QR code encode http://growmanager/stock?id={id} (via GROWMANAGER_URL env)
+  - Layout paysage : QR gauche, infos droite
+  - Type affiche "LSO" si sous_type_stock contient "lso"
+  - Ligne "Engrais : ..." si engrais_type renseigné
+  - Bandeau vert GrowManager haut/bas
+  - Graceful 501 si libs absentes
+- docker-compose.yml : GROWMANAGER_URL env (défaut http://growmanager)
+
+Frontend:
+- Stock.tsx : bouton Printer par ligne → téléchargement PDF blob
+- vite.config.ts : allowedHosts ['growmanager', 'localhost']
+
+Infra:
+- nginx.conf : server_name growmanager localhost _
+- add-growmanager-host.bat : script hosts Windows (run as admin, 1 fois)

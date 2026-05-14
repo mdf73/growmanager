@@ -152,6 +152,18 @@ export const stockAPI = {
 
   origine: (stockId: number) =>
     client.get<StockOrigine>(`/stock/${stockId}/origine`),
+
+  downloadLabel: async (stockId: number): Promise<void> => {
+    const response = await client.get(`/stock/${stockId}/label`, {
+      responseType: 'blob',
+    })
+    const url = URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }))
+    const a   = document.createElement('a')
+    a.href     = url
+    a.download = `label_stock_${stockId}.pdf`
+    a.click()
+    URL.revokeObjectURL(url)
+  },
 }
 
 export const rosinAPI = {

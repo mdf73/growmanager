@@ -26,6 +26,7 @@ services:
     environment:
       - DATABASE_URL=mysql+pymysql://${MYSQL_USER:-grow}:${MYSQL_PASSWORD:-grow2024}@db:3306/growmanager
       - SECRET_KEY=${SECRET_KEY:-changeme-in-production}
+      - GROWMANAGER_URL=${GROWMANAGER_URL:-http://growmanager}
     depends_on:
       db:
         condition: service_healthy
