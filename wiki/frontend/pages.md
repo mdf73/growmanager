@@ -211,3 +211,16 @@ Variety scoring and ranking system.
 
 - [[frontend/overview]] — routing table + component hierarchy
 - [[frontend/conventions]] — React patterns
+
+### ComparaisonCultures (`/comparaison-cultures`)
+Comparaison inter-cultures côte-à-côte — Feature E Sprint 4. Validé 2026-05-14.
+- Sélecteur dropdown multi-select (2 à 3 cultures, actives + terminées + séchage/curing)
+- Tableau comparatif : statut, variétés, tente/espace, lampe(s)+wattage, puissance totale, type engrais (LSO ou marques), TCO total, type éclairage, nb plantes, durées veg/flo/totale, rendement, coûts, volumes arrosage
+- Volume arrosage total et volume arrosage engrais séparés — utilise `volume_par_plante_l` si disponible pour éviter le double-comptage des actions globales
+- Coût engrais/L affiché pour détecter les anomalies de saisie
+- Détail TCO par type si LSO (🌿 Croissance / 🌸 Floraison / 📈 Stretch / 🔧 Correctif)
+- Section "Détail coût engrais par recette" : volume, coût, coût/L (rouge si > 1€/L), nb arrosages
+- Graphique hauteurs superposées (LineChart, moyenne par culture, axe X de J0 à J_max avec ticks réguliers)
+- Graphique arrosages cumulés (AreaChart, axe X continu J0→J_max)
+- Nav : sous-menu Culture, après "Historique cultures"
+- API : `GET /api/cultures/compare?ids=1,2,3`, `GET /api/cultures` (+ statut filtre pour liste sélecteur)

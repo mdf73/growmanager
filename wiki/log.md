@@ -123,3 +123,29 @@ Explored entire GrowManager codebase (backend + frontend + docs) and bootstrappe
 - Consolidated roadmap from existing docs
 
 **Pages created:** 28 pages across 6 sections + index + log + overview
+
+---
+
+## [2026-05-14] Feature E — Comparaison inter-cultures (Sprint 4)
+
+### Nouvelles fonctionnalités
+- **`GET /api/cultures/compare?ids=1,2,3`** : endpoint multi-culture retournant données complètes (durées, rendement, coûts, espace, lampes, LSO/TCO, marques engrais, hauteurs, arrosages)
+- **`ComparaisonCultures.tsx`** (`/comparaison-cultures`) : page complète de comparaison
+  - Sélecteur dropdown 2-3 cultures (actives + terminées + séchage/curing)
+  - Tableau comparatif côte-à-côte avec highlight meilleure valeur
+  - Détail TCO par type (Croissance/Floraison/Stretch/Correctif) pour cultures LSO
+  - Graphique hauteurs superposées (moyenne par culture, axe X continu J0→J_max)
+  - Graphique arrosages cumulés (AreaChart, axe continu)
+  - Section "Détail coût engrais par recette" : volume, coût, coût/L (rouge si > 1€/L)
+
+### Bugfixes
+- **Double-comptage volume arrosage** : en mode "arrosage global", le backend crée N actions per-plante avec `volume_l = volume_total`. Fix : utiliser `volume_par_plante_l` (si disponible et `global_culture=False`) pour le calcul des coûts (`_compute_culture_cost`) et du volume affiché dans le compare
+- **Séparation volume total / volume engrais** : `volume_arrosage_total_l` (tous types) et `volume_arrosage_engrais_l` (recette engrais uniquement) exposés dans l'API compare
+- **Axe X graphiques** : ticks réguliers de J0 à J_max (tous les 5/10/20/30j selon durée) — plus de sauts bizarres liés aux jours sans données
+
+### Files modified
+- `backend/app/routers/cultures.py` — ajout endpoint `/compare`, fix `_compute_culture_cost` (volume_par_plante_l), fix compare arrosage
+- `frontend/src/api/comparaison.ts` — interfaces + fonctions API
+- `frontend/src/pages/ComparaisonCultures.tsx` — page complète (~600 lignes)
+- `frontend/src/App.tsx` — route `/comparaison-cultures`
+- `frontend/src/components/Layout.tsx` — nav sous-menu Culture

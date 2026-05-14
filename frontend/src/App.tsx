@@ -27,6 +27,7 @@ import PreparationSubstrat from './pages/PreparationSubstrat'
 import ClassementVarietes from './pages/ClassementVarietes'
 import Consommation from './pages/Consommation'
 import CalendrierGlobal from './pages/CalendrierGlobal'
+import ComparaisonCultures from './pages/ComparaisonCultures'
 
 function App() {
   return (
@@ -60,6 +61,7 @@ function App() {
           <Route path="/parametrage" element={<Parametrage />} />
           <Route path="/consommation" element={<Consommation />} />
           <Route path="/calendrier" element={<CalendrierGlobal />} />
+          <Route path="/comparaison-cultures" element={<ComparaisonCultures />} />
         </Routes>
       </Layout>
     </Router>

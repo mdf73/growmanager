@@ -1,6 +1,6 @@
 ---
 type: roadmap
-updated: 2026-05-11
+updated: 2026-05-14
 sources: [Documentation/claude.md, Documentation/Instructions de reprises v1.txt, Documentation/GrowManager_Specifications_v4.docx]
 sprint1_completed: 2026-05-10
 ---
@@ -21,7 +21,7 @@ Source : `Documentation/GrowManager_Specifications_v4.docx` + `Documentation/gro
 | B | IPM / traitements | ✅ DONE | Champs produit/dose/méthode/delai_recolte_j · endpoint ipm-warnings · ModuleIPM Dashboard (conditionnel, badge 🔴 <7j) · validé 2026-05-13 |
 | C | Timer de flush | ✅ DONE | `date_debut_flush` sur Culture (migration + schema + router) · bouton Culture.tsx · badge 🚿 J+X Dashboard |
 | D | Vue calendrier global | ✅ DONE | `GET /api/calendrier` · `CalendrierGlobal.tsx` · route `/calendrier` · nav groupe Culture · validé 2026-05-14 |
-| E | Comparaison inter-cultures | ❌ À faire | — |
+| E | Comparaison inter-cultures | ✅ DONE | `GET /cultures/compare` · tableau + courbes · volumes arrosage corrigés (volume_par_plante_l) · détail coût/recette · validé 2026-05-14 |
 | F | Traçabilité bocal → graine | ✅ DONE | `GET /api/materiel/{id}/bocal-timeline` · `BocalTimelineDrawer.tsx` · bouton "🔍 Origine" SechageCuring · `GET /api/stock/{id}/origine` · `StockOriginDrawer.tsx` · clic ligne Stock → drawer · `id_plant` FK sur Stock · `GET /api/cultures/plants-by-variete/{id}` · plant picker dans NouveauStockModal · validé 2026-05-13 |
 | G | Alertes stock bas | ✅ DONE | `StockAlertSeuil` table · `quantite_initiale` sur Stock · `/api/stock-alert-seuils` CRUD+check · badge Dashboard · bandeau Stock.tsx · onglet Paramétrage · validé 2026-05-11 · bugfix 2026-05-13 : colonne `quantite_initiale` absente du modèle + migration SQL + `s.variete.nom` → `s.variete.nom_variete` |
 | H | Rappels bocaux / burping | ✅ DONE | `GET /api/dashboard/burping-reminders` · `ModuleBurping` Dashboard · fréquences alignées sur SechageCuring.tsx (1j/3j/7j/14j) · conditionnel si aucune session |
@@ -50,7 +50,7 @@ Source : `Documentation/GrowManager_Specifications_v4.docx` + `Documentation/gro
 9. ✅ **D** Vue calendrier global — `GET /api/calendrier` · `CalendrierGlobal.tsx` · grille mensuelle color-codée par culture · filtre · drawer detail · stats rapides · validé 2026-05-14
 
 **Sprint 4 — Features lourdes**
-10. **E** Comparaison inter-cultures — sélecteur 2-3 cultures, tableau + courbes superposées
+10. ✅ **E** Comparaison inter-cultures — sélecteur 2-3 cultures · tableau (espace/lampe/TCO/coûts/volumes) · graphiques hauteurs+arrosages · fix double-comptage volume global · détail coût/recette · validé 2026-05-14
 11. ✅ **I** QR codes / étiquettes — `qrcode[pil]` + `fpdf2` · endpoint `/api/stock/{id}/label` · PDF 100×60 mm · bouton 🖨️ Stock.tsx · validé 2026-05-14
 12. **L** Export PDF fiche culture — WeasyPrint, fiche complète
 

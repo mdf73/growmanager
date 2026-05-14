@@ -1,20 +1,19 @@
-feat(I): QR codes / étiquettes bocal + URL http://growmanager
+feat(E): comparaison inter-cultures — Sprint 4
 
-Backend:
-- qrcode[pil]==7.4.2 + fpdf2==2.7.9 dans requirements.txt
-- GET /api/stock/{id}/label → PDF 100×60 mm
-  - QR code encode http://growmanager/stock?id={id} (via GROWMANAGER_URL env)
-  - Layout paysage : QR gauche, infos droite
-  - Type affiche "LSO" si sous_type_stock contient "lso"
-  - Ligne "Engrais : ..." si engrais_type renseigné
-  - Bandeau vert GrowManager haut/bas
-  - Graceful 501 si libs absentes
-- docker-compose.yml : GROWMANAGER_URL env (défaut http://growmanager)
+- GET /api/cultures/compare?ids=1,2,3 : endpoint multi-culture (durées, rendement,
+  coûts, espace, lampes, LSO/TCO, marques engrais, hauteurs, arrosages cumulés)
+- ComparaisonCultures.tsx (/comparaison-cultures) :
+  · sélecteur dropdown 2-3 cultures (actives + terminées + séchage)
+  · tableau comparatif avec highlight meilleure valeur
+  · détail TCO par type (Croissance/Floraison/Stretch/Correctif) pour LSO
+  · graphiques hauteurs superposées + arrosages cumulés (axe X continu J0→Jmax)
+  · détail coût engrais par recette avec coût/L (diagnostic anomalies)
+  · volumes arrosage total et engrais séparés
 
-Frontend:
-- Stock.tsx : bouton Printer par ligne → téléchargement PDF blob
-- vite.config.ts : allowedHosts ['growmanager', 'localhost']
+bugfix: double-comptage volume arrosage en mode global
+  · _compute_culture_cost et compare utilisent volume_par_plante_l
+    quand global_culture=False pour éviter N× overcounting
 
-Infra:
-- nginx.conf : server_name growmanager localhost _
-- add-growmanager-host.bat : script hosts Windows (run as admin, 1 fois)
+bugfix: axe X graphiques → ticks réguliers (5/10/20/30j selon durée)
+
+wiki: Feature E marquée DONE, pages.md + log.md mis à jour

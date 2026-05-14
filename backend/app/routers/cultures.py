@@ -434,9 +434,17 @@ def _compute_culture_cost(id_culture: int, db: Session, date_fin_override=None) 
     for action in actions_arrosage:
         p = action.parametres or {}
         id_recette = p.get("id_recette")
-        volume_l   = float(p.get("volume_l") or 1.0)
         if not id_recette:
             continue
+        # Pour les actions per-plante (global=False), préférer volume_par_plante_l
+        # car volume_l peut contenir le volume TOTAL de la session (bug de stockage)
+        if not action.global_culture and p.get("volume_par_plante_l"):
+            raw_vol = p.get("volume_par_plante_l")
+        else:
+            raw_vol = p.get("volume_l")
+        if not raw_vol:
+            continue
+        volume_l = float(raw_vol)
         recette = db.query(RecetteEngrais).filter(RecetteEngrais.id_recette == id_recette).first()
         if not recette:
             continue
@@ -775,6 +783,295 @@ def _handle_action_effects(action: ActionCalendrier, culture: Culture, db: Sessi
         pass
 
     db.commit()
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# COMPARAISON INTER-CULTURES
+# ═══════════════════════════════════════════════════════════════════════════════
+
+@router.get("/compare")
+def compare_cultures(ids: str = Query(..., description="IDs séparés par virgule, ex: 1,2,3"), db: Session = Depends(get_db)):
+    """Compare 2 à 3 cultures : métriques clés + données pour graphiques superposés."""
+    from collections import Counter
+    try:
+        id_list = [int(x.strip()) for x in ids.split(",") if x.strip()]
+    except ValueError:
+        raise HTTPException(status_code=400, detail="ids doit être une liste d'entiers séparés par des virgules")
+    if len(id_list) < 2 or len(id_list) > 3:
+        raise HTTPException(status_code=400, detail="Sélectionnez entre 2 et 3 cultures")
+
+    today = date.today()
+    results = []
+
+    for cid in id_list:
+        culture = db.query(Culture).filter(Culture.id_culture == cid).first()
+        if not culture:
+            raise HTTPException(status_code=404, detail=f"Culture {cid} introuvable")
+
+        plants = db.query(Plant).filter(Plant.id_culture == cid).all()
+
+        # ── Durées ───────────────────────────────────────────────────────────
+        date_debut = culture.date_debut
+        date_fin   = culture.date_fin or today
+        date_flo   = culture.date_debut_floraison or culture.date_passage_12_12
+
+        duree_totale_j = (date_fin - date_debut).days if date_debut else None
+        duree_veg_j    = (date_flo - date_debut).days if date_debut and date_flo else None
+        duree_flo_j    = (date_fin - date_flo).days if date_flo else None
+
+        # ── Rendement ────────────────────────────────────────────────────────
+        STATUTS_RECOLTE = {"recolte", "prete", "curing", "wpff", "sechage"}
+        plantes_recoltees = [p for p in plants if p.statut in STATUTS_RECOLTE and p.poids_recolte_g]
+        nb_plantes        = len(plants)
+        nb_recoltees      = len(plantes_recoltees)
+        rendement_total_g = sum(float(p.poids_recolte_g) for p in plantes_recoltees) if plantes_recoltees else None
+        rendement_par_plante_g = round(rendement_total_g / nb_recoltees, 1) if rendement_total_g and nb_recoltees else None
+
+        # ── Coûts ────────────────────────────────────────────────────────────
+        couts = _compute_culture_cost(cid, db)
+
+        # ── Espace / tente ────────────────────────────────────────────────────
+        nom_espace = None
+        if culture.id_espace:
+            espace = db.query(EspaceCulture).filter(EspaceCulture.id_espace == culture.id_espace).first()
+            if espace:
+                nom_espace = espace.nom
+
+        # ── Lampes (nom + wattage) ────────────────────────────────────────────
+        lampes_info = []
+        puissance_w_total = 0
+        if culture.id_espace:
+            mats = (
+                db.query(Materiel)
+                .join(EspaceMateriel, EspaceMateriel.id_materiel == Materiel.id_materiel)
+                .filter(EspaceMateriel.id_espace == culture.id_espace)
+                .filter(Materiel.categorie == "Lampes")
+                .all()
+            )
+            for m in mats:
+                carac = m.caracteristiques or {}
+                pw = carac.get("puissance_w")
+                try:
+                    pw_int = int(pw) if pw else None
+                except (ValueError, TypeError):
+                    pw_int = None
+                if pw_int:
+                    puissance_w_total += pw_int
+                lampes_info.append({
+                    "nom":        m.nom,
+                    "marque":     m.marque,
+                    "puissance_w": pw_int,
+                })
+        # Fallback legacy CultureLampe → Lampe
+        if not lampes_info:
+            legacy_lampes = (
+                db.query(Lampe)
+                .join(CultureLampe, CultureLampe.id_lampe == Lampe.id_lampe)
+                .filter(CultureLampe.id_culture == cid)
+                .all()
+            )
+            for l in legacy_lampes:
+                pw = l.puissance_lampe or 0
+                puissance_w_total += pw
+                lampes_info.append({
+                    "nom":        f"Lampe {pw}W",
+                    "marque":     None,
+                    "puissance_w": pw,
+                })
+
+        # ── Actions ───────────────────────────────────────────────────────────
+        actions = (
+            db.query(ActionCalendrier)
+            .filter(ActionCalendrier.id_culture == cid)
+            .order_by(ActionCalendrier.date_action)
+            .all()
+        )
+
+        plants_map = {p.id_plant: p.nom_affichage for p in plants}
+
+        # ── LSO ou engrais conventionnel ──────────────────────────────────────
+        is_lso = any(p.substrat == "sol_vivant" or p.id_recette_sol for p in plants)
+        # Fallback : s'il y a des actions preparation_tco → LSO
+        if not is_lso:
+            is_lso = any(a.type_action == "preparation_tco" for a in actions)
+
+        tco_par_type: dict = {}
+        marques_engrais: list = []
+
+        if is_lso:
+            # Compter les TCO par type (Croissance, Floraison, Stretch, Correctif, Réamendement)
+            tco_counts: dict = {}
+            for a in actions:
+                if a.type_action != "preparation_tco":
+                    continue
+                params = a.parametres or {}
+                id_recette_tco = params.get("id_recette_tco")
+                type_tco = "Autre"
+                if id_recette_tco:
+                    recette_tco = db.query(RecetteTCO).filter(
+                        RecetteTCO.id_recette_tco == id_recette_tco
+                    ).first()
+                    if recette_tco and recette_tco.type_tco:
+                        type_tco = recette_tco.type_tco
+                tco_counts[type_tco] = tco_counts.get(type_tco, 0) + 1
+            tco_par_type = tco_counts
+        else:
+            # Engrais conventionnel : collecter les marques/produits utilisés
+            marques_set: set = set()
+            for a in actions:
+                if a.type_action != "arrosage_engrais":
+                    continue
+                params = a.parametres or {}
+                # Via recette
+                id_recette = params.get("id_recette")
+                if id_recette:
+                    recette_engrais = db.query(RecetteEngrais).filter(
+                        RecetteEngrais.id_recette == id_recette
+                    ).first()
+                    if recette_engrais:
+                        for ligne in recette_engrais.lignes:
+                            prod = db.query(ProduitEngrais).filter(
+                                ProduitEngrais.id_produit == ligne.id_produit
+                            ).first()
+                            if prod and prod.marque:
+                                marques_set.add(prod.marque)
+                # Legacy : liste manuelle
+                for item in params.get("produits", []):
+                    pid_prod = item.get("id_produit")
+                    if pid_prod:
+                        prod = db.query(ProduitEngrais).filter(
+                            ProduitEngrais.id_produit == pid_prod
+                        ).first()
+                        if prod and prod.marque:
+                            marques_set.add(prod.marque)
+            marques_engrais = sorted(marques_set)
+
+        # ── Détail coût engrais par recette (diagnostic) ────────────────────
+        recettes_cout: dict = {}  # {nom_recette: {volume_l, cout, nb_actions}}
+        for a in actions:
+            if a.type_action != "arrosage_engrais":
+                continue
+            p2 = a.parametres or {}
+            id_r = p2.get("id_recette")
+            if not id_r:
+                continue
+            if not a.global_culture and p2.get("volume_par_plante_l"):
+                vol2 = float(p2.get("volume_par_plante_l"))
+            else:
+                vol2 = float(p2.get("volume_l") or 0)
+            if not vol2:
+                continue
+            rec2 = db.query(RecetteEngrais).filter(RecetteEngrais.id_recette == id_r).first()
+            if not rec2:
+                continue
+            nom_rec = rec2.nom_recette or f"Recette #{id_r}"
+            cout_action = 0.0
+            for ligne2 in rec2.lignes:
+                prod2 = db.query(ProduitEngrais).filter(ProduitEngrais.id_produit == ligne2.id_produit).first()
+                if not prod2 or not prod2.prix_achat or not prod2.volume_conditionnement:
+                    continue
+                cout_action += ligne2.dosage * vol2 * (float(prod2.prix_achat) / float(prod2.volume_conditionnement))
+            if nom_rec not in recettes_cout:
+                recettes_cout[nom_rec] = {"volume_l": 0.0, "cout": 0.0, "nb_actions": 0}
+            recettes_cout[nom_rec]["volume_l"]   += vol2
+            recettes_cout[nom_rec]["cout"]        += cout_action
+            recettes_cout[nom_rec]["nb_actions"]  += 1
+        details_cout_engrais = [
+            {
+                "nom_recette":   k,
+                "volume_l":      round(v["volume_l"], 2),
+                "cout":          round(v["cout"], 2),
+                "cout_par_litre": round(v["cout"] / v["volume_l"], 4) if v["volume_l"] > 0 else None,
+                "nb_actions":    v["nb_actions"],
+            }
+            for k, v in sorted(recettes_cout.items(), key=lambda x: -x[1]["cout"])
+        ]
+
+        # ── Hauteurs + arrosages ─────────────────────────────────────────────
+        hauteurs = []
+        arrosage_points = []
+
+        for a in actions:
+            if not date_debut:
+                continue
+            params = a.parametres or {}
+            offset = (a.date_action - date_debut).days
+
+            if a.type_action == "hauteur_plante":
+                h = params.get("hauteur_cm")
+                if h is not None:
+                    nom = plants_map.get(a.id_plant, "Global") if a.id_plant else "Global"
+                    hauteurs.append({"jour_offset": offset, "hauteur_cm": float(h), "plante": nom})
+
+            elif a.type_action in ("arrosage_eau", "arrosage_engrais", "arrosage_tco"):
+                # Pour les actions per-plante, préférer volume_par_plante_l (évite le double-comptage)
+                if not a.global_culture and params.get("volume_par_plante_l"):
+                    vol = params.get("volume_par_plante_l")
+                else:
+                    vol = params.get("volume_l")
+                if vol is not None:
+                    arrosage_points.append({
+                        "jour_offset": offset,
+                        "volume_ml": round(float(vol) * 1000),
+                        "is_engrais": a.type_action == "arrosage_engrais",
+                    })
+
+        # Arrosages cumulés (tous types)
+        cumul = 0
+        arrosages_cumules = []
+        volume_engrais_ml = 0
+        for pt in sorted(arrosage_points, key=lambda x: x["jour_offset"]):
+            cumul += pt["volume_ml"]
+            if pt["is_engrais"]:
+                volume_engrais_ml += pt["volume_ml"]
+            arrosages_cumules.append({"jour_offset": pt["jour_offset"], "volume_cumul_ml": cumul})
+        volume_arrosage_total_l  = round(cumul / 1000, 1) if cumul else None
+        volume_arrosage_engrais_l = round(volume_engrais_ml / 1000, 1) if volume_engrais_ml else None
+
+        # ── Variétés ─────────────────────────────────────────────────────────
+        varietes = []
+        for p in plants:
+            if p.id_graine:
+                g = db.query(Graine).filter(Graine.id_graine == p.id_graine).first()
+                if g and g.variete and g.variete.nom_variete not in varietes:
+                    varietes.append(g.variete.nom_variete)
+
+        results.append({
+            "id_culture":              cid,
+            "nom":                     culture.nom or f"Culture #{cid}",
+            "statut":                  culture.statut,
+            "date_debut":              str(culture.date_debut) if culture.date_debut else None,
+            "date_fin":                str(culture.date_fin) if culture.date_fin else None,
+            "type_culture":            culture.type_culture,
+            "type_eclairage":          culture.type_eclairage,
+            "nom_espace":              nom_espace,
+            "lampes":                  lampes_info,
+            "puissance_w_total":       puissance_w_total or None,
+            "is_lso":                  is_lso,
+            "tco_par_type":            tco_par_type,
+            "nb_tco_total":            sum(tco_par_type.values()),
+            "marques_engrais":         marques_engrais,
+            "nb_plantes":              nb_plantes,
+            "nb_plantes_recoltees":    nb_recoltees,
+            "varietes":                varietes,
+            "duree_totale_j":          duree_totale_j,
+            "duree_veg_j":             duree_veg_j,
+            "duree_flo_j":             duree_flo_j,
+            "rendement_total_g":       round(rendement_total_g, 1) if rendement_total_g else None,
+            "rendement_par_plante_g":  rendement_par_plante_g,
+            "cout_total":              couts.get("cout_total"),
+            "cout_par_gramme":         couts.get("cout_par_gramme"),
+            "cout_engrais":            couts.get("cout_engrais"),
+            "cout_electricite":        couts.get("cout_electricite"),
+            "cout_graines":            couts.get("cout_graines"),
+            "volume_arrosage_total_l": volume_arrosage_total_l,
+            "volume_arrosage_engrais_l": volume_arrosage_engrais_l,
+            "hauteurs":                hauteurs,
+            "details_cout_engrais":    details_cout_engrais,
+            "arrosages_cumules":       arrosages_cumules,
+        })
+
+    return results
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
