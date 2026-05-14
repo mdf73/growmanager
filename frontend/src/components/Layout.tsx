@@ -6,7 +6,7 @@ import {
   Menu, X, Home, Sprout, Leaf, Package, Beaker,
   BookOpen, Wrench, Settings, BarChart2, FlaskConical,
   ChevronDown, ChevronRight, NotebookPen, Boxes, Wind, Dna, Droplets, Thermometer, ClipboardList, Trophy, Cigarette,
-  Moon, Sun, Search,
+  Moon, Sun, Search, CalendarDays,
 } from 'lucide-react'
 import GlobalSearch from './GlobalSearch'
 import clsx from 'clsx'
@@ -60,6 +60,7 @@ const navItems: NavItem[] = [
       { path: '/plan-culture',          label: 'Préparer une culture',  icon: ClipboardList },
       { path: '/preparation-substrat',  label: 'Préparer un substrat',  emoji: '🪴' },
       { path: '/historique-cultures',   label: 'Historique cultures',   icon: BookOpen },
+      { path: '/calendrier',             label: 'Calendrier global',      icon: CalendarDays },
     ],
   },
   { path: '/stock',                label: 'Stock',                  icon: Package },
@@ -100,7 +101,7 @@ const navItems: NavItem[] = [
 ]
 
 // ── Chemins pour la détection "active" des groupes ───────────────────────────
-const culturePaths     = ['/culture', '/plan-culture', '/preparation-substrat', '/sechage-curing', '/suivi-constantes', '/croisement', '/historique-cultures']
+const culturePaths     = ['/culture', '/plan-culture', '/preparation-substrat', '/sechage-curing', '/suivi-constantes', '/croisement', '/historique-cultures', '/calendrier']
 const extractionPaths  = ['/extractions', '/extractions-hash']
 const recettesPaths    = ['/recettes/schemas-engrais', '/recettes/tco', '/recettes/lso',
                            '/recettes/reamendement', '/recettes/fermentation']

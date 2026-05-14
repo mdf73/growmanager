@@ -37,6 +37,7 @@ All routes are defined in `frontend/src/App.tsx`, wrapped in `<Layout>`.
 | `/recettes/reamendement` | RecettesReamendement | Re-amendment recipes |
 | `/recettes/fermentation` | RecettesFermentation | Fermentation recipes |
 | `/recettes/schemas-engrais` | RecettesSchemas | Nutrient schemas (placeholder) |
+| `/calendrier` | CalendrierGlobal | Global monthly calendar — all cultures, all events |
 
 ## Component Hierarchy
 

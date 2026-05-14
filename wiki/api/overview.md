@@ -51,6 +51,7 @@ sources: [main.py]
 | `notation_variete.py` | `/api/notations` | Variety scoring/ranking system |
 | `vaporisateur.py` | `/api/vaporisateurs` | Vaporizer inventory + consumables |
 | `croisement.py` | `/api/croisements` | Genetics crossing (Pollen + Croisement) |
+| `calendrier.py` | `/api/calendrier` | Global calendar view — all events all cultures |
 
 ---
 

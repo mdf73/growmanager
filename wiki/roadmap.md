@@ -20,7 +20,7 @@ Source : `Documentation/GrowManager_Specifications_v4.docx` + `Documentation/gro
 | A | pH & EC par arrosage | ✅ DONE | Colonnes DB + ArrosageModal + graphiques StatsTab |
 | B | IPM / traitements | ✅ DONE | Champs produit/dose/méthode/delai_recolte_j · endpoint ipm-warnings · ModuleIPM Dashboard (conditionnel, badge 🔴 <7j) · validé 2026-05-13 |
 | C | Timer de flush | ✅ DONE | `date_debut_flush` sur Culture (migration + schema + router) · bouton Culture.tsx · badge 🚿 J+X Dashboard |
-| D | Vue calendrier global | ❌ À faire | Aucune page calendrier |
+| D | Vue calendrier global | ✅ DONE | `GET /api/calendrier` · `CalendrierGlobal.tsx` · route `/calendrier` · nav groupe Culture · validé 2026-05-14 |
 | E | Comparaison inter-cultures | ❌ À faire | — |
 | F | Traçabilité bocal → graine | ✅ DONE | `GET /api/materiel/{id}/bocal-timeline` · `BocalTimelineDrawer.tsx` · bouton "🔍 Origine" SechageCuring · `GET /api/stock/{id}/origine` · `StockOriginDrawer.tsx` · clic ligne Stock → drawer · `id_plant` FK sur Stock · `GET /api/cultures/plants-by-variete/{id}` · plant picker dans NouveauStockModal · validé 2026-05-13 |
 | G | Alertes stock bas | ✅ DONE | `StockAlertSeuil` table · `quantite_initiale` sur Stock · `/api/stock-alert-seuils` CRUD+check · badge Dashboard · bandeau Stock.tsx · onglet Paramétrage · validé 2026-05-11 · bugfix 2026-05-13 : colonne `quantite_initiale` absente du modèle + migration SQL + `s.variete.nom` → `s.variete.nom_variete` |
@@ -47,7 +47,7 @@ Source : `Documentation/GrowManager_Specifications_v4.docx` + `Documentation/gro
 **Sprint 3 — Features riches**
 7. ✅ **F** Traçabilité bocal → graine — `GET /api/materiel/{id}/bocal-timeline` · `BocalTimelineDrawer.tsx` · bouton "🔍 Origine" SechageCuring · `GET /api/stock/{id}/origine` · `StockOriginDrawer.tsx` · clic ligne Stock · `id_plant` FK + plant picker NouveauStockModal · `GET /api/cultures/plants-by-variete/{id}` · validé 2026-05-13
 8. ✅ **K** Recherche globale — `GET /api/search?q=` (cultures, plantes, variétés, breeders, stock) · `GlobalSearch.tsx` palette · Ctrl+K shortcut · bouton sidebar desktop + header mobile · navigation clavier ↑↓↵ · validé 2026-05-13
-9. **D** Vue calendrier global — page mensuelle, toutes cultures, tous événements
+9. ✅ **D** Vue calendrier global — `GET /api/calendrier` · `CalendrierGlobal.tsx` · grille mensuelle color-codée par culture · filtre · drawer detail · stats rapides · validé 2026-05-14
 
 **Sprint 4 — Features lourdes**
 10. **E** Comparaison inter-cultures — sélecteur 2-3 cultures, tableau + courbes superposées

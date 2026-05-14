@@ -26,6 +26,7 @@ import PlanCulture from './pages/PlanCulture'
 import PreparationSubstrat from './pages/PreparationSubstrat'
 import ClassementVarietes from './pages/ClassementVarietes'
 import Consommation from './pages/Consommation'
+import CalendrierGlobal from './pages/CalendrierGlobal'
 
 function App() {
   return (
@@ -58,6 +59,7 @@ function App() {
           <Route path="/materiel" element={<Materiel />} />
           <Route path="/parametrage" element={<Parametrage />} />
           <Route path="/consommation" element={<Consommation />} />
+          <Route path="/calendrier" element={<CalendrierGlobal />} />
         </Routes>
       </Layout>
     </Router>

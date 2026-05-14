@@ -188,6 +188,18 @@ Genetics/breeding management — fully implemented.
 - **Croisement** : mère (Variete + phéno) × père (pollen stock ou variété saisie), type F1/F2/BX/S1/IBL
 - Récolte de graines via `RecolteGrainesInput` → crée un `PackGraine` et des `Graine`
 
+### CalendrierGlobal (`/calendrier`)
+Vue mensuelle globale de tous les events de toutes les cultures.
+- Grille 7×5/6 (lundi → dimanche, calendrier européen)
+- Navigation mois précédent / suivant / bouton Aujourd'hui
+- Chaque event affiché comme chip color-codé par culture (8 couleurs en rotation)
+- Clic sur un chip → drawer de détail (culture, plante, type action, paramètres JSON, note)
+- Filtre par culture (multi-select, bouton Filter)
+- Légende couleurs en bas de page
+- Stats rapides : total events mois, cultures actives, arrosages, traitements
+- Backend : `GET /api/calendrier?year=&month=` + `GET /api/calendrier/cultures-actives`
+- Ajouté dans le groupe "Culture" de la sidebar nav
+
 ### ClassementVarietes (`/classement-varietes`)
 Variety scoring and ranking system.
 - 2 dimensions : Culture /30 (vigueur/santé, productivité/structure, soif) + Consommation /70 (apparence, profil aromatique, saveur, effet)
