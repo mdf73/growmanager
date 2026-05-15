@@ -31,6 +31,11 @@ export interface BocalDisponible {
   label:       string
 }
 
+export interface ExtractionSource {
+  id_stock: number
+  quantite: number
+}
+
 export interface RosinExtraction {
   id_rosinextraction: number
   id_bocal?: number
@@ -40,6 +45,7 @@ export interface RosinExtraction {
   nom_variete_extract?: string
   variete_nom?: string          // enrichi côté serveur
   date_rosinextraction: string
+  sources?: ExtractionSource[]  // multi-produits en entrée
   // Paramètres d'extraction
   temperature_extraction?: number  // °C
   maillage?: string                // ex: 72µ, 90µ…
@@ -81,6 +87,7 @@ export interface HashExtraction {
   duree_polinator?:    number     // minutes, pour Polinator
   passages?:           PassageIceo[]   // pour Ice-o-lator
   sacs?:               SacIceo[]       // pour Ice-o-lator
+  sources?:            ExtractionSource[]  // multi-produits en entrée
   quantite_utilisee:   number
   quantite_extraite:   number
   info_hashextraction?: string

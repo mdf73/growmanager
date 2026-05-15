@@ -627,7 +627,8 @@ class RosinExtraction(Base):
     sac_2_poids = Column(DECIMAL(10, 2))
     sac_3_poids = Column(DECIMAL(10, 2))
     sac_4_poids = Column(DECIMAL(10, 2))
-    quantite_utilisee = Column(DECIMAL(10, 2))   # total entrée = somme sacs
+    sources           = Column(JSON, nullable=True)              # [{"id_stock": int, "quantite": float}]
+    quantite_utilisee = Column(DECIMAL(10, 2))   # total entrée = somme sources (ou somme sacs)
     # Poids par passe de presse (g)
     presse_1_poids = Column(DECIMAL(10, 2))
     presse_2_poids = Column(DECIMAL(10, 2))
@@ -733,6 +734,7 @@ class HashExtraction(Base):
     duree_polinator     = Column(Integer, nullable=True)       # minutes, pour Polinator
     passages            = Column(JSON, nullable=True)          # [{"duree": int}] pour Ice-o-lator
     sacs                = Column(JSON, nullable=True)          # [{"maillage": str, "poids": float}]
+    sources             = Column(JSON, nullable=True)          # [{"id_stock": int, "quantite": float}]
     quantite_utilisee   = Column(DECIMAL(10, 2))
     quantite_extraite   = Column(DECIMAL(10, 2))
     info_hashextraction = Column(Text, nullable=True)

@@ -5,128 +5,143 @@ import { hashAPI, stockAPI } from '../api/stock'
 import type { Stock } from '../api/stock'
 import { useParametreListe } from '../api/parametres'
 
-// ── Fallbacks statiques ─────────────────────────────────────────────────────
 const MAILLAGES_ICEOLATOR_FB = ['15µ', '25µ', '45µ', '73µ', '90µ', '160µ', '190µ', '220µ']
 const MAILLAGE_POLINATOR     = '120µ'
 
 type TypeExtraction = 'Polinator' | 'Ice-o-lator'
 
-interface Passage { duree: string }
-interface Sac     { maillage: string; poids: string }
+interface Passage    { duree: string }
+interface Sac        { maillage: string; poids: string }
+interface SourceLine { stockId: string; quantite: string }
 
 interface Props { onClose: () => void }
 
 export default function NouvelleHashModal({ onClose }: Props) {
   const qc    = useQueryClient()
   const today = new Date().toISOString().split('T')[0]
-  const { values: maillagesParam }  = useParametreListe('maillages_iceolator')
+  const { values: maillagesParam } = useParametreListe('maillages_iceolator')
   const MAILLAGES_ICEOLATOR = maillagesParam.length > 0 ? maillagesParam : MAILLAGES_ICEOLATOR_FB
 
-  // ── Stock disponible ───────────────────────────────────────────────────
   const { data: stocks = [] } = useQuery<Stock[]>({
     queryKey: ['stock'],
     queryFn:  async () => (await stockAPI.getAll()).data,
   })
 
-  // Stocks utilisables : tout sauf les types Hash
   const stocksDispo = useMemo(
     () => stocks.filter(s => s.quantite_stock > 0 && !String(s.type_stock ?? '').startsWith('Hash')),
     [stocks]
   )
 
-  // ── Formulaire commun ─────────────────────────────────────────────────
   const [typeExtraction, setTypeExtraction] = useState<TypeExtraction>('Polinator')
-  const [stockId,        setStockId]        = useState('')
+  const [sources,        setSources]        = useState<SourceLine[]>([{ stockId: '', quantite: '' }])
   const [date,           setDate]           = useState(today)
   const [notes,          setNotes]          = useState('')
   const [error,          setError]          = useState<string | null>(null)
 
-  // ── Polinator ─────────────────────────────────────────────────────────
+  // Polinator
   const [dureePolinator, setDureePolinator] = useState('')
-  const [poidsEntreePol, setPoidsEntreePol] = useState('')
   const [poidsSortiePol, setPoidsSortiePol] = useState('')
 
-  // ── Ice-o-lator ────────────────────────────────────────────────────────
-  const [sacs,      setSacs]      = useState<Sac[]>([{ maillage: '73µ', poids: '' }])
-  const [passages,  setPassages]  = useState<Passage[]>([{ duree: '' }])
-  const [poidsEntreeIceo, setPoidsEntreeIceo] = useState('')
+  // Ice-o-lator
+  const [sacs,     setSacs]     = useState<Sac[]>([{ maillage: '73µ', poids: '' }])
+  const [passages, setPassages] = useState<Passage[]>([{ duree: '' }])
 
-  // ── Stock sélectionné ─────────────────────────────────────────────────
-  const stockSelected = useMemo(
-    () => stocksDispo.find(s => s.id_stock === parseInt(stockId)),
-    [stocksDispo, stockId]
+  // ── Gestion sources ───────────────────────────────────────────────────────
+  const addSource    = () => setSources(p => [...p, { stockId: '', quantite: '' }])
+  const removeSource = (i: number) => { if (sources.length > 1) setSources(p => p.filter((_, x) => x !== i)) }
+  const updateSource = (i: number, field: keyof SourceLine, v: string) =>
+    setSources(p => p.map((s, x) => x === i ? { ...s, [field]: v } : s))
+
+  const selectedStockIds = sources.map(s => s.stockId).filter(Boolean)
+
+  // ── Calculs ───────────────────────────────────────────────────────────────
+  const poidsEntreeTotal = useMemo(
+    () => sources.reduce((sum, s) => sum + (parseFloat(s.quantite) || 0), 0),
+    [sources]
   )
-
-  // ── Calculs Ice-o-lator ────────────────────────────────────────────────
   const totalSortieIceo = useMemo(
     () => sacs.reduce((s, r) => s + (parseFloat(r.poids) || 0), 0),
     [sacs]
   )
-
   const rendement = useMemo(() => {
-    const entree = typeExtraction === 'Polinator'
-      ? parseFloat(poidsEntreePol)
-      : parseFloat(poidsEntreeIceo)
-    const sortie = typeExtraction === 'Polinator'
-      ? parseFloat(poidsSortiePol)
-      : totalSortieIceo
-    if (!entree || !sortie || entree <= 0) return null
-    return ((sortie / entree) * 100).toFixed(1)
-  }, [typeExtraction, poidsEntreePol, poidsSortiePol, poidsEntreeIceo, totalSortieIceo])
+    const sortie = typeExtraction === 'Polinator' ? parseFloat(poidsSortiePol) : totalSortieIceo
+    if (!poidsEntreeTotal || !sortie || poidsEntreeTotal <= 0) return null
+    return ((sortie / poidsEntreeTotal) * 100).toFixed(1)
+  }, [typeExtraction, poidsEntreeTotal, poidsSortiePol, totalSortieIceo])
 
-  // ── Gestion sacs Ice-o-lator ───────────────────────────────────────────
+  const sourceWarnings = useMemo(() =>
+    sources.map(s => {
+      if (!s.stockId || !s.quantite) return null
+      const stock = stocksDispo.find(st => st.id_stock === parseInt(s.stockId))
+      if (!stock) return null
+      const qty = parseFloat(s.quantite)
+      if (qty > Number(stock.quantite_stock))
+        return `Dépasse le stock dispo (${Number(stock.quantite_stock).toFixed(1)} g)`
+      return null
+    }),
+    [sources, stocksDispo]
+  )
+
+  // ── Gestion sacs Ice-o-lator ──────────────────────────────────────────────
   const addSac    = () => setSacs(p => [...p, { maillage: MAILLAGES_ICEOLATOR[0], poids: '' }])
   const removeSac = (i: number) => { if (sacs.length > 1) setSacs(p => p.filter((_, x) => x !== i)) }
   const updateSac = (i: number, field: keyof Sac, v: string) =>
     setSacs(p => p.map((s, x) => x === i ? { ...s, [field]: v } : s))
 
-  // ── Gestion passages Ice-o-lator ───────────────────────────────────────
+  // ── Gestion passages Ice-o-lator ──────────────────────────────────────────
   const addPassage    = () => setPassages(p => [...p, { duree: '' }])
   const removePassage = (i: number) => { if (passages.length > 1) setPassages(p => p.filter((_, x) => x !== i)) }
   const updatePassage = (i: number, v: string) =>
     setPassages(p => p.map((ps, x) => x === i ? { duree: v } : ps))
 
-  // ── Mutation ──────────────────────────────────────────────────────────
+  // ── Mutation ──────────────────────────────────────────────────────────────
   const mutation = useMutation({
     mutationFn: () => {
-      if (!stockId) throw new Error('Sélectionnez un produit en stock')
-      if (!date)    throw new Error('La date est obligatoire')
+      if (!date) throw new Error('La date est obligatoire')
+
+      const sourcesValides = sources.filter(s => s.stockId && parseFloat(s.quantite) > 0)
+      if (sourcesValides.length === 0)
+        throw new Error('Sélectionnez au moins un produit avec une quantité')
+      for (const s of sources) {
+        if (s.stockId && !s.quantite)
+          throw new Error('Renseignez la quantité pour chaque produit sélectionné')
+      }
+      if (poidsEntreeTotal <= 0) throw new Error("Le poids total d'entrée doit être > 0")
+
+      const sourcesPayload = sourcesValides.map(s => ({
+        id_stock: parseInt(s.stockId),
+        quantite: parseFloat(s.quantite),
+      }))
 
       if (typeExtraction === 'Polinator') {
-        const entree = parseFloat(poidsEntreePol)
         const sortie = parseFloat(poidsSortiePol)
-        if (isNaN(entree) || entree <= 0) throw new Error('Le poids d\'entrée doit être > 0')
         if (isNaN(sortie) || sortie <= 0) throw new Error('Le poids de sortie doit être > 0')
         return hashAPI.create({
-          id_stock_source:     parseInt(stockId),
+          id_stock_source:     sourcesPayload[0].id_stock,
           date_hashextraction: date,
           type_extraction:     'Polinator',
+          sources:             sourcesPayload,
           duree_polinator:     dureePolinator ? parseInt(dureePolinator) : undefined,
-          quantite_utilisee:   entree,
+          quantite_utilisee:   poidsEntreeTotal,
           quantite_extraite:   sortie,
           info_hashextraction: notes || undefined,
         })
       } else {
-        const entree = parseFloat(poidsEntreeIceo)
-        if (isNaN(entree) || entree <= 0)  throw new Error('Le poids d\'entrée doit être > 0')
-        if (totalSortieIceo <= 0)          throw new Error('Au moins un sac doit avoir un poids de sortie')
-        if (passages.some(p => !p.duree))  throw new Error('Renseignez la durée de chaque passage')
+        if (totalSortieIceo <= 0)         throw new Error('Au moins un sac doit avoir un poids de sortie')
+        if (passages.some(p => !p.duree)) throw new Error('Renseignez la durée de chaque passage')
 
-        const sacsData = sacs
-          .filter(s => parseFloat(s.poids) > 0)
-          .map(s => ({ maillage: s.maillage, poids: parseFloat(s.poids) }))
-
-        const passagesData = passages
-          .filter(p => p.duree)
-          .map(p => ({ duree: parseInt(p.duree) }))
+        const sacsData     = sacs.filter(s => parseFloat(s.poids) > 0)
+                                  .map(s => ({ maillage: s.maillage, poids: parseFloat(s.poids) }))
+        const passagesData = passages.filter(p => p.duree).map(p => ({ duree: parseInt(p.duree) }))
 
         return hashAPI.create({
-          id_stock_source:     parseInt(stockId),
+          id_stock_source:     sourcesPayload[0].id_stock,
           date_hashextraction: date,
           type_extraction:     'Ice-o-lator',
+          sources:             sourcesPayload,
           sacs:                sacsData,
           passages:            passagesData,
-          quantite_utilisee:   entree,
+          quantite_utilisee:   poidsEntreeTotal,
           quantite_extraite:   totalSortieIceo,
           info_hashextraction: notes || undefined,
         })
@@ -154,13 +169,12 @@ export default function NouvelleHashModal({ onClose }: Props) {
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
       <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[94vh]">
 
-        {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700 shrink-0">
           <div className="flex items-center gap-2">
             <span className="text-2xl">🍫</span>
             <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Nouvelle extraction Hash</h2>
           </div>
-          <button onClick={onClose} className="p-1.5 rounded-lg text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+          <button onClick={onClose} className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
             <X size={18} />
           </button>
         </div>
@@ -170,139 +184,138 @@ export default function NouvelleHashModal({ onClose }: Props) {
           className="overflow-y-auto flex-1 px-6 py-5 space-y-5"
         >
 
-          {/* ── Sélection du type ──────────────────────────────────────── */}
+          {/* Type d'extraction */}
           <div className="grid grid-cols-2 gap-2">
             {(['Polinator', 'Ice-o-lator'] as TypeExtraction[]).map(type => (
-              <button
-                key={type}
-                type="button"
-                onClick={() => setTypeExtraction(type)}
+              <button key={type} type="button" onClick={() => setTypeExtraction(type)}
                 className={`py-3 rounded-xl text-sm font-semibold border-2 transition-all ${
                   typeExtraction === type
                     ? 'border-amber-500 bg-amber-50 text-amber-800'
-                    : 'border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 dark:text-gray-500 hover:border-amber-300'
-                }`}
-              >
+                    : 'border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:border-amber-300'
+                }`}>
                 {type === 'Polinator' ? '🥁 Polinator' : '🧊 Ice-o-lator'}
               </button>
             ))}
           </div>
 
-          {/* ── Stock source ───────────────────────────────────────────── */}
+          {/* Produits en entrée */}
           <div>
-            {lbl('Produit en stock', true)}
-            <select value={stockId} onChange={e => setStockId(e.target.value)} className={inputCls} required>
-              <option value="">— Sélectionner —</option>
-              {stocksDispo.map(s => (
-                <option key={s.id_stock} value={s.id_stock}>
-                  {s.variete_nom || '(sans variété)'} — {s.type_stock}
-                  {s.sous_type_stock ? ` ${s.sous_type_stock}` : ''}
-                  {' '}({Number(s.quantite_stock).toFixed(1)} g)
-                </option>
-              ))}
-            </select>
-            {stockSelected && (
-              <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
-                Stock dispo : <span className="font-medium text-gray-600 dark:text-gray-300">{Number(stockSelected.quantite_stock).toFixed(1)} g</span>
-              </p>
-            )}
+            <div className="flex items-center justify-between mb-2">
+              {lbl('Produits en entrée', true)}
+              <button type="button" onClick={addSource}
+                className="flex items-center gap-1 text-xs text-amber-600 hover:text-amber-800 font-medium">
+                <Plus size={12} /> Ajouter un produit
+              </button>
+            </div>
+            <div className="space-y-3">
+              {sources.map((src, i) => {
+                const stockSel = stocksDispo.find(s => s.id_stock === parseInt(src.stockId))
+                return (
+                  <div key={i} className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <select
+                        value={src.stockId}
+                        onChange={e => updateSource(i, 'stockId', e.target.value)}
+                        className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm focus:ring-2 focus:ring-amber-400 bg-white dark:bg-gray-800"
+                        required
+                      >
+                        <option value="">— Produit —</option>
+                        {stocksDispo.map(s => {
+                          const used = selectedStockIds.includes(String(s.id_stock)) && src.stockId !== String(s.id_stock)
+                          return (
+                            <option key={s.id_stock} value={s.id_stock} disabled={used}>
+                              {s.variete_nom || '(sans variété)'} — {s.type_stock}
+                              {s.sous_type_stock ? ` ${s.sous_type_stock}` : ''}
+                              {' '}({Number(s.quantite_stock).toFixed(1)} g)
+                            </option>
+                          )
+                        })}
+                      </select>
+                      <input
+                        type="number" min="0" step="0.1" value={src.quantite}
+                        onChange={e => updateSource(i, 'quantite', e.target.value)}
+                        placeholder="0.0" required
+                        className="w-24 rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm focus:ring-2 focus:ring-amber-400 dark:bg-gray-800"
+                      />
+                      <span className="text-sm text-gray-400 dark:text-gray-500 shrink-0">g</span>
+                      {sources.length > 1 && (
+                        <button type="button" onClick={() => removeSource(i)}
+                          className="p-1 text-gray-300 hover:text-red-500 shrink-0">
+                          <Trash2 size={14} />
+                        </button>
+                      )}
+                    </div>
+                    {stockSel && (
+                      <p className="text-xs text-gray-400 dark:text-gray-500 pl-1">
+                        Dispo : <span className="font-medium text-gray-600 dark:text-gray-300">{Number(stockSel.quantite_stock).toFixed(1)} g</span>
+                      </p>
+                    )}
+                    {sourceWarnings[i] && (
+                      <p className="flex items-center gap-1 text-xs text-amber-600 pl-1">
+                        <AlertTriangle size={11} /> {sourceWarnings[i]}
+                      </p>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+            <div className="mt-3 flex justify-between bg-amber-50 dark:bg-amber-900/20 rounded-lg px-4 py-2">
+              <span className="text-sm text-amber-700 dark:text-amber-400">Total entrée</span>
+              <span className="text-sm font-semibold text-amber-900 dark:text-amber-200">{poidsEntreeTotal.toFixed(2)} g</span>
+            </div>
           </div>
 
-          {/* ── Date ───────────────────────────────────────────────────── */}
+          {/* Date */}
           <div>
             {lbl('Date', true)}
             <input type="date" value={date} onChange={e => setDate(e.target.value)} className={inputCls} required />
           </div>
 
-          {/* ════════════════ POLINATOR ════════════════ */}
+          {/* ════ POLINATOR ════ */}
           {typeExtraction === 'Polinator' && (
             <>
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-2 gap-3">
                 <div>
                   {lbl('Maillage')}
-                  <input
-                    value={MAILLAGE_POLINATOR}
-                    readOnly
-                    className={inputCls + ' bg-gray-50 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400 dark:text-gray-500 cursor-not-allowed'}
-                  />
+                  <input value={MAILLAGE_POLINATOR} readOnly
+                    className={inputCls + ' bg-gray-50 dark:bg-gray-700/50 text-gray-500 cursor-not-allowed'} />
                 </div>
                 <div>
                   {lbl('Durée (min)')}
-                  <input
-                    type="number" min="1" value={dureePolinator}
+                  <input type="number" min="1" value={dureePolinator}
                     onChange={e => setDureePolinator(e.target.value)}
-                    placeholder="ex: 15" className={inputCls}
-                  />
-                </div>
-                <div>
-                  {lbl('Entrée (g)', true)}
-                  <input
-                    type="number" min="0" step="0.1" value={poidsEntreePol}
-                    onChange={e => setPoidsEntreePol(e.target.value)}
-                    placeholder="0.0" className={inputCls} required
-                  />
+                    placeholder="ex: 15" className={inputCls} />
                 </div>
               </div>
-
               <div>
-                {lbl('Sortie (g)', true)}
-                <input
-                  type="number" min="0" step="0.01" value={poidsSortiePol}
+                {lbl('Poids sortie (g)', true)}
+                <input type="number" min="0" step="0.01" value={poidsSortiePol}
                   onChange={e => setPoidsSortiePol(e.target.value)}
-                  placeholder="0.00" className={inputCls} required
-                />
+                  placeholder="0.00" className={inputCls} required />
               </div>
-
-              {/* Avertissement stock */}
-              {stockSelected && parseFloat(poidsEntreePol) > Number(stockSelected.quantite_stock) && (
-                <div className="flex items-center gap-2 text-sm text-amber-600 bg-amber-50 rounded-lg px-4 py-2">
-                  <AlertTriangle size={14} />
-                  Poids entrée supérieur au stock disponible ({Number(stockSelected.quantite_stock).toFixed(1)} g)
-                </div>
-              )}
             </>
           )}
 
-          {/* ════════════════ ICE-O-LATOR ════════════════ */}
+          {/* ════ ICE-O-LATOR ════ */}
           {typeExtraction === 'Ice-o-lator' && (
             <>
-              {/* Poids d'entrée */}
-              <div>
-                {lbl('Poids d\'entrée total (g)', true)}
-                <input
-                  type="number" min="0" step="0.1" value={poidsEntreeIceo}
-                  onChange={e => setPoidsEntreeIceo(e.target.value)}
-                  placeholder="0.0" className={inputCls} required
-                />
-                {stockSelected && parseFloat(poidsEntreeIceo) > Number(stockSelected.quantite_stock) && (
-                  <p className="text-xs text-amber-600 mt-1 flex items-center gap-1">
-                    <AlertTriangle size={11} />
-                    Supérieur au stock disponible ({Number(stockSelected.quantite_stock).toFixed(1)} g)
-                  </p>
-                )}
-              </div>
-
               {/* Passages */}
               <div>
                 <div className="flex items-center justify-between mb-2">
                   {lbl('Passages de brassage', true)}
-                  <button
-                    type="button" onClick={addPassage}
-                    className="flex items-center gap-1 text-xs text-amber-600 hover:text-amber-800 font-medium"
-                  >
+                  <button type="button" onClick={addPassage}
+                    className="flex items-center gap-1 text-xs text-amber-600 hover:text-amber-800 font-medium">
                     <Plus size={12} /> Passage {passages.length + 1}
                   </button>
                 </div>
                 <div className="space-y-2">
                   {passages.map((p, i) => (
                     <div key={i} className="flex items-center gap-2">
-                      <span className="text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500 w-20 shrink-0">Passage {i + 1}</span>
-                      <input
-                        type="number" min="1" step="1" value={p.duree}
+                      <span className="text-sm text-gray-500 dark:text-gray-400 w-20 shrink-0">Passage {i + 1}</span>
+                      <input type="number" min="1" step="1" value={p.duree}
                         onChange={e => updatePassage(i, e.target.value)}
                         placeholder="min" required
-                        className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm focus:ring-2 focus:ring-amber-400"
-                      />
+                        className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm focus:ring-2 focus:ring-amber-400" />
                       <span className="text-xs text-gray-400 dark:text-gray-500 shrink-0">min</span>
                       {i > 0 && (
                         <button type="button" onClick={() => removePassage(i)} className="p-1 text-gray-300 hover:text-red-500">
@@ -314,16 +327,14 @@ export default function NouvelleHashModal({ onClose }: Props) {
                 </div>
               </div>
 
-              {/* Sacs / maillages */}
+              {/* Sacs filtrants */}
               <div>
                 <div className="flex items-center justify-between mb-2">
                   {lbl('Sacs filtrants (poids par maillage)', true)}
                   {(maillagesDispos.length > 0 || sacs.length < MAILLAGES_ICEOLATOR.length) && (
-                    <button
-                      type="button" onClick={addSac}
+                    <button type="button" onClick={addSac}
                       disabled={sacs.length >= MAILLAGES_ICEOLATOR.length}
-                      className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 font-medium disabled:opacity-40"
-                    >
+                      className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 font-medium disabled:opacity-40">
                       <Plus size={12} /> Ajouter un sac
                     </button>
                   )}
@@ -331,24 +342,19 @@ export default function NouvelleHashModal({ onClose }: Props) {
                 <div className="space-y-2">
                   {sacs.map((sac, i) => (
                     <div key={i} className="flex items-center gap-2">
-                      <select
-                        value={sac.maillage}
+                      <select value={sac.maillage}
                         onChange={e => updateSac(i, 'maillage', e.target.value)}
-                        className="w-28 shrink-0 rounded-lg border border-gray-300 dark:border-gray-600 px-2 py-2 text-sm focus:ring-2 focus:ring-blue-400"
-                      >
+                        className="w-28 shrink-0 rounded-lg border border-gray-300 dark:border-gray-600 px-2 py-2 text-sm focus:ring-2 focus:ring-blue-400">
                         {MAILLAGES_ICEOLATOR.map(m => (
-                          // Afficher le maillage courant + ceux non encore utilisés
                           (m === sac.maillage || !sacs.some((s, x) => x !== i && s.maillage === m)) && (
                             <option key={m} value={m}>{m}</option>
                           )
                         ))}
                       </select>
-                      <input
-                        type="number" min="0" step="0.01" value={sac.poids}
+                      <input type="number" min="0" step="0.01" value={sac.poids}
                         onChange={e => updateSac(i, 'poids', e.target.value)}
                         placeholder="0.00 g"
-                        className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-400"
-                      />
+                        className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-400" />
                       <span className="text-sm text-gray-400 dark:text-gray-500 shrink-0">g</span>
                       {sacs.length > 1 && (
                         <button type="button" onClick={() => removeSac(i)} className="p-1 text-gray-300 hover:text-red-500">
@@ -358,8 +364,6 @@ export default function NouvelleHashModal({ onClose }: Props) {
                     </div>
                   ))}
                 </div>
-
-                {/* Total sortie */}
                 <div className="mt-2 flex justify-between bg-amber-50 rounded-lg px-4 py-2">
                   <span className="text-sm text-amber-700">Total sortie</span>
                   <span className="text-sm font-semibold text-amber-900">{totalSortieIceo.toFixed(2)} g</span>
@@ -368,7 +372,7 @@ export default function NouvelleHashModal({ onClose }: Props) {
             </>
           )}
 
-          {/* ── Rendement calculé ─────────────────────────────────────── */}
+          {/* Rendement */}
           {rendement !== null && (
             <div className="flex items-center justify-between bg-green-50 rounded-xl px-4 py-3">
               <span className="text-sm text-green-700">Rendement calculé</span>
@@ -376,24 +380,20 @@ export default function NouvelleHashModal({ onClose }: Props) {
             </div>
           )}
 
-          {/* ── Notes ─────────────────────────────────────────────────── */}
+          {/* Notes */}
           <div>
             {lbl('Notes')}
-            <textarea
-              value={notes} onChange={e => setNotes(e.target.value)}
+            <textarea value={notes} onChange={e => setNotes(e.target.value)}
               rows={2} placeholder="Observations, qualité, remarques…"
-              className={inputCls + ' resize-none'}
-            />
+              className={inputCls + ' resize-none'} />
           </div>
 
-          {/* ── Erreur ────────────────────────────────────────────────── */}
           {error && (
             <div className="flex items-center gap-2 text-sm text-red-600 bg-red-50 rounded-lg px-4 py-2">
               <AlertTriangle size={14} /> {error}
             </div>
           )}
 
-          {/* ── Actions ───────────────────────────────────────────────── */}
           <div className="flex gap-3 pt-1 pb-1">
             <button type="button" onClick={onClose}
               className="flex-1 px-4 py-2 rounded-xl border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700/40">

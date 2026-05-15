@@ -1,13 +1,15 @@
-feat(L): Export PDF fiche culture — fpdf2, endpoint + bouton
+feat: multi-sources en entrée pour extractions Rosin et Hash
 
-- GET /api/cultures/{id}/export/pdf → fiche A4 complète
-  Header vert brand · infos générales 2 colonnes · tableau plantes
-  résumé actions · coûts (elec/engrais/graines/total/€g) · notes
-
-- Frontend : bouton 📄 PDF dans CultureDetail (tous statuts)
-  FileDown icon · spinner · download nommé fiche_{nom}.pdf
-
-- Bugfixes : Action -> ActionCalendrier, nom_plant -> nom_affichage,
-  date_fin_vegetatif -> date_debut_floraison, date_recolte -> date_fin
-
-- Wiki : roadmap L ✅ + log sprint L
+- Formulaires NouvelleExtractionModal + NouvelleHashModal : section
+  dynamique permettant de sélectionner N stocks/variétés en entrée
+  (chaque ligne : dropdown stock + quantité g + bouton supprimer)
+- Backend : helpers _deduct_sources / _apply_deductions dans extractions.py,
+  déduction multi-stock avec fermeture auto si stock épuisé
+- Schémas Pydantic : ExtractionSource + champ sources: Optional[list]
+  sur RosinExtractionBase et HashExtractionBase
+- DB : colonne sources JSON NULL sur RosinExtraction et HashExtraction
+  (migration backend/migrate_sources.sql — déjà appliquée)
+- Frontend api/stock.ts : interface ExtractionSource + sources? sur
+  RosinExtraction et HashExtraction
+- Rétrocompat : id_stock_source conservé (= sources[0]) pour les vues existantes
+- Wiki mis à jour : wiki/api/stock-extractions.md

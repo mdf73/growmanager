@@ -4,6 +4,12 @@ from typing import Optional
 from datetime import date
 
 
+class ExtractionSource(BaseModel):
+    """Une source de produit pour une extraction (stock + quantité prélevée)"""
+    id_stock: int
+    quantite: float   # grammes prélevés de ce stock
+
+
 class RosinExtractionBase(BaseModel):
     """Schéma de base pour RosinExtraction"""
     id_bocal: Optional[int] = None
@@ -12,6 +18,7 @@ class RosinExtractionBase(BaseModel):
     id_stock_source: Optional[int] = None
     nom_variete_extract: Optional[str] = None
     date_rosinextraction: date
+    sources: Optional[list] = None             # [{"id_stock": int, "quantite": float}]
     # Paramètres d'extraction
     temperature_extraction: Optional[int] = None   # °C
     maillage: Optional[str] = None                 # ex: 72µ, 90µ…
@@ -22,7 +29,7 @@ class RosinExtractionBase(BaseModel):
     sac_2_poids: Optional[float] = None
     sac_3_poids: Optional[float] = None
     sac_4_poids: Optional[float] = None
-    quantite_utilisee: float        # total entrée = somme des sacs
+    quantite_utilisee: float        # total entrée = somme des sources
     # Passes de presse (g)
     presse_1_poids: Optional[float] = None
     presse_2_poids: Optional[float] = None
@@ -53,6 +60,7 @@ class HashExtractionBase(BaseModel):
     duree_polinator:     Optional[int]   = None   # minutes
     passages:            Optional[list]  = None   # [{"duree": int}]
     sacs:                Optional[list]  = None   # [{"maillage": str, "poids": float}]
+    sources:             Optional[list]  = None   # [{"id_stock": int, "quantite": float}]
     quantite_utilisee:   float
     quantite_extraite:   float
     info_hashextraction: Optional[str]   = None

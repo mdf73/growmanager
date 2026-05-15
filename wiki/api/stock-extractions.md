@@ -1,6 +1,6 @@
 ---
 type: api
-updated: 2026-04-09
+updated: 2026-05-15
 sources: [routers/stock.py, routers/extractions.py, api/stock.ts]
 ---
 
@@ -72,6 +72,31 @@ Router: `extractions.py` | Prefix: `/api/rosin`
 
 `ExtractionStats`: count, total input (g), total output (g), avg yield %.
 
+### Multi-sources Rosin (2026-05-15)
+
+Le formulaire et l'API supportent désormais **plusieurs produits en entrée** pour une extraction Rosin.
+
+**Schéma `RosinExtractionCreate`** — champ ajouté :
+```json
+{
+  "sources": [
+    { "id_stock": 12, "quantite": 15.0 },
+    { "id_stock": 17, "quantite": 10.0 }
+  ],
+  "quantite_utilisee": 25.0,
+  ...
+}
+```
+
+**Comportement backend (`routers/extractions.py`)** :
+- Si `sources` est fourni : déduit `quantite` de chaque stock concerné, ferme automatiquement les stocks épuisés (`date_fin_stock = today`), pose `id_stock_source = sources[0].id_stock` (rétrocompat)
+- Si `sources` est absent mais `id_stock_source` présent : fallback mono-source (rétrocompat)
+- Validation : tous les stocks doivent exister et avoir `quantite_utilisee > 0`
+
+**DB** : colonne `sources JSON NULL` ajoutée à `RosinExtraction` (migration `backend/migrate_sources.sql`)
+
+**Frontend** : `NouvelleExtractionModal.tsx` — section "Produits en entrée" avec autant de lignes [dropdown stock][quantité g][🗑] que nécessaire. Les stocks déjà sélectionnés sont désactivés dans les autres dropdowns.
+
 ## Hash Extractions
 
 Router: `extractions.py` | Prefix: `/api/hash`
@@ -82,6 +107,23 @@ Router: `extractions.py` | Prefix: `/api/hash`
 | GET | `/hash/stats` | — | `{nombre_extractions, total_entree_g, total_hash_g, ratio_moyen}` |
 | POST | `/hash` | `HashExtractionCreate` | `HashExtractionRead` |
 | DELETE | `/hash/{id}` | — | 204 |
+
+### Multi-sources Hash (2026-05-15)
+
+Même logique que Rosin. Le formulaire `NouvelleHashModal.tsx` expose une section "Produits en entrée" partagée entre les deux types d'extraction (Polinator et Ice-o-lator).
+
+**Schéma `HashExtractionCreate`** — champ ajouté :
+```json
+{
+  "sources": [
+    { "id_stock": 5, "quantite": 20.0 }
+  ],
+  "quantite_utilisee": 20.0,
+  ...
+}
+```
+
+**DB** : colonne `sources JSON NULL` ajoutée à `HashExtraction` (migration `backend/migrate_sources.sql`)
 
 ## Dashboard
 

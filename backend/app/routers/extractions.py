@@ -18,6 +18,37 @@ router = APIRouter(prefix="/api", tags=["extractions"])
 
 # ── helpers ──────────────────────────────────────────────────────────────────
 
+def _deduct_sources(sources: list, quantite_totale: float, db: Session):
+    """
+    Valide et retourne les objets Stock pour chaque source.
+    Lève une HTTPException si un stock est introuvable ou insuffisant.
+    """
+    stock_objects = []
+    for src in sources:
+        id_stock = src.get("id_stock") if isinstance(src, dict) else src.id_stock
+        quantite = float(src.get("quantite") if isinstance(src, dict) else src.quantite)
+        stock = db.query(Stock).filter(Stock.id_stock == id_stock).first()
+        if not stock:
+            raise HTTPException(status_code=404, detail=f"Stock {id_stock} introuvable")
+        if float(stock.quantite_stock) < quantite:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Stock insuffisant pour {stock.id_stock} : {float(stock.quantite_stock):.1f}g disponibles, {quantite:.1f}g demandés"
+            )
+        stock_objects.append((stock, quantite))
+    return stock_objects
+
+
+def _apply_deductions(stock_objects: list, date_fin: dt_date):
+    """Applique les déductions de stock et clôture automatiquement si épuisé."""
+    for stock, quantite in stock_objects:
+        stock.quantite_stock = float(stock.quantite_stock) - quantite
+        if float(stock.quantite_stock) <= 0:
+            stock.quantite_stock = 0
+            if stock.date_fin_stock is None:
+                stock.date_fin_stock = date_fin
+
+
 def _enrich_rosin(extraction: RosinExtraction, db: Session) -> RosinExtractionRead:
     """Enrichit une extraction avec le nom de variété depuis le stock source."""
     variete_nom = None
@@ -42,6 +73,7 @@ def _enrich_rosin(extraction: RosinExtraction, db: Session) -> RosinExtractionRe
         id_stock_source=extraction.id_stock_source,
         nom_variete_extract=extraction.nom_variete_extract,
         date_rosinextraction=extraction.date_rosinextraction,
+        sources=extraction.sources,
         temperature_extraction=extraction.temperature_extraction,
         maillage=extraction.maillage,
         duree_preheat=extraction.duree_preheat,
@@ -111,31 +143,38 @@ def create_rosin_extraction(
 ):
     """
     Crée une extraction rosin.
-    - Déduit quantite_utilisee du stock source
+    - Multi-sources : déduit quantite_utilisee de chaque stock source
     - Crée une nouvelle entrée Stock (type Rosin) avec quantite_extraite
     """
-    # ── Vérifier le stock source ──────────────────────────────────────────
-    stock_source = None
-    if extraction.id_stock_source:
-        stock_source = db.query(Stock).filter(
-            Stock.id_stock == extraction.id_stock_source
-        ).first()
-        if not stock_source:
-            raise HTTPException(status_code=404, detail="Stock source introuvable")
-        if float(stock_source.quantite_stock) < extraction.quantite_utilisee:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Stock insuffisant : {float(stock_source.quantite_stock):.1f}g disponibles"
-            )
+    # ── Résoudre les sources (multi ou legacy mono-source) ────────────────
+    sources = extraction.sources or []
+    if not sources and extraction.id_stock_source:
+        # Backward compat : ancien mode mono-source
+        sources = [{"id_stock": extraction.id_stock_source, "quantite": extraction.quantite_utilisee}]
+
+    if not sources:
+        raise HTTPException(status_code=400, detail="Aucun produit source sélectionné")
+
+    # Valider stocks et quantités
+    stock_objects = _deduct_sources(sources, extraction.quantite_utilisee, db)
+
+    # Stock de référence = premier de la liste (pour les métadonnées du stock Rosin créé)
+    stock_source_ref = stock_objects[0][0] if stock_objects else None
+
+    # id_stock_source = premier stock (backward compat pour affichage)
+    id_stock_source_save = stock_source_ref.id_stock if stock_source_ref else extraction.id_stock_source
 
     # ── Créer l'extraction ────────────────────────────────────────────────
     db_extraction = RosinExtraction(
         id_bocal=extraction.id_bocal,
         id_rosinbag=extraction.id_rosinbag,
         id_press=extraction.id_press,
-        id_stock_source=extraction.id_stock_source,
+        id_stock_source=id_stock_source_save,
         nom_variete_extract=extraction.nom_variete_extract,
         date_rosinextraction=extraction.date_rosinextraction,
+        sources=[{"id_stock": s["id_stock"] if isinstance(s, dict) else s.id_stock,
+                   "quantite": float(s["quantite"] if isinstance(s, dict) else s.quantite)}
+                  for s in sources],
         temperature_extraction=extraction.temperature_extraction,
         maillage=extraction.maillage,
         duree_preheat=extraction.duree_preheat,
@@ -154,31 +193,22 @@ def create_rosin_extraction(
     )
     db.add(db_extraction)
 
-    # ── Déduire du stock source ───────────────────────────────────────────
-    if stock_source:
-        stock_source.quantite_stock = float(stock_source.quantite_stock) - extraction.quantite_utilisee
-        # Clôture automatique si stock épuisé → libère le bocal
-        if float(stock_source.quantite_stock) <= 0:
-            stock_source.quantite_stock = 0
-            if stock_source.date_fin_stock is None:
-                stock_source.date_fin_stock = dt_date.today()
+    # ── Déduire de chaque stock source ────────────────────────────────────
+    _apply_deductions(stock_objects, extraction.date_rosinextraction)
 
-    # ── Déterminer le type de rosin depuis la source ──────────────────────
+    # ── Déterminer le type de rosin depuis la source de référence ─────────
     type_rosin = None
-    if stock_source:
-        src_type = (stock_source.type_stock or "").lower()
-        if "hash" in src_type:
-            type_rosin = "Hash Rosin"
-        else:
-            type_rosin = "Flower Rosin"
+    if stock_source_ref:
+        src_type = (stock_source_ref.type_stock or "").lower()
+        type_rosin = "Hash Rosin" if "hash" in src_type else "Flower Rosin"
 
     # ── Créer l'entrée Rosin dans le stock ────────────────────────────────
     rosin_stock = Stock(
-        id_variete=stock_source.id_variete if stock_source else None,
+        id_variete=stock_source_ref.id_variete if stock_source_ref else None,
         type_stock="Rosin",
-        sous_type_stock=stock_source.sous_type_stock if stock_source else None,
-        lampe_type=stock_source.lampe_type if stock_source else None,
-        engrais_type=stock_source.engrais_type if stock_source else None,
+        sous_type_stock=stock_source_ref.sous_type_stock if stock_source_ref else None,
+        lampe_type=stock_source_ref.lampe_type if stock_source_ref else None,
+        engrais_type=stock_source_ref.engrais_type if stock_source_ref else None,
         type_rosin=type_rosin,
         maillage=extraction.maillage,
         date_stock=extraction.date_rosinextraction,
@@ -236,6 +266,7 @@ def _enrich_hash(extraction: HashExtraction, db: Session) -> HashExtractionRead:
         duree_polinator=extraction.duree_polinator,
         passages=extraction.passages,
         sacs=extraction.sacs,
+        sources=extraction.sources,
         quantite_utilisee=_f(extraction.quantite_utilisee) or 0.0,
         quantite_extraite=_f(extraction.quantite_extraite) or 0.0,
         info_hashextraction=extraction.info_hashextraction,
@@ -273,28 +304,29 @@ def create_hash_extraction(
 ):
     """
     Crée une extraction hash (Polinator ou Ice-o-lator).
-    - Déduit quantite_utilisee du stock source
+    - Multi-sources : déduit quantite_utilisee de chaque stock source
     - Polinator → crée 1 entrée Stock "Hash Polinator"
     - Ice-o-lator → crée 1 entrée Stock par maillage utilisé
     """
-    # ── Vérifier le stock source ──────────────────────────────────────────
-    stock_source = None
-    if extraction.id_stock_source:
-        stock_source = db.query(Stock).filter(
-            Stock.id_stock == extraction.id_stock_source
-        ).first()
-        if not stock_source:
-            raise HTTPException(status_code=404, detail="Stock source introuvable")
-        if float(stock_source.quantite_stock) < extraction.quantite_utilisee:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Stock insuffisant : {float(stock_source.quantite_stock):.1f}g disponibles"
-            )
+    # ── Résoudre les sources (multi ou legacy mono-source) ────────────────
+    sources = extraction.sources or []
+    if not sources and extraction.id_stock_source:
+        sources = [{"id_stock": extraction.id_stock_source, "quantite": extraction.quantite_utilisee}]
 
-    # ── Résoudre id_variete depuis le stock source ────────────────────────
+    if not sources:
+        raise HTTPException(status_code=400, detail="Aucun produit source sélectionné")
+
+    # Valider stocks et quantités
+    stock_objects = _deduct_sources(sources, extraction.quantite_utilisee, db)
+
+    # Stock de référence = premier (pour métadonnées)
+    stock_source_ref = stock_objects[0][0] if stock_objects else None
+    id_stock_source_save = stock_source_ref.id_stock if stock_source_ref else extraction.id_stock_source
+
+    # ── Résoudre id_variete depuis le stock source de référence ──────────
     id_variete = extraction.id_variete
-    if not id_variete and stock_source and stock_source.id_variete:
-        id_variete = stock_source.id_variete
+    if not id_variete and stock_source_ref and stock_source_ref.id_variete:
+        id_variete = stock_source_ref.id_variete
 
     # ── Résoudre le nom de variété pour nommer les stocks ─────────────────
     variete_nom_stock = None
@@ -305,8 +337,8 @@ def create_hash_extraction(
     if not variete_nom_stock:
         variete_nom_stock = extraction.nom_variete_hash or "Hash"
 
-    # ── Déterminer le type_hash automatiquement selon le type d'extraction ─
-    src_type = (stock_source.type_stock or "").lower() if stock_source else ""
+    # ── Déterminer le type_hash automatiquement ───────────────────────────
+    src_type = (stock_source_ref.type_stock or "").lower() if stock_source_ref else ""
     if extraction.type_extraction == "Polinator":
         auto_type_hash = "Pollinator"
     elif extraction.type_extraction == "Ice-o-lator":
@@ -318,35 +350,32 @@ def create_hash_extraction(
     db_extraction = HashExtraction(
         id_variete=id_variete,
         id_iceobag=extraction.id_iceobag,
-        id_stock_source=extraction.id_stock_source,
+        id_stock_source=id_stock_source_save,
         nom_variete_hash=extraction.nom_variete_hash,
         date_hashextraction=extraction.date_hashextraction,
         type_extraction=extraction.type_extraction,
         duree_polinator=extraction.duree_polinator,
         passages=extraction.passages,
         sacs=extraction.sacs,
+        sources=[{"id_stock": s["id_stock"] if isinstance(s, dict) else s.id_stock,
+                   "quantite": float(s["quantite"] if isinstance(s, dict) else s.quantite)}
+                  for s in sources],
         quantite_utilisee=extraction.quantite_utilisee,
         quantite_extraite=extraction.quantite_extraite,
         info_hashextraction=extraction.info_hashextraction,
     )
     db.add(db_extraction)
 
-    # ── Déduire du stock source ───────────────────────────────────────────
-    if stock_source:
-        stock_source.quantite_stock = float(stock_source.quantite_stock) - extraction.quantite_utilisee
-        # Clôture automatique si stock épuisé → libère le bocal
-        if float(stock_source.quantite_stock) <= 0:
-            stock_source.quantite_stock = 0
-            if stock_source.date_fin_stock is None:
-                stock_source.date_fin_stock = dt_date.today()
+    # ── Déduire de chaque stock source ────────────────────────────────────
+    _apply_deductions(stock_objects, extraction.date_hashextraction)
 
     # ── Créer les entrées de stock hash ───────────────────────────────────
     stock_kwargs = dict(
         id_variete=id_variete,
         date_stock=extraction.date_hashextraction,
-        sous_type_stock=stock_source.sous_type_stock if stock_source else None,
-        lampe_type=stock_source.lampe_type if stock_source else None,
-        engrais_type=stock_source.engrais_type if stock_source else None,
+        sous_type_stock=stock_source_ref.sous_type_stock if stock_source_ref else None,
+        lampe_type=stock_source_ref.lampe_type if stock_source_ref else None,
+        engrais_type=stock_source_ref.engrais_type if stock_source_ref else None,
     )
 
     if extraction.type_extraction == "Polinator":

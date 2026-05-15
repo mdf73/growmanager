@@ -7,6 +7,11 @@ import { useParametreListe } from '../api/parametres'
 
 const MAILLAGES_FB = ['25µ', '36µ', '45µ', '72µ', '90µ', '120µ', '160µ', '220µ']
 
+interface SourceLine {
+  stockId: string
+  quantite: string
+}
+
 interface Props {
   stocks: Stock[]
   onClose: () => void
@@ -18,22 +23,31 @@ export default function NouvelleExtractionModal({ stocks, onClose }: Props) {
   const MAILLAGES = maillagesParam.length > 0 ? maillagesParam : MAILLAGES_FB
   const today = new Date().toISOString().split('T')[0]
 
-  // ── Formulaire ────────────────────────────────────────────────────────────
-  const [stockId,       setStockId]       = useState('')
-  const [date,          setDate]          = useState(today)
-  const [temperature,   setTemperature]   = useState('')
-  const [maillage,      setMaillage]      = useState('')
-  const [preheat,       setPreheat]       = useState('')
-  const [dureeExtr,     setDureeExtr]     = useState('')
-  const [sacs,          setSacs]          = useState(['', ''])       // min 2
-  const [presses,       setPresses]       = useState([''])           // min 1
-  const [notes,         setNotes]         = useState('')
-  const [error,         setError]         = useState<string | null>(null)
+  const [sources,     setSources]     = useState<SourceLine[]>([{ stockId: '', quantite: '' }])
+  const [date,        setDate]        = useState(today)
+  const [temperature, setTemperature] = useState('')
+  const [maillage,    setMaillage]    = useState('')
+  const [preheat,     setPreheat]     = useState('')
+  const [dureeExtr,   setDureeExtr]   = useState('')
+  const [sacs,        setSacs]        = useState(['', ''])
+  const [presses,     setPresses]     = useState([''])
+  const [notes,       setNotes]       = useState('')
+  const [error,       setError]       = useState<string | null>(null)
 
-  // ── Calculs automatiques ──────────────────────────────────────────────────
+  const stocksDisponibles = stocks.filter(
+    s => s.type_stock !== 'Rosin' && (s.quantite_stock ?? 0) > 0
+  )
+
+  const addSource    = () => setSources(p => [...p, { stockId: '', quantite: '' }])
+  const removeSource = (i: number) => { if (sources.length > 1) setSources(p => p.filter((_, idx) => idx !== i)) }
+  const updateSource = (i: number, field: keyof SourceLine, v: string) =>
+    setSources(p => p.map((s, idx) => idx === i ? { ...s, [field]: v } : s))
+
+  const selectedStockIds = sources.map(s => s.stockId).filter(Boolean)
+
   const poidsEntree = useMemo(
-    () => sacs.reduce((s, v) => s + (parseFloat(v) || 0), 0),
-    [sacs]
+    () => sources.reduce((sum, s) => sum + (parseFloat(s.quantite) || 0), 0),
+    [sources]
   )
   const poidsSortie = useMemo(
     () => presses.reduce((s, v) => s + (parseFloat(v) || 0), 0),
@@ -44,51 +58,67 @@ export default function NouvelleExtractionModal({ stocks, onClose }: Props) {
     return ((poidsSortie / poidsEntree) * 100).toFixed(1)
   }, [poidsEntree, poidsSortie])
 
-  const stockSelected = useMemo(
-    () => stocks.find(s => s.id_stock === parseInt(stockId)),
-    [stocks, stockId]
+  const sourceWarnings = useMemo(() =>
+    sources.map(s => {
+      if (!s.stockId || !s.quantite) return null
+      const stock = stocksDisponibles.find(st => st.id_stock === parseInt(s.stockId))
+      if (!stock) return null
+      const qty = parseFloat(s.quantite)
+      if (qty > Number(stock.quantite_stock))
+        return `Dépasse le stock dispo (${Number(stock.quantite_stock).toFixed(1)} g)`
+      return null
+    }),
+    [sources, stocksDisponibles]
   )
 
-  // ── Gestion sacs ─────────────────────────────────────────────────────────
   const addSac    = () => { if (sacs.length < 4) setSacs(p => [...p, '']) }
   const removeSac = (i: number) => { if (sacs.length > 2) setSacs(p => p.filter((_, idx) => idx !== i)) }
   const updateSac = (i: number, v: string) => setSacs(p => p.map((x, idx) => idx === i ? v : x))
 
-  // ── Gestion passes de presse ──────────────────────────────────────────────
   const addPresse    = () => { if (presses.length < 4) setPresses(p => [...p, '']) }
   const removePresse = (i: number) => { if (presses.length > 1) setPresses(p => p.filter((_, idx) => idx !== i)) }
   const updatePresse = (i: number, v: string) => setPresses(p => p.map((x, idx) => idx === i ? v : x))
 
-  // ── Mutation ──────────────────────────────────────────────────────────────
   const mutation = useMutation({
     mutationFn: () => {
-      if (!stockId)             throw new Error('Sélectionnez un produit en stock')
-      if (!sacs[0] || !sacs[1]) throw new Error('Les sacs 1 et 2 sont obligatoires')
-      if (!presses[0])          throw new Error('La passe de presse 1 est obligatoire')
-      if (poidsEntree <= 0)     throw new Error('Le poids total d\'entrée doit être > 0')
-      if (poidsSortie <= 0)     throw new Error('Le poids de sortie doit être > 0')
+      const sourcesValides = sources.filter(s => s.stockId && parseFloat(s.quantite) > 0)
+      if (sourcesValides.length === 0)
+        throw new Error('Sélectionnez au moins un produit avec une quantité')
+      for (const s of sources) {
+        if (s.stockId && !s.quantite)
+          throw new Error('Renseignez la quantité pour chaque produit sélectionné')
+      }
+      if (poidsEntree <= 0)  throw new Error("Le poids total d'entrée doit être > 0")
+      if (!presses[0])       throw new Error('La passe de presse 1 est obligatoire')
+      if (poidsSortie <= 0)  throw new Error('Le poids de sortie doit être > 0')
 
       const get = (arr: string[], i: number) =>
         arr[i] ? parseFloat(arr[i]) || undefined : undefined
 
+      const sourcesPayload = sourcesValides.map(s => ({
+        id_stock: parseInt(s.stockId),
+        quantite: parseFloat(s.quantite),
+      }))
+
       return rosinAPI.create({
-        id_stock_source:       parseInt(stockId),
-        date_rosinextraction:  date,
+        id_stock_source:        sourcesPayload[0].id_stock,
+        date_rosinextraction:   date,
+        sources:                sourcesPayload,
         temperature_extraction: temperature ? parseInt(temperature) : undefined,
-        maillage:              maillage || undefined,
-        duree_preheat:         preheat   ? parseInt(preheat)   : undefined,
-        duree_extraction:      dureeExtr ? parseInt(dureeExtr) : undefined,
-        sac_1_poids:           get(sacs, 0),
-        sac_2_poids:           get(sacs, 1),
-        sac_3_poids:           get(sacs, 2),
-        sac_4_poids:           get(sacs, 3),
-        quantite_utilisee:     poidsEntree,
-        presse_1_poids:        get(presses, 0),
-        presse_2_poids:        get(presses, 1),
-        presse_3_poids:        get(presses, 2),
-        presse_4_poids:        get(presses, 3),
-        quantite_extraite:     poidsSortie,
-        info_rosinextraction:  notes || undefined,
+        maillage:               maillage || undefined,
+        duree_preheat:          preheat   ? parseInt(preheat)   : undefined,
+        duree_extraction:       dureeExtr ? parseInt(dureeExtr) : undefined,
+        sac_1_poids:            get(sacs, 0),
+        sac_2_poids:            get(sacs, 1),
+        sac_3_poids:            get(sacs, 2),
+        sac_4_poids:            get(sacs, 3),
+        quantite_utilisee:      poidsEntree,
+        presse_1_poids:         get(presses, 0),
+        presse_2_poids:         get(presses, 1),
+        presse_3_poids:         get(presses, 2),
+        presse_4_poids:         get(presses, 3),
+        quantite_extraite:      poidsSortie,
+        info_rosinextraction:   notes || undefined,
       })
     },
     onSuccess: () => {
@@ -100,11 +130,6 @@ export default function NouvelleExtractionModal({ stocks, onClose }: Props) {
     onError: (e: Error) => setError(e.message),
   })
 
-  const stocksDisponibles = stocks.filter(
-    s => s.type_stock !== 'Rosin' && (s.quantite_stock ?? 0) > 0
-  )
-
-  // ── Helpers UI ────────────────────────────────────────────────────────────
   const label = (txt: string, required = false) => (
     <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
       {txt}{required && <span className="text-red-500 ml-0.5">*</span>}
@@ -116,10 +141,9 @@ export default function NouvelleExtractionModal({ stocks, onClose }: Props) {
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
       <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[92vh]">
 
-        {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700 shrink-0">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Nouvelle extraction Rosin</h2>
-          <button onClick={onClose} className="p-1.5 rounded-lg text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+          <button onClick={onClose} className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
             <X size={18} />
           </button>
         </div>
@@ -129,24 +153,71 @@ export default function NouvelleExtractionModal({ stocks, onClose }: Props) {
           className="overflow-y-auto flex-1 px-6 py-5 space-y-5"
         >
 
-          {/* Produit source */}
+          {/* Produits en entrée */}
           <div>
-            {label('Produit en stock', true)}
-            <select value={stockId} onChange={e => setStockId(e.target.value)} className={inputCls} required>
-              <option value="">— Sélectionner —</option>
-              {stocksDisponibles.map(s => (
-                <option key={s.id_stock} value={s.id_stock}>
-                  {s.variete_nom || '(sans variété)'} — {s.type_stock}
-                  {s.sous_type_stock ? ` ${s.sous_type_stock}` : ''}
-                  {' '}({Number(s.quantite_stock).toFixed(1)} g)
-                </option>
-              ))}
-            </select>
-            {stockSelected && (
-              <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
-                Stock dispo : <span className="font-medium text-gray-600 dark:text-gray-300">{Number(stockSelected.quantite_stock).toFixed(1)} g</span>
-              </p>
-            )}
+            <div className="flex items-center justify-between mb-2">
+              {label('Produits en entrée', true)}
+              <button type="button" onClick={addSource}
+                className="flex items-center gap-1 text-xs text-grow-600 hover:text-grow-800 font-medium">
+                <Plus size={12} /> Ajouter un produit
+              </button>
+            </div>
+            <div className="space-y-3">
+              {sources.map((src, i) => {
+                const stockSel = stocksDisponibles.find(s => s.id_stock === parseInt(src.stockId))
+                return (
+                  <div key={i} className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <select
+                        value={src.stockId}
+                        onChange={e => updateSource(i, 'stockId', e.target.value)}
+                        className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm focus:ring-2 focus:ring-grow-500 bg-white dark:bg-gray-800"
+                        required
+                      >
+                        <option value="">— Produit —</option>
+                        {stocksDisponibles.map(s => {
+                          const used = selectedStockIds.includes(String(s.id_stock)) && src.stockId !== String(s.id_stock)
+                          return (
+                            <option key={s.id_stock} value={s.id_stock} disabled={used}>
+                              {s.variete_nom || '(sans variété)'} — {s.type_stock}
+                              {s.sous_type_stock ? ` ${s.sous_type_stock}` : ''}
+                              {' '}({Number(s.quantite_stock).toFixed(1)} g)
+                            </option>
+                          )
+                        })}
+                      </select>
+                      <input
+                        type="number" min="0" step="0.1" value={src.quantite}
+                        onChange={e => updateSource(i, 'quantite', e.target.value)}
+                        placeholder="0.0" required
+                        className="w-24 rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm focus:ring-2 focus:ring-grow-500 dark:bg-gray-800"
+                      />
+                      <span className="text-sm text-gray-400 dark:text-gray-500 shrink-0">g</span>
+                      {sources.length > 1 && (
+                        <button type="button" onClick={() => removeSource(i)}
+                          className="p-1 text-gray-300 hover:text-red-500 shrink-0">
+                          <Trash2 size={14} />
+                        </button>
+                      )}
+                    </div>
+                    {stockSel && (
+                      <p className="text-xs text-gray-400 dark:text-gray-500 pl-1">
+                        Dispo : <span className="font-medium text-gray-600 dark:text-gray-300">{Number(stockSel.quantite_stock).toFixed(1)} g</span>
+                      </p>
+                    )}
+                    {sourceWarnings[i] && (
+                      <p className="flex items-center gap-1 text-xs text-amber-600 pl-1">
+                        <AlertTriangle size={11} /> {sourceWarnings[i]}
+                      </p>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+            <div className="mt-3 flex justify-between bg-gray-50 dark:bg-gray-700/50 rounded-lg px-4 py-2">
+              <span className="text-sm text-gray-500 dark:text-gray-400">Total entrée</span>
+              <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">{poidsEntree.toFixed(2)} g</span>
+            </div>
           </div>
 
           {/* Date */}
@@ -155,13 +226,12 @@ export default function NouvelleExtractionModal({ stocks, onClose }: Props) {
             <input type="date" value={date} onChange={e => setDate(e.target.value)} className={inputCls} required />
           </div>
 
-          {/* Paramètres d'extraction */}
+          {/* Paramètres */}
           <div className="grid grid-cols-2 gap-3">
             <div>
               {label('Température (°C)')}
               <input type="number" min="0" max="300" value={temperature}
-                onChange={e => setTemperature(e.target.value)}
-                placeholder="ex: 80" className={inputCls} />
+                onChange={e => setTemperature(e.target.value)} placeholder="ex: 80" className={inputCls} />
             </div>
             <div>
               {label('Maillage du sac')}
@@ -173,21 +243,19 @@ export default function NouvelleExtractionModal({ stocks, onClose }: Props) {
             <div>
               {label('Pré-chauffe (sec)')}
               <input type="number" min="0" value={preheat}
-                onChange={e => setPreheat(e.target.value)}
-                placeholder="ex: 60" className={inputCls} />
+                onChange={e => setPreheat(e.target.value)} placeholder="ex: 60" className={inputCls} />
             </div>
             <div>
               {label('Durée extraction (sec)')}
               <input type="number" min="0" value={dureeExtr}
-                onChange={e => setDureeExtr(e.target.value)}
-                placeholder="ex: 120" className={inputCls} />
+                onChange={e => setDureeExtr(e.target.value)} placeholder="ex: 120" className={inputCls} />
             </div>
           </div>
 
-          {/* Sacs d'entrée */}
+          {/* Sacs */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              {label('Poids par sac (g)', true)}
+              {label('Répartition par sac (g)')}
               {sacs.length < 4 && (
                 <button type="button" onClick={addSac}
                   className="flex items-center gap-1 text-xs text-grow-600 hover:text-grow-800 font-medium">
@@ -198,10 +266,9 @@ export default function NouvelleExtractionModal({ stocks, onClose }: Props) {
             <div className="space-y-2">
               {sacs.map((v, i) => (
                 <div key={i} className="flex items-center gap-2">
-                  <span className="text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500 w-12 shrink-0">Sac {i + 1}</span>
+                  <span className="text-sm text-gray-500 dark:text-gray-400 w-12 shrink-0">Sac {i + 1}</span>
                   <input type="number" min="0" step="0.01" value={v}
-                    onChange={e => updateSac(i, e.target.value)}
-                    placeholder="0.00" required={i < 2}
+                    onChange={e => updateSac(i, e.target.value)} placeholder="0.00"
                     className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm focus:ring-2 focus:ring-grow-500" />
                   <span className="text-sm text-gray-400 dark:text-gray-500">g</span>
                   {i >= 2 && (
@@ -211,10 +278,6 @@ export default function NouvelleExtractionModal({ stocks, onClose }: Props) {
                   )}
                 </div>
               ))}
-            </div>
-            <div className="mt-2 flex justify-between bg-gray-50 dark:bg-gray-700/50 rounded-lg px-4 py-2">
-              <span className="text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500">Total entrée</span>
-              <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">{poidsEntree.toFixed(2)} g</span>
             </div>
           </div>
 
@@ -232,10 +295,9 @@ export default function NouvelleExtractionModal({ stocks, onClose }: Props) {
             <div className="space-y-2">
               {presses.map((v, i) => (
                 <div key={i} className="flex items-center gap-2">
-                  <span className="text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500 w-16 shrink-0">Passe {i + 1}</span>
+                  <span className="text-sm text-gray-500 dark:text-gray-400 w-16 shrink-0">Passe {i + 1}</span>
                   <input type="number" min="0" step="0.01" value={v}
-                    onChange={e => updatePresse(i, e.target.value)}
-                    placeholder="0.00" required={i === 0}
+                    onChange={e => updatePresse(i, e.target.value)} placeholder="0.00" required={i === 0}
                     className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm focus:ring-2 focus:ring-purple-400" />
                   <span className="text-sm text-gray-400 dark:text-gray-500">g</span>
                   {i > 0 && (
@@ -267,22 +329,12 @@ export default function NouvelleExtractionModal({ stocks, onClose }: Props) {
               className={inputCls + ' resize-none'} />
           </div>
 
-          {/* Avertissement stock */}
-          {stockSelected && poidsEntree > Number(stockSelected.quantite_stock) && (
-            <div className="flex items-center gap-2 text-sm text-amber-600 bg-amber-50 rounded-lg px-4 py-2">
-              <AlertTriangle size={14} />
-              Poids entrée ({poidsEntree.toFixed(1)} g) supérieur au stock ({Number(stockSelected.quantite_stock).toFixed(1)} g)
-            </div>
-          )}
-
-          {/* Erreur */}
           {error && (
             <div className="flex items-center gap-2 text-sm text-red-600 bg-red-50 rounded-lg px-4 py-2">
               <AlertTriangle size={14} /> {error}
             </div>
           )}
 
-          {/* Actions */}
           <div className="flex gap-3 pt-1 pb-1">
             <button type="button" onClick={onClose}
               className="flex-1 px-4 py-2 rounded-xl border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700/40">
