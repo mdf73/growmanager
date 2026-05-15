@@ -31,7 +31,7 @@ Overview with 8 status modules:
 Main grow cycle management. Shows active + completed cultures.
 - Per-culture: phase tabs (Plantes, Calendrier, Stats)
 - PlantesTab: list plants, update statuses
-- CalendrierCulture: action timeline
+- CalendrierCulture: action timeline — clic sur un jour → panneau de détail avec liste des actions + **courbes capteurs du jour** (`SensorDayChart`, filtrées sur `id_espace` de la culture)
 - StatsTab: yield, cost, grams/watt
 - Modals: NouvellerCultureModal, ActionModal, ArrosageModal, TransfertPlantModal
 
@@ -197,6 +197,7 @@ Vue mensuelle globale de tous les events de toutes les cultures.
 - Clic sur un chip unique → drawer de détail (culture, plante, type action, paramètres JSON, note)
 - Filtre par culture (multi-select, bouton Filter)
 - **Export PDF jour par jour** (2026-05-15) : bouton "Export PDF" dans le header → modal avec date de début + date de fin. Génère un HTML avec une page par jour (cover + 1 page/jour), ouvre dans une nouvelle fenêtre et déclenche `window.print()`. Chaque page affiche la date en grand, les events groupés par type avec leurs paramètres JSON et notes. Les jours sans event affichent "Journée calme". API : `GET /api/calendrier/export?date_debut=&date_fin=`. Aucune dépendance externe — pure CSS print avec `page-break-after: always`.
+- **Courbes capteurs dans la vue journée** (2026-05-15) : le modal "vue journée" affiche désormais, sous les events, le composant `SensorDayChart` — courbes température / humidité / VPD de 00:00 à 23:59. Résumé min/moy/max en 3 tiles + 3 LineCharts Recharts. Si aucune donnée capteur pour ce jour, message discret. API : `GET /api/temperature-logs?date_debut=YYYY-MM-DDT00:00:00&date_fin=YYYY-MM-DDT23:59:59`. Pas de filtre espace (toutes les tentes).
 - Légende couleurs en bas de page
 - Stats rapides : total events mois, cultures actives, arrosages, traitements
 - Backend : `GET /api/calendrier?year=&month=` + `GET /api/calendrier/cultures-actives` + `GET /api/calendrier/export?date_debut=&date_fin=`

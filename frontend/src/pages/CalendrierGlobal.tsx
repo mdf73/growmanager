@@ -6,6 +6,7 @@ import { useState, useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { ChevronLeft, ChevronRight, Calendar, Filter, FileDown } from 'lucide-react'
 import { getCalendrierEvents, getCulturesRef, getCalendrierExport, CalendrierEvent, CultureRef } from '../api/calendrier'
+import SensorDayChart from '../components/SensorDayChart'
 
 // ─── Palette couleurs par culture (cycle) ────────────────────────────────────
 const CULTURE_COLORS = [
@@ -217,7 +218,7 @@ function DayModal({
           </button>
         </div>
 
-        {/* Corps : groupes par type */}
+        {/* Corps : groupes par type + courbes capteurs */}
         <div className="overflow-y-auto flex-1 px-6 py-4 space-y-5">
           {[...groups.entries()].map(([type, evts]) => {
             const meta = actionMeta(type)
@@ -257,6 +258,9 @@ function DayModal({
               </div>
             )
           })}
+
+          {/* Courbes température / humidité / VPD du jour */}
+          <SensorDayChart date={dateStr} />
         </div>
       </div>
     </div>

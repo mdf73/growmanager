@@ -5,6 +5,7 @@ import { actionAPI, Action, ActionCreate, Plant } from '../../api/cultures'
 import { ACTION_MAP, CATEGORY_COLORS } from './actionTypes'
 import ActionModal from './ActionModal'
 import ArrosageModal from './ArrosageModal'
+import SensorDayChart from '../SensorDayChart'
 
 // ── Helpers arrosage ───────────────────────────────────────────────────────────
 
@@ -388,6 +389,9 @@ export default function CalendrierCulture({ cultureId, idEspace, plants }: Props
               </button>
             </div>
           </div>
+
+          {/* Courbes température / humidité / VPD du jour */}
+          <SensorDayChart date={selectedDay} idEspace={idEspace} />
 
           {actionsByDay[selectedDay]?.length ? (() => {
             const { wateringGroups, other } = groupWateringActions(actionsByDay[selectedDay])

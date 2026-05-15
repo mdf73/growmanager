@@ -61,6 +61,29 @@ Route: `/suivi-constantes`
 
 Data fetched via `GET /api/temperature-logs` with optional `id_device` filter and time window.
 
+## Composant SensorDayChart (2026-05-15)
+
+Composant réutilisable `frontend/src/components/SensorDayChart.tsx` qui affiche les courbes d'une journée complète (00:00 → 23:59).
+
+**Props :**
+```ts
+{ date: string, idEspace?: number }
+// date = "YYYY-MM-DD" (date locale)
+// idEspace = filtre optionnel par espace de culture
+```
+
+**Rendu :**
+- Résumé min / moy / max en 3 tiles (Temp. / Hum. / VPD)
+- 3 LineCharts Recharts empilés (hauteur 72px chacun), axe X = HH:MM, axe Y adaptatif avec domaine fixe (temp 10-40°C, hum 0-100%, vpd 0-3 kPa)
+- État vide si aucune lecture : message discret
+
+**Utilisation :**
+- **CalendrierGlobal** : dans le modal "vue journée" (sans filtre espace → toutes les tentes)
+- **CalendrierCulture** : dans le panneau jour sélectionné (filtré sur `idEspace` de la culture)
+
+**API appelée :** `GET /api/temperature-logs?date_debut=YYYY-MM-DDT00:00:00&date_fin=YYYY-MM-DDT23:59:59[&id_espace=X]`
+— retourne les données brutes (fenêtre ≤ 48h → pas d'agrégation horaire)
+
 ## Gmail Import (Alternative)
 
 `POST /api/capteurs/govee/sync` — imports historical data from Gmail if Govee was sending email reports.
