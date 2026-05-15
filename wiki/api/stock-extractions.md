@@ -95,7 +95,14 @@ Le formulaire et l'API supportent désormais **plusieurs produits en entrée** p
 
 **DB** : colonne `sources JSON NULL` ajoutée à `RosinExtraction` (migration `backend/migrate_sources.sql`)
 
-**Frontend** : `NouvelleExtractionModal.tsx` — section "Produits en entrée" avec autant de lignes [dropdown stock][quantité g][🗑] que nécessaire. Les stocks déjà sélectionnés sont désactivés dans les autres dropdowns.
+**Frontend** : `NouvelleExtractionModal.tsx` — UX en deux sections distinctes :
+
+1. **Produits en entrée** : sélection des stocks (pas de quantité saisie ici). Dispo affiché en info.
+2. **Répartition par sac** :
+   - *1 produit* : chaque sac = poids uniquement. Le total des sacs est déduit du stock.
+   - *N produits* : chaque sac a un sélecteur "quel produit" + poids. Les déductions sont calculées par produit en agrégeant les sacs. Warning en temps réel si dépassement du dispo.
+
+`quantite_utilisee` = somme des poids de sacs (pas de champ quantité séparé). `sources` payload dérivé depuis les sacs.
 
 ## Hash Extractions
 

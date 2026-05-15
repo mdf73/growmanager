@@ -7,10 +7,10 @@ import { useParametreListe } from '../api/parametres'
 
 const MAILLAGES_FB = ['25µ', '36µ', '45µ', '72µ', '90µ', '120µ', '160µ', '220µ']
 
-interface SourceLine {
-  stockId: string
-  quantite: string
-}
+// Produit sélectionné en entrée (pas de quantité — elle découle des sacs)
+interface SourceLine { stockId: string }
+// Un sac d'entrée
+interface SacLine { stockId: string; poids: string }
 
 interface Props {
   stocks: Stock[]
@@ -23,14 +23,16 @@ export default function NouvelleExtractionModal({ stocks, onClose }: Props) {
   const MAILLAGES = maillagesParam.length > 0 ? maillagesParam : MAILLAGES_FB
   const today = new Date().toISOString().split('T')[0]
 
-  const [sources,     setSources]     = useState<SourceLine[]>([{ stockId: '', quantite: '' }])
+  // Produits en entrée (selectors uniquement, pas de quantité)
+  const [sources,     setSources]     = useState<SourceLine[]>([{ stockId: '' }])
+  // Sacs d'entrée : stockId renseigné seulement en mode multi-produits
+  const [sacs,        setSacs]        = useState<SacLine[]>([{ stockId: '', poids: '' }, { stockId: '', poids: '' }])
+  const [presses,     setPresses]     = useState([''])
   const [date,        setDate]        = useState(today)
   const [temperature, setTemperature] = useState('')
   const [maillage,    setMaillage]    = useState('')
   const [preheat,     setPreheat]     = useState('')
   const [dureeExtr,   setDureeExtr]   = useState('')
-  const [sacs,        setSacs]        = useState(['', ''])
-  const [presses,     setPresses]     = useState([''])
   const [notes,       setNotes]       = useState('')
   const [error,       setError]       = useState<string | null>(null)
 
@@ -38,67 +40,108 @@ export default function NouvelleExtractionModal({ stocks, onClose }: Props) {
     s => s.type_stock !== 'Rosin' && (s.quantite_stock ?? 0) > 0
   )
 
-  const addSource    = () => setSources(p => [...p, { stockId: '', quantite: '' }])
-  const removeSource = (i: number) => { if (sources.length > 1) setSources(p => p.filter((_, idx) => idx !== i)) }
-  const updateSource = (i: number, field: keyof SourceLine, v: string) =>
-    setSources(p => p.map((s, idx) => idx === i ? { ...s, [field]: v } : s))
+  const isSingle = sources.length === 1
 
-  const selectedStockIds = sources.map(s => s.stockId).filter(Boolean)
+  // ── Gestion sources ───────────────────────────────────────────────────────
+  const selectedSourceIds = sources.map(s => s.stockId).filter(Boolean)
+  const addSource    = () => setSources(p => [...p, { stockId: '' }])
+  const removeSource = (i: number) => {
+    if (sources.length <= 1) return
+    setSources(p => p.filter((_, idx) => idx !== i))
+  }
+  const updateSource = (i: number, v: string) =>
+    setSources(p => p.map((s, idx) => idx === i ? { stockId: v } : s))
 
-  const poidsEntree = useMemo(
-    () => sources.reduce((sum, s) => sum + (parseFloat(s.quantite) || 0), 0),
-    [sources]
+  // ── Gestion sacs ──────────────────────────────────────────────────────────
+  const addSac    = () => { if (sacs.length < 5) setSacs(p => [...p, { stockId: '', poids: '' }]) }
+  const removeSac = (i: number) => { if (sacs.length > 1) setSacs(p => p.filter((_, idx) => idx !== i)) }
+  const updateSac = (i: number, field: keyof SacLine, v: string) =>
+    setSacs(p => p.map((s, idx) => idx === i ? { ...s, [field]: v } : s))
+
+  // ── Calculs ───────────────────────────────────────────────────────────────
+  // Total entrée = somme des poids de sacs
+  const totalSacs = useMemo(
+    () => sacs.reduce((sum, s) => sum + (parseFloat(s.poids) || 0), 0),
+    [sacs]
   )
+
+  // En mode multi : total par produit (pour vérification vs dispo)
+  const totalParProduit = useMemo((): Record<string, number> => {
+    if (isSingle) return {}
+    const map: Record<string, number> = {}
+    sacs.forEach(sac => {
+      if (sac.stockId && parseFloat(sac.poids) > 0) {
+        map[sac.stockId] = (map[sac.stockId] || 0) + (parseFloat(sac.poids) || 0)
+      }
+    })
+    return map
+  }, [sacs, isSingle])
+
   const poidsSortie = useMemo(
     () => presses.reduce((s, v) => s + (parseFloat(v) || 0), 0),
     [presses]
   )
   const rendement = useMemo(() => {
-    if (poidsEntree <= 0 || poidsSortie <= 0) return null
-    return ((poidsSortie / poidsEntree) * 100).toFixed(1)
-  }, [poidsEntree, poidsSortie])
+    if (totalSacs <= 0 || poidsSortie <= 0) return null
+    return ((poidsSortie / totalSacs) * 100).toFixed(1)
+  }, [totalSacs, poidsSortie])
 
-  const sourceWarnings = useMemo(() =>
-    sources.map(s => {
-      if (!s.stockId || !s.quantite) return null
-      const stock = stocksDisponibles.find(st => st.id_stock === parseInt(s.stockId))
-      if (!stock) return null
-      const qty = parseFloat(s.quantite)
-      if (qty > Number(stock.quantite_stock))
-        return `Dépasse le stock dispo (${Number(stock.quantite_stock).toFixed(1)} g)`
-      return null
-    }),
-    [sources, stocksDisponibles]
-  )
-
-  const addSac    = () => { if (sacs.length < 4) setSacs(p => [...p, '']) }
-  const removeSac = (i: number) => { if (sacs.length > 2) setSacs(p => p.filter((_, idx) => idx !== i)) }
-  const updateSac = (i: number, v: string) => setSacs(p => p.map((x, idx) => idx === i ? v : x))
-
+  // ── Gestion presses ───────────────────────────────────────────────────────
   const addPresse    = () => { if (presses.length < 4) setPresses(p => [...p, '']) }
   const removePresse = (i: number) => { if (presses.length > 1) setPresses(p => p.filter((_, idx) => idx !== i)) }
   const updatePresse = (i: number, v: string) => setPresses(p => p.map((x, idx) => idx === i ? v : x))
 
+  // ── Mutation ──────────────────────────────────────────────────────────────
   const mutation = useMutation({
     mutationFn: () => {
-      const sourcesValides = sources.filter(s => s.stockId && parseFloat(s.quantite) > 0)
-      if (sourcesValides.length === 0)
-        throw new Error('Sélectionnez au moins un produit avec une quantité')
-      for (const s of sources) {
-        if (s.stockId && !s.quantite)
-          throw new Error('Renseignez la quantité pour chaque produit sélectionné')
+      // Validation sources
+      if (!sources[0].stockId) throw new Error('Sélectionnez au moins un produit en entrée')
+      if (!isSingle) {
+        for (const s of sources) {
+          if (!s.stockId) throw new Error('Tous les produits en entrée doivent être sélectionnés')
+        }
       }
-      if (poidsEntree <= 0)  throw new Error("Le poids total d'entrée doit être > 0")
-      if (!presses[0])       throw new Error('La passe de presse 1 est obligatoire')
-      if (poidsSortie <= 0)  throw new Error('Le poids de sortie doit être > 0')
+
+      // Validation sacs
+      const sacsValides = sacs.filter(s => parseFloat(s.poids) > 0)
+      if (sacsValides.length === 0) throw new Error('Renseignez au moins un sac avec un poids')
+      if (totalSacs <= 0) throw new Error("Le poids total d'entrée (sacs) doit être > 0")
+
+      // En mode multi : chaque sac doit avoir un produit assigné
+      if (!isSingle) {
+        const sacsAvecPoids = sacs.filter(s => parseFloat(s.poids) > 0)
+        if (sacsAvecPoids.some(s => !s.stockId))
+          throw new Error('Assignez un produit à chaque sac')
+
+        // Vérifier dépassement dispo par produit
+        for (const [stockId, total] of Object.entries(totalParProduit)) {
+          const stock = stocksDisponibles.find(st => st.id_stock === parseInt(stockId))
+          if (stock && total > Number(stock.quantite_stock))
+            throw new Error(`Dépassement du stock disponible pour ${stock.variete_nom || 'un produit'} (${Number(stock.quantite_stock).toFixed(1)} g dispo)`)
+        }
+      } else {
+        // Mode simple : vérifier dépassement du stock unique
+        const stock = stocksDisponibles.find(st => st.id_stock === parseInt(sources[0].stockId))
+        if (stock && totalSacs > Number(stock.quantite_stock))
+          throw new Error(`Dépassement du stock disponible (${Number(stock.quantite_stock).toFixed(1)} g dispo)`)
+      }
+
+      if (!presses[0])      throw new Error('La passe de presse 1 est obligatoire')
+      if (poidsSortie <= 0) throw new Error('Le poids de sortie doit être > 0')
 
       const get = (arr: string[], i: number) =>
         arr[i] ? parseFloat(arr[i]) || undefined : undefined
 
-      const sourcesPayload = sourcesValides.map(s => ({
-        id_stock: parseInt(s.stockId),
-        quantite: parseFloat(s.quantite),
-      }))
+      // Construction du payload sources depuis les sacs
+      let sourcesPayload: { id_stock: number; quantite: number }[]
+      if (isSingle) {
+        sourcesPayload = [{ id_stock: parseInt(sources[0].stockId), quantite: totalSacs }]
+      } else {
+        sourcesPayload = Object.entries(totalParProduit).map(([id, qty]) => ({
+          id_stock: parseInt(id),
+          quantite: qty,
+        }))
+      }
 
       return rosinAPI.create({
         id_stock_source:        sourcesPayload[0].id_stock,
@@ -108,11 +151,11 @@ export default function NouvelleExtractionModal({ stocks, onClose }: Props) {
         maillage:               maillage || undefined,
         duree_preheat:          preheat   ? parseInt(preheat)   : undefined,
         duree_extraction:       dureeExtr ? parseInt(dureeExtr) : undefined,
-        sac_1_poids:            get(sacs, 0),
-        sac_2_poids:            get(sacs, 1),
-        sac_3_poids:            get(sacs, 2),
-        sac_4_poids:            get(sacs, 3),
-        quantite_utilisee:      poidsEntree,
+        sac_1_poids:            get(sacs.map(s => s.poids), 0),
+        sac_2_poids:            get(sacs.map(s => s.poids), 1),
+        sac_3_poids:            get(sacs.map(s => s.poids), 2),
+        sac_4_poids:            get(sacs.map(s => s.poids), 3),
+        quantite_utilisee:      totalSacs,
         presse_1_poids:         get(presses, 0),
         presse_2_poids:         get(presses, 1),
         presse_3_poids:         get(presses, 2),
@@ -130,7 +173,7 @@ export default function NouvelleExtractionModal({ stocks, onClose }: Props) {
     onError: (e: Error) => setError(e.message),
   })
 
-  const label = (txt: string, required = false) => (
+  const lbl = (txt: string, required = false) => (
     <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
       {txt}{required && <span className="text-red-500 ml-0.5">*</span>}
     </label>
@@ -153,46 +196,41 @@ export default function NouvelleExtractionModal({ stocks, onClose }: Props) {
           className="overflow-y-auto flex-1 px-6 py-5 space-y-5"
         >
 
-          {/* Produits en entrée */}
+          {/* ── Produits en entrée ─────────────────────────────────────── */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              {label('Produits en entrée', true)}
+              {lbl('Produits en entrée', true)}
               <button type="button" onClick={addSource}
                 className="flex items-center gap-1 text-xs text-grow-600 hover:text-grow-800 font-medium">
                 <Plus size={12} /> Ajouter un produit
               </button>
             </div>
-            <div className="space-y-3">
+            <div className="space-y-2">
               {sources.map((src, i) => {
                 const stockSel = stocksDisponibles.find(s => s.id_stock === parseInt(src.stockId))
+                const dejaUtilise = totalParProduit[src.stockId] || 0
+                const depasse = !isSingle && stockSel && dejaUtilise > Number(stockSel.quantite_stock)
                 return (
                   <div key={i} className="space-y-1">
                     <div className="flex items-center gap-2">
                       <select
                         value={src.stockId}
-                        onChange={e => updateSource(i, 'stockId', e.target.value)}
+                        onChange={e => updateSource(i, e.target.value)}
                         className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm focus:ring-2 focus:ring-grow-500 bg-white dark:bg-gray-800"
                         required
                       >
                         <option value="">— Produit —</option>
                         {stocksDisponibles.map(s => {
-                          const used = selectedStockIds.includes(String(s.id_stock)) && src.stockId !== String(s.id_stock)
+                          const usedElsewhere = selectedSourceIds.includes(String(s.id_stock)) && src.stockId !== String(s.id_stock)
                           return (
-                            <option key={s.id_stock} value={s.id_stock} disabled={used}>
+                            <option key={s.id_stock} value={s.id_stock} disabled={usedElsewhere}>
                               {s.variete_nom || '(sans variété)'} — {s.type_stock}
                               {s.sous_type_stock ? ` ${s.sous_type_stock}` : ''}
-                              {' '}({Number(s.quantite_stock).toFixed(1)} g)
+                              {' '}({Number(s.quantite_stock).toFixed(1)} g dispo)
                             </option>
                           )
                         })}
                       </select>
-                      <input
-                        type="number" min="0" step="0.1" value={src.quantite}
-                        onChange={e => updateSource(i, 'quantite', e.target.value)}
-                        placeholder="0.0" required
-                        className="w-24 rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm focus:ring-2 focus:ring-grow-500 dark:bg-gray-800"
-                      />
-                      <span className="text-sm text-gray-400 dark:text-gray-500 shrink-0">g</span>
                       {sources.length > 1 && (
                         <button type="button" onClick={() => removeSource(i)}
                           className="p-1 text-gray-300 hover:text-red-500 shrink-0">
@@ -200,63 +238,65 @@ export default function NouvelleExtractionModal({ stocks, onClose }: Props) {
                         </button>
                       )}
                     </div>
+                    {/* Dispo + warning dépassement (calculé depuis les sacs) */}
                     {stockSel && (
-                      <p className="text-xs text-gray-400 dark:text-gray-500 pl-1">
-                        Dispo : <span className="font-medium text-gray-600 dark:text-gray-300">{Number(stockSel.quantite_stock).toFixed(1)} g</span>
-                      </p>
-                    )}
-                    {sourceWarnings[i] && (
-                      <p className="flex items-center gap-1 text-xs text-amber-600 pl-1">
-                        <AlertTriangle size={11} /> {sourceWarnings[i]}
+                      <p className={`text-xs pl-1 ${depasse ? 'text-red-500' : 'text-gray-400 dark:text-gray-500'}`}>
+                        {isSingle
+                          ? `Dispo : ${Number(stockSel.quantite_stock).toFixed(1)} g`
+                          : <>
+                              Dispo : <span className="font-medium">{Number(stockSel.quantite_stock).toFixed(1)} g</span>
+                              {dejaUtilise > 0 && (
+                                <> · Mis en sacs : <span className={`font-medium ${depasse ? 'text-red-500' : 'text-gray-600 dark:text-gray-300'}`}>{dejaUtilise.toFixed(1)} g</span>
+                                  {depasse && <> <AlertTriangle size={10} className="inline" /> Dépassement</>}
+                                </>
+                              )}
+                            </>
+                        }
                       </p>
                     )}
                   </div>
                 )
               })}
             </div>
-            <div className="mt-3 flex justify-between bg-gray-50 dark:bg-gray-700/50 rounded-lg px-4 py-2">
-              <span className="text-sm text-gray-500 dark:text-gray-400">Total entrée</span>
-              <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">{poidsEntree.toFixed(2)} g</span>
-            </div>
           </div>
 
-          {/* Date */}
+          {/* ── Date ──────────────────────────────────────────────────── */}
           <div>
-            {label('Date')}
+            {lbl('Date')}
             <input type="date" value={date} onChange={e => setDate(e.target.value)} className={inputCls} required />
           </div>
 
-          {/* Paramètres */}
+          {/* ── Paramètres de presse ───────────────────────────────────── */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              {label('Température (°C)')}
+              {lbl('Température (°C)')}
               <input type="number" min="0" max="300" value={temperature}
                 onChange={e => setTemperature(e.target.value)} placeholder="ex: 80" className={inputCls} />
             </div>
             <div>
-              {label('Maillage du sac')}
+              {lbl('Maillage du sac')}
               <select value={maillage} onChange={e => setMaillage(e.target.value)} className={inputCls}>
                 <option value="">— Sélectionner —</option>
                 {MAILLAGES.map(m => <option key={m} value={m}>{m}</option>)}
               </select>
             </div>
             <div>
-              {label('Pré-chauffe (sec)')}
+              {lbl('Pré-chauffe (sec)')}
               <input type="number" min="0" value={preheat}
                 onChange={e => setPreheat(e.target.value)} placeholder="ex: 60" className={inputCls} />
             </div>
             <div>
-              {label('Durée extraction (sec)')}
+              {lbl('Durée extraction (sec)')}
               <input type="number" min="0" value={dureeExtr}
                 onChange={e => setDureeExtr(e.target.value)} placeholder="ex: 120" className={inputCls} />
             </div>
           </div>
 
-          {/* Sacs */}
+          {/* ── Sacs d'entrée ──────────────────────────────────────────── */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              {label('Répartition par sac (g)')}
-              {sacs.length < 4 && (
+              {lbl('Répartition par sac (g)', true)}
+              {sacs.length < 5 && (
                 <button type="button" onClick={addSac}
                   className="flex items-center gap-1 text-xs text-grow-600 hover:text-grow-800 font-medium">
                   <Plus size={12} /> Sac {sacs.length + 1}
@@ -264,14 +304,37 @@ export default function NouvelleExtractionModal({ stocks, onClose }: Props) {
               )}
             </div>
             <div className="space-y-2">
-              {sacs.map((v, i) => (
+              {sacs.map((sac, i) => (
                 <div key={i} className="flex items-center gap-2">
                   <span className="text-sm text-gray-500 dark:text-gray-400 w-12 shrink-0">Sac {i + 1}</span>
-                  <input type="number" min="0" step="0.01" value={v}
-                    onChange={e => updateSac(i, e.target.value)} placeholder="0.00"
-                    className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm focus:ring-2 focus:ring-grow-500" />
-                  <span className="text-sm text-gray-400 dark:text-gray-500">g</span>
-                  {i >= 2 && (
+
+                  {/* Sélecteur produit par sac — uniquement en mode multi-produits */}
+                  {!isSingle && (
+                    <select
+                      value={sac.stockId}
+                      onChange={e => updateSac(i, 'stockId', e.target.value)}
+                      className="w-36 rounded-lg border border-gray-300 dark:border-gray-600 px-2 py-2 text-xs focus:ring-2 focus:ring-grow-500 bg-white dark:bg-gray-800"
+                      required={parseFloat(sac.poids) > 0}
+                    >
+                      <option value="">— Produit —</option>
+                      {sources.filter(s => s.stockId).map(s => {
+                        const st = stocksDisponibles.find(st => st.id_stock === parseInt(s.stockId))
+                        return st ? (
+                          <option key={st.id_stock} value={st.id_stock}>
+                            {st.variete_nom || '(sans variété)'}
+                          </option>
+                        ) : null
+                      })}
+                    </select>
+                  )}
+
+                  <input
+                    type="number" min="0" step="0.01" value={sac.poids}
+                    onChange={e => updateSac(i, 'poids', e.target.value)}
+                    placeholder="0.00"
+                    className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm focus:ring-2 focus:ring-grow-500 dark:bg-gray-800" />
+                  <span className="text-sm text-gray-400 dark:text-gray-500 shrink-0">g</span>
+                  {sacs.length > 1 && (
                     <button type="button" onClick={() => removeSac(i)} className="p-1 text-gray-300 hover:text-red-500">
                       <Trash2 size={14} />
                     </button>
@@ -279,12 +342,16 @@ export default function NouvelleExtractionModal({ stocks, onClose }: Props) {
                 </div>
               ))}
             </div>
+            <div className="mt-3 flex justify-between bg-gray-50 dark:bg-gray-700/50 rounded-lg px-4 py-2">
+              <span className="text-sm text-gray-500 dark:text-gray-400">Total entrée (sacs)</span>
+              <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">{totalSacs.toFixed(2)} g</span>
+            </div>
           </div>
 
-          {/* Passes de presse */}
+          {/* ── Passes de presse ───────────────────────────────────────── */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              {label('Poids par passe de presse (g)', true)}
+              {lbl('Poids par passe de presse (g)', true)}
               {presses.length < 4 && (
                 <button type="button" onClick={addPresse}
                   className="flex items-center gap-1 text-xs text-purple-600 hover:text-purple-800 font-medium">
@@ -298,8 +365,8 @@ export default function NouvelleExtractionModal({ stocks, onClose }: Props) {
                   <span className="text-sm text-gray-500 dark:text-gray-400 w-16 shrink-0">Passe {i + 1}</span>
                   <input type="number" min="0" step="0.01" value={v}
                     onChange={e => updatePresse(i, e.target.value)} placeholder="0.00" required={i === 0}
-                    className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm focus:ring-2 focus:ring-purple-400" />
-                  <span className="text-sm text-gray-400 dark:text-gray-500">g</span>
+                    className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm focus:ring-2 focus:ring-purple-400 dark:bg-gray-800" />
+                  <span className="text-sm text-gray-400 dark:text-gray-500 shrink-0">g</span>
                   {i > 0 && (
                     <button type="button" onClick={() => removePresse(i)} className="p-1 text-gray-300 hover:text-red-500">
                       <Trash2 size={14} />
@@ -308,10 +375,10 @@ export default function NouvelleExtractionModal({ stocks, onClose }: Props) {
                 </div>
               ))}
             </div>
-            <div className="mt-2 flex justify-between bg-purple-50 rounded-lg px-4 py-2">
-              <span className="text-sm text-purple-600">Total sortie</span>
+            <div className="mt-2 flex justify-between bg-purple-50 dark:bg-purple-900/20 rounded-lg px-4 py-2">
+              <span className="text-sm text-purple-600 dark:text-purple-400">Total sortie</span>
               <div className="flex items-center gap-3">
-                <span className="text-sm font-semibold text-purple-900">{poidsSortie.toFixed(2)} g</span>
+                <span className="text-sm font-semibold text-purple-900 dark:text-purple-200">{poidsSortie.toFixed(2)} g</span>
                 {rendement !== null && (
                   <span className="text-xs font-medium text-grow-600 bg-grow-50 px-2 py-0.5 rounded-full">
                     {rendement}%
@@ -321,9 +388,9 @@ export default function NouvelleExtractionModal({ stocks, onClose }: Props) {
             </div>
           </div>
 
-          {/* Notes */}
+          {/* ── Notes ─────────────────────────────────────────────────── */}
           <div>
-            {label('Notes')}
+            {lbl('Notes')}
             <textarea value={notes} onChange={e => setNotes(e.target.value)}
               rows={2} placeholder="Observations, remarques…"
               className={inputCls + ' resize-none'} />

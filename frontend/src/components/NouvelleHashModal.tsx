@@ -46,6 +46,8 @@ export default function NouvelleHashModal({ onClose }: Props) {
   const [sacs,     setSacs]     = useState<Sac[]>([{ maillage: '73µ', poids: '' }])
   const [passages, setPassages] = useState<Passage[]>([{ duree: '' }])
 
+  const isSingle = sources.length === 1
+
   // ── Gestion sources ───────────────────────────────────────────────────────
   const addSource    = () => setSources(p => [...p, { stockId: '', quantite: '' }])
   const removeSource = (i: number) => { if (sources.length > 1) setSources(p => p.filter((_, x) => x !== i)) }
@@ -55,10 +57,17 @@ export default function NouvelleHashModal({ onClose }: Props) {
   const selectedStockIds = sources.map(s => s.stockId).filter(Boolean)
 
   // ── Calculs ───────────────────────────────────────────────────────────────
-  const poidsEntreeTotal = useMemo(
-    () => sources.reduce((sum, s) => sum + (parseFloat(s.quantite) || 0), 0),
-    [sources]
-  )
+  // Si un seul produit → quantité = tout le dispo
+  // Si plusieurs produits → somme des quantités saisies
+  const poidsEntreeTotal = useMemo(() => {
+    if (isSingle) {
+      if (!sources[0].stockId) return 0
+      const stock = stocksDispo.find(s => s.id_stock === parseInt(sources[0].stockId))
+      return stock ? Number(stock.quantite_stock) : 0
+    }
+    return sources.reduce((sum, s) => sum + (parseFloat(s.quantite) || 0), 0)
+  }, [sources, stocksDispo, isSingle])
+
   const totalSortieIceo = useMemo(
     () => sacs.reduce((s, r) => s + (parseFloat(r.poids) || 0), 0),
     [sacs]
@@ -69,8 +78,10 @@ export default function NouvelleHashModal({ onClose }: Props) {
     return ((sortie / poidsEntreeTotal) * 100).toFixed(1)
   }, [typeExtraction, poidsEntreeTotal, poidsSortiePol, totalSortieIceo])
 
-  const sourceWarnings = useMemo(() =>
-    sources.map(s => {
+  // Warnings uniquement en mode multi
+  const sourceWarnings = useMemo(() => {
+    if (isSingle) return sources.map(() => null)
+    return sources.map(s => {
       if (!s.stockId || !s.quantite) return null
       const stock = stocksDispo.find(st => st.id_stock === parseInt(s.stockId))
       if (!stock) return null
@@ -78,9 +89,8 @@ export default function NouvelleHashModal({ onClose }: Props) {
       if (qty > Number(stock.quantite_stock))
         return `Dépasse le stock dispo (${Number(stock.quantite_stock).toFixed(1)} g)`
       return null
-    }),
-    [sources, stocksDispo]
-  )
+    })
+  }, [sources, stocksDispo, isSingle])
 
   // ── Gestion sacs Ice-o-lator ──────────────────────────────────────────────
   const addSac    = () => setSacs(p => [...p, { maillage: MAILLAGES_ICEOLATOR[0], poids: '' }])
@@ -99,19 +109,30 @@ export default function NouvelleHashModal({ onClose }: Props) {
     mutationFn: () => {
       if (!date) throw new Error('La date est obligatoire')
 
-      const sourcesValides = sources.filter(s => s.stockId && parseFloat(s.quantite) > 0)
-      if (sourcesValides.length === 0)
-        throw new Error('Sélectionnez au moins un produit avec une quantité')
-      for (const s of sources) {
-        if (s.stockId && !s.quantite)
-          throw new Error('Renseignez la quantité pour chaque produit sélectionné')
+      // Validation sources
+      if (isSingle) {
+        if (!sources[0].stockId) throw new Error('Sélectionnez un produit en entrée')
+        if (poidsEntreeTotal <= 0) throw new Error('Le stock sélectionné est vide')
+      } else {
+        const sourcesValides = sources.filter(s => s.stockId && parseFloat(s.quantite) > 0)
+        if (sourcesValides.length === 0)
+          throw new Error('Sélectionnez au moins un produit avec une quantité')
+        for (const s of sources) {
+          if (s.stockId && !s.quantite)
+            throw new Error('Renseignez la quantité pour chaque produit sélectionné')
+        }
+        if (poidsEntreeTotal <= 0) throw new Error("Le poids total d'entrée doit être > 0")
       }
-      if (poidsEntreeTotal <= 0) throw new Error("Le poids total d'entrée doit être > 0")
 
-      const sourcesPayload = sourcesValides.map(s => ({
-        id_stock: parseInt(s.stockId),
-        quantite: parseFloat(s.quantite),
-      }))
+      // Construction payload sources
+      let sourcesPayload: { id_stock: number; quantite: number }[]
+      if (isSingle) {
+        sourcesPayload = [{ id_stock: parseInt(sources[0].stockId), quantite: poidsEntreeTotal }]
+      } else {
+        sourcesPayload = sources
+          .filter(s => s.stockId && parseFloat(s.quantite) > 0)
+          .map(s => ({ id_stock: parseInt(s.stockId), quantite: parseFloat(s.quantite) }))
+      }
 
       if (typeExtraction === 'Polinator') {
         const sortie = parseFloat(poidsSortiePol)
@@ -201,7 +222,7 @@ export default function NouvelleHashModal({ onClose }: Props) {
           {/* Produits en entrée */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              {lbl('Produits en entrée', true)}
+              {lbl('Produit(s) en entrée', true)}
               <button type="button" onClick={addSource}
                 className="flex items-center gap-1 text-xs text-amber-600 hover:text-amber-800 font-medium">
                 <Plus size={12} /> Ajouter un produit
@@ -231,13 +252,20 @@ export default function NouvelleHashModal({ onClose }: Props) {
                           )
                         })}
                       </select>
-                      <input
-                        type="number" min="0" step="0.1" value={src.quantite}
-                        onChange={e => updateSource(i, 'quantite', e.target.value)}
-                        placeholder="0.0" required
-                        className="w-24 rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm focus:ring-2 focus:ring-amber-400 dark:bg-gray-800"
-                      />
-                      <span className="text-sm text-gray-400 dark:text-gray-500 shrink-0">g</span>
+
+                      {/* Quantité saisie uniquement en mode multi-produits */}
+                      {!isSingle && (
+                        <>
+                          <input
+                            type="number" min="0" step="0.1" value={src.quantite}
+                            onChange={e => updateSource(i, 'quantite', e.target.value)}
+                            placeholder="0.0" required
+                            className="w-24 rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm focus:ring-2 focus:ring-amber-400 dark:bg-gray-800"
+                          />
+                          <span className="text-sm text-gray-400 dark:text-gray-500 shrink-0">g</span>
+                        </>
+                      )}
+
                       {sources.length > 1 && (
                         <button type="button" onClick={() => removeSource(i)}
                           className="p-1 text-gray-300 hover:text-red-500 shrink-0">
@@ -245,7 +273,20 @@ export default function NouvelleHashModal({ onClose }: Props) {
                         </button>
                       )}
                     </div>
-                    {stockSel && (
+
+                    {/* En mode simple : affiche le dispo comme info principale */}
+                    {isSingle && stockSel && (
+                      <p className="text-xs pl-1 text-gray-500 dark:text-gray-400">
+                        Total utilisé :{' '}
+                        <span className="font-semibold text-gray-800 dark:text-gray-200">
+                          {Number(stockSel.quantite_stock).toFixed(1)} g
+                        </span>
+                        {' '}(tout le stock disponible)
+                      </p>
+                    )}
+
+                    {/* En mode multi : dispo + warning */}
+                    {!isSingle && stockSel && (
                       <p className="text-xs text-gray-400 dark:text-gray-500 pl-1">
                         Dispo : <span className="font-medium text-gray-600 dark:text-gray-300">{Number(stockSel.quantite_stock).toFixed(1)} g</span>
                       </p>
@@ -259,10 +300,14 @@ export default function NouvelleHashModal({ onClose }: Props) {
                 )
               })}
             </div>
-            <div className="mt-3 flex justify-between bg-amber-50 dark:bg-amber-900/20 rounded-lg px-4 py-2">
-              <span className="text-sm text-amber-700 dark:text-amber-400">Total entrée</span>
-              <span className="text-sm font-semibold text-amber-900 dark:text-amber-200">{poidsEntreeTotal.toFixed(2)} g</span>
-            </div>
+
+            {/* Total entrée */}
+            {(!isSingle || poidsEntreeTotal > 0) && (
+              <div className="mt-3 flex justify-between bg-amber-50 dark:bg-amber-900/20 rounded-lg px-4 py-2">
+                <span className="text-sm text-amber-700 dark:text-amber-400">Total entrée</span>
+                <span className="text-sm font-semibold text-amber-900 dark:text-amber-200">{poidsEntreeTotal.toFixed(2)} g</span>
+              </div>
+            )}
           </div>
 
           {/* Date */}

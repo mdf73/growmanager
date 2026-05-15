@@ -1,15 +1,12 @@
-feat: multi-sources en entrée pour extractions Rosin et Hash
+refactor: quantité entrée Rosin dérivée des sacs, pas saisie manuellement
 
-- Formulaires NouvelleExtractionModal + NouvelleHashModal : section
-  dynamique permettant de sélectionner N stocks/variétés en entrée
-  (chaque ligne : dropdown stock + quantité g + bouton supprimer)
-- Backend : helpers _deduct_sources / _apply_deductions dans extractions.py,
-  déduction multi-stock avec fermeture auto si stock épuisé
-- Schémas Pydantic : ExtractionSource + champ sources: Optional[list]
-  sur RosinExtractionBase et HashExtractionBase
-- DB : colonne sources JSON NULL sur RosinExtraction et HashExtraction
-  (migration backend/migrate_sources.sql — déjà appliquée)
-- Frontend api/stock.ts : interface ExtractionSource + sources? sur
-  RosinExtraction et HashExtraction
-- Rétrocompat : id_stock_source conservé (= sources[0]) pour les vues existantes
+NouvelleExtractionModal.tsx :
+- Section "Produits en entrée" : sélection des stocks uniquement,
+  sans champ quantité (la quantité découle des sacs)
+- Section "Répartition par sac" :
+    · 1 produit → sacs avec poids seul, total = déduction du stock
+    · N produits → chaque sac a un sélecteur produit + poids ;
+      déductions calculées par agrégation sacs→produit
+- Warning temps réel si total sacs > dispo d'un produit
+- quantite_utilisee = sum(sacs.poids), sources payload dérivé des sacs
 - Wiki mis à jour : wiki/api/stock-extractions.md
