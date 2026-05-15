@@ -89,6 +89,7 @@ Hash extraction session (Polinator or Ice-o-lator method).
 | `date_hashextraction` | Date | |
 | `type_extraction` | String | `Polinator` \| `Ice-o-lator` |
 | `duree_polinator` | Int (nullable) | Polinator run time (min) |
+| `maillage_polinator` | String(20) (nullable) | Mesh size selected for Polinator (e.g. '120µ') — paramétrable via `maillages_polinator` |
 | `passages` | JSON | Pass records |
 | `sacs` | JSON | Bag data |
 | `quantite_utilisee` | Float | Input (g) |

@@ -1,15 +1,7 @@
-feat: courbes capteurs (T°/Hum/VPD) dans les calendriers jour par jour
+feat: maillages Polinator paramétrables
 
-- Nouveau composant SensorDayChart.tsx — LineCharts Recharts 00:00→23:59
-  · Moyennes horaires (1 point/heure) calculées côté frontend
-  · 1 ligne par capteur (id_device) avec couleur dédiée + légende
-  · 3 tiles résumé min/moy/max global + 3 courbes empilées (temp / hum / vpd)
-  · Props : date (ISO locale) + idEspace (filtre optionnel)
-  · Fallback single-mode si logs sans id_device (données agrégées)
-  · API : GET /api/temperature-logs?date_debut=T00:00:00&date_fin=T23:59:59
-  · Aucun nouvel endpoint backend nécessaire
-
-- CalendrierGlobal — DayModal : SensorDayChart sous les events (toutes tentes)
-- CalendrierCulture — panneau jour sélectionné : SensorDayChart filtré sur id_espace
-
-- Wiki : frontend/pages.md + features/sensor-integration.md mis à jour
+- Parametrage.tsx : ajout liste "maillages_polinator" (🥁) dans section Stock — Maillages
+- NouvelleHashModal.tsx : champ maillage Polinator fixe → select dynamique (useParametreListe)
+- HashExtraction model + schéma : nouvelle colonne maillage_polinator VARCHAR(20) NULL
+- main.py run_migrations() : migration automatique maillage_polinator
+- Wiki : database/stock.md, database/equipment.md, roadmap.md mis à jour

@@ -127,6 +127,11 @@ Stores all dropdown/select values used in the UI.
 
 Managed via `Parametrage` page and `/api/parametres/{liste_nom}` endpoints.
 
+**Listes maillages disponibles :**
+- `maillages_polinator` — Maillages Polinator (µ). Fallback : `['120µ']`
+- `maillages_iceolator` — Maillages Ice-O-Lator (µ). Fallback : `['15µ', '25µ', '45µ', '73µ', '90µ', '160µ', '190µ', '220µ']`
+- `maillages_rosin` — Maillages Rosin bags (µ)
+
 ---
 
 ## See Also

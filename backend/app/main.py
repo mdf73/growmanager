@@ -109,6 +109,8 @@ def run_migrations():
         ("Culture", "date_debut_flush", "ALTER TABLE Culture ADD COLUMN date_debut_flush DATE NULL"),
         # V4-F — Traçabilité stock → plante
         ("Stock", "id_plant", "ALTER TABLE Stock ADD COLUMN id_plant INT NULL REFERENCES Plant(id_plant)"),
+        # Maillage Polinator — sélection dynamique depuis paramétrage
+        ("HashExtraction", "maillage_polinator", "ALTER TABLE HashExtraction ADD COLUMN maillage_polinator VARCHAR(20) NULL"),
     ]
     # Créer les tables manquantes (ProduitEngrais, TemperatureLog, etc.)
     Base.metadata.create_all(bind=engine)

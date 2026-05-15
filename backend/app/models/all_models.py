@@ -732,6 +732,7 @@ class HashExtraction(Base):
     date_hashextraction = Column(Date)
     type_extraction     = Column(String(20), nullable=True)   # 'Polinator' | 'Ice-o-lator'
     duree_polinator     = Column(Integer, nullable=True)       # minutes, pour Polinator
+    maillage_polinator  = Column(String(20), nullable=True)    # maillage sélectionné, pour Polinator
     passages            = Column(JSON, nullable=True)          # [{"duree": int}] pour Ice-o-lator
     sacs                = Column(JSON, nullable=True)          # [{"maillage": str, "poids": float}]
     sources             = Column(JSON, nullable=True)          # [{"id_stock": int, "quantite": float}]

@@ -58,6 +58,7 @@ class HashExtractionBase(BaseModel):
     date_hashextraction: date
     type_extraction:     Optional[str]   = None   # 'Polinator' | 'Ice-o-lator'
     duree_polinator:     Optional[int]   = None   # minutes
+    maillage_polinator:  Optional[str]   = None   # maillage sélectionné (ex: '120µ')
     passages:            Optional[list]  = None   # [{"duree": int}]
     sacs:                Optional[list]  = None   # [{"maillage": str, "poids": float}]
     sources:             Optional[list]  = None   # [{"id_stock": int, "quantite": float}]

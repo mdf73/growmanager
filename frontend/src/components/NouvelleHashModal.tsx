@@ -1,12 +1,12 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { X, Loader2, AlertTriangle, Plus, Trash2 } from 'lucide-react'
 import { hashAPI, stockAPI } from '../api/stock'
 import type { Stock } from '../api/stock'
 import { useParametreListe } from '../api/parametres'
 
-const MAILLAGES_ICEOLATOR_FB = ['15µ', '25µ', '45µ', '73µ', '90µ', '160µ', '190µ', '220µ']
-const MAILLAGE_POLINATOR     = '120µ'
+const MAILLAGES_ICEOLATOR_FB  = ['15µ', '25µ', '45µ', '73µ', '90µ', '160µ', '190µ', '220µ']
+const MAILLAGES_POLINATOR_FB  = ['120µ']
 
 type TypeExtraction = 'Polinator' | 'Ice-o-lator'
 
@@ -19,8 +19,10 @@ interface Props { onClose: () => void }
 export default function NouvelleHashModal({ onClose }: Props) {
   const qc    = useQueryClient()
   const today = new Date().toISOString().split('T')[0]
-  const { values: maillagesParam } = useParametreListe('maillages_iceolator')
-  const MAILLAGES_ICEOLATOR = maillagesParam.length > 0 ? maillagesParam : MAILLAGES_ICEOLATOR_FB
+  const { values: maillagesIceoParam }  = useParametreListe('maillages_iceolator')
+  const { values: maillagesPoliParam }  = useParametreListe('maillages_polinator')
+  const MAILLAGES_ICEOLATOR  = maillagesIceoParam.length > 0 ? maillagesIceoParam : MAILLAGES_ICEOLATOR_FB
+  const MAILLAGES_POLINATOR  = maillagesPoliParam.length > 0 ? maillagesPoliParam : MAILLAGES_POLINATOR_FB
 
   const { data: stocks = [] } = useQuery<Stock[]>({
     queryKey: ['stock'],
@@ -39,8 +41,16 @@ export default function NouvelleHashModal({ onClose }: Props) {
   const [error,          setError]          = useState<string | null>(null)
 
   // Polinator
-  const [dureePolinator, setDureePolinator] = useState('')
-  const [poidsSortiePol, setPoidsSortiePol] = useState('')
+  const [dureePolinator,    setDureePolinator]    = useState('')
+  const [maillagePolinator, setMaillagePolinator] = useState('')
+  const [poidsSortiePol,    setPoidsSortiePol]    = useState('')
+
+  // Pré-sélectionner le premier maillage Polinator dès que la liste est disponible
+  useEffect(() => {
+    if (maillagePolinator === '' && MAILLAGES_POLINATOR.length > 0) {
+      setMaillagePolinator(MAILLAGES_POLINATOR[0])
+    }
+  }, [MAILLAGES_POLINATOR, maillagePolinator])
 
   // Ice-o-lator
   const [sacs,     setSacs]     = useState<Sac[]>([{ maillage: '73µ', poids: '' }])
@@ -143,6 +153,7 @@ export default function NouvelleHashModal({ onClose }: Props) {
           type_extraction:     'Polinator',
           sources:             sourcesPayload,
           duree_polinator:     dureePolinator ? parseInt(dureePolinator) : undefined,
+          maillage_polinator:  maillagePolinator || undefined,
           quantite_utilisee:   poidsEntreeTotal,
           quantite_extraite:   sortie,
           info_hashextraction: notes || undefined,
@@ -322,8 +333,15 @@ export default function NouvelleHashModal({ onClose }: Props) {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   {lbl('Maillage')}
-                  <input value={MAILLAGE_POLINATOR} readOnly
-                    className={inputCls + ' bg-gray-50 dark:bg-gray-700/50 text-gray-500 cursor-not-allowed'} />
+                  <select
+                    value={maillagePolinator}
+                    onChange={e => setMaillagePolinator(e.target.value)}
+                    className={inputCls + ' bg-white dark:bg-gray-800'}
+                  >
+                    {MAILLAGES_POLINATOR.map(m => (
+                      <option key={m} value={m}>{m}</option>
+                    ))}
+                  </select>
                 </div>
                 <div>
                   {lbl('Durée (min)')}

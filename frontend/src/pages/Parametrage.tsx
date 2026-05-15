@@ -72,8 +72,9 @@ const SECTIONS = [
   {
     titre: 'Stock — Maillages',
     listes: [
-      { nom: 'maillages_iceolator', label: 'Maillages Ice-O-Lator (µ)' },
-      { nom: 'maillages_rosin',     label: 'Maillages Rosin bags (µ)' },
+      { nom: 'maillages_polinator', label: '🥁 Maillages Polinator (µ)' },
+      { nom: 'maillages_iceolator', label: '🧊 Maillages Ice-O-Lator (µ)' },
+      { nom: 'maillages_rosin',     label: '🌹 Maillages Rosin bags (µ)' },
     ],
   },
   // ── Espaces & Culture ─────────────────────────────────────────────────────────

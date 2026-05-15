@@ -92,6 +92,11 @@ Bouton "Export PDF" dans le header de `/calendrier` · modal date début + date 
 
 ---
 
+### Maillages Polinator paramétrables ✅ DONE — validé 2026-05-15
+`maillages_polinator` ajouté dans `ParametreListeValeur` (section "Stock — Maillages" de Parametrage.tsx). `NouvelleHashModal.tsx` : le champ maillage Polinator (anciennement fixe à 120µ) est désormais un `<select>` dynamique chargé depuis `useParametreListe('maillages_polinator')` (fallback `['120µ']`). Colonne `maillage_polinator VARCHAR(20) NULL` ajoutée à `HashExtraction` (migration automatique dans `run_migrations()`, `main.py`).
+
+---
+
 ## Other Known Gaps
 
 ### Placeholder Pages to Implement
