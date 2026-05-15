@@ -1,12 +1,9 @@
-refactor: quantité entrée Rosin dérivée des sacs, pas saisie manuellement
+chore: review specs V4 — clôture HP TODOs + bump v3.2.0
 
-NouvelleExtractionModal.tsx :
-- Section "Produits en entrée" : sélection des stocks uniquement,
-  sans champ quantité (la quantité découle des sacs)
-- Section "Répartition par sac" :
-    · 1 produit → sacs avec poids seul, total = déduction du stock
-    · N produits → chaque sac a un sélecteur produit + poids ;
-      déductions calculées par agrégation sacs→produit
-- Warning temps réel si total sacs > dispo d'un produit
-- quantite_utilisee = sum(sacs.poids), sources payload dérivé des sacs
-- Wiki mis à jour : wiki/api/stock-extractions.md
+- Vérifié et marqués ✅ dans wiki/roadmap.md :
+  HP-1 Launch Culture depuis PlanCulture (NouvellerCultureModal + initialData)
+  HP-2 Multi-goal but_culture badges (split(',') Culture.tsx)
+  HP-3 ActionModal global harvest (backend expand par plante active)
+  HP-4 Export CSV PlanCulture (endpoint + bouton frontend)
+- wiki/log.md : entrée bilan review 2026-05-15
+- frontend/package.json : v3.1.0 → v3.2.0

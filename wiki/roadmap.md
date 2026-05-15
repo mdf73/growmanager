@@ -68,37 +68,17 @@ Pour refaire ce type d'analyse :
 
 ## High Priority (From Active Session Checkpoint)
 
-### 1. "Launch Culture" Button from PlanCulture
-**Where:** `PlanCulture` page (`/plan-culture`)
-**What:** Button that converts a `PlanCulture` (statut: `pret`) into an actual `Culture` by pre-filling `NouvellerCultureModal` with:
-- `id_espace` from `PlanCulture.id_espace`
-- Varieties + pot sizes from `PlanCultureVariete` records
+### 1. "Launch Culture" Button from PlanCulture ✅ DONE — validé 2026-05-15
+`NouvellerCultureModal` avec prop `initialData` (pré-remplit espace + variétés depuis le plan) · `planCultureAPI.update({ statut: 'lance' })` post-création · badge "Lancé" sur la carte plan.
 
-**Backend:** `POST /plans-culture/{id}/launch` endpoint (to be created)
-**Sets:** `PlanCulture.statut` → `lance`
+### 2. Multi-Goal Display in Culture.tsx ✅ DONE — validé 2026-05-15
+`but_culture.split(',')` avec rendu badge `<span>` — implémenté aux lignes 68 et 389 de `Culture.tsx`.
 
----
+### 3. ActionModal for Global Culture Harvest ✅ VÉRIFIÉ — 2026-05-15
+Backend `cultures.py` lignes 1906-1970 : `is_global=True` → expand en 1 action par plante active (exclut recolte/curing/prete/abandonne/wpff) → `_handle_action_effects` par plante. Comportement correct.
 
-### 2. Multi-Goal Display in Culture.tsx
-**Where:** `Culture.tsx` page
-**What:** `Culture.but_culture` is stored as a comma-separated string (e.g. `"Récolte,Hunt"`). The UI currently shows the raw string. Should parse and display as badges/chips.
-
-**Fix:** Split on comma in `Culture.tsx`, render each goal as a `<span>` badge.
-
----
-
-### 3. Verify ActionModal for Global Culture Harvest
-**Where:** `components/culture/ActionModal.tsx`
-**What:** When `global_culture = true` and `type_action = 'recolte'`, all active plants in the culture should be harvested simultaneously. Verify this is handled correctly — update all plant statuses + create individual harvest action records.
-
----
-
-### 4. Export CSV for Plan de Culture
-**Where:** `PlanCulture` page
-**What:** Add CSV export of the current plan (variety name, breeder, nb_plantes, taille_pot_l, estimated nb_pots).
-
-**Backend:** Add `GET /plans-culture/{id}/export/csv`
-**Frontend:** Add export button + `importExport.ts` call
+### 4. Export CSV for Plan de Culture ✅ DONE — validé 2026-05-15
+Backend `GET /plans-culture/{id}/export/csv` (plan_culture.py ligne 206) · bouton frontend PlanCulture.tsx ligne 968.
 
 ---
 

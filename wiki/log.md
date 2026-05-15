@@ -8,6 +8,23 @@ Operations: `bootstrap`, `ingest`, `query`, `lint`, `update`
 
 ---
 
+## [2026-05-15] update | Review specs V4 — bilan complet + clôture High Priority TODOs
+
+**Bilan review 2026-05-15 :**
+- Toutes les features V4 (A–M) : ✅ DONE (confirmé sur code réel)
+- HP-1 Launch Culture depuis PlanCulture : ✅ DONE (NouvellerCultureModal + initialData)
+- HP-2 Multi-goal but_culture badges : ✅ DONE (split(',') Culture.tsx)
+- HP-3 ActionModal global harvest : ✅ VÉRIFIÉ (backend expand par plante actives)
+- HP-4 Export CSV PlanCulture : ✅ DONE (endpoint + bouton frontend)
+- Croisements (audit marqué 🚧) : ✅ DONE — 1294 lignes frontend + router complet
+
+**Gaps restants après V4 :**
+- Stock bulk entry : ❌ non implémenté
+- Govee LAN polling : ⚠️ besoin test hardware H5179
+- Pas de specs V5 dans Documentation/ — projet en attente d'un nouveau backlog
+
+---
+
 ## [2026-05-14] update | Sprint L — Export PDF fiche culture
 
 **Feature :** Export PDF complet d'une fiche culture, généré côté backend avec fpdf2 (déjà présent dans requirements.txt).
