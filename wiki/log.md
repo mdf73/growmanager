@@ -8,6 +8,28 @@ Operations: `bootstrap`, `ingest`, `query`, `lint`, `update`
 
 ---
 
+## [2026-05-15] update | Bugfix coût engrais culture — x1000 trop cher
+
+**Bug corrigé :**
+- Fichier : `backend/app/routers/culture_helpers.py`, fonction `_compute_culture_cost`
+- Symptôme : coût engrais affiché sur la culture était 1000× trop élevé (ex : 70€ au lieu de 0.07€ pour 5 mL de mélasse noire)
+- Cause : `prix_par_unite = prix_achat / volume_conditionnement` ne convertissait pas les unités (1 L → 1 au lieu de 1000 mL)
+- Fix : ajout de `_to_small_unit(val, unite)` qui normalise L→mL et Kg→g avant le calcul
+- Le frontend (modal recette) était déjà correct via sa fonction `norm()`
+
+---
+
+## [2026-05-15] update | Export PDF Calendrier Global — v3.3.0
+
+**Feature validée :**
+- Nouveau endpoint `GET /api/calendrier/export?date_debut=&date_fin=` (calendrier.py)
+- Modal `ExportPDFModal` + bouton "Export PDF" dans header CalendrierGlobal
+- Génération HTML jour par jour : cover page + 1 page/jour, events groupés par type avec params/notes
+- `window.print()` → PDF natif navigateur · zéro dépendance
+- v3.2.0 → v3.3.0
+
+---
+
 ## [2026-05-15] update | Review specs V4 — bilan complet + clôture High Priority TODOs
 
 **Bilan review 2026-05-15 :**

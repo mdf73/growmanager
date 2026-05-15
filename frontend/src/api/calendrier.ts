@@ -35,3 +35,7 @@ export const getCalendrierEvents = (year: number, month: number) =>
 export const getCulturesRef = () =>
   client.get<CultureRef[]>('/calendrier/cultures-actives')
     .then(r => r.data)
+
+export const getCalendrierExport = (date_debut: string, date_fin: string) =>
+  client.get<CalendrierEvent[]>('/calendrier/export', { params: { date_debut, date_fin } })
+    .then(r => r.data)

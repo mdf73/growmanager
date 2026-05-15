@@ -1,4 +1,5 @@
 """Router Calendrier Global — Vue mensuelle de tous les events de toutes les cultures"""
+from datetime import date as DateType
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 from sqlalchemy import extract
@@ -62,6 +63,66 @@ def get_calendrier(
             "culture_nom":    culture.nom if culture else f"Culture #{a.id_culture}",
             "culture_statut": culture.statut if culture else None,
             # Plant
+            "id_plant":       a.id_plant,
+            "plant_nom":      plant.nom_affichage if plant else None,
+        })
+
+    return result
+
+
+@router.get("/export")
+def get_calendrier_export(
+    date_debut: str = Query(..., description="Date de début ISO (YYYY-MM-DD)"),
+    date_fin: str = Query(..., description="Date de fin ISO (YYYY-MM-DD)"),
+    db: Session = Depends(get_db),
+):
+    """
+    Retourne tous les events ActionCalendrier entre date_debut et date_fin (inclus).
+    Utilisé pour la génération du PDF export jour par jour.
+    """
+    debut = DateType.fromisoformat(date_debut)
+    fin   = DateType.fromisoformat(date_fin)
+
+    actions = (
+        db.query(ActionCalendrier)
+        .filter(
+            ActionCalendrier.date_action >= debut,
+            ActionCalendrier.date_action <= fin,
+        )
+        .order_by(ActionCalendrier.date_action)
+        .all()
+    )
+
+    culture_ids = {a.id_culture for a in actions}
+    plant_ids   = {a.id_plant   for a in actions if a.id_plant}
+
+    cultures_map: dict = {}
+    if culture_ids:
+        cultures_db = db.query(Culture).filter(Culture.id_culture.in_(culture_ids)).all()
+        for c in cultures_db:
+            cultures_map[c.id_culture] = c
+
+    plants_map: dict = {}
+    if plant_ids:
+        plants_db = db.query(Plant).filter(Plant.id_plant.in_(plant_ids)).all()
+        for p in plants_db:
+            plants_map[p.id_plant] = p
+
+    result = []
+    for a in actions:
+        culture = cultures_map.get(a.id_culture)
+        plant   = plants_map.get(a.id_plant) if a.id_plant else None
+
+        result.append({
+            "id_action":      a.id_action,
+            "date_action":    a.date_action.isoformat() if a.date_action else None,
+            "type_action":    a.type_action,
+            "global_culture": a.global_culture,
+            "parametres":     a.parametres,
+            "note":           a.note,
+            "id_culture":     a.id_culture,
+            "culture_nom":    culture.nom if culture else f"Culture #{a.id_culture}",
+            "culture_statut": culture.statut if culture else None,
             "id_plant":       a.id_plant,
             "plant_nom":      plant.nom_affichage if plant else None,
         })

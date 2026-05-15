@@ -47,6 +47,7 @@ Content catalog for the GrowManager development wiki. Read this first when start
 - [[api/stock-extractions]] — Stock, rosin extractions, hash extractions, dashboard stats
 - [[api/recipes]] — All recipe types CRUD + fertilizer product management
 - [[api/living-soil]] — SuiviSolVivant + all sub-event endpoints
+- [[api/calendrier]] — Calendrier global : events par mois, cultures-actives, export plage de dates
 - [[api/infrastructure]] — Govee sensors, growing spaces, materiel, parametres, import/export
 - [[api/planning]] — Plan culture, substrate preparation, historical cultures
 

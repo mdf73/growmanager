@@ -80,6 +80,9 @@ Backend `cultures.py` lignes 1906-1970 : `is_global=True` → expand en 1 action
 ### 4. Export CSV for Plan de Culture ✅ DONE — validé 2026-05-15
 Backend `GET /plans-culture/{id}/export/csv` (plan_culture.py ligne 206) · bouton frontend PlanCulture.tsx ligne 968.
 
+### 5. Export PDF Calendrier Global ✅ DONE — validé 2026-05-15
+Bouton "Export PDF" dans le header de `/calendrier` · modal date début + date fin · `GET /api/calendrier/export` · génération HTML jour par jour (1 page/jour, cover page) · `window.print()` → PDF · zéro dépendance externe.
+
 ---
 
 ## Other Known Gaps

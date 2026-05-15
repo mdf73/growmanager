@@ -4,8 +4,8 @@
  */
 import { useState, useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { ChevronLeft, ChevronRight, Calendar, Filter } from 'lucide-react'
-import { getCalendrierEvents, getCulturesRef, CalendrierEvent, CultureRef } from '../api/calendrier'
+import { ChevronLeft, ChevronRight, Calendar, Filter, FileDown } from 'lucide-react'
+import { getCalendrierEvents, getCulturesRef, getCalendrierExport, CalendrierEvent, CultureRef } from '../api/calendrier'
 
 // ─── Palette couleurs par culture (cycle) ────────────────────────────────────
 const CULTURE_COLORS = [
@@ -82,7 +82,7 @@ function EventChip({
   const meta = actionMeta(event.type_action)
   return (
     <button
-      onClick={() => onClick(event)}
+      onClick={ev => { ev.stopPropagation(); onClick(event) }}
       title={`${event.culture_nom}${event.plant_nom ? ' — ' + event.plant_nom : ''} : ${meta.label}`}
       className={`w-full text-left text-xs px-1.5 py-0.5 rounded truncate flex items-center gap-1 ${color.bg} ${color.text} hover:opacity-80 transition-opacity`}
     >
@@ -165,6 +165,104 @@ function EventDrawer({
   )
 }
 
+// ─── Modal vue journée ────────────────────────────────────────────────────────
+
+function DayModal({
+  dateStr,
+  events,
+  colorMap,
+  onEventClick,
+  onClose,
+}: {
+  dateStr: string
+  events: CalendrierEvent[]
+  colorMap: Map<number, typeof CULTURE_COLORS[0]>
+  onEventClick: (e: CalendrierEvent) => void
+  onClose: () => void
+}) {
+  const dateLabel = new Date(dateStr + 'T12:00:00').toLocaleDateString('fr-FR', {
+    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+  })
+
+  // Grouper les events par type_action
+  const groups = useMemo(() => {
+    const map = new Map<string, CalendrierEvent[]>()
+    for (const evt of events) {
+      if (!map.has(evt.type_action)) map.set(evt.type_action, [])
+      map.get(evt.type_action)!.push(evt)
+    }
+    return map
+  }, [events])
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+      <div
+        className="relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-lg max-h-[80vh] flex flex-col z-10"
+        onClick={e => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-700 shrink-0">
+          <div>
+            <h2 className="font-bold text-gray-900 dark:text-white capitalize">{dateLabel}</h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              {events.length} événement{events.length > 1 ? 's' : ''}
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-xl leading-none w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+          >
+            ×
+          </button>
+        </div>
+
+        {/* Corps : groupes par type */}
+        <div className="overflow-y-auto flex-1 px-6 py-4 space-y-5">
+          {[...groups.entries()].map(([type, evts]) => {
+            const meta = actionMeta(type)
+            return (
+              <div key={type}>
+                {/* Titre du groupe */}
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-base">{meta.emoji}</span>
+                  <span className="text-sm font-semibold text-gray-700 dark:text-gray-200">{meta.label}</span>
+                  <span className="text-xs text-gray-400 dark:text-gray-500 ml-auto">
+                    {evts.length} event{evts.length > 1 ? 's' : ''}
+                  </span>
+                </div>
+
+                {/* Events du groupe */}
+                <div className="space-y-1.5 pl-6">
+                  {evts.map(evt => {
+                    const color = colorMap.get(evt.id_culture) ?? CULTURE_COLORS[0]
+                    return (
+                      <button
+                        key={evt.id_action}
+                        onClick={() => { onClose(); onEventClick(evt) }}
+                        className={`w-full text-left px-3 py-2 rounded-xl border text-sm flex items-center gap-2 hover:opacity-80 transition-opacity ${color.bg} ${color.text} ${color.border}`}
+                      >
+                        <span className={`w-2 h-2 rounded-full shrink-0 ${color.dot}`} />
+                        <span className="font-medium">{evt.culture_nom}</span>
+                        {evt.plant_nom && (
+                          <span className="opacity-70 truncate">— {evt.plant_nom}</span>
+                        )}
+                        {evt.global_culture && (
+                          <span className="opacity-50 text-xs ml-auto shrink-0">global</span>
+                        )}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ─── Composant DayCell ────────────────────────────────────────────────────────
 
 function DayCell({
@@ -173,39 +271,496 @@ function DayCell({
   colorMap,
   isToday,
   onEventClick,
+  onDayClick,
 }: {
   day: number
   events: CalendrierEvent[]
   colorMap: Map<number, typeof CULTURE_COLORS[0]>
   isToday: boolean
   onEventClick: (e: CalendrierEvent) => void
+  onDayClick: () => void
 }) {
   const MAX_VISIBLE = 3
-  const visible  = events.slice(0, MAX_VISIBLE)
-  const overflow = events.length - MAX_VISIBLE
+
+  // Grouper les events par type_action
+  const groups = useMemo(() => {
+    const map = new Map<string, CalendrierEvent[]>()
+    for (const evt of events) {
+      if (!map.has(evt.type_action)) map.set(evt.type_action, [])
+      map.get(evt.type_action)!.push(evt)
+    }
+    return [...map.entries()] // [type_action, events[]]
+  }, [events])
+
+  const visibleGroups = groups.slice(0, MAX_VISIBLE)
+  const overflow = groups.length - MAX_VISIBLE
 
   return (
-    <div className={`min-h-[90px] p-1.5 border-b border-r border-gray-100 dark:border-gray-700 flex flex-col gap-0.5 ${isToday ? 'bg-grow-50 dark:bg-grow-900/20' : ''}`}>
+    <div
+      className={`min-h-[90px] p-1.5 border-b border-r border-gray-100 dark:border-gray-700 flex flex-col gap-0.5 cursor-pointer group ${isToday ? 'bg-grow-50 dark:bg-grow-900/20' : 'hover:bg-gray-50 dark:hover:bg-gray-700/30'} transition-colors`}
+      onClick={onDayClick}
+    >
       <span className={`text-xs font-semibold mb-0.5 w-6 h-6 flex items-center justify-center rounded-full ${
         isToday
           ? 'bg-grow-600 text-white'
-          : 'text-gray-600 dark:text-gray-300'
+          : 'text-gray-600 dark:text-gray-300 group-hover:bg-gray-200 dark:group-hover:bg-gray-600 transition-colors'
       }`}>
         {day}
       </span>
 
-      {visible.map(evt => (
-        <EventChip
-          key={evt.id_action}
-          event={evt}
-          color={colorMap.get(evt.id_culture) ?? CULTURE_COLORS[0]}
-          onClick={onEventClick}
-        />
-      ))}
+      {visibleGroups.map(([type, evts]) => {
+        // Groupe unique → chip couleur culture, clic direct sur l'event
+        if (evts.length === 1) {
+          return (
+            <EventChip
+              key={type}
+              event={evts[0]}
+              color={colorMap.get(evts[0].id_culture) ?? CULTURE_COLORS[0]}
+              onClick={onEventClick}
+            />
+          )
+        }
+        // Groupe multiple → chip neutre avec compteur, clic ouvre le day modal
+        const meta = actionMeta(type)
+        return (
+          <button
+            key={type}
+            onClick={ev => { ev.stopPropagation(); onDayClick() }}
+            className="w-full text-left text-xs px-1.5 py-0.5 rounded truncate flex items-center gap-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+          >
+            <span className="shrink-0">{meta.emoji}</span>
+            <span className="truncate flex-1">{meta.label}</span>
+            <span className="shrink-0 font-semibold text-gray-500 dark:text-gray-400">×{evts.length}</span>
+          </button>
+        )
+      })}
 
       {overflow > 0 && (
-        <span className="text-xs text-gray-400 dark:text-gray-500 pl-1">+{overflow} autre{overflow > 1 ? 's' : ''}</span>
+        <span className="text-xs text-gray-400 dark:text-gray-500 pl-1 hover:text-gray-600 dark:hover:text-gray-300">
+          +{overflow} type{overflow > 1 ? 's' : ''}
+        </span>
       )}
+    </div>
+  )
+}
+
+// ─── Génération HTML pour export PDF ─────────────────────────────────────────
+
+const ACTION_COLORS_PDF: Record<string, string> = {
+  graine_germee:    '#10b981',
+  debut_croissance: '#22c55e',
+  debut_floraison:  '#ec4899',
+  passage_12_12:    '#f59e0b',
+  arrosage_eau:     '#3b82f6',
+  arrosage_engrais: '#8b5cf6',
+  taille:           '#6b7280',
+  defoliation:      '#f97316',
+  recolte:          '#84cc16',
+  observations:     '#fbbf24',
+  traitement:       '#ef4444',
+  debut_curing:     '#a78bfa',
+  debut_sechage:    '#94a3b8',
+  ouverture_bocal:  '#c084fc',
+}
+
+function generateCalendarPDF(
+  events: CalendrierEvent[],
+  dateDebut: string,
+  dateFin: string,
+) {
+  // Grouper par jour
+  const byDay = new Map<string, CalendrierEvent[]>()
+  for (const evt of events) {
+    const key = evt.date_action.slice(0, 10)
+    if (!byDay.has(key)) byDay.set(key, [])
+    byDay.get(key)!.push(evt)
+  }
+
+  // Générer la liste de tous les jours dans l'intervalle
+  const days: string[] = []
+  const cur = new Date(dateDebut + 'T12:00:00')
+  const end = new Date(dateFin   + 'T12:00:00')
+  while (cur <= end) {
+    days.push(cur.toISOString().slice(0, 10))
+    cur.setDate(cur.getDate() + 1)
+  }
+
+  const fmtDate = (iso: string) =>
+    new Date(iso + 'T12:00:00').toLocaleDateString('fr-FR', {
+      weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+    })
+
+  const fmtTime = (isoFull: string) => {
+    const d = new Date(isoFull)
+    const h = d.getHours(), m = d.getMinutes()
+    return (h || m) ? `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}` : ''
+  }
+
+  const dayPages = days.map((day, idx) => {
+    const evts = byDay.get(day) ?? []
+    const isEmpty = evts.length === 0
+
+    // Grouper par type
+    const groups = new Map<string, CalendrierEvent[]>()
+    for (const evt of evts) {
+      if (!groups.has(evt.type_action)) groups.set(evt.type_action, [])
+      groups.get(evt.type_action)!.push(evt)
+    }
+
+    const groupsHtml = [...groups.entries()].map(([type, gEvts]) => {
+      const meta = ACTION_META[type] ?? { emoji: '📌', label: type }
+      const color = ACTION_COLORS_PDF[type] ?? '#6b7280'
+
+      const evtRows = gEvts.map(evt => {
+        const time = fmtTime(evt.date_action)
+        const params = evt.parametres && typeof evt.parametres === 'object'
+          ? Object.entries(evt.parametres)
+              .map(([k, v]) => `<span class="param">${k.replace(/_/g,' ')}: <b>${v}</b></span>`)
+              .join(' · ')
+          : ''
+        const note = evt.note ? `<div class="evt-note">📝 ${evt.note}</div>` : ''
+
+        return `
+          <div class="evt-row">
+            <div class="evt-meta">
+              ${time ? `<span class="evt-time">${time}</span>` : ''}
+              <span class="evt-culture">${evt.culture_nom}</span>
+              ${evt.plant_nom ? `<span class="evt-plant">— ${evt.plant_nom}</span>` : ''}
+              ${evt.global_culture ? `<span class="evt-global">culture entière</span>` : ''}
+            </div>
+            ${params ? `<div class="evt-params">${params}</div>` : ''}
+            ${note}
+          </div>`
+      }).join('')
+
+      return `
+        <div class="group-block" style="border-left-color: ${color}">
+          <div class="group-title">
+            <span class="group-emoji">${meta.emoji}</span>
+            <span class="group-label">${meta.label}</span>
+            <span class="group-count">${gEvts.length} événement${gEvts.length > 1 ? 's' : ''}</span>
+          </div>
+          <div class="group-events">${evtRows}</div>
+        </div>`
+    }).join('')
+
+    const isLast = idx === days.length - 1
+
+    return `
+      <div class="day-page${isLast ? ' last-page' : ''}">
+        <div class="day-header">
+          <div class="day-date">${fmtDate(day)}</div>
+          <div class="day-count">${evts.length === 0 ? 'Aucun événement' : `${evts.length} événement${evts.length > 1 ? 's' : ''}`}</div>
+        </div>
+        ${isEmpty
+          ? `<div class="empty-day"><span>🌙</span><span>Journée calme — aucune action enregistrée</span></div>`
+          : `<div class="groups-container">${groupsHtml}</div>`
+        }
+      </div>`
+  }).join('')
+
+  const html = `<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Calendrier GrowManager — ${fmtDate(dateDebut)} → ${fmtDate(dateFin)}</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 13px;
+      color: #1f2937;
+      background: white;
+    }
+
+    /* ── Cover page ── */
+    .cover {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      page-break-after: always;
+      padding: 60px 40px;
+      background: #f9fafb;
+    }
+    .cover-logo { font-size: 64px; margin-bottom: 24px; }
+    .cover-title { font-size: 36px; font-weight: 700; color: #111827; margin-bottom: 8px; text-align: center; }
+    .cover-subtitle { font-size: 18px; color: #6b7280; text-align: center; margin-bottom: 32px; }
+    .cover-range {
+      background: white;
+      border: 2px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 20px 40px;
+      text-align: center;
+    }
+    .cover-range-label { font-size: 12px; font-weight: 600; color: #9ca3af; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 6px; }
+    .cover-range-dates { font-size: 16px; font-weight: 600; color: #374151; }
+    .cover-stats { margin-top: 24px; font-size: 14px; color: #6b7280; }
+
+    /* ── Day pages ── */
+    .day-page {
+      page-break-after: always;
+      padding: 32px 40px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .day-page.last-page { page-break-after: avoid; }
+
+    .day-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      border-bottom: 2px solid #16a34a;
+      padding-bottom: 10px;
+      margin-bottom: 20px;
+    }
+    .day-date {
+      font-size: 22px;
+      font-weight: 700;
+      color: #111827;
+      text-transform: capitalize;
+    }
+    .day-count {
+      font-size: 13px;
+      color: #6b7280;
+      font-weight: 500;
+    }
+
+    .empty-day {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      color: #9ca3af;
+      font-size: 15px;
+    }
+    .empty-day span:first-child { font-size: 40px; }
+
+    /* ── Groupes ── */
+    .groups-container { display: flex; flex-direction: column; gap: 16px; }
+
+    .group-block {
+      border-left: 4px solid #16a34a;
+      padding-left: 14px;
+    }
+    .group-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .group-emoji { font-size: 16px; }
+    .group-label { font-size: 14px; font-weight: 700; color: #111827; }
+    .group-count { margin-left: auto; font-size: 11px; color: #9ca3af; }
+
+    /* ── Events ── */
+    .group-events { display: flex; flex-direction: column; gap: 6px; }
+
+    .evt-row {
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 8px 12px;
+    }
+    .evt-meta {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 2px;
+    }
+    .evt-time {
+      font-size: 11px;
+      font-weight: 600;
+      color: #6b7280;
+      background: #e5e7eb;
+      padding: 1px 6px;
+      border-radius: 4px;
+    }
+    .evt-culture {
+      font-weight: 600;
+      color: #16a34a;
+      font-size: 13px;
+    }
+    .evt-plant {
+      font-size: 12px;
+      color: #6b7280;
+    }
+    .evt-global {
+      font-size: 10px;
+      color: #9ca3af;
+      background: #f3f4f6;
+      padding: 1px 6px;
+      border-radius: 10px;
+    }
+    .evt-params {
+      font-size: 11px;
+      color: #4b5563;
+      margin-top: 3px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .param { background: #eff6ff; color: #1d4ed8; padding: 1px 6px; border-radius: 4px; }
+    .evt-note {
+      font-size: 11px;
+      color: #92400e;
+      background: #fffbeb;
+      border: 1px solid #fde68a;
+      border-radius: 4px;
+      padding: 4px 8px;
+      margin-top: 4px;
+    }
+
+    /* ── Print ── */
+    @media print {
+      @page { size: A4; margin: 0; }
+      body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Cover -->
+  <div class="cover">
+    <div class="cover-logo">🌿</div>
+    <div class="cover-title">Calendrier GrowManager</div>
+    <div class="cover-subtitle">Export jour par jour</div>
+    <div class="cover-range">
+      <div class="cover-range-label">Période exportée</div>
+      <div class="cover-range-dates">${fmtDate(dateDebut)} → ${fmtDate(dateFin)}</div>
+    </div>
+    <div class="cover-stats">${days.length} jour${days.length > 1 ? 's' : ''} · ${events.length} événement${events.length > 1 ? 's' : ''} au total</div>
+  </div>
+
+  <!-- Days -->
+  ${dayPages}
+
+  <script>window.onload = () => window.print()</script>
+</body>
+</html>`
+
+  const win = window.open('', '_blank')
+  if (win) {
+    win.document.write(html)
+    win.document.close()
+  }
+}
+
+// ─── Modal Export PDF ─────────────────────────────────────────────────────────
+
+function ExportPDFModal({ onClose }: { onClose: () => void }) {
+  const today = new Date().toISOString().slice(0, 10)
+  const firstOfMonth = today.slice(0, 8) + '01'
+
+  const [dateDebut, setDateDebut] = useState(firstOfMonth)
+  const [dateFin,   setDateFin]   = useState(today)
+  const [loading,   setLoading]   = useState(false)
+  const [error,     setError]     = useState<string | null>(null)
+
+  const handleExport = async () => {
+    if (!dateDebut || !dateFin) return
+    if (dateDebut > dateFin) { setError('La date de début doit être avant la date de fin.'); return }
+    setError(null)
+    setLoading(true)
+    try {
+      const events = await getCalendrierExport(dateDebut, dateFin)
+      generateCalendarPDF(events, dateDebut, dateFin)
+      onClose()
+    } catch {
+      setError('Erreur lors du chargement des données.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+      <div
+        className="relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-sm p-6 z-10"
+        onClick={e => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between mb-5">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">📄</span>
+            <div>
+              <h2 className="font-bold text-gray-900 dark:text-white">Export PDF</h2>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Calendrier jour par jour</p>
+            </div>
+          </div>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-xl w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">×</button>
+        </div>
+
+        {/* Sélecteurs dates */}
+        <div className="space-y-4 mb-5">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+              Date de début
+            </label>
+            <input
+              type="date"
+              value={dateDebut}
+              onChange={e => setDateDebut(e.target.value)}
+              className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-grow-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+              Date de fin
+            </label>
+            <input
+              type="date"
+              value={dateFin}
+              onChange={e => setDateFin(e.target.value)}
+              className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-grow-500"
+            />
+          </div>
+        </div>
+
+        {/* Info */}
+        <p className="text-xs text-gray-400 dark:text-gray-500 mb-4 flex items-start gap-1.5">
+          <span className="mt-0.5">ℹ️</span>
+          <span>Chaque jour de la période sera une page dans le PDF. Le navigateur ouvrira une fenêtre d'impression.</span>
+        </p>
+
+        {error && (
+          <p className="text-xs text-red-600 dark:text-red-400 mb-4 bg-red-50 dark:bg-red-900/20 px-3 py-2 rounded-lg">
+            {error}
+          </p>
+        )}
+
+        {/* Actions */}
+        <div className="flex gap-2">
+          <button
+            onClick={onClose}
+            className="flex-1 px-4 py-2 rounded-lg text-sm border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+          >
+            Annuler
+          </button>
+          <button
+            onClick={handleExport}
+            disabled={loading || !dateDebut || !dateFin}
+            className="flex-1 px-4 py-2 rounded-lg text-sm bg-grow-600 text-white hover:bg-grow-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+          >
+            {loading ? (
+              <>
+                <div className="w-3.5 h-3.5 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+                Chargement…
+              </>
+            ) : (
+              <>
+                <FileDown size={14} />
+                Exporter
+              </>
+            )}
+          </button>
+        </div>
+      </div>
     </div>
   )
 }
@@ -217,8 +772,10 @@ export default function CalendrierGlobal() {
   const [year,  setYear]  = useState(today.getFullYear())
   const [month, setMonth] = useState(today.getMonth() + 1)
   const [selectedEvent, setSelectedEvent] = useState<CalendrierEvent | null>(null)
+  const [selectedDay, setSelectedDay] = useState<string | null>(null)
   const [filteredCultures, setFilteredCultures] = useState<Set<number>>(new Set())
   const [showFilters, setShowFilters] = useState(false)
+  const [showExport, setShowExport] = useState(false)
 
   // ── Données ──────────────────────────────────────────────────────────────
   const { data: events = [], isLoading: loadingEvents } = useQuery({
@@ -354,6 +911,15 @@ export default function CalendrierGlobal() {
               <span className="ml-1 text-xs font-bold">{filteredCultures.size}</span>
             )}
           </button>
+
+          <button
+            onClick={() => setShowExport(true)}
+            className="ml-1 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            title="Exporter en PDF"
+          >
+            <FileDown size={16} />
+            <span className="hidden sm:inline">Export PDF</span>
+          </button>
         </div>
       </div>
 
@@ -439,6 +1005,7 @@ export default function CalendrierGlobal() {
                   colorMap={colorMap}
                   isToday={key === todayStr}
                   onEventClick={setSelectedEvent}
+                  onDayClick={() => dayEvents.length > 0 && setSelectedDay(key)}
                 />
               )
             })}
@@ -484,6 +1051,17 @@ export default function CalendrierGlobal() {
         ))}
       </div>
 
+      {/* ── Modal vue journée ── */}
+      {selectedDay && (
+        <DayModal
+          dateStr={selectedDay}
+          events={eventsByDay.get(selectedDay) ?? []}
+          colorMap={colorMap}
+          onEventClick={setSelectedEvent}
+          onClose={() => setSelectedDay(null)}
+        />
+      )}
+
       {/* ── Drawer event ── */}
       {selectedEvent && (
         <EventDrawer
@@ -491,6 +1069,11 @@ export default function CalendrierGlobal() {
           color={selectedColor}
           onClose={() => setSelectedEvent(null)}
         />
+      )}
+
+      {/* ── Modal Export PDF ── */}
+      {showExport && (
+        <ExportPDFModal onClose={() => setShowExport(false)} />
       )}
     </div>
   )

@@ -1,9 +1,13 @@
-chore: review specs V4 — clôture HP TODOs + bump v3.2.0
+fix: coût engrais culture 1000x trop élevé (conversion unités L→mL)
 
-- Vérifié et marqués ✅ dans wiki/roadmap.md :
-  HP-1 Launch Culture depuis PlanCulture (NouvellerCultureModal + initialData)
-  HP-2 Multi-goal but_culture badges (split(',') Culture.tsx)
-  HP-3 ActionModal global harvest (backend expand par plante active)
-  HP-4 Export CSV PlanCulture (endpoint + bouton frontend)
-- wiki/log.md : entrée bilan review 2026-05-15
-- frontend/package.json : v3.1.0 → v3.2.0
+Le calcul de `cout_engrais` dans `culture_helpers.py` ne normalisait pas
+les unités du flacon produit avant de calculer le prix par unité.
+
+Exemple : mélasse noire 14€/1L, dosage 2.5 mL/L, arrosage 2L
+  - Avant : (2.5×2) × (14/1)    = 70 € 💥
+  - Après  : (2.5×2) × (14/1000) = 0.07 € ✓
+
+Fix : ajout de `_to_small_unit(val, unite)` qui convertit L→mL et Kg→g
+pour homogénéiser quantité utilisée et taille du flacon avant division.
+
+Fichier modifié : backend/app/routers/culture_helpers.py

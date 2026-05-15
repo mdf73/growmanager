@@ -192,12 +192,14 @@ Genetics/breeding management — fully implemented.
 Vue mensuelle globale de tous les events de toutes les cultures.
 - Grille 7×5/6 (lundi → dimanche, calendrier européen)
 - Navigation mois précédent / suivant / bouton Aujourd'hui
-- Chaque event affiché comme chip color-codé par culture (8 couleurs en rotation)
-- Clic sur un chip → drawer de détail (culture, plante, type action, paramètres JSON, note)
+- **Chips groupés par type d'action** (2026-05-15) : dans chaque cellule, les events sont groupés par `type_action`. Si un seul event du type → chip coloré par culture, clic → drawer détail. Si plusieurs events du même type → chip gris neutre avec badge `×N`, clic → modal journée. La limite de 3 visibles s'applique aux groupes (affiche "+N types" si dépassé).
+- **Clic sur une cellule jour** (2026-05-15) → modal centré "vue journée" : tous les events du jour groupés par type, avec compteur par groupe. Clic sur un event dans le modal → ferme le modal et ouvre le drawer détail. Les jours sans events ne réagissent pas au clic.
+- Clic sur un chip unique → drawer de détail (culture, plante, type action, paramètres JSON, note)
 - Filtre par culture (multi-select, bouton Filter)
+- **Export PDF jour par jour** (2026-05-15) : bouton "Export PDF" dans le header → modal avec date de début + date de fin. Génère un HTML avec une page par jour (cover + 1 page/jour), ouvre dans une nouvelle fenêtre et déclenche `window.print()`. Chaque page affiche la date en grand, les events groupés par type avec leurs paramètres JSON et notes. Les jours sans event affichent "Journée calme". API : `GET /api/calendrier/export?date_debut=&date_fin=`. Aucune dépendance externe — pure CSS print avec `page-break-after: always`.
 - Légende couleurs en bas de page
 - Stats rapides : total events mois, cultures actives, arrosages, traitements
-- Backend : `GET /api/calendrier?year=&month=` + `GET /api/calendrier/cultures-actives`
+- Backend : `GET /api/calendrier?year=&month=` + `GET /api/calendrier/cultures-actives` + `GET /api/calendrier/export?date_debut=&date_fin=`
 - Ajouté dans le groupe "Culture" de la sidebar nav
 
 ### ClassementVarietes (`/classement-varietes`)

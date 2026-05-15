@@ -276,6 +276,12 @@ def _compute_culture_cost(id_culture: int, db: Session, date_fin_override=None) 
         ActionCalendrier.type_action == "arrosage_engrais",
     ).all()
 
+    def _to_small_unit(val: float, unite: str) -> float:
+        """Normalise L→mL et Kg→g pour homogénéiser les calculs de coût."""
+        if unite and unite.lower() in ('l', 'kg'):
+            return val * 1000.0
+        return val
+
     cout_engrais = 0.0
     for action in actions_arrosage:
         p = action.parametres or {}
@@ -290,9 +296,13 @@ def _compute_culture_cost(id_culture: int, db: Session, date_fin_override=None) 
             prod = db.query(ProduitEngrais).filter(ProduitEngrais.id_produit == ligne.id_produit).first()
             if not prod or not prod.prix_achat or not prod.volume_conditionnement:
                 continue
-            qte_utilisee = ligne.dosage * volume_l
-            prix_par_unite = float(prod.prix_achat) / float(prod.volume_conditionnement)
-            cout_engrais += qte_utilisee * prix_par_unite
+            # Quantité utilisée en petite unité (mL ou g)
+            qte_utilisee = _to_small_unit(float(ligne.dosage) * volume_l, ligne.unite or 'mL')
+            # Taille du flacon en petite unité (mL ou g) — évite la confusion €/L vs €/mL
+            base = _to_small_unit(float(prod.volume_conditionnement), prod.unite_volume or 'mL')
+            if not base:
+                continue
+            cout_engrais += qte_utilisee * (float(prod.prix_achat) / base)
 
     cout_engrais = round(cout_engrais, 2)
 
