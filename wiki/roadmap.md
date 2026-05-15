@@ -90,6 +90,9 @@ Bouton "Export PDF" dans le header de `/calendrier` · modal date début + date 
 ### Courbes capteurs dans les calendriers ✅ DONE — validé 2026-05-15
 `SensorDayChart.tsx` · moyennes horaires (1 pt/heure) · 1 ligne par capteur · tiles min/moy/max · intégré dans `DayModal` CalendrierGlobal + panneau jour CalendrierCulture (filtré sur `id_espace`).
 
+### Courbes capteurs dans l'export PDF calendrier ✅ DONE — validé 2026-05-15
+`buildSensorSVGCharts()` dans `CalendrierGlobal.tsx` · SVG inline par jour · T°/Hum/VPD · moyennes horaires · 1 polyline par capteur · légende si multi-capteurs · fetch logs en parallèle des events dans `ExportPDFModal`.
+
 ---
 
 ### Maillages Polinator paramétrables ✅ DONE — validé 2026-05-15
