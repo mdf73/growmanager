@@ -7,6 +7,9 @@ import {
 } from 'lucide-react'
 import { cultureAPI, Culture, CultureWithDetails, CultureCreate } from '../api/cultures'
 import { photosAPI } from '../api/photos'
+import { getCalendrierExport } from '../api/calendrier'
+import { capteursAPI } from '../api/capteurs'
+import { generateCalendarPDF } from '../utils/calendarPdfExport'
 import LoadingSpinner from '../components/LoadingSpinner'
 import CalendrierCulture from '../components/culture/CalendrierCulture'
 import PlantesTab from '../components/culture/PlantesTab'
@@ -299,19 +302,30 @@ function CultureDetail({ cultureId, onBack }: { cultureId: number; onBack: () =>
 
   const [exportingPdf, setExportingPdf] = useState(false)
   const handleExportPdf = async () => {
+    if (!culture) return
     setExportingPdf(true)
     try {
-      const response = await fetch(`/api/cultures/${cultureId}/export/pdf`)
-      if (!response.ok) throw new Error('Erreur génération PDF')
-      const blob = await response.blob()
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      const nom = culture?.nom?.replace(/\s+/g, '_') || `culture_${cultureId}`
-      a.download = `fiche_${nom}.pdf`
-      a.click()
-      URL.revokeObjectURL(url)
-    } catch (e) {
+      // Dates auto : date_debut de la culture → date_fin (ou aujourd'hui si encore active)
+      const today = new Date().toISOString().slice(0, 10)
+      const dateDebut = culture.date_debut?.slice(0, 10) || today
+      const dateFin   = culture.date_fin?.slice(0, 10)   || today
+
+      // Chargement events + capteurs en parallèle
+      const [events, logsRes] = await Promise.all([
+        getCalendrierExport(dateDebut, dateFin, culture.id_culture),
+        capteursAPI.getLogs({
+          date_debut: `${dateDebut}T00:00:00`,
+          date_fin:   `${dateFin}T23:59:59`,
+          ...(culture.id_espace ? { id_espace: culture.id_espace } : {}),
+        }),
+      ])
+
+      generateCalendarPDF(events, dateDebut, dateFin, logsRes.data, {
+        title:       `Journal — ${culture.nom}`,
+        subtitle:    'Suivi de culture jour par jour',
+        cultureName: culture.nom,
+      })
+    } catch {
       alert('Impossible de générer le PDF.')
     } finally {
       setExportingPdf(false)

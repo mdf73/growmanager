@@ -8,6 +8,12 @@ import { ChevronLeft, ChevronRight, Calendar, Filter, FileDown } from 'lucide-re
 import { getCalendrierEvents, getCulturesRef, getCalendrierExport, CalendrierEvent, CultureRef } from '../api/calendrier'
 import { capteursAPI, TemperatureLog } from '../api/capteurs'
 import SensorDayChart from '../components/SensorDayChart'
+import {
+  generateCalendarPDF as _generateCalendarPDF,
+  buildSensorSVGCharts as _buildSensorSVGCharts,
+  ACTION_META as _ACTION_META,
+  ACTION_COLORS_PDF as _ACTION_COLORS_PDF,
+} from '../utils/calendarPdfExport'
 
 // ─── Palette couleurs par culture (cycle) ────────────────────────────────────
 const CULTURE_COLORS = [
@@ -349,141 +355,27 @@ function DayCell({
   )
 }
 
-// ─── Génération HTML pour export PDF ─────────────────────────────────────────
+// ─── Génération HTML pour export PDF — délégué à utils/calendarPdfExport ─────
+// Les constantes et fonctions locales sont remplacées par les imports du module partagé.
+const ACTION_COLORS_PDF = _ACTION_COLORS_PDF
 
-const ACTION_COLORS_PDF: Record<string, string> = {
-  graine_germee:    '#10b981',
-  debut_croissance: '#22c55e',
-  debut_floraison:  '#ec4899',
-  passage_12_12:    '#f59e0b',
-  arrosage_eau:     '#3b82f6',
-  arrosage_engrais: '#8b5cf6',
-  taille:           '#6b7280',
-  defoliation:      '#f97316',
-  recolte:          '#84cc16',
-  observations:     '#fbbf24',
-  traitement:       '#ef4444',
-  debut_curing:     '#a78bfa',
-  debut_sechage:    '#94a3b8',
-  ouverture_bocal:  '#c084fc',
-}
+// ─── Courbes capteurs — délégué à l'utilitaire ───────────────────────────────
+const buildSensorSVGCharts = _buildSensorSVGCharts
 
-// ─── Palette couleurs capteurs (PDF) ─────────────────────────────────────────
-const DEVICE_COLORS_PDF = ['#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899']
-
-// ─── Génération SVG inline des courbes capteurs ────────────────────────────────
-function buildSensorSVGCharts(dayLogs: TemperatureLog[]): string {
-  if (dayLogs.length === 0) return ''
-
-  // Capteurs présents
-  const deviceMap = new Map<string, string>()
-  for (const log of dayLogs) {
-    const k = log.id_device != null ? String(log.id_device) : 'all'
-    if (!deviceMap.has(k)) deviceMap.set(k, log.nom_device ?? (log.id_device != null ? `Capteur ${log.id_device}` : 'Capteur'))
-  }
-  const devices = [...deviceMap.entries()].map(([key, nom], i) => ({
-    key, nom, color: DEVICE_COLORS_PDF[i % DEVICE_COLORS_PDF.length],
-  }))
-  const singleMode = devices.length === 1
-
-  // Agrégation horaire par capteur
-  type Bucket = { vals: number[] }
-  const METRIC_KEYS = ['temp', 'hum', 'vpd'] as const
-  const buckets = new Map<string, Map<string, Map<number, Bucket>>>()
-  for (const d of devices) {
-    const mMap = new Map<string, Map<number, Bucket>>()
-    for (const mk of METRIC_KEYS) {
-      mMap.set(mk, new Map(Array.from({ length: 24 }, (_, h) => [h, { vals: [] }])))
-    }
-    buckets.set(d.key, mMap)
-  }
-  for (const log of dayLogs) {
-    const dKey = log.id_device != null ? String(log.id_device) : 'all'
-    if (!buckets.has(dKey)) continue
-    const h = new Date(log.date_heure).getHours()
-    const b = buckets.get(dKey)!
-    if (log.temperature != null) b.get('temp')!.get(h)!.vals.push(log.temperature)
-    if (log.humidite    != null) b.get('hum')!.get(h)!.vals.push(log.humidite)
-    if (log.vpd         != null) b.get('vpd')!.get(h)!.vals.push(log.vpd)
-  }
-
-  const avgV = (arr: number[]) => arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : null
-
-  // Dimensions SVG
-  const W = 500, H = 72
-  const padL = 36, padR = 10, padT = 8, padB = 18
-  const cW = W - padL - padR
-  const cH = H - padT - padB
-  const xp = (h: number) => padL + (h / 23) * cW
-  const yp = (v: number, dMin: number, dMax: number) =>
-    padT + (1 - Math.max(0, Math.min(1, (v - dMin) / (dMax - dMin)))) * cH
-
-  const METRICS_DEF = [
-    { key: 'temp' as const, label: 'Température (°C)', dMin: 10, dMax: 40  },
-    { key: 'hum'  as const, label: 'Humidité (%)',     dMin: 0,  dMax: 100 },
-    { key: 'vpd'  as const, label: 'VPD (kPa)',         dMin: 0,  dMax: 3   },
-  ]
-
-  const charts = METRICS_DEF.map(m => {
-    // Polylines par capteur
-    const polylines = devices.map(d => {
-      const pts: string[] = []
-      for (let h = 0; h < 24; h++) {
-        const v = avgV(buckets.get(d.key)!.get(m.key)!.get(h)!.vals)
-        if (v != null) pts.push(`${xp(h).toFixed(1)},${yp(v, m.dMin, m.dMax).toFixed(1)}`)
-      }
-      if (pts.length < 2) return ''
-      return `<polyline points="${pts.join(' ')}" fill="none" stroke="${d.color}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>`
-    }).join('')
-    if (!polylines.trim()) return ''
-
-    // Grille + labels Y (3 niveaux)
-    const yTicks = [m.dMin, (m.dMin + m.dMax) / 2, m.dMax].map(v => {
-      const y = yp(v, m.dMin, m.dMax)
-      return `<line x1="${padL}" y1="${y.toFixed(1)}" x2="${W - padR}" y2="${y.toFixed(1)}" stroke="#e5e7eb" stroke-width="0.5"/>
-              <text x="${(padL - 3).toFixed(1)}" y="${(y + 3).toFixed(1)}" text-anchor="end" font-size="7" fill="#9ca3af">${v}</text>`
-    }).join('')
-
-    // Labels X (0h, 6h, 12h, 18h, 23h)
-    const xTicks = [0, 6, 12, 18, 23].map(h => {
-      const x = xp(h)
-      return `<text x="${x.toFixed(1)}" y="${(H - 3).toFixed(1)}" text-anchor="middle" font-size="7" fill="#9ca3af">${String(h).padStart(2, '0')}h</text>`
-    }).join('')
-
-    // Légende capteurs (si plusieurs)
-    const legendH = singleMode ? 0 : 14
-    const legend = singleMode ? '' : devices.map((d, i) => {
-      const lx = padL + i * 120
-      return `<line x1="${lx}" y1="${H + 7}" x2="${lx + 16}" y2="${H + 7}" stroke="${d.color}" stroke-width="1.8"/>
-              <text x="${lx + 20}" y="${H + 11}" font-size="8" fill="#6b7280">${d.nom}</text>`
-    }).join('')
-
-    const totalH = H + legendH
-    return `<div class="sensor-chart">
-      <div class="sensor-chart-label">${m.label}</div>
-      <svg viewBox="0 0 ${W} ${totalH}" width="100%" style="display:block;" xmlns="http://www.w3.org/2000/svg">
-        <rect x="${padL}" y="${padT}" width="${cW}" height="${cH}" fill="#f9fafb" rx="2"/>
-        ${yTicks}
-        ${xTicks}
-        ${polylines}
-        ${legend}
-      </svg>
-    </div>`
-  }).filter(Boolean).join('')
-
-  if (!charts) return ''
-  return `<div class="sensor-section">
-    <div class="sensor-section-title">&#127777;&#65039; Constantes du jour</div>
-    ${charts}
-  </div>`
-}
-
+// ─── generateCalendarPDF — délégué à l'utilitaire ────────────────────────────
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function generateCalendarPDF(
   events: CalendrierEvent[],
   dateDebut: string,
   dateFin: string,
   sensorLogs: TemperatureLog[] = [],
 ) {
+  return _generateCalendarPDF(events, dateDebut, dateFin, sensorLogs)
+}
+// ─── (ancien corps déplacé dans utils/calendarPdfExport.ts) ─────────────────
+// Supprimer ce bloc après vérification — garder pour rollback temporaire
+/* DEAD CODE START
+function _deadcode_old_generateCalendarPDF() {
   // Grouper events par jour
   const byDay = new Map<string, CalendrierEvent[]>()
   for (const evt of events) {
@@ -800,6 +692,7 @@ function generateCalendarPDF(
     win.document.close()
   }
 }
+DEAD CODE END */
 
 // ─── Modal Export PDF ─────────────────────────────────────────────────────────
 

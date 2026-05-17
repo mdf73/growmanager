@@ -50,17 +50,23 @@ Plant data is enriched: includes `variete_nom`, `breeder_nom` from related recor
 
 ## Export PDF Fiche Culture
 
+Deux exports disponibles :
+
+### Journal jour-par-jour (frontend, bouton principal)
+Généré côté frontend depuis `Culture.tsx` → appelle `GET /api/calendrier/export?id_culture=&date_debut=&date_fin=` puis `GET /api/capteurs/temperature-logs` filtré par espace. Utilise `generateCalendarPDF` depuis `src/utils/calendarPdfExport.ts`. Dates auto : `date_debut` → `date_fin` (ou aujourd'hui). Même format que le CalendrierGlobal : cover page + 1 page/jour avec events groupés par type + courbes capteurs.
+
+### Fiche résumé (backend, endpoint conservé)
 | Method | Path | Returns | Notes |
 |---|---|---|---|
-| GET | `/{id}/export/pdf` | PDF binaire (A4) | Téléchargement direct |
+| GET | `/{id}/export/pdf` | PDF binaire (A4) | fpdf2 — fiche résumé statique |
 
-Le PDF généré contient :
-1. Informations générales (nom, espace, statut, dates, durées)
-2. Tableau des plantes (variété, statut, substrat, pot, poids)
-3. Résumé des actions (comptages par type)
-4. Coûts (électricité, engrais, graines, total, coût/g, rendement)
-5. Notes de la culture
-6. **Journal Photos** — photos groupées par jour (date_prise), affichées en grille 3 colonnes avec leur note
+Le PDF résumé contient :
+1. Informations générales
+2. Tableau des plantes
+3. Résumé des actions (comptages)
+4. Coûts
+5. Notes
+6. **Journal Photos** — photos groupées par jour, grille 3 colonnes (thumbnails + notes)
 
 ## Photos
 

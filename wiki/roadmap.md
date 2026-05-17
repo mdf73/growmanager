@@ -98,6 +98,9 @@ Bouton "Export PDF" dans le header de `/calendrier` · modal date début + date 
 ### Maillages Polinator paramétrables ✅ DONE — validé 2026-05-15
 `maillages_polinator` ajouté dans `ParametreListeValeur` (section "Stock — Maillages" de Parametrage.tsx). `NouvelleHashModal.tsx` : le champ maillage Polinator (anciennement fixe à 120µ) est désormais un `<select>` dynamique chargé depuis `useParametreListe('maillages_polinator')` (fallback `['120µ']`). Colonne `maillage_polinator VARCHAR(20) NULL` ajoutée à `HashExtraction` (migration automatique dans `run_migrations()`, `main.py`).
 
+### PDF fiche culture = journal jour-par-jour (même format que Calendrier Global) ✅ DONE — validé en attente 2026-05-17
+Bouton PDF dans Culture.tsx génère maintenant un journal HTML jour-par-jour (même moteur que CalendrierGlobal). Dates auto : `date_debut` → `date_fin` (ou aujourd'hui si encore active). Events filtrés par culture via `GET /api/calendrier/export?id_culture=`. Capteurs filtrés par `id_espace`. Cover page avec nom de la culture. `generateCalendarPDF` + `buildSensorSVGCharts` extraits dans `src/utils/calendarPdfExport.ts`, CalendrierGlobal délègue à ce module. `photo` ajouté dans `ACTION_META` + `ACTION_COLORS_PDF` du module partagé.
+
 ### Action "Photo" dans le calendrier de culture ✅ DONE — validé 2026-05-17
 Nouvelle catégorie `photo` (rose, 📷) dans `actionTypes.ts`. `ActionModal.tsx` : quand type=photo, affiche drop zone + aperçu miniatures + bouton "Uploader N photo(s)". Au submit : upload via `POST /api/photos/upload` (date_prise=date_action, note=légende), puis enregistrement `ActionCalendrier` type=photo avec `parametres.nb_photos`. Pas de saisie de date (héritée de l'action).
 

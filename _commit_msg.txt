@@ -1,8 +1,11 @@
-feat: photos datées + action photo dans le calendrier culture
+feat: PDF culture = journal jour-par-jour, même format que CalendrierGlobal
 
-- POST /api/photos/upload accepte date_prise (Form param, format YYYY-MM-DD ou ISO)
-- PhotoGallery.tsx : date picker initialisé à aujourd'hui, appliqué à l'upload
-- Miniatures galerie : date affichée en bas à gauche
-- Export PDF fiche culture : section "Journal Photos" groupée par jour (grille 3 colonnes, thumbnails, notes)
-- actionTypes.ts : nouvelle catégorie photo (rose 📷)
-- ActionModal.tsx : drop zone intégrée pour le type photo, upload auto avec date=date_action, légende=note
+- GET /api/calendrier/export accepte maintenant ?id_culture= (filtre optionnel)
+- src/utils/calendarPdfExport.ts : generateCalendarPDF + buildSensorSVGCharts extraits (partagé)
+  - options.title / options.subtitle / options.cultureName pour la cover page
+  - action photo ajoutée dans ACTION_META + ACTION_COLORS_PDF
+- Culture.tsx : bouton PDF génère un journal HTML jour-par-jour
+  - dates auto : date_debut → date_fin (ou aujourd'hui)
+  - events filtrés par id_culture
+  - capteurs filtrés par id_espace
+- CalendrierGlobal.tsx : délègue à l'utilitaire (fonctions locales remplacées)

@@ -74,24 +74,28 @@ def get_calendrier(
 def get_calendrier_export(
     date_debut: str = Query(..., description="Date de début ISO (YYYY-MM-DD)"),
     date_fin: str = Query(..., description="Date de fin ISO (YYYY-MM-DD)"),
+    id_culture: int = Query(None, description="Filtrer sur une culture précise (optionnel)"),
     db: Session = Depends(get_db),
 ):
     """
     Retourne tous les events ActionCalendrier entre date_debut et date_fin (inclus).
+    Si id_culture est fourni, seuls les events de cette culture sont retournés.
     Utilisé pour la génération du PDF export jour par jour.
     """
     debut = DateType.fromisoformat(date_debut)
     fin   = DateType.fromisoformat(date_fin)
 
-    actions = (
+    q = (
         db.query(ActionCalendrier)
         .filter(
             ActionCalendrier.date_action >= debut,
             ActionCalendrier.date_action <= fin,
         )
-        .order_by(ActionCalendrier.date_action)
-        .all()
     )
+    if id_culture is not None:
+        q = q.filter(ActionCalendrier.id_culture == id_culture)
+
+    actions = q.order_by(ActionCalendrier.date_action).all()
 
     culture_ids = {a.id_culture for a in actions}
     plant_ids   = {a.id_plant   for a in actions if a.id_plant}

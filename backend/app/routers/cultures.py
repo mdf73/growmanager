@@ -1,5 +1,6 @@
 """Router Culture — V2 complète"""
 import logging
+import os
 from datetime import date, timedelta, datetime
 from typing import Optional
 
