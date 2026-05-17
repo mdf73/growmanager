@@ -28,7 +28,7 @@ interface Props {
 // Catégories qui s'appliquent à l'espace (pas aux plantes individuelles) par défaut
 const SPACE_CATEGORIES: ActionCategory[] = ['lampe']
 
-export default function ActionModal({ plants, idEspace, initialDate, initialPlantId, onClose, onSubmit }: Props) {
+export default function ActionModal({ cultureId, plants, idEspace, initialDate, initialPlantId, onClose, onSubmit }: Props) {
   const [dateAction, setDateAction] = useState(initialDate)
   // target: 'space' | 'global' | plant id (string)
   const [target, setTarget] = useState<'space' | 'global' | string>(
@@ -344,13 +344,12 @@ export default function ActionModal({ plants, idEspace, initialDate, initialPlan
                 <span className="text-gray-400 font-normal ml-1">(JPG, PNG, WebP — la date est celle de l'action)</span>
               </label>
 
-              {/* Drop zone */}
-              <div
-                className={`border-2 border-dashed rounded-xl p-5 flex flex-col items-center gap-2 cursor-pointer transition-colors
+              {/* Drop zone — label wrapping input (approche native HTML, fonctionne dans les modales) */}
+              <label
+                className={`block cursor-pointer border-2 border-dashed rounded-xl p-5 flex flex-col items-center gap-2 transition-colors
                   ${photoDrag
                     ? 'border-grow-400 bg-grow-50 dark:bg-grow-900/20'
                     : 'border-gray-200 dark:border-gray-700 hover:border-grow-300 dark:hover:border-grow-600'}`}
-                onClick={() => photoInputRef.current?.click()}
                 onDragOver={e => { e.preventDefault(); setPhotoDrag(true) }}
                 onDragLeave={() => setPhotoDrag(false)}
                 onDrop={e => {
@@ -365,7 +364,7 @@ export default function ActionModal({ plants, idEspace, initialDate, initialPlan
                   type="file"
                   accept="image/*"
                   multiple
-                  className="hidden"
+                  className="sr-only"
                   onChange={e => {
                     if (e.target.files) {
                       setPhotoFiles(prev => [...prev, ...Array.from(e.target.files!)])
@@ -376,7 +375,7 @@ export default function ActionModal({ plants, idEspace, initialDate, initialPlan
                 <span className="text-sm text-gray-500 dark:text-gray-400">
                   Cliquer ou glisser des photos ici
                 </span>
-              </div>
+              </label>
 
               {/* Aperçu des fichiers sélectionnés */}
               {photoFiles.length > 0 && (

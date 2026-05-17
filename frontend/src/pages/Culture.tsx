@@ -310,21 +310,22 @@ function CultureDetail({ cultureId, onBack }: { cultureId: number; onBack: () =>
       const dateDebut = culture.date_debut?.slice(0, 10) || today
       const dateFin   = culture.date_fin?.slice(0, 10)   || today
 
-      // Chargement events + capteurs en parallèle
-      const [events, logsRes] = await Promise.all([
+      // Chargement events + capteurs + photos en parallèle
+      const [events, logsRes, photos] = await Promise.all([
         getCalendrierExport(dateDebut, dateFin, culture.id_culture),
         capteursAPI.getLogs({
           date_debut: `${dateDebut}T00:00:00`,
           date_fin:   `${dateFin}T23:59:59`,
           ...(culture.id_espace ? { id_espace: culture.id_espace } : {}),
         }),
+        photosAPI.list({ id_culture: culture.id_culture }),
       ])
 
       generateCalendarPDF(events, dateDebut, dateFin, logsRes.data, {
         title:       `Journal — ${culture.nom}`,
         subtitle:    'Suivi de culture jour par jour',
         cultureName: culture.nom,
-      })
+      }, photos)
     } catch {
       alert('Impossible de générer le PDF.')
     } finally {

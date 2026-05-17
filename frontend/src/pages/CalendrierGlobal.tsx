@@ -4,9 +4,10 @@
  */
 import { useState, useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { ChevronLeft, ChevronRight, Calendar, Filter, FileDown } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Calendar, Filter, FileDown, ArrowLeft, X } from 'lucide-react'
 import { getCalendrierEvents, getCulturesRef, getCalendrierExport, CalendrierEvent, CultureRef } from '../api/calendrier'
 import { capteursAPI, TemperatureLog } from '../api/capteurs'
+import { photosAPI, photoUrl } from '../api/photos'
 import SensorDayChart from '../components/SensorDayChart'
 import { generateCalendarPDF as _generateCalendarPDF } from '../utils/calendarPdfExport'
 
@@ -38,6 +39,7 @@ const ACTION_META: Record<string, { emoji: string; label: string }> = {
   debut_curing:       { emoji: '🏺', label: 'Début curing' },
   debut_sechage:      { emoji: '🌬️', label: 'Début séchage' },
   ouverture_bocal:    { emoji: '🫙', label: 'Burping bocal' },
+  photo:              { emoji: '📷', label: 'Photo' },
 }
 
 function actionMeta(type: string) {
@@ -101,70 +103,190 @@ function EventDrawer({
   event,
   color,
   onClose,
+  onBack,
 }: {
   event: CalendrierEvent
   color: typeof CULTURE_COLORS[0]
   onClose: () => void
+  onBack?: () => void
 }) {
+  const [lightboxSrc, setLightboxSrc] = useState<string | null>(null)
+
   const meta = actionMeta(event.type_action)
   const dateLabel = new Date(event.date_action).toLocaleString('fr-FR', {
     weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit',
   })
 
   const params = event.parametres
-  const paramEntries = params && typeof params === 'object' ? Object.entries(params) : []
+  const paramEntries = params && typeof params === 'object'
+    ? Object.entries(params).filter(([k]) => k !== 'count')  // "count" affiché autrement
+    : []
+
+  // ── Chargement des photos si type === 'photo' ─────────────────────────────
+  const isPhoto = event.type_action === 'photo'
+  const eventDate = event.date_action.slice(0, 10)
+
+  const { data: allPhotos = [], isLoading: photosLoading } = useQuery({
+    queryKey: ['photos-day', event.id_culture, event.id_plant ?? null, eventDate],
+    queryFn: () => photosAPI.list({
+      id_culture: event.id_culture,
+      ...(event.id_plant ? { id_plant: event.id_plant } : {}),
+    }),
+    enabled: isPhoto,
+    staleTime: 60_000,
+  })
+
+  const dayPhotos = isPhoto
+    ? allPhotos.filter(p => p.date_prise.slice(0, 10) === eventDate)
+    : []
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4" onClick={onClose}>
-      <div className="absolute inset-0 bg-black/40" />
-      <div
-        className="relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md p-6 z-10"
-        onClick={e => e.stopPropagation()}
-      >
-        {/* Header */}
-        <div className="flex items-start justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <span className="text-3xl">{meta.emoji}</span>
-            <div>
-              <p className="font-semibold text-gray-900 dark:text-white">{meta.label}</p>
-              <p className="text-sm text-gray-500 dark:text-gray-400 capitalize">{dateLabel}</p>
-            </div>
-          </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-xl leading-none">×</button>
+    <>
+      {/* ── Lightbox photo ── */}
+      {lightboxSrc && (
+        <div
+          className="fixed inset-0 z-[70] flex items-center justify-center bg-black/90"
+          onClick={() => setLightboxSrc(null)}
+        >
+          <button
+            onClick={() => setLightboxSrc(null)}
+            className="absolute top-4 right-4 text-white/70 hover:text-white bg-black/40 rounded-full p-2"
+          >
+            <X size={22} />
+          </button>
+          <img
+            src={lightboxSrc}
+            alt="Photo"
+            className="max-w-[92vw] max-h-[90vh] rounded-xl object-contain shadow-2xl"
+            onClick={e => e.stopPropagation()}
+          />
         </div>
+      )}
 
-        {/* Culture badge */}
-        <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium mb-4 ${color.bg} ${color.text}`}>
-          <span className={`w-2 h-2 rounded-full ${color.dot}`} />
-          {event.culture_nom}
-          {event.plant_nom && <span className="opacity-70">— {event.plant_nom}</span>}
-        </div>
-
-        {/* Scope */}
-        <div className="text-xs text-gray-500 dark:text-gray-400 mb-3">
-          {event.global_culture ? '🌍 Action globale (toute la culture)' : `🪴 Plante : ${event.plant_nom ?? '—'}`}
-        </div>
-
-        {/* Paramètres */}
-        {paramEntries.length > 0 && (
-          <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-3 mb-3 text-sm space-y-1">
-            {paramEntries.map(([k, v]) => (
-              <div key={k} className="flex justify-between gap-2">
-                <span className="text-gray-500 dark:text-gray-400 capitalize">{k.replace(/_/g,' ')}</span>
-                <span className="font-medium text-gray-800 dark:text-gray-200">{String(v)}</span>
+      {/* ── Modal ── */}
+      <div className="fixed inset-0 flex items-end sm:items-center justify-center p-4" style={{ zIndex: 60 }} onClick={onClose}>
+        <div className="absolute inset-0 bg-black/50" />
+        <div
+          className="relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md z-10 flex flex-col max-h-[85vh]"
+          onClick={e => e.stopPropagation()}
+        >
+          {/* ── Header ── */}
+          <div className="flex items-start justify-between p-6 pb-4 shrink-0">
+            <div className="flex items-center gap-3">
+              {/* Bouton retour si ouvert depuis DayModal */}
+              {onBack && (
+                <button
+                  onClick={onBack}
+                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors shrink-0"
+                  title="Retour à la journée"
+                >
+                  <ArrowLeft size={18} />
+                </button>
+              )}
+              <span className="text-3xl">{meta.emoji}</span>
+              <div>
+                <p className="font-semibold text-gray-900 dark:text-white">{meta.label}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 capitalize">{dateLabel}</p>
               </div>
-            ))}
+            </div>
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors shrink-0"
+              title="Fermer"
+            >
+              <X size={18} />
+            </button>
           </div>
-        )}
 
-        {/* Note */}
-        {event.note && (
-          <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-xl p-3 text-sm text-gray-700 dark:text-gray-300">
-            📝 {event.note}
+          {/* ── Corps scrollable ── */}
+          <div className="overflow-y-auto flex-1 px-6 pb-6 space-y-3">
+            {/* Culture badge */}
+            <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium ${color.bg} ${color.text}`}>
+              <span className={`w-2 h-2 rounded-full ${color.dot}`} />
+              {event.culture_nom}
+              {event.plant_nom && <span className="opacity-70">— {event.plant_nom}</span>}
+            </div>
+
+            {/* Scope */}
+            <div className="text-xs text-gray-500 dark:text-gray-400">
+              {event.global_culture ? '🌍 Action globale (toute la culture)' : `🪴 Plante : ${event.plant_nom ?? '—'}`}
+            </div>
+
+            {/* Paramètres (hors count) */}
+            {paramEntries.length > 0 && (
+              <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-3 text-sm space-y-1">
+                {paramEntries.map(([k, v]) => (
+                  <div key={k} className="flex justify-between gap-2">
+                    <span className="text-gray-500 dark:text-gray-400 capitalize">{k.replace(/_/g,' ')}</span>
+                    <span className="font-medium text-gray-800 dark:text-gray-200">{String(v)}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Note */}
+            {event.note && (
+              <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-xl p-3 text-sm text-gray-700 dark:text-gray-300">
+                📝 {event.note}
+              </div>
+            )}
+
+            {/* ── Section photos ── */}
+            {isPhoto && (
+              <div>
+                <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">
+                  Photos du jour
+                </p>
+                {photosLoading ? (
+                  <div className="flex justify-center py-6">
+                    <div className="w-6 h-6 rounded-full border-2 border-grow-600 border-t-transparent animate-spin" />
+                  </div>
+                ) : dayPhotos.length === 0 ? (
+                  <div className="text-sm text-gray-400 dark:text-gray-500 italic py-3 text-center">
+                    Aucune photo trouvée pour ce jour
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 gap-2">
+                    {dayPhotos.map(photo => {
+                      const thumbSrc = photo.thumbnail_path
+                        ? photoUrl(photo.thumbnail_path)
+                        : photoUrl(photo.filepath)
+                      const fullSrc = photoUrl(photo.filepath)
+                      return (
+                        <button
+                          key={photo.id_photo}
+                          onClick={() => setLightboxSrc(fullSrc)}
+                          className="relative group rounded-xl overflow-hidden aspect-square bg-gray-100 dark:bg-gray-700 hover:opacity-90 transition-opacity"
+                          title={photo.notes ?? photo.filename}
+                        >
+                          <img
+                            src={thumbSrc}
+                            alt={photo.notes ?? photo.filename}
+                            className="w-full h-full object-cover"
+                          />
+                          {/* Overlay note */}
+                          {photo.notes && (
+                            <div className="absolute inset-x-0 bottom-0 bg-black/50 px-2 py-1 text-white text-xs truncate opacity-0 group-hover:opacity-100 transition-opacity">
+                              {photo.notes}
+                            </div>
+                          )}
+                          {/* Icône loupe */}
+                          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div className="bg-black/40 rounded-full p-2">
+                              <span className="text-white text-lg">🔍</span>
+                            </div>
+                          </div>
+                        </button>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
-    </div>
+    </>
   )
 }
 
@@ -242,7 +364,7 @@ function DayModal({
                     return (
                       <button
                         key={evt.id_action}
-                        onClick={() => { onClose(); onEventClick(evt) }}
+                        onClick={() => onEventClick(evt)}
                         className={`w-full text-left px-3 py-2 rounded-xl border text-sm flex items-center gap-2 hover:opacity-80 transition-opacity ${color.bg} ${color.text} ${color.border}`}
                       >
                         <span className={`w-2 h-2 rounded-full shrink-0 ${color.dot}`} />
@@ -489,6 +611,7 @@ export default function CalendrierGlobal() {
   const [month, setMonth] = useState(today.getMonth() + 1)
   const [selectedEvent, setSelectedEvent] = useState<CalendrierEvent | null>(null)
   const [selectedDay, setSelectedDay] = useState<string | null>(null)
+  const [eventFromDay, setEventFromDay] = useState(false)  // true si EventDrawer ouvert depuis DayModal
   const [filteredCultures, setFilteredCultures] = useState<Set<number>>(new Set())
   const [showFilters, setShowFilters] = useState(false)
   const [showExport, setShowExport] = useState(false)
@@ -767,13 +890,16 @@ export default function CalendrierGlobal() {
         ))}
       </div>
 
-      {/* ── Modal vue journée ── */}
-      {selectedDay && (
+      {/* ── Modal vue journée (masqué si EventDrawer est ouvert par-dessus) ── */}
+      {selectedDay && !selectedEvent && (
         <DayModal
           dateStr={selectedDay}
           events={eventsByDay.get(selectedDay) ?? []}
           colorMap={colorMap}
-          onEventClick={setSelectedEvent}
+          onEventClick={evt => {
+            setEventFromDay(true)
+            setSelectedEvent(evt)
+          }}
           onClose={() => setSelectedDay(null)}
         />
       )}
@@ -783,7 +909,15 @@ export default function CalendrierGlobal() {
         <EventDrawer
           event={selectedEvent}
           color={selectedColor}
-          onClose={() => setSelectedEvent(null)}
+          onClose={() => {
+            setSelectedEvent(null)
+            setSelectedDay(null)
+            setEventFromDay(false)
+          }}
+          onBack={eventFromDay ? () => {
+            setSelectedEvent(null)
+            setEventFromDay(false)
+          } : undefined}
         />
       )}
 

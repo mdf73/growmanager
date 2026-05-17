@@ -4,6 +4,7 @@
  */
 import { CalendrierEvent } from '../api/calendrier'
 import { TemperatureLog } from '../api/capteurs'
+import { Photo } from '../api/photos'
 
 // ─── Couleurs actions ─────────────────────────────────────────────────────────
 export const ACTION_COLORS_PDF: Record<string, string> = {
@@ -159,6 +160,7 @@ export function generateCalendarPDF(
   dateFin: string,
   sensorLogs: TemperatureLog[] = [],
   options: CalendarPDFOptions = {},
+  photos: Photo[] = [],
 ) {
   const {
     title      = 'Calendrier GrowManager',
@@ -172,6 +174,15 @@ export function generateCalendarPDF(
     const key = evt.date_action.slice(0, 10)
     if (!byDay.has(key)) byDay.set(key, [])
     byDay.get(key)!.push(evt)
+  }
+
+  // Grouper photos par jour
+  const photosByDay = new Map<string, Photo[]>()
+  const origin = window.location.origin
+  for (const p of photos) {
+    const key = p.date_prise.slice(0, 10)
+    if (!photosByDay.has(key)) photosByDay.set(key, [])
+    photosByDay.get(key)!.push(p)
   }
 
   // Grouper logs capteurs par jour
@@ -226,10 +237,8 @@ export function generateCalendarPDF(
           : ''
         const note = evt.note ? `<div class="evt-note">📝 ${evt.note}</div>` : ''
 
-        // Affichage spécial pour l'action photo
-        const photoInfo = (type === 'photo' && evt.parametres && (evt.parametres as Record<string,unknown>).nb_photos)
-          ? `<div class="evt-photo-badge">📷 ${(evt.parametres as Record<string,unknown>).nb_photos} photo(s) ajoutée(s)</div>`
-          : ''
+        // Pour l'action photo, pas de badge — les images sont affichées en grille sous les events
+        const photoInfo = ''
 
         return `
           <div class="evt-row">
@@ -259,6 +268,26 @@ export function generateCalendarPDF(
     const isLast = idx === days.length - 1
     const sensorChartsHtml = buildSensorSVGCharts(sensorByDay.get(day) ?? [])
 
+    // Grille de photos du jour
+    const dayPhotos = photosByDay.get(day) ?? []
+    const photosHtml = dayPhotos.length > 0
+      ? `<div class="photos-section">
+          <div class="photos-section-title">📷 Photos du jour (${dayPhotos.length})</div>
+          <div class="photos-grid">
+            ${dayPhotos.map(p => {
+              const src = p.thumbnail_path
+                ? `${origin}/uploads/${p.thumbnail_path}`
+                : `${origin}/uploads/${p.filepath}`
+              const note = p.notes ? `<div class="photo-note">${p.notes}</div>` : ''
+              return `<div class="photo-item">
+                <img src="${src}" alt="${p.filename}" class="photo-thumb" />
+                ${note}
+              </div>`
+            }).join('')}
+          </div>
+        </div>`
+      : ''
+
     return `
       <div class="day-page${isLast ? ' last-page' : ''}">
         <div class="day-header">
@@ -270,6 +299,7 @@ export function generateCalendarPDF(
           ? `<div class="empty-day"><span>🌙</span><span>Journée calme — aucune action enregistrée</span></div>`
           : `<div class="groups-container">${groupsHtml}</div>`
         }
+        ${photosHtml}
       </div>`
   }).join('')
 
@@ -366,8 +396,13 @@ export function generateCalendarPDF(
     .evt-global { font-size: 10px; color: #9ca3af; background: #f3f4f6; padding: 1px 6px; border-radius: 10px; }
     .evt-params { font-size: 11px; color: #4b5563; margin-top: 3px; display: flex; flex-wrap: wrap; gap: 6px; }
     .param { background: #eff6ff; color: #1d4ed8; padding: 1px 6px; border-radius: 4px; }
-    .evt-photo-badge { font-size: 11px; color: #9d174d; background: #fdf2f8; border: 1px solid #fbcfe8; border-radius: 4px; padding: 3px 8px; margin-top: 4px; display: inline-block; }
     .evt-note { font-size: 11px; color: #92400e; background: #fffbeb; border: 1px solid #fde68a; border-radius: 4px; padding: 4px 8px; margin-top: 4px; }
+    .photos-section { margin-top: 20px; }
+    .photos-section-title { font-size: 12px; font-weight: 700; color: #9d174d; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid #fbcfe8; }
+    .photos-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+    .photo-item { display: flex; flex-direction: column; gap: 4px; }
+    .photo-thumb { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 6px; border: 1px solid #e5e7eb; }
+    .photo-note { font-size: 10px; color: #6b7280; text-align: center; }
     .sensor-section { margin-bottom: 20px; padding: 12px 14px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; }
     .sensor-section-title { font-size: 11px; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px; }
     .sensor-chart { margin-bottom: 8px; }

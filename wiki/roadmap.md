@@ -105,7 +105,7 @@ Bouton PDF dans Culture.tsx génère maintenant un journal HTML jour-par-jour (m
 Nouvelle catégorie `photo` (rose, 📷) dans `actionTypes.ts`. `ActionModal.tsx` : quand type=photo, affiche drop zone + aperçu miniatures + bouton "Uploader N photo(s)". Au submit : upload via `POST /api/photos/upload` (date_prise=date_action, note=légende), puis enregistrement `ActionCalendrier` type=photo avec `parametres.nb_photos`. Pas de saisie de date (héritée de l'action).
 
 ### Photos datées dans le suivi de culture ✅ DONE — validé 2026-05-17
-`date_prise` accepté en Form param dans `POST /api/photos/upload` (format YYYY-MM-DD ou ISO datetime, fallback utcnow). `PhotoGallery.tsx` : date picker initialisé à aujourd'hui, note + date appliquées à toutes les photos de la session d'upload. Miniatures : date affichée en bas. Export PDF fiche culture : section "Journal Photos" groupée par jour, grille 3 colonnes, thumbnails intégrés, note sous chaque image.
+`date_prise` accepté en Form param dans `POST /api/photos/upload` (format YYYY-MM-DD ou ISO datetime, fallback utcnow). `PhotoGallery.tsx` : date picker initialisé à aujourd'hui, note + date appliquées à toutes les photos de la session d'upload. Miniatures : date affichée en bas. Export PDF fiche culture : grille 4 colonnes de miniatures par jour (`/uploads/{thumbnail_path}`), note sous chaque image — `photosAPI.list({ id_culture })` fetchées en parallèle dans `Culture.tsx` et passées à `generateCalendarPDF`. `nginx.conf` : `client_max_body_size 20M`. Bugfixes : `cultureId` manquant dans la destructuration de props `ActionModal`, overlay input remplacé par `<label>` wrapping pour compatibilité modale.
 
 ---
 

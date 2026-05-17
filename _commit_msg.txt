@@ -1,10 +1,9 @@
-feat: PDF culture = journal jour-par-jour + fix parse error CalendrierGlobal
+feat: photos dans le PDF culture + fixes ActionModal upload
 
-- GET /api/calendrier/export : param id_culture optionnel (filtre par culture)
-- src/utils/calendarPdfExport.ts : generateCalendarPDF + buildSensorSVGCharts partagés
-  - options.title / subtitle / cultureName pour la cover page
-  - action photo dans ACTION_META + ACTION_COLORS_PDF
-- Culture.tsx : bouton PDF génère journal HTML jour-par-jour
-  - dates auto date_debut → date_fin (ou aujourd'hui)
-  - events filtrés par id_culture, capteurs par id_espace
-- CalendrierGlobal.tsx : délègue à l'utilitaire, dead code supprimé via sed
+- calendarPdfExport.ts : grille 4 col de miniatures par jour dans le PDF
+  (photos fetchées depuis /api/photos/?id_culture, src=/uploads/{thumbnail_path})
+- Culture.tsx : photosAPI.list() en parallèle dans handleExportPdf, passé à generateCalendarPDF
+- nginx.conf : client_max_body_size 20M (photos téléphone > 1 MB)
+- ActionModal.tsx : fix cultureId manquant dans la destructuration de props
+- ActionModal.tsx : drop zone → <label> wrapping input (compatibilité modale)
+- wiki/roadmap.md : mise à jour
