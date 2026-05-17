@@ -176,13 +176,32 @@ export function generateCalendarPDF(
     byDay.get(key)!.push(evt)
   }
 
-  // Grouper photos par jour
+  // Assigner chaque photo au jour de l'action photo la plus proche (même culture)
+  // Algorithme : pour chaque photo, chercher parmi les events type_action='photo' avec le même
+  // id_culture celui dont la date_action est la plus proche de la date_prise de la photo.
+  // Si aucun event photo pour la culture → fallback sur date_prise.
+  const photoEvents = events.filter(e => e.type_action === 'photo')
   const photosByDay = new Map<string, Photo[]>()
   const origin = window.location.origin
   for (const p of photos) {
-    const key = p.date_prise.slice(0, 10)
-    if (!photosByDay.has(key)) photosByDay.set(key, [])
-    photosByDay.get(key)!.push(p)
+    // Events photo de la même culture
+    const cultureEvts = photoEvents.filter(e => e.id_culture === p.id_culture)
+    let assignedDay: string
+    if (cultureEvts.length > 0) {
+      const pTime = new Date(p.date_prise).getTime()
+      let closest = cultureEvts[0]
+      let minDiff = Math.abs(new Date(closest.date_action).getTime() - pTime)
+      for (const evt of cultureEvts) {
+        const diff = Math.abs(new Date(evt.date_action).getTime() - pTime)
+        if (diff < minDiff) { minDiff = diff; closest = evt }
+      }
+      assignedDay = closest.date_action.slice(0, 10)
+    } else {
+      // Pas d'event photo pour cette culture → on groupe par date_prise
+      assignedDay = p.date_prise.slice(0, 10)
+    }
+    if (!photosByDay.has(assignedDay)) photosByDay.set(assignedDay, [])
+    photosByDay.get(assignedDay)!.push(p)
   }
 
   // Grouper logs capteurs par jour

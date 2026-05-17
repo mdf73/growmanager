@@ -484,8 +484,9 @@ function generateCalendarPDF(
   dateDebut: string,
   dateFin: string,
   sensorLogs: TemperatureLog[] = [],
+  photos: import('../api/photos').Photo[] = [],
 ) {
-  return _generateCalendarPDF(events, dateDebut, dateFin, sensorLogs)
+  return _generateCalendarPDF(events, dateDebut, dateFin, sensorLogs, {}, photos)
 }
 
 // ─── Modal Export PDF ─────────────────────────────────────────────────────────
@@ -505,14 +506,15 @@ function ExportPDFModal({ onClose }: { onClose: () => void }) {
     setError(null)
     setLoading(true)
     try {
-      const [events, logsRes] = await Promise.all([
+      const [events, logsRes, photos] = await Promise.all([
         getCalendrierExport(dateDebut, dateFin),
         capteursAPI.getLogs({
           date_debut: `${dateDebut}T00:00:00`,
           date_fin:   `${dateFin}T23:59:59`,
         }),
+        photosAPI.list({ date_debut: dateDebut, date_fin: dateFin }),
       ])
-      generateCalendarPDF(events, dateDebut, dateFin, logsRes.data)
+      generateCalendarPDF(events, dateDebut, dateFin, logsRes.data, photos)
       onClose()
     } catch {
       setError('Erreur lors du chargement des données.')

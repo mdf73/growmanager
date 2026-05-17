@@ -21,7 +21,7 @@ export function photoUrl(relativePath: string): string {
 }
 
 export const photosAPI = {
-  list(params: { id_culture?: number; id_plant?: number; date?: string }): Promise<Photo[]> {
+  list(params: { id_culture?: number; id_plant?: number; date?: string; date_debut?: string; date_fin?: string }): Promise<Photo[]> {
     return client.get<Photo[]>('/photos/', { params }).then(r => r.data)
   },
 

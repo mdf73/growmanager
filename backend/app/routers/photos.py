@@ -93,26 +93,44 @@ def _process_image(src_path: str, dest_path: str, thumb_path: str) -> dict:
 
 @router.get("/", response_model=List[PhotoRead])
 def get_photos(
-    id_culture: Optional[int] = Query(None),
-    id_plant:   Optional[int] = Query(None),
-    date:       Optional[str] = Query(None, description="Filtrer par jour YYYY-MM-DD"),
+    id_culture:  Optional[int] = Query(None),
+    id_plant:    Optional[int] = Query(None),
+    date:        Optional[str] = Query(None, description="Filtrer par jour exact YYYY-MM-DD"),
+    date_debut:  Optional[str] = Query(None, description="Plage début YYYY-MM-DD (inclus)"),
+    date_fin:    Optional[str] = Query(None, description="Plage fin YYYY-MM-DD (inclus)"),
     db: Session = Depends(get_db),
 ):
     """Retourne les photos d'une culture ou d'une plante (tri chronologique desc).
-    Si date est fourni, filtre sur toute la journée (00:00:00 → 23:59:59)."""
+    Filtres date optionnels : `date` (jour exact), ou `date_debut`+`date_fin` (plage)."""
+    from datetime import date as _date
+
     q = db.query(Photo)
     if id_culture is not None:
         q = q.filter(Photo.id_culture == id_culture)
     if id_plant is not None:
         q = q.filter(Photo.id_plant == id_plant)
+
+    # Filtre jour exact
     if date is not None:
         try:
-            from datetime import date as _date
-            day_start = datetime.combine(_date.fromisoformat(date), datetime.min.time())
+            day_start = datetime.combine(_date.fromisoformat(date.strip()), datetime.min.time())
             day_end   = day_start + timedelta(days=1)
             q = q.filter(Photo.date_prise >= day_start, Photo.date_prise < day_end)
-        except ValueError:
-            pass  # date invalide → ignoré
+        except (ValueError, AttributeError):
+            pass
+
+    # Filtre plage de dates (pour export PDF)
+    if date_debut is not None:
+        try:
+            q = q.filter(Photo.date_prise >= datetime.combine(_date.fromisoformat(date_debut.strip()), datetime.min.time()))
+        except (ValueError, AttributeError):
+            pass
+    if date_fin is not None:
+        try:
+            q = q.filter(Photo.date_prise < datetime.combine(_date.fromisoformat(date_fin.strip()), datetime.min.time()) + timedelta(days=1))
+        except (ValueError, AttributeError):
+            pass
+
     return q.order_by(Photo.date_prise.desc()).all()
 
 

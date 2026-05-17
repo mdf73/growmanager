@@ -293,8 +293,8 @@ export default function Layout({ children }: LayoutProps) {
 
       {/* ── Sidebar Desktop ── */}
       <aside className="hidden lg:flex lg:flex-col w-64 bg-grow-600 text-white">
-        <div className="p-6 border-b border-grow-700">
-          <h1 className="text-2xl font-bold">GrowManager</h1>
+        <div className="p-6 border-b border-grow-700 flex flex-col items-center">
+          <img src="/logo.png" alt="GrowManager" className="w-full max-w-[180px] h-auto mb-1" />
           <p className="text-sm text-grow-200 mt-1">v{__APP_VERSION__}</p>
           {/* Bouton recherche globale */}
           <button
@@ -329,7 +329,7 @@ export default function Layout({ children }: LayoutProps) {
         <aside className="fixed inset-0 z-40 flex lg:hidden">
           <div className="flex flex-col w-64 bg-grow-600 text-white">
             <div className="p-6 flex items-center justify-between border-b border-grow-700">
-              <h1 className="text-2xl font-bold">GrowManager</h1>
+              <img src="/logo.png" alt="GrowManager" className="h-12 w-auto" />
               <button
                 onClick={() => setSidebarOpen(false)}
                 className="text-white hover:bg-grow-700 p-2 rounded-lg"
@@ -356,7 +356,7 @@ export default function Layout({ children }: LayoutProps) {
         {/* Header Mobile */}
         <header className="lg:hidden bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
           <div className="px-4 py-3 flex items-center justify-between">
-            <h1 className="text-lg font-bold text-grow-600 dark:text-grow-400">GrowManager</h1>
+            <img src="/logo.png" alt="GrowManager" className="h-7 w-auto" />
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setSearchOpen(true)}

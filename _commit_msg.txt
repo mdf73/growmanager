@@ -1,13 +1,10 @@
-feat(calendrier): photo lightbox + navigation arrière DayModal→EventDrawer
+feat(calendrier): photos dans l'export PDF + algo closest-action
 
-- EventDrawer : bouton ← retour vers DayModal quand ouvert depuis la vue journée
-  (× ferme tout, ← revient à la journée sans perdre le contexte)
-- EventDrawer : section photos pour type_action='photo'
-  · Charge toutes les photos de la culture via GET /api/photos/?id_culture=
-  · Filtre par date_prise = date de l'event
-  · Fallback ⚠️ si aucune correspondance de date (décalage date_prise/date_action)
-  · Lightbox plein écran au clic, grille 2 colonnes, overlay note au hover
-- ACTION_META : ajout type 'photo' → emoji 📷 label 'Photo'
-- Backend photos.py : filtre optionnel par date (param ?date=YYYY-MM-DD)
-  + parsing date_prise plus robuste (log stderr si format invalide)
-- Wiki frontend/pages.md mis à jour
+- api/photos.ts : ajout params date_debut/date_fin dans list()
+- CalendrierGlobal : ExportPDFModal fetch photos via photosAPI.list({date_debut, date_fin})
+- CalendrierGlobal : wrapper generateCalendarPDF transmet photos au générateur PDF
+- calendarPdfExport.ts : remplace groupement par date_prise par algo "closest action"
+  → chaque photo assignée au jour de l'event photo (même culture) le plus proche
+  → fallback sur date_prise si pas d'event photo pour la culture
+- backend/routers/photos.py : endpoint GET /api/photos/ supporte date_debut + date_fin
+- wiki: mise à jour CalendrierGlobal + photos PDF
