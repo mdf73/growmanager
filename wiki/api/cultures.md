@@ -45,8 +45,11 @@ Plant data is enriched: includes `variete_nom`, `breeder_nom` from related recor
 | POST | `/{id}/actions` | `ActionCreate` | `ActionRead` |
 | PUT | `/{id}/actions/{action_id}` | `ActionCreate` | `ActionRead` |
 | DELETE | `/{id}/actions/{action_id}` | — | `{message}` |
+| GET | `/{id}/actions/{action_id}/cout` | — | `ActionCout` | Calcule le coût d'un `arrosage_engrais` |
 
 `ActionCreate` fields: `id_plant` (nullable), `date_action`, `type_action`, `parametres` (JSON), `note`, `global_culture` (bool).
+
+`ActionCout` fields: `cout_total: float | null`, `par_produit: [{nom: str, cout: float | null}]`. Calcul : `dosage × volume_total_l × (prix_achat / volume_conditionnement)` pour chaque ligne de recette. Retourne `cout_total: null` si `id_recette` absent ou prix non renseignés.
 
 ## Export PDF Fiche Culture
 

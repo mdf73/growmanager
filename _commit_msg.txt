@@ -1,7 +1,14 @@
-feat(ui): logo dans la sidebar + copyright Pik
+fix+feat: CalendrierGlobal — fix [object Object] arrosage engrais + 3 encarts détail
 
-- Remplace le titre texte "GrowManager" par le logo image (LogoFinal.png)
-  dans la sidebar desktop, sidebar mobile et header mobile
-- Logo centré en haut de la sidebar (max-w-[162px], pt-2)
-- PNG avec fond transparent copié dans frontend/public/logo.png
-- Copyright bas de sidebar : "© 2024 Pik"
+Bug: EventDrawer appelait String(v) sur les champs array → [object Object]
+Fix: exclusion des clés array/objet du rendu générique
+
+Feature: détail arrosage_engrais en 3 encarts
+- Encart 1 (gris): recette, pH cible, volume/plante
+- Encart 2 (vert): produits utilisés avec quantités
+- Encart 3 (doré): coût par produit + total €
+
+Nouveau endpoint: GET /api/cultures/{id}/actions/{id}/cout
+Nouveau type: ActionCout + getActionCout() dans api/calendrier.ts
+
+Files: cultures.py, api/calendrier.ts, CalendrierGlobal.tsx

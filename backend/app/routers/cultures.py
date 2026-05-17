@@ -2013,6 +2013,53 @@ def delete_action(culture_id: int, action_id: int, db: Session = Depends(get_db)
     db.commit()
 
 
+@router.get("/{culture_id}/actions/{action_id}/cout")
+def get_action_cout(culture_id: int, action_id: int, db: Session = Depends(get_db)):
+    """Calcule le coût d'un arrosage engrais à partir de sa recette et de son volume."""
+    action = db.query(ActionCalendrier).filter(
+        ActionCalendrier.id_action == action_id,
+        ActionCalendrier.id_culture == culture_id,
+    ).first()
+    if not action:
+        raise HTTPException(status_code=404, detail="Action non trouvée")
+
+    p = action.parametres or {}
+    id_recette = p.get("id_recette")
+    if not id_recette:
+        return {"cout_total": None, "par_produit": []}
+
+    # Volume utilisé — pour une action globale volume_l = total,
+    # pour per-plante volume_l = par plante et volume_total_l = total
+    volume_l = float(p.get("volume_total_l") or p.get("volume_l") or 1.0)
+
+    recette = db.query(RecetteEngrais).filter(RecetteEngrais.id_recette == id_recette).first()
+    if not recette:
+        return {"cout_total": None, "par_produit": []}
+
+    par_produit = []
+    cout_total = 0.0
+    for ligne in recette.lignes:
+        prod = db.query(ProduitEngrais).filter(ProduitEngrais.id_produit == ligne.id_produit).first()
+        if not prod or not prod.prix_achat or not prod.volume_conditionnement:
+            par_produit.append({
+                "nom": ligne.nom_produit or prod.nom_produit if prod else f"Produit #{ligne.id_produit}",
+                "cout": None,
+            })
+            continue
+        qte = ligne.dosage * volume_l
+        cout = qte * (float(prod.prix_achat) / float(prod.volume_conditionnement))
+        cout_total += cout
+        par_produit.append({
+            "nom": prod.nom_produit,
+            "cout": round(cout, 4),
+        })
+
+    return {
+        "cout_total": round(cout_total, 4) if par_produit else None,
+        "par_produit": par_produit,
+    }
+
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # STATS
 # ═══════════════════════════════════════════════════════════════════════════════

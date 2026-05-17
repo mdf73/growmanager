@@ -8,6 +8,30 @@ Operations: `bootstrap`, `ingest`, `query`, `lint`, `update`
 
 ---
 
+## [2026-05-17] update | Détail arrosage engrais dans CalendrierGlobal — 3 encarts + fix [object Object]
+
+**Bug corrigé :**
+- `EventDrawer` dans `CalendrierGlobal.tsx` appelait `String(v)` sur les champs array (`produits`, `produits_calcules`, `calculs`) → affichage `[object Object],[object Object],...`
+- Fix : ces clés sont exclues du rendu générique, la détection utilise `!Array.isArray(v) && typeof v !== 'object'`
+
+**Feature — 3 encarts pour `arrosage_engrais` :**
+1. Encart gris : Recette, pH cible, Volume/plante (`volume_par_plante_l` ou fallback `volume_l`)
+2. Encart vert : 🧪 Produits utilisés (depuis `params.produits_calcules`)
+3. Encart doré : 💰 Coût par produit + total €
+
+**Nouveau endpoint backend :** `GET /api/cultures/{id}/actions/{id}/cout`  
+Calcul : `dosage × volume_total_l × (prix_achat / volume_conditionnement)` par ligne de recette.  
+Retourne `ActionCout { cout_total, par_produit: [{nom, cout}] }`. Fonctionne sur anciens events (lit `id_recette` + `volume_total_l` des params).
+
+**Nouveau type frontend :** `ActionCout` + `getActionCout()` dans `api/calendrier.ts`
+
+**Fichiers modifiés :**
+- `backend/app/routers/cultures.py` — endpoint `/{culture_id}/actions/{action_id}/cout`
+- `frontend/src/api/calendrier.ts` — `ActionCout` interface + `getActionCout()`
+- `frontend/src/pages/CalendrierGlobal.tsx` — `EventDrawer` 3 encarts + fix rendu générique
+
+---
+
 ## [2026-05-15] update | Bugfix coût engrais culture — x1000 trop cher
 
 **Bug corrigé :**

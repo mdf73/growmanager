@@ -36,6 +36,15 @@ export const getCulturesRef = () =>
   client.get<CultureRef[]>('/calendrier/cultures-actives')
     .then(r => r.data)
 
+export interface ActionCout {
+  cout_total: number | null
+  par_produit: { nom: string; cout: number | null }[]
+}
+
+export const getActionCout = (cultureId: number, actionId: number) =>
+  client.get<ActionCout>(`/cultures/${cultureId}/actions/${actionId}/cout`)
+    .then(r => r.data)
+
 export const getCalendrierExport = (
   date_debut: string,
   date_fin: string,

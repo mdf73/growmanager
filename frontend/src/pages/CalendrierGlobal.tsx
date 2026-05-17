@@ -5,7 +5,7 @@
 import { useState, useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { ChevronLeft, ChevronRight, Calendar, Filter, FileDown, ArrowLeft, X } from 'lucide-react'
-import { getCalendrierEvents, getCulturesRef, getCalendrierExport, CalendrierEvent, CultureRef } from '../api/calendrier'
+import { getCalendrierEvents, getCulturesRef, getCalendrierExport, getActionCout, CalendrierEvent, CultureRef } from '../api/calendrier'
 import { capteursAPI, TemperatureLog } from '../api/capteurs'
 import { photosAPI, photoUrl } from '../api/photos'
 import SensorDayChart from '../components/SensorDayChart'
@@ -118,8 +118,46 @@ function EventDrawer({
   })
 
   const params = event.parametres
+  const isEngrais = event.type_action === 'arrosage_engrais'
+
+  // ── Pour arrosage_engrais : 3 encarts dédiés ─────────────────────────────
+  // Encart 1 — info recette (ph_cible, nom_recette, volume_par_plante_l)
+  const engraisInfo = isEngrais && params ? {
+    phCible:       params.ph_cible     as number | null | undefined,
+    nomRecette:    params.nom_recette  as string | null | undefined,
+    // volume par plante = volume_par_plante_l si dispo, sinon volume_l
+    volParPlante:  (params.volume_par_plante_l ?? params.volume_l) as number | null | undefined,
+  } : null
+
+  // Encart 2 — produits utilisés
+  type ProduitCalc = { nom: string; quantite: number; unite?: string }
+  const produitsCalcules: ProduitCalc[] | null =
+    params && Array.isArray(params.produits_calcules)
+      ? (params.produits_calcules as ProduitCalc[])
+      : params && Array.isArray(params.calculs)
+        ? (params.calculs as ProduitCalc[])
+        : null
+
+  // Encart 3 — coût (fetch depuis l'API)
+  const { data: coutData } = useQuery({
+    queryKey: ['action-cout', event.id_culture, event.id_action],
+    queryFn:  () => getActionCout(event.id_culture, event.id_action),
+    enabled:  isEngrais,
+    staleTime: 5 * 60_000,
+  })
+
+  // ── Paramètres génériques (tout sauf arrosage_engrais et valeurs complexes) ─
+  const SKIP_KEYS_ENGRAIS = ['ph_cible', 'nom_recette', 'id_recette', 'volume_l',
+    'volume_total_l', 'volume_par_plante_l', 'nb_plantes',
+    'produits', 'produits_calcules', 'produits_consommes', 'calculs']
+
   const paramEntries = params && typeof params === 'object'
-    ? Object.entries(params).filter(([k]) => k !== 'count')  // "count" affiché autrement
+    ? Object.entries(params).filter(([k, v]) =>
+        k !== 'count' &&
+        !(isEngrais && SKIP_KEYS_ENGRAIS.includes(k)) &&
+        !Array.isArray(v) &&
+        typeof v !== 'object'
+      )
     : []
 
   // ── Chargement des photos si type === 'photo' ─────────────────────────────
@@ -213,7 +251,69 @@ function EventDrawer({
               {event.global_culture ? '🌍 Action globale (toute la culture)' : `🪴 Plante : ${event.plant_nom ?? '—'}`}
             </div>
 
-            {/* Paramètres (hors count) */}
+            {/* ── Encart 1 : infos recette engrais ── */}
+            {engraisInfo && (
+              <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-3 text-sm space-y-1">
+                {engraisInfo.nomRecette && (
+                  <div className="flex justify-between gap-2">
+                    <span className="text-gray-500 dark:text-gray-400">Recette</span>
+                    <span className="font-medium text-gray-800 dark:text-gray-200 text-right">{engraisInfo.nomRecette}</span>
+                  </div>
+                )}
+                {engraisInfo.phCible != null && (
+                  <div className="flex justify-between gap-2">
+                    <span className="text-gray-500 dark:text-gray-400">pH cible</span>
+                    <span className="font-medium text-gray-800 dark:text-gray-200">{engraisInfo.phCible}</span>
+                  </div>
+                )}
+                {engraisInfo.volParPlante != null && (
+                  <div className="flex justify-between gap-2">
+                    <span className="text-gray-500 dark:text-gray-400">Volume / plante</span>
+                    <span className="font-medium text-gray-800 dark:text-gray-200">{engraisInfo.volParPlante} L</span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* ── Encart 2 : produits utilisés ── */}
+            {produitsCalcules && produitsCalcules.length > 0 && (
+              <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-xl p-3 text-sm space-y-1">
+                <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 uppercase tracking-wide mb-2">
+                  🧪 Produits utilisés
+                </p>
+                {produitsCalcules.map((p, i) => (
+                  <div key={i} className="flex justify-between gap-2">
+                    <span className="text-gray-600 dark:text-gray-300">{p.nom}</span>
+                    <span className="font-medium text-gray-800 dark:text-gray-200">
+                      {p.quantite}{(p.unite ?? '').replace('/L', '')}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* ── Encart 3 : coût ── */}
+            {isEngrais && coutData && coutData.cout_total != null && (
+              <div className="bg-amber-50 dark:bg-amber-900/20 rounded-xl p-3 text-sm space-y-1">
+                <p className="text-xs font-semibold text-amber-700 dark:text-amber-400 uppercase tracking-wide mb-2">
+                  💰 Coût de l'arrosage
+                </p>
+                {coutData.par_produit.map((p, i) => p.cout != null && (
+                  <div key={i} className="flex justify-between gap-2">
+                    <span className="text-gray-600 dark:text-gray-300">{p.nom}</span>
+                    <span className="text-gray-700 dark:text-gray-300">{p.cout.toFixed(4)} €</span>
+                  </div>
+                ))}
+                <div className="flex justify-between gap-2 pt-1 mt-1 border-t border-amber-200 dark:border-amber-800">
+                  <span className="font-semibold text-gray-700 dark:text-gray-200">Total</span>
+                  <span className="font-bold text-amber-700 dark:text-amber-400">
+                    {coutData.cout_total.toFixed(4)} €
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* ── Paramètres génériques (autres types d'action) ── */}
             {paramEntries.length > 0 && (
               <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-3 text-sm space-y-1">
                 {paramEntries.map(([k, v]) => (
