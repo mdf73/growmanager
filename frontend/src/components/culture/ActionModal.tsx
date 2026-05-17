@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react'
-import { X, ChevronDown } from 'lucide-react'
+import { useState, useEffect, useRef } from 'react'
+import { X, ChevronDown, Camera, Loader2 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { Plant, ActionCreate } from '../../api/cultures'
 import { engraisAPI } from '../../api/engrais'
 import { espacesAPI, EspaceMateriel } from '../../api/espaces'
+import { photosAPI } from '../../api/photos'
 import {
   ACTIONS_BY_CATEGORY, ACTION_MAP,
   CATEGORY_COLORS, CATEGORY_LABELS, ActionCategory,
@@ -39,6 +40,10 @@ export default function ActionModal({ plants, idEspace, initialDate, initialPlan
   const [loading, setLoading] = useState(false)
   const [openCategory, setOpenCategory] = useState<ActionCategory | null>('germination')
   const [produits, setProduits] = useState<ProduitItem[]>([])
+  // ── État pour l'upload photo ────────────────────────────────────────────────
+  const [photoFiles, setPhotoFiles]   = useState<File[]>([])
+  const [photoDrag,  setPhotoDrag]    = useState(false)
+  const photoInputRef = useRef<HTMLInputElement>(null)
 
   const { data: produitsEngrais = [] } = useQuery({
     queryKey: ['produits-engrais'],
@@ -99,6 +104,8 @@ export default function ActionModal({ plants, idEspace, initialDate, initialPlan
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!selectedType) return
+    // Pour le type photo, au moins une photo est requise
+    if (selectedType === 'photo' && photoFiles.length === 0) return
     setLoading(true)
 
     const finalParams: Record<string, unknown> = { ...params }
@@ -111,6 +118,21 @@ export default function ActionModal({ plants, idEspace, initialDate, initialPlan
     const plantId  = (!isSpace && !isGlobal && target !== '') ? Number(target) : undefined
 
     try {
+      // ── Si action photo : uploader les fichiers avec la date de l'action ────
+      if (selectedType === 'photo' && photoFiles.length > 0) {
+        for (const file of photoFiles) {
+          await photosAPI.upload({
+            file,
+            id_culture: cultureId,
+            ...(plantId !== undefined && { id_plant: plantId }),
+            notes:      note || undefined,
+            date_prise: dateAction,   // date de l'action = date de la photo
+          })
+        }
+        // Stocker le nombre de photos dans les paramètres de l'action
+        finalParams.nb_photos = photoFiles.length
+      }
+
       await onSubmit({
         id_plant: plantId,
         date_action: dateAction,
@@ -314,15 +336,86 @@ export default function ActionModal({ plants, idEspace, initialDate, initialPlan
             </div>
           )}
 
+          {/* ── Zone upload photo (uniquement quand type=photo) ────────────────── */}
+          {selectedType === 'photo' && (
+            <div className="space-y-2">
+              <label className="block text-xs font-medium text-gray-600 dark:text-gray-300">
+                Photos <span className="text-red-500">*</span>
+                <span className="text-gray-400 font-normal ml-1">(JPG, PNG, WebP — la date est celle de l'action)</span>
+              </label>
+
+              {/* Drop zone */}
+              <div
+                className={`border-2 border-dashed rounded-xl p-5 flex flex-col items-center gap-2 cursor-pointer transition-colors
+                  ${photoDrag
+                    ? 'border-grow-400 bg-grow-50 dark:bg-grow-900/20'
+                    : 'border-gray-200 dark:border-gray-700 hover:border-grow-300 dark:hover:border-grow-600'}`}
+                onClick={() => photoInputRef.current?.click()}
+                onDragOver={e => { e.preventDefault(); setPhotoDrag(true) }}
+                onDragLeave={() => setPhotoDrag(false)}
+                onDrop={e => {
+                  e.preventDefault()
+                  setPhotoDrag(false)
+                  const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'))
+                  if (files.length) setPhotoFiles(prev => [...prev, ...files])
+                }}
+              >
+                <input
+                  ref={photoInputRef}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  className="hidden"
+                  onChange={e => {
+                    if (e.target.files) {
+                      setPhotoFiles(prev => [...prev, ...Array.from(e.target.files!)])
+                    }
+                  }}
+                />
+                <Camera size={24} className="text-gray-400" />
+                <span className="text-sm text-gray-500 dark:text-gray-400">
+                  Cliquer ou glisser des photos ici
+                </span>
+              </div>
+
+              {/* Aperçu des fichiers sélectionnés */}
+              {photoFiles.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-1">
+                  {photoFiles.map((f, i) => (
+                    <div key={i} className="relative group">
+                      <img
+                        src={URL.createObjectURL(f)}
+                        alt={f.name}
+                        className="w-16 h-16 object-cover rounded-lg border border-gray-200 dark:border-gray-600"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setPhotoFiles(prev => prev.filter((_, idx) => idx !== i))}
+                        className="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        ×
+                      </button>
+                      <span className="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-[9px] truncate px-1 rounded-b-lg">
+                        {f.name}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Note */}
           <div>
-            <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Note (optionnelle)</label>
+            <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">
+              {selectedType === 'photo' ? 'Légende / note (optionnelle)' : 'Note (optionnelle)'}
+            </label>
             <textarea
               value={note}
               onChange={e => setNote(e.target.value)}
               rows={2}
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm resize-none"
-              placeholder="Observations, détails…"
+              placeholder={selectedType === 'photo' ? 'Légende appliquée à toutes les photos…' : 'Observations, détails…'}
             />
           </div>
 
@@ -334,10 +427,16 @@ export default function ActionModal({ plants, idEspace, initialDate, initialPlan
             </button>
             <button
               type="submit"
-              disabled={loading || !selectedType}
-              className="flex-1 px-4 py-2 bg-grow-600 text-white rounded-lg hover:bg-grow-700 disabled:opacity-50 text-sm"
+              disabled={loading || !selectedType || (selectedType === 'photo' && photoFiles.length === 0)}
+              className="flex-1 px-4 py-2 bg-grow-600 text-white rounded-lg hover:bg-grow-700 disabled:opacity-50 text-sm flex items-center justify-center gap-2"
             >
-              {loading ? 'Enregistrement…' : 'Enregistrer'}
+              {loading && <Loader2 size={14} className="animate-spin" />}
+              {loading
+                ? (selectedType === 'photo' ? 'Upload en cours…' : 'Enregistrement…')
+                : (selectedType === 'photo' && photoFiles.length > 0
+                    ? `Uploader ${photoFiles.length} photo${photoFiles.length > 1 ? 's' : ''}`
+                    : 'Enregistrer')
+              }
             </button>
           </div>
         </form>

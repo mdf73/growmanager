@@ -7,6 +7,7 @@ export type ActionCategory =
   | 'stade'
   | 'mesure'
   | 'recolte'
+  | 'photo'
 
 export interface ActionTypeDef {
   key: string
@@ -132,6 +133,9 @@ export const ACTION_TYPES: ActionTypeDef[] = [
     ] },
   { key: 'deces_plante',          label: 'Décès de la plante',               category: 'mesure', icon: '💀' },
 
+  // ── Photo ─────────────────────────────────────────────────────────────────────
+  { key: 'photo',                 label: 'Photo',                            category: 'photo',  icon: '📷' },
+
   // ── Récolte ───────────────────────────────────────────────────────────────────
   { key: 'recolte',               label: 'Récolte → Séchage',                category: 'recolte', icon: '🌾' },
   { key: 'debut_curing',          label: 'Début curing',                     category: 'recolte', icon: '🏺',
@@ -152,6 +156,7 @@ export const CATEGORY_COLORS: Record<ActionCategory, string> = {
   stade:       'bg-purple-500',
   mesure:      'bg-orange-500',
   recolte:     'bg-red-500',
+  photo:       'bg-pink-400',
 }
 
 export const CATEGORY_LABELS: Record<ActionCategory, string> = {
@@ -161,6 +166,7 @@ export const CATEGORY_LABELS: Record<ActionCategory, string> = {
   stade:       'Stade du cycle',
   mesure:      'Mesures & Soins',
   recolte:     'Récolte',
+  photo:       'Photo',
 }
 
 // ─── Actions groupées par catégorie ───────────────────────────────────────────

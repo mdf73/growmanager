@@ -2093,6 +2093,21 @@ def export_culture_pdf(culture_id: int, db: Session = Depends(get_db)):
         .all()
     )
 
+    # -- Photos de la culture -------------------------------------------------
+    from app.models.all_models import Photo as PhotoModel
+    photos_raw = (
+        db.query(PhotoModel)
+        .filter(PhotoModel.id_culture == culture_id)
+        .order_by(PhotoModel.date_prise)
+        .all()
+    )
+    # Grouper par date (YYYY-MM-DD)
+    from collections import defaultdict
+    photos_by_day: dict = defaultdict(list)
+    for ph in photos_raw:
+        day_key = ph.date_prise.strftime("%Y-%m-%d") if ph.date_prise else "sans-date"
+        photos_by_day[day_key].append(ph)
+
     # -- Espace info ----------------------------------------------------------
     espace = db.query(EspaceCulture).filter(
         EspaceCulture.id_espace == culture.id_espace
@@ -2337,6 +2352,94 @@ def export_culture_pdf(culture_id: int, db: Session = Depends(get_db)):
         pdf.set_font("Helvetica", "", 8)
         pdf.multi_cell(0, 5, _safe(culture.notes))
         pdf.ln(3)
+
+    # -------------------------------------------------------------------------
+    # Section 6 -- Journal Photos (groupées par jour)
+    # -------------------------------------------------------------------------
+    if photos_by_day:
+        section_title("Journal Photos")
+
+        PHOTO_MAX_W  = 55   # largeur max d'une photo dans le PDF (mm)
+        PHOTO_MAX_H  = 55   # hauteur max
+        PHOTOS_PER_ROW = 3  # nb de photos par ligne
+        PHOTO_CELL_W = (210 - 28 - (PHOTOS_PER_ROW - 1) * 4) / PHOTOS_PER_ROW  # ~57 mm
+        THUMB_H      = 45   # hauteur affichée
+        GAP          = 4    # espace entre photos (mm)
+
+        UPLOADS_BASE = "/app/uploads"
+
+        for day_key in sorted(photos_by_day.keys()):
+            day_photos = photos_by_day[day_key]
+
+            # Titre du jour
+            if day_key == "sans-date":
+                day_label = "Date inconnue"
+            else:
+                try:
+                    import datetime as _dtmod
+                    d = _dtmod.date.fromisoformat(day_key)
+                    jours_fr = ["lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche"]
+                    mois_fr  = ["", "janvier", "fevrier", "mars", "avril", "mai", "juin",
+                                "juillet", "aout", "septembre", "octobre", "novembre", "decembre"]
+                    day_label = f"{jours_fr[d.weekday()]} {d.day} {mois_fr[d.month]} {d.year}"
+                except Exception:
+                    day_label = day_key
+
+            pdf.set_font("Helvetica", "B", 8)
+            pdf.set_fill_color(220, 240, 220)
+            pdf.set_text_color(34, 100, 34)
+            pdf.cell(0, 5.5, _safe(f"  {day_label}  ({len(day_photos)} photo{'s' if len(day_photos) > 1 else ''})"),
+                     fill=True, new_x="LMARGIN", new_y="NEXT")
+            pdf.set_text_color(TEXT_R, TEXT_G, TEXT_B)
+            pdf.ln(2)
+
+            # Disposition en grille
+            x_start = 14
+            for chunk_start in range(0, len(day_photos), PHOTOS_PER_ROW):
+                chunk = day_photos[chunk_start:chunk_start + PHOTOS_PER_ROW]
+                row_y = pdf.get_y()
+
+                # Vérifier espace vertical restant
+                if row_y + THUMB_H + 12 > pdf.h - pdf.b_margin:
+                    pdf.add_page()
+                    row_y = pdf.get_y()
+
+                max_note_lines = 1
+                for col_idx, ph in enumerate(chunk):
+                    x = x_start + col_idx * (PHOTO_CELL_W + GAP)
+
+                    # Chemin de l'image (on préfère le thumbnail)
+                    img_rel = ph.thumbnail_path or ph.filepath
+                    img_path = os.path.join(UPLOADS_BASE, img_rel) if img_rel else None
+
+                    if img_path and os.path.exists(img_path):
+                        try:
+                            pdf.image(img_path, x=x, y=row_y, w=PHOTO_CELL_W, h=THUMB_H)
+                        except Exception:
+                            # Fallback : cadre gris si image corrompue
+                            pdf.set_draw_color(200, 200, 200)
+                            pdf.rect(x, row_y, PHOTO_CELL_W, THUMB_H)
+                    else:
+                        # Pas de fichier : cadre gris
+                        pdf.set_draw_color(200, 200, 200)
+                        pdf.rect(x, row_y, PHOTO_CELL_W, THUMB_H)
+                        pdf.set_xy(x, row_y + THUMB_H / 2 - 3)
+                        pdf.set_font("Helvetica", "I", 7)
+                        pdf.set_text_color(180, 180, 180)
+                        pdf.cell(PHOTO_CELL_W, 5, "image indisponible", align="C")
+                        pdf.set_text_color(TEXT_R, TEXT_G, TEXT_B)
+
+                    # Note sous la photo
+                    if ph.notes:
+                        pdf.set_xy(x, row_y + THUMB_H + 1)
+                        pdf.set_font("Helvetica", "I", 6)
+                        pdf.set_text_color(100, 100, 100)
+                        pdf.multi_cell(PHOTO_CELL_W, 3.5, _safe(ph.notes), align="L")
+                        pdf.set_text_color(TEXT_R, TEXT_G, TEXT_B)
+
+                pdf.set_y(row_y + THUMB_H + 8)
+
+            pdf.ln(3)
 
     # -- Output ---------------------------------------------------------------
     pdf_bytes = pdf.output()

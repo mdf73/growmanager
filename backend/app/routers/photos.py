@@ -108,10 +108,11 @@ def get_photos(
 
 @router.post("/upload", response_model=PhotoRead, status_code=201)
 async def upload_photo(
-    file:       UploadFile = File(...),
-    id_culture: Optional[int] = Form(None),
-    id_plant:   Optional[int] = Form(None),
-    notes:      Optional[str] = Form(None),
+    file:        UploadFile = File(...),
+    id_culture:  Optional[int] = Form(None),
+    id_plant:    Optional[int] = Form(None),
+    notes:       Optional[str] = Form(None),
+    date_prise:  Optional[str] = Form(None),   # ISO date ou datetime envoyée par le frontend
     db: Session = Depends(get_db),
 ):
     """Upload une photo, la compresse et génère un thumbnail."""
@@ -153,11 +154,25 @@ async def upload_photo(
     filepath_rel   = f"photos/{base_name}"
     thumb_rel      = f"photos/thumbs/{thumb_name}" if os.path.exists(thumb_path) else None
 
+    # Résolution de la date : utilise celle fournie par le frontend, sinon maintenant
+    if date_prise:
+        try:
+            # Accepte "YYYY-MM-DD" ou "YYYY-MM-DDTHH:MM:SS"
+            if "T" in date_prise:
+                parsed_date = datetime.fromisoformat(date_prise)
+            else:
+                from datetime import date as _date
+                parsed_date = datetime.combine(_date.fromisoformat(date_prise), datetime.min.time())
+        except ValueError:
+            parsed_date = datetime.utcnow()
+    else:
+        parsed_date = datetime.utcnow()
+
     photo = Photo(
         filename       = base_name,
         filepath       = filepath_rel,
         thumbnail_path = thumb_rel,
-        date_prise     = datetime.utcnow(),
+        date_prise     = parsed_date,
         notes          = notes,
         id_plant       = id_plant,
         id_culture     = id_culture,

@@ -30,12 +30,14 @@ export const photosAPI = {
     id_culture?: number
     id_plant?:   number
     notes?:      string
+    date_prise?: string   // format "YYYY-MM-DD"
   }): Promise<Photo> {
     const fd = new FormData()
     fd.append('file', payload.file)
     if (payload.id_culture !== undefined) fd.append('id_culture', String(payload.id_culture))
     if (payload.id_plant   !== undefined) fd.append('id_plant',   String(payload.id_plant))
     if (payload.notes)                    fd.append('notes',       payload.notes)
+    if (payload.date_prise)               fd.append('date_prise',  payload.date_prise)
     return axios.post<Photo>('/api/photos/upload', fd).then(r => r.data)
   },
 

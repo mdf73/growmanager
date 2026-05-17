@@ -85,7 +85,9 @@ Calendar event/action tied to a plant or a whole culture.
 | `global_culture` | Boolean | True = applies to whole culture, not one plant |
 | `created_at` | DateTime | |
 
-Known `type_action` values: `graine_germee`, `debut_croissance`, `debut_floraison`, `passage_12_12`, `arrosage_eau`, `arrosage_engrais`, `taille`, `defoliation`, `recolte`, `observations`, `traitement`
+Known `type_action` values: `graine_germee`, `debut_croissance`, `debut_floraison`, `passage_12_12`, `arrosage_eau`, `arrosage_engrais`, `taille`, `defoliation`, `recolte`, `observations`, `traitement`, `photo`
+
+**Action `photo`** : catégorie dédiée (rose) dans `actionTypes.ts`. Quand sélectionnée dans `ActionModal`, affiche une drop zone — les fichiers sont uploadés via `POST /api/photos/upload` avec `date_prise = date_action`. Un enregistrement `ActionCalendrier` de type `photo` est aussi créé avec `parametres.nb_photos`. La note de l'action sert de légende à toutes les photos uploadées.
 
 ---
 

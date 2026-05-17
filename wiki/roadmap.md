@@ -1,6 +1,6 @@
 ---
 type: roadmap
-updated: 2026-05-14
+updated: 2026-05-17
 sources: [Documentation/claude.md, Documentation/Instructions de reprises v1.txt, Documentation/GrowManager_Specifications_v4.docx]
 sprint1_completed: 2026-05-10
 ---
@@ -97,6 +97,12 @@ Bouton "Export PDF" dans le header de `/calendrier` · modal date début + date 
 
 ### Maillages Polinator paramétrables ✅ DONE — validé 2026-05-15
 `maillages_polinator` ajouté dans `ParametreListeValeur` (section "Stock — Maillages" de Parametrage.tsx). `NouvelleHashModal.tsx` : le champ maillage Polinator (anciennement fixe à 120µ) est désormais un `<select>` dynamique chargé depuis `useParametreListe('maillages_polinator')` (fallback `['120µ']`). Colonne `maillage_polinator VARCHAR(20) NULL` ajoutée à `HashExtraction` (migration automatique dans `run_migrations()`, `main.py`).
+
+### Action "Photo" dans le calendrier de culture ✅ DONE — validé 2026-05-17
+Nouvelle catégorie `photo` (rose, 📷) dans `actionTypes.ts`. `ActionModal.tsx` : quand type=photo, affiche drop zone + aperçu miniatures + bouton "Uploader N photo(s)". Au submit : upload via `POST /api/photos/upload` (date_prise=date_action, note=légende), puis enregistrement `ActionCalendrier` type=photo avec `parametres.nb_photos`. Pas de saisie de date (héritée de l'action).
+
+### Photos datées dans le suivi de culture ✅ DONE — validé 2026-05-17
+`date_prise` accepté en Form param dans `POST /api/photos/upload` (format YYYY-MM-DD ou ISO datetime, fallback utcnow). `PhotoGallery.tsx` : date picker initialisé à aujourd'hui, note + date appliquées à toutes les photos de la session d'upload. Miniatures : date affichée en bas. Export PDF fiche culture : section "Journal Photos" groupée par jour, grille 3 colonnes, thumbnails intégrés, note sous chaque image.
 
 ---
 

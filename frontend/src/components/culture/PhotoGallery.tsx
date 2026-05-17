@@ -175,6 +175,9 @@ export default function PhotoGallery({ idCulture, idPlant }: PhotoGalleryProps) 
   const [lightboxIdx, setLightboxIdx] = useState<number | null>(null)
   const [noteInput,   setNoteInput]   = useState('')
   const [uploading,   setUploading]   = useState(false)
+  // Date par défaut = aujourd'hui
+  const todayStr = () => new Date().toISOString().slice(0, 10)
+  const [dateInput, setDateInput]     = useState<string>(todayStr())
 
   const queryKey = ['photos', idCulture, idPlant]
 
@@ -203,7 +206,8 @@ export default function PhotoGallery({ idCulture, idPlant }: PhotoGalleryProps) 
           file,
           ...(idCulture !== undefined && { id_culture: idCulture }),
           ...(idPlant   !== undefined && { id_plant:   idPlant }),
-          notes: noteInput || undefined,
+          notes:      noteInput || undefined,
+          date_prise: dateInput || todayStr(),
         })
       }
       setNoteInput('')
@@ -226,13 +230,27 @@ export default function PhotoGallery({ idCulture, idPlant }: PhotoGalleryProps) 
     <div className="space-y-6">
       {/* Zone upload */}
       <div className="space-y-2">
-        <input
-          type="text"
-          value={noteInput}
-          onChange={e => setNoteInput(e.target.value)}
-          placeholder="Note optionnelle pour les prochaines photos…"
-          className="w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400"
-        />
+        {/* Ligne date + note */}
+        <div className="flex gap-2 items-center">
+          <div className="flex items-center gap-1.5 shrink-0">
+            <label className="text-xs font-medium text-gray-500 dark:text-gray-400 whitespace-nowrap">
+              Date de la photo
+            </label>
+            <input
+              type="date"
+              value={dateInput}
+              onChange={e => setDateInput(e.target.value)}
+              className="border border-gray-200 dark:border-gray-700 rounded-lg px-2 py-2 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+            />
+          </div>
+          <input
+            type="text"
+            value={noteInput}
+            onChange={e => setNoteInput(e.target.value)}
+            placeholder="Note optionnelle pour les prochaines photos…"
+            className="flex-1 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400"
+          />
+        </div>
         <UploadZone onFiles={handleFiles} uploading={uploading} />
       </div>
 
@@ -270,12 +288,13 @@ export default function PhotoGallery({ idCulture, idPlant }: PhotoGalleryProps) 
               >
                 <Trash2 size={14} />
               </button>
-              {/* Note badge */}
-              {photo.notes && (
-                <div className="absolute bottom-0 left-0 right-0 px-2 py-1 bg-black/50 text-white text-xs truncate">
-                  {photo.notes}
-                </div>
-              )}
+              {/* Date + Note badge */}
+              <div className="absolute bottom-0 left-0 right-0 px-2 py-1 bg-black/50 text-white text-xs truncate">
+                <span className="opacity-70">
+                  {new Date(photo.date_prise).toLocaleDateString('fr-FR')}
+                </span>
+                {photo.notes && <span className="ml-1">· {photo.notes}</span>}
+              </div>
             </div>
           ))}
         </div>
