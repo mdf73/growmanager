@@ -1,10 +1,7 @@
-feat(calendrier): photos dans l'export PDF + algo closest-action
+feat(ui): logo dans la sidebar + copyright Pik
 
-- api/photos.ts : ajout params date_debut/date_fin dans list()
-- CalendrierGlobal : ExportPDFModal fetch photos via photosAPI.list({date_debut, date_fin})
-- CalendrierGlobal : wrapper generateCalendarPDF transmet photos au générateur PDF
-- calendarPdfExport.ts : remplace groupement par date_prise par algo "closest action"
-  → chaque photo assignée au jour de l'event photo (même culture) le plus proche
-  → fallback sur date_prise si pas d'event photo pour la culture
-- backend/routers/photos.py : endpoint GET /api/photos/ supporte date_debut + date_fin
-- wiki: mise à jour CalendrierGlobal + photos PDF
+- Remplace le titre texte "GrowManager" par le logo image (LogoFinal.png)
+  dans la sidebar desktop, sidebar mobile et header mobile
+- Logo centré en haut de la sidebar (max-w-[162px], pt-2)
+- PNG avec fond transparent copié dans frontend/public/logo.png
+- Copyright bas de sidebar : "© 2024 Pik"

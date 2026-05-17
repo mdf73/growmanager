@@ -293,8 +293,8 @@ export default function Layout({ children }: LayoutProps) {
 
       {/* ── Sidebar Desktop ── */}
       <aside className="hidden lg:flex lg:flex-col w-64 bg-grow-600 text-white">
-        <div className="p-6 border-b border-grow-700 flex flex-col items-center">
-          <img src="/logo.png" alt="GrowManager" className="w-full max-w-[180px] h-auto mb-1" />
+        <div className="pt-2 pb-4 px-4 border-b border-grow-700 flex flex-col items-center">
+          <img src="/logo.png" alt="GrowManager" className="w-full max-w-[162px] h-auto mb-1" />
           <p className="text-sm text-grow-200 mt-1">v{__APP_VERSION__}</p>
           {/* Bouton recherche globale */}
           <button
@@ -313,7 +313,7 @@ export default function Layout({ children }: LayoutProps) {
         </nav>
 
         <div className="p-4 border-t border-grow-700 flex items-center justify-between">
-          <p className="text-xs text-grow-200">© 2024 GrowManager</p>
+          <p className="text-xs text-grow-200">© 2024 Pik</p>
           <button
             onClick={toggleDark}
             title={isDark ? 'Passer en mode clair' : 'Passer en mode sombre'}

@@ -50,6 +50,11 @@ App
 
 `Layout.tsx` — responsive sidebar with navigation links + header. Brand color: `grow-600`.
 
+### Layout — sidebar header
+- Le titre texte "GrowManager" est remplacé par le logo image `public/logo.png` (fichier source : `LogoFinal.png` à la racine, PNG avec fond transparent).
+- Logo affiché centré en haut de la sidebar desktop (`max-w-[162px]`, `pt-2`) et dans la sidebar mobile (`h-12`).
+- En bas de la sidebar : copyright `© 2024 Pik` (à la place de "© 2024 GrowManager").
+
 ## Component Directory
 
 ```
