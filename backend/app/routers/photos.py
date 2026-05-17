@@ -1,7 +1,7 @@
 """Router Photos — upload, liste, suppression (Feature 8 — Galerie photos)"""
 import os
 import uuid
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile
@@ -95,14 +95,24 @@ def _process_image(src_path: str, dest_path: str, thumb_path: str) -> dict:
 def get_photos(
     id_culture: Optional[int] = Query(None),
     id_plant:   Optional[int] = Query(None),
+    date:       Optional[str] = Query(None, description="Filtrer par jour YYYY-MM-DD"),
     db: Session = Depends(get_db),
 ):
-    """Retourne les photos d'une culture ou d'une plante (tri chronologique desc)."""
+    """Retourne les photos d'une culture ou d'une plante (tri chronologique desc).
+    Si date est fourni, filtre sur toute la journée (00:00:00 → 23:59:59)."""
     q = db.query(Photo)
     if id_culture is not None:
         q = q.filter(Photo.id_culture == id_culture)
     if id_plant is not None:
         q = q.filter(Photo.id_plant == id_plant)
+    if date is not None:
+        try:
+            from datetime import date as _date
+            day_start = datetime.combine(_date.fromisoformat(date), datetime.min.time())
+            day_end   = day_start + timedelta(days=1)
+            q = q.filter(Photo.date_prise >= day_start, Photo.date_prise < day_end)
+        except ValueError:
+            pass  # date invalide → ignoré
     return q.order_by(Photo.date_prise.desc()).all()
 
 
@@ -157,13 +167,18 @@ async def upload_photo(
     # Résolution de la date : utilise celle fournie par le frontend, sinon maintenant
     if date_prise:
         try:
-            # Accepte "YYYY-MM-DD" ou "YYYY-MM-DDTHH:MM:SS"
-            if "T" in date_prise:
-                parsed_date = datetime.fromisoformat(date_prise)
+            # Accepte "YYYY-MM-DD" ou "YYYY-MM-DDTHH:MM:SS" ou "YYYY-MM-DDTHH:MM"
+            clean = date_prise.strip()
+            if "T" in clean:
+                parsed_date = datetime.fromisoformat(clean)
             else:
                 from datetime import date as _date
-                parsed_date = datetime.combine(_date.fromisoformat(date_prise), datetime.min.time())
-        except ValueError:
+                d = _date.fromisoformat(clean)
+                parsed_date = datetime(d.year, d.month, d.day, 12, 0, 0)  # midi pour éviter les décalages TZ
+        except (ValueError, AttributeError):
+            # Fallback : on log l'erreur (sans planter) et on prend maintenant
+            import sys
+            print(f"[photos] date_prise invalide: {date_prise!r}", file=sys.stderr)
             parsed_date = datetime.utcnow()
     else:
         parsed_date = datetime.utcnow()

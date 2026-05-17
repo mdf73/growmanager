@@ -126,8 +126,8 @@ function EventDrawer({
   const isPhoto = event.type_action === 'photo'
   const eventDate = event.date_action.slice(0, 10)
 
-  const { data: allPhotos = [], isLoading: photosLoading } = useQuery({
-    queryKey: ['photos-day', event.id_culture, event.id_plant ?? null, eventDate],
+  const { data: allCulturePhotos = [], isLoading: photosLoading } = useQuery({
+    queryKey: ['photos-culture', event.id_culture, event.id_plant ?? null],
     queryFn: () => photosAPI.list({
       id_culture: event.id_culture,
       ...(event.id_plant ? { id_plant: event.id_plant } : {}),
@@ -136,9 +136,10 @@ function EventDrawer({
     staleTime: 60_000,
   })
 
-  const dayPhotos = isPhoto
-    ? allPhotos.filter(p => p.date_prise.slice(0, 10) === eventDate)
-    : []
+  // Filtre par date de l'event ; fallback sur toutes si aucune correspondance
+  const dayPhotos    = allCulturePhotos.filter(p => p.date_prise.slice(0, 10) === eventDate)
+  const photosToShow = dayPhotos.length > 0 ? dayPhotos : allCulturePhotos
+  const isFallback   = dayPhotos.length === 0 && allCulturePhotos.length > 0
 
   return (
     <>
@@ -237,17 +238,22 @@ function EventDrawer({
                 <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">
                   Photos du jour
                 </p>
+                {isFallback && (
+                  <p className="text-xs text-amber-500 dark:text-amber-400 italic mb-2">
+                    ⚠️ Photos de la culture (date non correspondante)
+                  </p>
+                )}
                 {photosLoading ? (
                   <div className="flex justify-center py-6">
                     <div className="w-6 h-6 rounded-full border-2 border-grow-600 border-t-transparent animate-spin" />
                   </div>
-                ) : dayPhotos.length === 0 ? (
+                ) : photosToShow.length === 0 ? (
                   <div className="text-sm text-gray-400 dark:text-gray-500 italic py-3 text-center">
-                    Aucune photo trouvée pour ce jour
+                    Aucune photo pour cette culture
                   </div>
                 ) : (
                   <div className="grid grid-cols-2 gap-2">
-                    {dayPhotos.map(photo => {
+                    {photosToShow.map(photo => {
                       const thumbSrc = photo.thumbnail_path
                         ? photoUrl(photo.thumbnail_path)
                         : photoUrl(photo.filepath)

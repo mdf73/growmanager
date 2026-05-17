@@ -1,9 +1,13 @@
-feat: photos dans le PDF culture + fixes ActionModal upload
+feat(calendrier): photo lightbox + navigation arrière DayModal→EventDrawer
 
-- calendarPdfExport.ts : grille 4 col de miniatures par jour dans le PDF
-  (photos fetchées depuis /api/photos/?id_culture, src=/uploads/{thumbnail_path})
-- Culture.tsx : photosAPI.list() en parallèle dans handleExportPdf, passé à generateCalendarPDF
-- nginx.conf : client_max_body_size 20M (photos téléphone > 1 MB)
-- ActionModal.tsx : fix cultureId manquant dans la destructuration de props
-- ActionModal.tsx : drop zone → <label> wrapping input (compatibilité modale)
-- wiki/roadmap.md : mise à jour
+- EventDrawer : bouton ← retour vers DayModal quand ouvert depuis la vue journée
+  (× ferme tout, ← revient à la journée sans perdre le contexte)
+- EventDrawer : section photos pour type_action='photo'
+  · Charge toutes les photos de la culture via GET /api/photos/?id_culture=
+  · Filtre par date_prise = date de l'event
+  · Fallback ⚠️ si aucune correspondance de date (décalage date_prise/date_action)
+  · Lightbox plein écran au clic, grille 2 colonnes, overlay note au hover
+- ACTION_META : ajout type 'photo' → emoji 📷 label 'Photo'
+- Backend photos.py : filtre optionnel par date (param ?date=YYYY-MM-DD)
+  + parsing date_prise plus robuste (log stderr si format invalide)
+- Wiki frontend/pages.md mis à jour
