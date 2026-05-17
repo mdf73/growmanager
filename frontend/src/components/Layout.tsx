@@ -313,7 +313,7 @@ export default function Layout({ children }: LayoutProps) {
         </nav>
 
         <div className="p-4 border-t border-grow-700 flex items-center justify-between">
-          <p className="text-xs text-grow-200">© 2024 Pik</p>
+          <p className="text-xs text-grow-200">Pik</p>
           <button
             onClick={toggleDark}
             title={isDark ? 'Passer en mode clair' : 'Passer en mode sombre'}

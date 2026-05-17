@@ -1,11 +1,7 @@
-feat(tracabilite): amélioration BocalTimelineDrawer — séchage date fin + section curing
+feat(ui): logo dans la sidebar + label "Pik"
 
-- backend: date_fin séchage = ss.date_fin ?? sc.date_debut (début curing comme fallback)
-- frontend: ajout section "Curing" (4e catégorie) dans PlantCard avec date_debut / date_fin
-- frontend: durée curing affichée en j entre parenthèses, calculée jusqu'à aujourd'hui si session encore active
-- wiki: mise à jour api/infrastructure.md — BocalTimelineResponse + règles d'affichage
-
-Fichiers modifiés :
-  backend/app/routers/materiel.py
-  frontend/src/components/BocalTimelineDrawer.tsx
-  wiki/api/infrastructure.md
+- Remplace le titre texte "GrowManager" par le logo image (LogoFinal.png)
+  dans la sidebar desktop, sidebar mobile et header mobile
+- Logo centré en haut de la sidebar (max-w-[162px], pt-2)
+- PNG avec fond transparent copié dans frontend/public/logo.png
+- Bas de sidebar : "Pik" (à la place de "© 2024 GrowManager")
