@@ -1,11 +1,10 @@
-feat: PDF culture = journal jour-par-jour, même format que CalendrierGlobal
+feat: PDF culture = journal jour-par-jour + fix parse error CalendrierGlobal
 
-- GET /api/calendrier/export accepte maintenant ?id_culture= (filtre optionnel)
-- src/utils/calendarPdfExport.ts : generateCalendarPDF + buildSensorSVGCharts extraits (partagé)
-  - options.title / options.subtitle / options.cultureName pour la cover page
-  - action photo ajoutée dans ACTION_META + ACTION_COLORS_PDF
-- Culture.tsx : bouton PDF génère un journal HTML jour-par-jour
-  - dates auto : date_debut → date_fin (ou aujourd'hui)
-  - events filtrés par id_culture
-  - capteurs filtrés par id_espace
-- CalendrierGlobal.tsx : délègue à l'utilitaire (fonctions locales remplacées)
+- GET /api/calendrier/export : param id_culture optionnel (filtre par culture)
+- src/utils/calendarPdfExport.ts : generateCalendarPDF + buildSensorSVGCharts partagés
+  - options.title / subtitle / cultureName pour la cover page
+  - action photo dans ACTION_META + ACTION_COLORS_PDF
+- Culture.tsx : bouton PDF génère journal HTML jour-par-jour
+  - dates auto date_debut → date_fin (ou aujourd'hui)
+  - events filtrés par id_culture, capteurs par id_espace
+- CalendrierGlobal.tsx : délègue à l'utilitaire, dead code supprimé via sed
