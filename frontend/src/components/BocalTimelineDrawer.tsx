@@ -9,7 +9,7 @@
  */
 
 import { useQuery } from '@tanstack/react-query'
-import { X, Dna, Leaf, Archive, FlaskConical, Package, Calendar, Scale } from 'lucide-react'
+import { X, Dna, Leaf, Archive, FlaskConical, Package, Calendar, Scale, Layers } from 'lucide-react'
 import { materielAPI } from '../api/materiel'
 import type { PlantTimeline, SessionCuringTimeline, StockTimeline } from '../api/materiel'
 
@@ -39,7 +39,11 @@ function typeGraineColor(t?: string | null) {
 
 // ─── Sub-composants ───────────────────────────────────────────────────────────
 
-function PlantCard({ plant }: { plant: PlantTimeline }) {
+function PlantCard({ plant, curingDateDebut, curingDateFin }: {
+  plant: PlantTimeline
+  curingDateDebut?: string | null
+  curingDateFin?: string | null
+}) {
   const g = plant.graine
   const c = plant.culture
   const s = plant.sechage
@@ -117,6 +121,24 @@ function PlantCard({ plant }: { plant: PlantTimeline }) {
         </div>
       )}
 
+      {/* Curing */}
+      {curingDateDebut && (
+        <div className="flex items-start gap-2 text-gray-600 dark:text-gray-300">
+          <Layers className="w-3.5 h-3.5 mt-0.5 text-teal-500 shrink-0" />
+          <div>
+            <span className="text-gray-700 dark:text-gray-200">Curing</span>
+            <div className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+              {fmt(curingDateDebut)} → {fmt(curingDateFin)}
+              {curingDateDebut && (
+                <span className="ml-1">
+                  ({dureeJours(curingDateDebut, curingDateFin ?? new Date().toISOString().slice(0, 10))})
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Dates récolte / curing */}
       <div className="flex gap-4 text-xs text-gray-400 dark:text-gray-500 pt-1 border-t border-gray-100 dark:border-gray-700">
         {plant.date_recolte && (
@@ -161,7 +183,12 @@ function SessionCuringCard({ session }: { session: SessionCuringTimeline }) {
       ) : (
         <div className="space-y-2">
           {session.plants.map(p => (
-            <PlantCard key={p.id_plant} plant={p} />
+            <PlantCard
+              key={p.id_plant}
+              plant={p}
+              curingDateDebut={session.date_debut}
+              curingDateFin={session.date_fin}
+            />
           ))}
         </div>
       )}

@@ -1,14 +1,11 @@
-fix+feat: CalendrierGlobal — fix [object Object] arrosage engrais + 3 encarts détail
+feat(tracabilite): amélioration BocalTimelineDrawer — séchage date fin + section curing
 
-Bug: EventDrawer appelait String(v) sur les champs array → [object Object]
-Fix: exclusion des clés array/objet du rendu générique
+- backend: date_fin séchage = ss.date_fin ?? sc.date_debut (début curing comme fallback)
+- frontend: ajout section "Curing" (4e catégorie) dans PlantCard avec date_debut / date_fin
+- frontend: durée curing affichée en j entre parenthèses, calculée jusqu'à aujourd'hui si session encore active
+- wiki: mise à jour api/infrastructure.md — BocalTimelineResponse + règles d'affichage
 
-Feature: détail arrosage_engrais en 3 encarts
-- Encart 1 (gris): recette, pH cible, volume/plante
-- Encart 2 (vert): produits utilisés avec quantités
-- Encart 3 (doré): coût par produit + total €
-
-Nouveau endpoint: GET /api/cultures/{id}/actions/{id}/cout
-Nouveau type: ActionCout + getActionCout() dans api/calendrier.ts
-
-Files: cultures.py, api/calendrier.ts, CalendrierGlobal.tsx
+Fichiers modifiés :
+  backend/app/routers/materiel.py
+  frontend/src/components/BocalTimelineDrawer.tsx
+  wiki/api/infrastructure.md

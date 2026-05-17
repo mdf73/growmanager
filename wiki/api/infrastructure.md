@@ -77,15 +77,23 @@ Retourne la chaîne de traçabilité complète d'un bocal d'inventaire (Materiel
 BocalTimelineResponse {
   bocal: MaterielRead
   sessions_curing: SessionCuringTimeline[]   // sessions de curing liées (id_materiel_bocal)
+    → date_debut, date_fin, statut
     → plants: PlantTimeline[]
         → graine: { types_graines, variete, breeder }
         → culture: { nom, date_debut, date_passage_12_12, date_debut_floraison }
         → sechage: { nom, date_debut, date_fin }
+            // date_fin = ss.date_fin ?? sc.date_debut (début curing = fin séchage)
+        → curing: { date_debut, date_fin }  // repris de la SessionCuringTimeline parente
+            // durée affichée en j ; si en cours → date du jour comme borne de fin
         → poids_recolte_g, poids_debut_curing_g, poids_final_curing_g
   stocks: StockTimeline[]                    // entrées Stock liées (id_materiel_bocal)
     → variete, type_stock, quantite_stock, date_stock
 }
 ```
+
+**Règles d'affichage dans `BocalTimelineDrawer.tsx` :**
+- Séchage `date_fin` : valeur DB si renseignée, sinon `session_curing.date_debut` (fallback backend).
+- Curing durée : `(date_fin ?? today) - date_debut` en jours — affiché entre parenthèses même si session encore active.
 
 Frontend : composant `BocalTimelineDrawer.tsx` — bouton "🔍 Origine" sur les plantes en curing dans `SechageCuring.tsx`.
 

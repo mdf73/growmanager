@@ -239,11 +239,15 @@ def bocal_timeline(id_materiel: int, db: Session = Depends(get_db)):
                     SessionSechage.id_session_sechage == ps.id_session_sechage
                 ).first()
                 if ss:
+                    # date_fin du séchage = date explicite si renseignée,
+                    # sinon on utilise la date de début de la session curing
+                    # (entrée en bocal = fin du séchage)
+                    date_fin_sechage = ss.date_fin or sc.date_debut
                     sechage_out = _SechageMin(
                         id_session_sechage=ss.id_session_sechage,
                         nom=ss.nom,
                         date_debut=ss.date_debut,
-                        date_fin=ss.date_fin,
+                        date_fin=date_fin_sechage,
                     )
 
             plants_out.append(_PlantTimeline(
