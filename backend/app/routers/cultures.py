@@ -5,7 +5,7 @@ from datetime import date, timedelta, datetime
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy import extract
+from sqlalchemy import extract, or_
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -691,7 +691,7 @@ def _handle_action_effects(action: ActionCalendrier, culture: Culture, db: Sessi
                     elif pl.substrat:
                         substrat_type = pl.substrat.replace("_", " ").capitalize()
 
-                    # ── 4. Engrais → marques uniques des produits utilisés en arrosage ──
+                    # ── 4. Engrais → marques des produits de CETTE plante (+ arrosages globaux) ──
                     from app.models.all_models import RecetteEngraisLigne, ProduitEngrais as ProduitEngraisModel
                     import json as _json
                     engrais_type = None
@@ -700,6 +700,11 @@ def _handle_action_effects(action: ActionCalendrier, culture: Culture, db: Sessi
                         .filter(
                             ActionCalendrier.id_culture == culture.id_culture,
                             ActionCalendrier.type_action == "arrosage_engrais",
+                            or_(
+                                ActionCalendrier.id_plant == pl.id_plant,
+                                ActionCalendrier.id_plant.is_(None),
+                                ActionCalendrier.global_culture == True,
+                            ),
                         )
                         .all()
                     )
@@ -1569,7 +1574,7 @@ def get_plant_stock_info(id_plant: int, db: Session = Depends(get_db)):
     elif plant.substrat:
         substrat_type = plant.substrat.replace("_", " ").capitalize()
 
-    # ── Engrais — marques uniques des produits utilisés en arrosage ──────────
+    # ── Engrais — marques des produits de CETTE plante (+ arrosages globaux) ──
     engrais_type = None
     if culture:
         arrosage_actions = (
@@ -1577,6 +1582,11 @@ def get_plant_stock_info(id_plant: int, db: Session = Depends(get_db)):
             .filter(
                 ActionCalendrier.id_culture == culture.id_culture,
                 ActionCalendrier.type_action == "arrosage_engrais",
+                or_(
+                    ActionCalendrier.id_plant == plant.id_plant,
+                    ActionCalendrier.id_plant.is_(None),
+                    ActionCalendrier.global_culture == True,
+                ),
             )
             .all()
         )

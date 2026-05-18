@@ -1,9 +1,9 @@
-feat(stock): substrat_type, engrais marques, bocal auto-remontés depuis curing
+fix(stock): engrais_type filtré par plante, pas par culture entière
 
-- Fix bug type_stock "fleur" → "Fleur" (casse) au passage fin_curing
-- Nouvelles colonnes Stock : substrat_type, id_plant, id_materiel_bocal (bocal curing)
-- engrais_type = marques uniques ProduitEngrais des arrosages de la culture
-- Nouvel endpoint GET /cultures/plant/{id}/stock-info (auto-remplissage)
-- NouveauStockModal : useEffect auto-remplit sous_type/lampe/substrat/engrais au choix plante
-- Selects substrat/engrais depuis listes paramétrage
-- Affichage Stock : colonne "Substrat / Engrais" avec deux lignes indépendantes
+Dans une culture multi-substrat, le calcul des marques engrais prenait
+tous les arrosages de la culture → contamination entre pieds différents.
+
+Fix : filtre (id_plant = cette_plante OR id_plant IS NULL OR global_culture)
+appliqué dans fin_curing handler et endpoint /plant/{id}/stock-info.
+
+DB : stocks 48/49/50 corrigés → engrais_type = 'Aptus' uniquement.

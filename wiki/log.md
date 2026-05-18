@@ -8,6 +8,23 @@ Operations: `bootstrap`, `ingest`, `query`, `lint`, `update`
 
 ---
 
+## [2026-05-18] update | Stock — fix engrais_type par plante (pas par culture entière)
+
+**Bug corrigé :**
+Dans une culture multi-substrat (ex: un pied Coco/Aptus + un pied LSO/Terralba dans la même tente), le calcul des marques engrais prenait tous les arrosages de la culture → contamination croisée entre pieds.
+
+**Fix :** filtre `id_plant = cette_plante OR id_plant IS NULL OR global_culture = 1` dans :
+- `fin_curing` handler (cultures.py)
+- endpoint `GET /plant/{id}/stock-info`
+
+Logique : seuls les arrosages spécifiques à cette plante + les arrosages globaux (appliqués à toute la culture) sont pris en compte.
+
+**DB corrigée :** stocks 48/49/50 → `engrais_type = 'Aptus'` (au lieu de 'Aptus, Terralba')
+
+**Fichier modifié :** `backend/app/routers/cultures.py`
+
+---
+
 ## [2026-05-18] update | Stock Fleur — bug casse, substrat_type, engrais marques, bocal, auto-remplissage
 
 **Bugs corrigés :**
