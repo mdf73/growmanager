@@ -853,6 +853,7 @@ async def backup_restore(file: UploadFile = File(...)):
                 f"--host={creds['host']}",
                 f"--user={creds['user']}",
                 f"--password={creds['password']}",
+                "--skip-ssl",
                 creds["database"],
             ],
             input=content,

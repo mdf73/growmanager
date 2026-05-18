@@ -112,12 +112,41 @@ Router: `parametre.py` | Prefix: `/api/parametres`
 
 ## Import/Export (Batch)
 
-Router: `import_export.py` | Prefix: `/api/import-export`
+Router: `import_export.py` | Prefix: `/api`
+
+### CSV Import/Export
 
 | Method | Path | Body | Returns |
 |---|---|---|---|
-| POST | `/import-export` | CSV + entity type | `{imported: count}` |
-| GET | `/export` | query: entity type | CSV file |
+| GET | `/export/breeders` | — | CSV |
+| POST | `/import/breeders` | CSV file | `{created, skipped}` |
+| GET | `/export/varietes` | — | CSV |
+| POST | `/import/varietes` | CSV file | `{created, skipped}` |
+| GET | `/export/packs` | — | CSV |
+| POST | `/import/packs` | CSV file | `{created, skipped, errors}` |
+| GET | `/export/stock` | — | CSV |
+| POST | `/import/stock` | CSV file | `{created, skipped, errors}` |
+| GET | `/export/extractions` | — | CSV |
+| POST | `/import/extractions` | CSV file | `{created, skipped, errors}` |
+| GET | `/export/extractions-hash` | — | CSV |
+| POST | `/import/extractions-hash` | CSV file | `{created, skipped, errors}` |
+| GET | `/export/historique-cultures` | — | CSV |
+| POST | `/import/historique-cultures` | CSV file | `{created, skipped, errors}` |
+| GET | `/export/materiel` | — | CSV |
+| POST | `/import/materiel` | CSV file | `{created, skipped, errors}` |
+| GET | `/export/engrais` | — | CSV |
+| POST | `/import/engrais` | CSV file | `{created, skipped, errors}` |
+
+### Backup / Restauration SQL
+
+| Method | Path | Body | Returns |
+|---|---|---|---|
+| GET | `/backup/dump` | — | Fichier `.sql` (mysqldump) |
+| POST | `/backup/restore` | Fichier `.sql` | `{ok, message}` |
+
+**Notes importantes :**
+- `mysqldump` et `mysql` utilisent tous les deux `--skip-ssl` — indispensable si le serveur MySQL utilise un certificat TLS auto-signé (erreur `ERROR 2026 HY000: self-signed certificate in certificate chain` sans ce flag).
+- Les credentials sont lus depuis les variables d'environnement : `DB_HOST`, `MYSQL_USER`, `MYSQL_PASSWORD`, `MYSQL_DATABASE`.
 
 ## Frontend Clients
 

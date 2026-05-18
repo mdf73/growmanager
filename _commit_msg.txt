@@ -1,10 +1,9 @@
-fix: CalendrierGlobal — heure 02:00 due au parsing UTC de date_action
+fix: add --skip-ssl to mysql restore command
 
-Dans EventDrawer, `new Date("YYYY-MM-DD")` était interprété en UTC midnight.
-France UTC+2 → affichage 02:00 systématique.
+The backup/restore endpoint was failing with:
+  ERROR 2026 (HY000): TLS/SSL error: self-signed certificate in certificate chain
 
-Fix: `.slice(0, 10) + 'T12:00:00'` pour parser en heure locale (même
-pattern déjà utilisé dans DayModal). Suppression de l'heure dans
-l'affichage (non significative pour les actions de culture).
+mysqldump already had --skip-ssl but the mysql client for restore did not.
+Added --skip-ssl to the subprocess call in backup_restore() to match.
 
-Fichier: frontend/src/pages/CalendrierGlobal.tsx
+File: backend/app/routers/import_export.py

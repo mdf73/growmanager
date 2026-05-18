@@ -8,6 +8,19 @@ Operations: `bootstrap`, `ingest`, `query`, `lint`, `update`
 
 ---
 
+## [2026-05-18] update | Bugfix — Restauration SQL échoue (TLS self-signed certificate)
+
+**Bug corrigé :**
+La restauration de base de données via `/api/backup/restore` échouait avec `ERROR 2026 (HY000): TLS/SSL error: self-signed certificate in certificate chain` quand le serveur MySQL cible utilise un certificat auto-signé.
+
+**Cause :** La commande `mysqldump` (export) avait déjà `--skip-ssl` mais la commande `mysql` (restore) ne l'avait pas.
+
+**Fix :** Ajout de `--skip-ssl` dans la liste d'arguments de `subprocess.run(["mysql", ...])` dans `backup_restore()`.
+
+**Fichier modifié :** `backend/app/routers/import_export.py`
+
+---
+
 ## [2026-05-18] update | Bugfix — CalendrierGlobal heure 02:00 (timezone UTC)
 
 **Bug corrigé :**
