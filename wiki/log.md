@@ -8,6 +8,44 @@ Operations: `bootstrap`, `ingest`, `query`, `lint`, `update`
 
 ---
 
+## [2026-05-18] update | Stock Fleur — bug casse, substrat_type, engrais marques, bocal, auto-remplissage
+
+**Bugs corrigés :**
+- `type_stock="fleur"` (minuscule) au lieu de `"Fleur"` lors du passage `fin_curing` → `cultures.py` l.698 corrigé + 2 entrées DB mises à jour
+- `substrat_type` écrasé à null par le modal lors d'une modification → corrigé via auto-remplissage
+
+**Nouvelles colonnes Stock :**
+- `substrat_type VARCHAR(200)` : substrat de la plante (Coco, Sol Vivant — Recette X…)
+- `engrais_type` élargi à VARCHAR(200) : marques uniques des produits engrais utilisés en arrosage (ex: "Aptus, Terralba")
+- `id_plant` : traçabilité plante source (maintenant rempli au fin_curing)
+- `id_materiel_bocal` : bocal de la session de curing (maintenant rempli au fin_curing)
+
+**Nouvel endpoint :** `GET /api/cultures/plant/{id_plant}/stock-info`
+Retourne `{ sous_type_stock, lampe_type, substrat_type, engrais_type }` dérivés de la culture.
+Logique : type_culture → sous_type, dernière action lampe → lampe_type, plant.substrat → substrat_type, recettes arrosage_engrais → ProduitEngrais.marque uniques.
+
+**Modal NouveauStockModal :**
+- `useEffect` sur `form.id_plant` → appel `getPlantStockInfo()` → auto-remplit sous_type, lampe, substrat, engrais
+- Badge vert "✓ rempli depuis la culture" affiché après auto-remplissage
+- Substrat et Engrais : champs `<select>` alimentés par listes paramétrage (`substrats` et `engrais`)
+- `substrat_type` ajouté au form state, payload, et reset on type change
+
+**Affichage Stock.tsx :**
+- Colonne renommée "Substrat / Engrais"
+- Substrat en ligne principale, engrais en ligne secondaire (gris plus petit) — indépendants
+
+**Fichiers modifiés :**
+- `backend/app/routers/cultures.py` — fix `type_stock="Fleur"`, endpoint `/plant/{id}/stock-info`, fin_curing remonte bocal + substrat + engrais + id_plant
+- `backend/app/models/all_models.py` — `substrat_type` + `engrais_type` VARCHAR(200)
+- `backend/app/schemas/stock.py` — `substrat_type` ajouté
+- `backend/app/routers/stock.py` — `substrat_type` dans create/update/read
+- `frontend/src/api/stock.ts` — `substrat_type` dans interface Stock
+- `frontend/src/api/cultures.ts` — `PlantStockInfo` interface + `getPlantStockInfo()`
+- `frontend/src/components/NouveauStockModal.tsx` — auto-remplissage + selects substrat/engrais
+- `frontend/src/pages/Stock.tsx` — affichage substrat + engrais séparés
+
+---
+
 ## [2026-05-17] update | Détail arrosage engrais dans CalendrierGlobal — 3 encarts + fix [object Object]
 
 **Bug corrigé :**

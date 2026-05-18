@@ -10,6 +10,7 @@ export interface Stock {
   sous_type_stock?:  string | null
   lampe_type?:       string | null
   engrais_type?:     string | null
+  substrat_type?:    string | null
   maillage?:         string | null
   type_hash?:        string | null
   type_rosin?:       string | null

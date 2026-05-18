@@ -203,6 +203,13 @@ export interface PlantForStock {
   nom_culture: string | null
 }
 
+export interface PlantStockInfo {
+  sous_type_stock: string | null
+  lampe_type:      string | null
+  substrat_type:   string | null
+  engrais_type:    string | null
+}
+
 export interface PlantSechage {
   id_plant: number
   id_culture: number
@@ -293,6 +300,8 @@ export const cultureAPI = {
     client.get<any[]>('/cultures/curing/eligible'),
   getPlantsByVariete: (idVariete: number) =>
     client.get<PlantForStock[]>(`/cultures/plants-by-variete/${idVariete}`),
+  getPlantStockInfo: (idPlant: number) =>
+    client.get<PlantStockInfo>(`/cultures/plant/${idPlant}/stock-info`),
 }
 
 export const plantAPI = {

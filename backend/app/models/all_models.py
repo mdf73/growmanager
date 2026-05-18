@@ -589,7 +589,8 @@ class Stock(Base):
     type_stock = Column(String(50))
     sous_type_stock = Column(String(50))
     lampe_type = Column(String(50))
-    engrais_type = Column(String(50))
+    engrais_type = Column(String(200), nullable=True)   # marques des engrais utilisés
+    substrat_type = Column(String(200), nullable=True)  # substrat (coco, sol vivant…)
     maillage = Column(String(20), nullable=True)
     type_hash = Column(String(50), nullable=True)
     type_rosin = Column(String(50), nullable=True)

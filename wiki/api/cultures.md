@@ -37,6 +37,15 @@ Router: `backend/app/routers/cultures.py` | Prefix: `/api/cultures`
 
 Plant data is enriched: includes `variete_nom`, `breeder_nom` from related records. → [[architecture/patterns]] (enrichment pattern)
 
+### Utilitaires plante
+
+| Method | Path | Returns | Notes |
+|---|---|---|---|
+| GET | `/plants-by-variete/{id_variete}` | `list[PlantForStock]` | Plantes d'une variété (picker stock) |
+| GET | `/plant/{id_plant}/stock-info` | `PlantStockInfo` | Infos culture dérivées pour auto-remplir un stock |
+
+`PlantStockInfo` retourne : `{ sous_type_stock, lampe_type, substrat_type, engrais_type }` dérivés de la culture de la plante. Utilisé dans `NouveauStockModal` pour auto-remplir les champs dès la sélection d'une plante.
+
 ## Actions (Calendar)
 
 | Method | Path | Body | Returns |

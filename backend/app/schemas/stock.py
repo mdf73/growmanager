@@ -14,6 +14,7 @@ class StockBase(BaseModel):
     sous_type_stock:   Optional[str]   = None
     lampe_type:        Optional[str]   = None
     engrais_type:      Optional[str]   = None
+    substrat_type:     Optional[str]   = None
     maillage:          Optional[str]   = None
     type_hash:         Optional[str]   = None
     type_rosin:        Optional[str]   = None

@@ -1,6 +1,6 @@
 ---
 type: database
-updated: 2026-04-09
+updated: 2026-05-18
 sources: [models/all_models.py, routers/stock.py, routers/extractions.py]
 ---
 
@@ -16,20 +16,34 @@ Finished product inventory. Each record is a jar/container of a product.
 | `id_variete` | FK → Variete (nullable) | Source variety |
 | `id_bocal` | FK → Bocal (nullable) | Storage jar (legacy) |
 | `id_materiel_bocal` | FK → Materiel (nullable) | Storage jar (new Materiel system) |
+| `id_plant` | FK → Plant (nullable) | Source plant — traçabilité plante→stock (V4-F) |
 | `type_stock` | String | `Fleur` \| `Trim` \| `WPFF` \| `Poussière` \| `Hash` \| `Rosin` \| `Engrais` \| `Lampe` \| etc. |
-| `sous_type_stock` | String (nullable) | Sub-type |
-| `lampe_type` | String (nullable) | If type = Lampe |
-| `engrais_type` | String (nullable) | If type = Engrais |
+| `sous_type_stock` | String (nullable) | Sub-type (indoor, outdoor…) |
+| `lampe_type` | String (nullable) | Lamp name used in culture |
+| `substrat_type` | String(200) (nullable) | Substrate used (ex: Coco, Sol Vivant — Recette X) |
+| `engrais_type` | String(200) (nullable) | Unique fertilizer brands used (ex: Aptus, Terralba) |
 | `maillage` | String (nullable) | Mesh size (for hash/rosin) |
 | `type_hash` | String (nullable) | Hash-specific type |
 | `type_rosin` | String (nullable) | Rosin-specific type |
 | `date_stock` | Date | Entry date |
 | `date_fin_stock` | Date (nullable) | Set when consumed (soft delete) |
 | `quantite_stock` | Float | Weight/quantity |
+| `quantite_initiale` | Float (nullable) | Original quantity at creation (for % remaining alerts) |
 
-**Relationships:** → `Variete`, → `Bocal`, → `Materiel`, → many `RosinExtraction`
+**Relationships:** → `Variete`, → `Bocal`, → `Materiel`, → `Plant`, → many `RosinExtraction`
 
 `date_fin_stock` is the soft-delete field — set via `POST /stock/{id}/sortie`.
+
+### Auto-population depuis la culture (fin_curing)
+
+Quand une plante passe de curing → stock (`fin_curing` action), les champs suivants sont automatiquement dérivés :
+- `type_stock` = `"Fleur"` (majuscule — bug minuscule corrigé 2026-05-18)
+- `sous_type_stock` = `culture.type_culture.lower()` (ex: indoor)
+- `lampe_type` = nom de la dernière lampe mise en place (action `mise_sous_led` / `mise_sous_neons`)
+- `substrat_type` = substrat de la plante, capitalisé ; si sol_vivant → `"Sol Vivant — {nom_recette}"`
+- `engrais_type` = marques uniques des `ProduitEngrais` utilisés dans les actions `arrosage_engrais` de la culture
+- `id_materiel_bocal` = bocal de la session de curing
+- `id_plant` = traçabilité plante source
 
 ---
 

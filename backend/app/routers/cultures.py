@@ -681,27 +681,78 @@ def _handle_action_effects(action: ActionCalendrier, culture: Culture, db: Sessi
                     if lampe_action and lampe_action.parametres:
                         lampe_type = lampe_action.parametres.get("nom_lampe")
 
-                    # ── 3. Substrat / engrais → depuis la plante ──────────────────────────
-                    engrais_type = pl.substrat or None
+                    # ── 3. Substrat → depuis la plante ───────────────────────────────────
+                    substrat_type = None
                     if pl.substrat == "sol_vivant" and pl.id_recette_sol:
                         recette = db.query(RecetteLSO).filter(
                             RecetteLSO.id_recette_lso == pl.id_recette_sol
                         ).first()
-                        if recette:
-                            engrais_type = f"Sol Vivant — {recette.nom_recette}"
-                    elif pl.substrat and pl.substrat != "sol_vivant":
-                        # Substrat standard, on capitalise pour l'affichage
-                        engrais_type = pl.substrat.replace("_", " ").capitalize()
+                        substrat_type = f"Sol Vivant — {recette.nom_recette}" if recette else "Sol Vivant"
+                    elif pl.substrat:
+                        substrat_type = pl.substrat.replace("_", " ").capitalize()
+
+                    # ── 4. Engrais → marques uniques des produits utilisés en arrosage ──
+                    from app.models.all_models import RecetteEngraisLigne, ProduitEngrais as ProduitEngraisModel
+                    import json as _json
+                    engrais_type = None
+                    arrosage_actions = (
+                        db.query(ActionCalendrier)
+                        .filter(
+                            ActionCalendrier.id_culture == culture.id_culture,
+                            ActionCalendrier.type_action == "arrosage_engrais",
+                        )
+                        .all()
+                    )
+                    recette_ids = set()
+                    for act in arrosage_actions:
+                        params = act.parametres or {}
+                        if isinstance(params, str):
+                            params = _json.loads(params)
+                        if params.get("id_recette"):
+                            recette_ids.add(int(params["id_recette"]))
+                    if recette_ids:
+                        lignes = (
+                            db.query(RecetteEngraisLigne)
+                            .filter(RecetteEngraisLigne.id_recette.in_(recette_ids))
+                            .all()
+                        )
+                        produit_ids = {l.id_produit for l in lignes}
+                        produits = (
+                            db.query(ProduitEngraisModel)
+                            .filter(ProduitEngraisModel.id_produit.in_(produit_ids))
+                            .all()
+                        )
+                        marques = sorted({p.marque for p in produits if p.marque})
+                        engrais_type = ", ".join(marques) if marques else None
+
+                    # ── 4. Bocal → depuis la session de curing de la plante ───────────────
+                    from app.models.all_models import PlantCuring as PlantCuringModel, SessionCuring
+                    id_materiel_bocal = None
+                    plant_curing = (
+                        db.query(PlantCuringModel)
+                        .filter(PlantCuringModel.id_plant == pl.id_plant)
+                        .order_by(PlantCuringModel.id_plant_curing.desc())
+                        .first()
+                    )
+                    if plant_curing and plant_curing.id_session_curing:
+                        session_curing = db.query(SessionCuring).filter(
+                            SessionCuring.id_session_curing == plant_curing.id_session_curing
+                        ).first()
+                        if session_curing:
+                            id_materiel_bocal = session_curing.id_materiel_bocal
 
                     stock_entry = Stock(
                         id_variete=graine.id_variete,
-                        type_stock="fleur",
+                        type_stock="Fleur",
                         sous_type_stock=sous_type,
                         lampe_type=lampe_type,
                         engrais_type=engrais_type,
+                        substrat_type=substrat_type,
                         date_stock=action.date_action,
                         quantite_stock=poids,
                         quantite_initiale=poids,   # V4-G — référence pour alertes %
+                        id_materiel_bocal=id_materiel_bocal,
+                        id_plant=pl.id_plant,      # traçabilité plante → stock
                     )
                     db.add(stock_entry)
         _maybe_close_culture(culture, db)
@@ -1476,6 +1527,87 @@ def get_plants_by_variete(id_variete: int, db: Session = Depends(get_db)):
             "nom_culture":   culture.nom if culture else None,
         })
     return result
+
+
+@router.get("/plant/{id_plant}/stock-info")
+def get_plant_stock_info(id_plant: int, db: Session = Depends(get_db)):
+    """Retourne toutes les infos culture dérivées utiles pour créer/modifier un stock depuis une plante."""
+    import json as _json
+    from app.models.all_models import RecetteEngraisLigne, ProduitEngrais as ProduitEngraisModel
+
+    plant = db.query(Plant).filter(Plant.id_plant == id_plant).first()
+    if not plant:
+        raise HTTPException(404, "Plante introuvable")
+
+    culture = db.query(Culture).filter(Culture.id_culture == plant.id_culture).first()
+
+    # ── Sous-type (indoor/outdoor…) ──────────────────────────────────────────
+    sous_type_stock = (culture.type_culture or "").lower() if culture else None
+
+    # ── Lampe ────────────────────────────────────────────────────────────────
+    lampe_type = None
+    if culture:
+        lampe_action = (
+            db.query(ActionCalendrier)
+            .filter(
+                ActionCalendrier.id_culture == culture.id_culture,
+                ActionCalendrier.type_action.in_(["mise_sous_led", "mise_sous_neons"]),
+            )
+            .order_by(ActionCalendrier.date_action.desc())
+            .first()
+        )
+        if lampe_action and lampe_action.parametres:
+            lampe_type = lampe_action.parametres.get("nom_lampe")
+
+    # ── Substrat ─────────────────────────────────────────────────────────────
+    substrat_type = None
+    if plant.substrat == "sol_vivant" and plant.id_recette_sol:
+        recette = db.query(RecetteLSO).filter(
+            RecetteLSO.id_recette_lso == plant.id_recette_sol
+        ).first()
+        substrat_type = f"Sol Vivant — {recette.nom_recette}" if recette else "Sol Vivant"
+    elif plant.substrat:
+        substrat_type = plant.substrat.replace("_", " ").capitalize()
+
+    # ── Engrais — marques uniques des produits utilisés en arrosage ──────────
+    engrais_type = None
+    if culture:
+        arrosage_actions = (
+            db.query(ActionCalendrier)
+            .filter(
+                ActionCalendrier.id_culture == culture.id_culture,
+                ActionCalendrier.type_action == "arrosage_engrais",
+            )
+            .all()
+        )
+        recette_ids = set()
+        for act in arrosage_actions:
+            params = act.parametres or {}
+            if isinstance(params, str):
+                params = _json.loads(params)
+            if params.get("id_recette"):
+                recette_ids.add(int(params["id_recette"]))
+        if recette_ids:
+            lignes = (
+                db.query(RecetteEngraisLigne)
+                .filter(RecetteEngraisLigne.id_recette.in_(recette_ids))
+                .all()
+            )
+            produit_ids = {l.id_produit for l in lignes}
+            produits = (
+                db.query(ProduitEngraisModel)
+                .filter(ProduitEngraisModel.id_produit.in_(produit_ids))
+                .all()
+            )
+            marques = sorted({p.marque for p in produits if p.marque})
+            engrais_type = ", ".join(marques) if marques else None
+
+    return {
+        "sous_type_stock": sous_type_stock,
+        "lampe_type":      lampe_type,
+        "substrat_type":   substrat_type,
+        "engrais_type":    engrais_type,
+    }
 
 
 @router.get("/{culture_id}", response_model=CultureWithDetails)

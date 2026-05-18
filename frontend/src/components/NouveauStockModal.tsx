@@ -1,11 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { X, Loader2, Save, Plus } from 'lucide-react'
 import { stockAPI, Stock, BocalDisponible } from '../api/stock'
 import { varieteAPI, Variete } from '../api/varietes'
 import { useParametreListe } from '../api/parametres'
 import { materielAPI, Materiel } from '../api/materiel'
-import { cultureAPI, PlantForStock } from '../api/cultures'
+import { cultureAPI, PlantForStock, PlantStockInfo } from '../api/cultures'
 
 interface NouveauStockModalProps {
   editStock?: Stock | null
@@ -34,13 +34,15 @@ export default function NouveauStockModal({ editStock, onClose }: NouveauStockMo
     select: data => data.filter(m => m.categorie === 'Lampes' && !m.date_sortie_stock),
   })
   const { values: engraisParam }    = useParametreListe('engrais')
+  const { values: substratsParam }  = useParametreListe('substrats')
 
   const TYPES_STOCK = typesStockParam.length > 0 ? typesStockParam : TYPES_STOCK_FB
   const SOUS_TYPES  = sousTypesParam.length  > 0 ? sousTypesParam  : SOUS_TYPES_FB
   const MAILLAGES   = maillagesParam.length  > 0 ? maillagesParam  : ['15µ', '25µ', '45µ', '73µ', '90µ', '160µ', '190µ', '220µ']
   const TYPES_ROSIN = typesRosinParam.length > 0 ? typesRosinParam : ['Flower Rosin', 'Hash Rosin']
   const LAMPES      = lampesMatériel.map(m => m.nom)
-  const ENGRAIS_OPTS = engraisParam.length   > 0 ? engraisParam    : ['LSO', 'Aptus', 'Autre']
+  const ENGRAIS_OPTS   = engraisParam.length   > 0 ? engraisParam   : ['Aptus', 'Terralba', 'Autre']
+  const SUBSTRATS_OPTS = substratsParam.length > 0 ? substratsParam : ['Coco', 'Sol vivant', 'Terre', 'Autre']
 
   const { data: varietes = [] } = useQuery<Variete[]>({
     queryKey: ['varietes'],
@@ -60,6 +62,7 @@ export default function NouveauStockModal({ editStock, onClose }: NouveauStockMo
     type_stock:        editStock?.type_stock        ?? 'Fleur',
     sous_type_stock:   editStock?.sous_type_stock   ?? 'Indoor',
     lampe_type:        editStock?.lampe_type        ?? '',
+    substrat_type:     editStock?.substrat_type     ?? '',
     engrais_type:      editStock?.engrais_type      ?? '',
     maillage:          editStock?.maillage          ?? '',
     type_hash:         editStock?.type_hash         ?? '',
@@ -76,6 +79,23 @@ export default function NouveauStockModal({ editStock, onClose }: NouveauStockMo
   })
 
   const [saveAndNewMode, setSaveAndNewMode] = useState(false)
+  const [autoFilled, setAutoFilled] = useState(false)
+
+  // Auto-remplissage depuis la culture quand une plante est sélectionnée
+  useEffect(() => {
+    if (!form.id_plant) { setAutoFilled(false); return }
+    cultureAPI.getPlantStockInfo(form.id_plant).then(res => {
+      const info: PlantStockInfo = res.data
+      setForm(f => ({
+        ...f,
+        sous_type_stock: info.sous_type_stock || f.sous_type_stock,
+        lampe_type:      info.lampe_type      || f.lampe_type,
+        substrat_type:   info.substrat_type   || f.substrat_type,
+        engrais_type:    info.engrais_type    || f.engrais_type,
+      }))
+      setAutoFilled(true)
+    }).catch(() => {})
+  }, [form.id_plant])
 
   const isEdit = !!editStock
   const isHash  = form.type_stock === 'Hash'
@@ -90,9 +110,10 @@ export default function NouveauStockModal({ editStock, onClose }: NouveauStockMo
       maillage:   '',
       type_hash:  '',
       type_rosin: '',
-      // Garder sous_type/lampe/engrais seulement si pertinent
+      // Garder sous_type/lampe/substrat/engrais seulement si pertinent
       sous_type_stock: NO_CULTURE_INFO.includes(t) ? '' : f.sous_type_stock,
       lampe_type:      NO_CULTURE_INFO.includes(t) ? '' : f.lampe_type,
+      substrat_type:   NO_CULTURE_INFO.includes(t) ? '' : f.substrat_type,
       engrais_type:    NO_CULTURE_INFO.includes(t) ? '' : f.engrais_type,
     }))
 
@@ -106,6 +127,7 @@ export default function NouveauStockModal({ editStock, onClose }: NouveauStockMo
         type_stock:      form.type_stock,
         sous_type_stock: showCultureInfo ? (form.sous_type_stock || null) : null,
         lampe_type:      showCultureInfo ? (form.lampe_type || null) : null,
+        substrat_type:   showCultureInfo ? (form.substrat_type || null) : null,
         engrais_type:    showCultureInfo ? (form.engrais_type || null) : null,
         maillage:        (isHash || isRosin) ? (form.maillage || null) : null,
         type_hash:       isHash  ? (form.type_hash || null) : null,
@@ -204,6 +226,11 @@ export default function NouveauStockModal({ editStock, onClose }: NouveauStockMo
                   Aucune plante connue pour cette variété
                 </p>
               )}
+              {autoFilled && (
+                <p className="text-xs text-green-600 mt-1">
+                  ✓ Substrat, engrais, lampe et sous-type remplis depuis la culture
+                </p>
+              )}
             </div>
           )}
 
@@ -283,12 +310,21 @@ export default function NouveauStockModal({ editStock, onClose }: NouveauStockMo
                   </select>
                 </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Engrais</label>
-                <select value={form.engrais_type} onChange={e => setForm(f => ({ ...f, engrais_type: e.target.value }))} className={sel}>
-                  <option value="">—</option>
-                  {ENGRAIS_OPTS.map(e => <option key={e} value={e}>{e}</option>)}
-                </select>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Substrat</label>
+                  <select value={form.substrat_type} onChange={e => setForm(f => ({ ...f, substrat_type: e.target.value }))} className={sel}>
+                    <option value="">—</option>
+                    {SUBSTRATS_OPTS.map(s => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Engrais (marques)</label>
+                  <select value={form.engrais_type} onChange={e => setForm(f => ({ ...f, engrais_type: e.target.value }))} className={sel}>
+                    <option value="">—</option>
+                    {ENGRAIS_OPTS.map(e => <option key={e} value={e}>{e}</option>)}
+                  </select>
+                </div>
               </div>
             </>
           )}

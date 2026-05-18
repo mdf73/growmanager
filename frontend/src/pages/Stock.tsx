@@ -185,7 +185,17 @@ function StockRow({ item, onEdit, onDeleted, onSortie, onOrigine, onLabel }: {
       </td>
       <td className="px-5 py-3"><TypeBadge type={item.type_stock ?? undefined} /></td>
       <td className="px-5 py-3 text-sm text-gray-500 dark:text-gray-400">{specs}</td>
-      <td className="px-5 py-3 text-sm text-gray-500 dark:text-gray-400">{item.engrais_type || '—'}</td>
+      <td className="px-5 py-3">
+        {!item.substrat_type && !item.engrais_type && <span className="text-sm text-gray-400">—</span>}
+        {item.substrat_type && (
+          <div className="text-sm text-gray-500 dark:text-gray-400">{item.substrat_type}</div>
+        )}
+        {item.engrais_type && (
+          <div className={item.substrat_type ? 'text-xs text-gray-400 dark:text-gray-500 mt-0.5' : 'text-sm text-gray-500 dark:text-gray-400'}>
+            {item.engrais_type}
+          </div>
+        )}
+      </td>
       <td className="px-5 py-3 text-sm text-gray-400 dark:text-gray-500 max-w-[160px] truncate" title={bocalLabel !== '—' ? bocalLabel : undefined}>{bocalLabel}</td>
       <td className="px-5 py-3 text-sm font-semibold text-grow-700">
         {isCloture ? <span className="line-through text-gray-400 dark:text-gray-500">0 g</span> : `${item.quantite_stock.toFixed(1)} g`}
@@ -794,7 +804,7 @@ export default function StockPage() {
                         ['variete',  'Variété'],
                         ['type',     'Type'],
                         ['soustype', 'Spécifications'],
-                        ['engrais',  'Engrais'],
+                        ['engrais',  'Substrat / Engrais'],
                         ['bocal',    'Bocal'],
                         ['quantite', 'Quantité'],
                         ['date',     'Date'],
