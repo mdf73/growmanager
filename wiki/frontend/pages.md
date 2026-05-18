@@ -168,6 +168,13 @@ Equipment inventory by category.
 - Age, purchase date, characteristics
 - NouveauMaterielModal
 
+**NouveauMaterielModal — Création en lot (2026-05-18)** : toutes les catégories supportent désormais la création multiple via un sélecteur de quantité (1–99) affiché dès qu'une catégorie est choisie en mode création. Comportements :
+- **Sélecteur quantité** visible pour toutes les catégories (était limité à Bocaux/Pots).
+- **Toggle prix Unitaire / Total commande** : apparaît quand quantité > 1. Par défaut sur "Total commande" — le prix saisi est divisé par la quantité et le prix unitaire calculé s'affiche en temps réel ("→ X.XX € / unité"). Le mode "Unitaire" conserve l'ancien comportement.
+- **Nommage sans doublon** : avant création, le code cherche dans les items existants le plus grand index `#N` correspondant au nom de base et démarre à `N+1`. Évite les doublons si on ajoute un second lot.
+- **Bocaux (nom auto)** : le calcul d'index se base sur le nom généré par `genBocalNom` (volume + marque). Pour les autres catégories : pattern `{nom saisi} #{index}`.
+- **Bouton "Ajouter"** : affiche `Ajouter N {categorie}` quand quantité > 1 et catégorie sélectionnée.
+
 ### Statistiques (`/statistiques`)
 Global analytics.
 - Seed inventory value

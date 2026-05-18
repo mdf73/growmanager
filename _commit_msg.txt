@@ -1,9 +1,9 @@
-fix(stock): engrais_type filtré par plante, pas par culture entière
+fix(materiel): correction prix batch + nommage sans doublon + création lot toutes catégories
 
-Dans une culture multi-substrat, le calcul des marques engrais prenait
-tous les arrosages de la culture → contamination entre pieds différents.
-
-Fix : filtre (id_plant = cette_plante OR id_plant IS NULL OR global_culture)
-appliqué dans fin_curing handler et endpoint /plant/{id}/stock-info.
-
-DB : stocks 48/49/50 corrigés → engrais_type = 'Aptus' uniquement.
+- Fix bug prix : le prix total de commande était appliqué à chaque item au lieu d'être divisé
+- Ajout toggle "Unitaire / Total commande" (défaut: Total) avec aperçu "→ X.XX € / unité" en temps réel
+- Fix nommage : calcul du prochain index disponible (#N+1) pour éviter les doublons lors d'un 2e lot
+- Sélecteur quantité (1–99) étendu à toutes les catégories (était limité à Bocaux/Pots)
+- Toggle prix disponible pour toutes les catégories quand quantité > 1
+- Bouton "Ajouter N {categorie}" généralisé pour toutes les catégories
+- Wiki mis à jour : section NouveauMaterielModal dans frontend/pages.md

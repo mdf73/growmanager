@@ -383,6 +383,7 @@ export default function NouveauMaterielModal({ editItem, onClose }: Props) {
     (editItem?.caracteristiques as Record<string, unknown>) ?? {}
   )
   const [quantite,       setQuantite]       = useState(1)
+  const [prixMode,       setPrixMode]       = useState<'unitaire' | 'total'>('total')
   const [error, setError] = useState('')
 
   // ── Auto-nom bocaux ──────────────────────────────────────────────────────────
@@ -432,13 +433,23 @@ export default function NouveauMaterielModal({ editItem, onClose }: Props) {
       if ((cleanCaract.spectres as string[]).length === 0) delete cleanCaract.spectres
     }
 
+    // Création multiple (toutes catégories, hors mode édition)
+    const isBatch = !isEdit && quantite > 1
+    const n = isBatch ? quantite : 1
+    const unitLabel = categorie.toLowerCase()
+
+    // Prix unitaire : si mode "total commande", divise par la quantité
+    const unitPrix = isBatch && prixMode === 'total' && prix
+      ? Math.round((Number(prix) / n) * 100) / 100
+      : prix ? Number(prix) : null
+
     const payload = {
       categorie,
       nom:               nom.trim(),
       marque:            marque.trim() || null,
       code_barre_serial: codeBarre.trim() || null,
       date_achat:        dateAchat || null,
-      prix_achat:        prix ? Number(prix) : null,
+      prix_achat:        unitPrix,
       site_achat:        siteAchat.trim() || null,
       etat:              etat || null,
       date_sortie_stock: dateSortie || null,
@@ -451,23 +462,41 @@ export default function NouveauMaterielModal({ editItem, onClose }: Props) {
       return
     }
 
-    // Création multiple (Pots et Bocaux, hors mode édition)
-    const isBatch = (categorie === 'Pots' || categorie === 'Bocaux') && quantite > 1
-    const n = isBatch ? quantite : 1
-    const unitLabel = categorie === 'Bocaux' ? 'bocaux' : 'pots'
     try {
       if (n === 1) {
         createMut.mutate(payload)
       } else {
+        // Trouver le prochain index disponible pour éviter les doublons de noms
+        const existingItems = qc.getQueryData<Materiel[]>(['materiel']) ?? []
+        let startIndex = 1
+        if (categorie === 'Bocaux' && nomAuto) {
+          const volMl = (cleanCaract.volume_ml as number | null) ?? null
+          const type = volMl != null && volMl >= 500 ? 'Bocal' : 'Pot'
+          const volStr = volMl != null
+            ? (volMl >= 1000 ? `${volMl / 1000}L` : `${volMl}mL`)
+            : ''
+          const baseName = [type, volStr, marque.trim()].filter(Boolean).join(' ')
+          const usedIndices = existingItems
+            .filter(item => item.nom.startsWith(baseName + ' #'))
+            .map(item => { const m = item.nom.match(/#(\d+)$/); return m ? parseInt(m[1], 10) : 0 })
+          startIndex = usedIndices.length > 0 ? Math.max(...usedIndices) + 1 : 1
+        } else {
+          const baseName = payload.nom
+          const usedIndices = existingItems
+            .filter(item => item.nom.startsWith(baseName + ' #'))
+            .map(item => { const m = item.nom.match(/#(\d+)$/); return m ? parseInt(m[1], 10) : 0 })
+          startIndex = usedIndices.length > 0 ? Math.max(...usedIndices) + 1 : 1
+        }
+
         await Promise.all(
           Array.from({ length: n }, (_, i) => {
             const nomItem = categorie === 'Bocaux' && nomAuto
               ? genBocalNom(
                   (cleanCaract.volume_ml as number | null) ?? null,
                   marque,
-                  i + 1
+                  startIndex + i
                 )
-              : `${payload.nom} #${i + 1}`
+              : `${payload.nom} #${startIndex + i}`
             return materielAPI.create({ ...payload, nom: nomItem })
           })
         )
@@ -501,7 +530,7 @@ export default function NouveauMaterielModal({ editItem, onClose }: Props) {
                 </select>
               </Field>
             </div>
-            <div className={(categorie === 'Pots' || categorie === 'Bocaux') && !isEdit ? 'col-span-2 grid grid-cols-[1fr_auto] gap-3' : 'col-span-2'}>
+            <div className={!!categorie && !isEdit ? 'col-span-2 grid grid-cols-[1fr_auto] gap-3' : 'col-span-2'}>
               <Field label="Nom" required>
                 {categorie === 'Bocaux' && !isEdit ? (
                   <div className="space-y-1">
@@ -531,7 +560,7 @@ export default function NouveauMaterielModal({ editItem, onClose }: Props) {
                   <input type="text" className={inputCls} value={nom} onChange={e => setNom(e.target.value)} placeholder="ex: Spider Farmer SF-4000" />
                 )}
               </Field>
-              {(categorie === 'Pots' || categorie === 'Bocaux') && !isEdit && (
+              {!!categorie && !isEdit && (
                 <Field label="Quantité">
                   <div className="flex items-center gap-1">
                     <button
@@ -573,8 +602,27 @@ export default function NouveauMaterielModal({ editItem, onClose }: Props) {
             <Field label="Date d'achat">
               <input type="date" className={inputCls} value={dateAchat} onChange={e => setDateAchat(e.target.value)} />
             </Field>
-            <Field label="Prix d'achat (€)">
-              <input type="number" step="0.01" className={inputCls} value={prix} onChange={e => setPrix(e.target.value)} placeholder="ex: 149.99" />
+            <Field label={prixMode === 'total' && !isEdit && quantite > 1 ? "Prix total commande (€)" : "Prix d'achat (€)"}>
+              <div className="space-y-1.5">
+                {!isEdit && quantite > 1 && (
+                  <div className="flex gap-1">
+                    <button type="button" onClick={() => setPrixMode('unitaire')}
+                      className={`text-xs px-2.5 py-1 rounded-lg border transition-colors ${prixMode === 'unitaire' ? 'bg-grow-600 text-white border-grow-600' : 'border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:border-grow-300'}`}>
+                      Unitaire
+                    </button>
+                    <button type="button" onClick={() => setPrixMode('total')}
+                      className={`text-xs px-2.5 py-1 rounded-lg border transition-colors ${prixMode === 'total' ? 'bg-grow-600 text-white border-grow-600' : 'border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:border-grow-300'}`}>
+                      Total commande
+                    </button>
+                  </div>
+                )}
+                <input type="number" step="0.01" className={inputCls} value={prix} onChange={e => setPrix(e.target.value)} placeholder="ex: 149.99" />
+                {prixMode === 'total' && !isEdit && quantite > 1 && prix && Number(prix) > 0 && (
+                  <p className="text-xs text-gray-400 dark:text-gray-500">
+                    → {(Number(prix) / quantite).toFixed(2)} € / unité
+                  </p>
+                )}
+              </div>
             </Field>
 
             {/* Fournisseur — depuis paramètres */}
@@ -625,11 +673,9 @@ export default function NouveauMaterielModal({ editItem, onClose }: Props) {
             {isPending && <Loader2 size={14} className="animate-spin" />}
             {isEdit
               ? 'Enregistrer'
-              : categorie === 'Pots' && quantite > 1
-                ? `Ajouter ${quantite} pots`
-                : categorie === 'Bocaux' && quantite > 1
-                  ? `Ajouter ${quantite} bocaux`
-                  : 'Ajouter'}
+              : quantite > 1 && categorie
+                ? `Ajouter ${quantite} ${categorie.toLowerCase()}`
+                : 'Ajouter'}
           </button>
         </div>
       </div>
