@@ -113,8 +113,8 @@ function EventDrawer({
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null)
 
   const meta = actionMeta(event.type_action)
-  const dateLabel = new Date(event.date_action).toLocaleString('fr-FR', {
-    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit',
+  const dateLabel = new Date(event.date_action.slice(0, 10) + 'T12:00:00').toLocaleDateString('fr-FR', {
+    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
   })
 
   const params = event.parametres

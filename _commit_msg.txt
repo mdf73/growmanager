@@ -1,9 +1,10 @@
-fix(materiel): correction prix batch + nommage sans doublon + création lot toutes catégories
+fix: CalendrierGlobal — heure 02:00 due au parsing UTC de date_action
 
-- Fix bug prix : le prix total de commande était appliqué à chaque item au lieu d'être divisé
-- Ajout toggle "Unitaire / Total commande" (défaut: Total) avec aperçu "→ X.XX € / unité" en temps réel
-- Fix nommage : calcul du prochain index disponible (#N+1) pour éviter les doublons lors d'un 2e lot
-- Sélecteur quantité (1–99) étendu à toutes les catégories (était limité à Bocaux/Pots)
-- Toggle prix disponible pour toutes les catégories quand quantité > 1
-- Bouton "Ajouter N {categorie}" généralisé pour toutes les catégories
-- Wiki mis à jour : section NouveauMaterielModal dans frontend/pages.md
+Dans EventDrawer, `new Date("YYYY-MM-DD")` était interprété en UTC midnight.
+France UTC+2 → affichage 02:00 systématique.
+
+Fix: `.slice(0, 10) + 'T12:00:00'` pour parser en heure locale (même
+pattern déjà utilisé dans DayModal). Suppression de l'heure dans
+l'affichage (non significative pour les actions de culture).
+
+Fichier: frontend/src/pages/CalendrierGlobal.tsx

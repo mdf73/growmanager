@@ -8,6 +8,19 @@ Operations: `bootstrap`, `ingest`, `query`, `lint`, `update`
 
 ---
 
+## [2026-05-18] update | Bugfix — CalendrierGlobal heure 02:00 (timezone UTC)
+
+**Bug corrigé :**
+Dans `EventDrawer` (CalendrierGlobal.tsx), toutes les actions affichaient "À 02:00".
+
+**Cause :** `new Date(event.date_action)` sur une chaîne `"YYYY-MM-DD"` sans heure est interprétée en UTC midnight. La France étant UTC+2, minuit UTC → 02:00 locale.
+
+**Fix :** Parsing via `.slice(0, 10) + 'T12:00:00'` (même pattern que `DayModal` ligne 414). L'heure est supprimée de l'affichage (non significative pour les actions de culture).
+
+**Fichier modifié :** `frontend/src/pages/CalendrierGlobal.tsx`
+
+---
+
 ## [2026-05-18] update | Stock — fix engrais_type par plante (pas par culture entière)
 
 **Bug corrigé :**
