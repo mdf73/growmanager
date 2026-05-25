@@ -1,8 +1,8 @@
-feat: tri alphabétique de toutes les listes déroulantes dynamiques
+feat(photos): sélecteur plante dans la galerie photos
 
-- NouveauPackModal: breeders, variétés, fournisseurs triés par nom
-- Croisement: variétés (×5 selects) et pollen stock triés par nom
-- SuiviSolVivantModal: recettes LSO, réamendement, engrais, TCO, fermentation triées par nom
-- Wiki: convention de tri documentée dans frontend/conventions.md
-
-Pattern: [...arr].sort((a, b) => a.nom.localeCompare(b.nom, 'fr', { sensitivity: 'base' }))
+- PhotoGallery : prop `plants` ajoutée — sélecteur "Associer à" (Toute la culture / plante par ordre alphabétique) dans la zone upload
+- PhotoGallery : badge 🌱 [nom plante] sur les miniatures liées à une plante
+- PhotoGallery : filtres rapides (Toutes / Culture / par plante) au-dessus de la galerie
+- PhotoGallery : badge plante dans la lightbox
+- Culture.tsx : passage de `culture.plants` à PhotoGallery
+- Wiki : page features/photos.md créée, index mis à jour

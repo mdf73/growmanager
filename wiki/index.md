@@ -67,6 +67,7 @@ Content catalog for the GrowManager development wiki. Read this first when start
 - [[features/culture-lifecycle]] — Culture status flow: active → sechage_curing → terminee; closing/archiving
 - [[features/sensor-integration]] — Govee H5179 setup, polling, VPD, manual entries
 - [[features/living-soil-system]] — LSO recipe library, substrate preparation, pot tracking workflow
+- [[features/photos]] — Galerie photos : photo globale culture vs photo de plante spécifique, upload, filtres, badges
 
 ---
 

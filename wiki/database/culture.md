@@ -87,7 +87,9 @@ Calendar event/action tied to a plant or a whole culture.
 
 Known `type_action` values: `graine_germee`, `debut_croissance`, `debut_floraison`, `passage_12_12`, `arrosage_eau`, `arrosage_engrais`, `taille`, `defoliation`, `recolte`, `observations`, `traitement`, `photo`
 
-**Action `photo`** : catégorie dédiée (rose) dans `actionTypes.ts`. Quand sélectionnée dans `ActionModal`, affiche une drop zone — les fichiers sont uploadés via `POST /api/photos/upload` avec `date_prise = date_action`. Un enregistrement `ActionCalendrier` de type `photo` est aussi créé avec `parametres.nb_photos`. La note de l'action sert de légende à toutes les photos uploadées.
+**Action `photo`** : catégorie dédiée (rose) dans `actionTypes.ts`. Quand sélectionnée dans `ActionModal`, affiche une drop zone — les fichiers sont uploadés via `POST /api/photos/upload` avec `date_prise = date_action`. Un enregistrement `ActionCalendrier` de type `photo` est aussi créé avec `parametres.nb_photos`. La note de l'action sert de légende à toutes les photos uploadées. La cible (`target`) de l'action détermine `id_plant` : si `global` → photo de culture (id_plant=null) ; si plante spécifique → photo associée à la culture ET à la plante.
+
+Voir aussi → [[features/photos]]
 
 ---
 
