@@ -30,7 +30,7 @@ Overview with 8 status modules:
 ### Culture (`/culture`)
 Main grow cycle management. Shows active + completed cultures.
 - Per-culture: phase tabs (Plantes, Calendrier, Stats)
-- PlantesTab: list plants, update statuses
+- PlantesTab: list plants, update statuses. **Groupement par variété** (2026-05-25) : quand les plantes actives couvrent plusieurs variétés, elles sont regroupées par variété dans des accordéons cliquables (header = nom variété + breeder + badge compteur). Clic sur l'en-tête pour déplier/replier. Si toutes les plantes actives sont de la même variété, affichage à plat inchangé. Composant `VarieteGroup` dans `PlantesTab.tsx`.
 - CalendrierCulture: action timeline — clic sur un jour → panneau de détail avec liste des actions + **courbes capteurs du jour** (`SensorDayChart`, filtrées sur `id_espace` de la culture)
 - StatsTab: yield, cost, grams/watt
 - Modals: NouvellerCultureModal, ActionModal, ArrosageModal, TransfertPlantModal

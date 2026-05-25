@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
-import { Leaf, Edit2, Check, X, Plus, Trash2, AlertTriangle, ArrowRightLeft, Sprout, Search } from 'lucide-react'
+import { Leaf, Edit2, Check, X, Plus, Trash2, AlertTriangle, ArrowRightLeft, Sprout, Search, ChevronDown, ChevronRight } from 'lucide-react'
 import { Plant, plantAPI, PlantUpdate, cultureUtilsAPI, PotItem, RecetteSolItem } from '../../api/cultures'
 import { catalogueAPI, packCompletAPI, CatalogueItem } from '../../api/graines'
 import TransfertPlantModal from './TransfertPlantModal'
@@ -127,6 +127,21 @@ export default function PlantesTab({ cultureId, plants }: Props) {
   const actives = plants.filter(p => !['recolte', 'prete', 'abandonne', 'wpff'].includes(p.statut || ''))
   const terminees = plants.filter(p => ['recolte', 'prete', 'abandonne', 'wpff'].includes(p.statut || ''))
 
+  // Groupement des plantes actives par variété
+  type VarieteGroup = { key: string; label: string; breeder?: string; plants: typeof actives }
+  const varietyGroups: VarieteGroup[] = []
+  const seen = new Map<string, VarieteGroup>()
+  for (const p of actives) {
+    const key = p.nom_variete || p.nom_affichage || `plant-${p.id_plant}`
+    if (!seen.has(key)) {
+      const g: VarieteGroup = { key, label: p.nom_variete || p.nom_affichage || 'Inconnue', breeder: p.nom_breeder, plants: [] }
+      seen.set(key, g)
+      varietyGroups.push(g)
+    }
+    seen.get(key)!.plants.push(p)
+  }
+  const isGrouped = varietyGroups.length > 1
+
   return (
     <div className="space-y-4">
       {/* Modal transfert */}
@@ -199,20 +214,43 @@ export default function PlantesTab({ cultureId, plants }: Props) {
           <h3 className="text-sm font-semibold text-gray-600 dark:text-gray-300 mb-2 uppercase tracking-wide">
             Plantes actives ({actives.length})
           </h3>
-          <div className="space-y-2">
-            {actives.map(plant => (
-              <PlantCard key={plant.id_plant} plant={plant}
-                editing={editingId === plant.id_plant} editValues={editValues}
-                pots={pots} recettesSol={recettesSol}
-                onStartEdit={() => startEdit(plant)}
-                onEditChange={setEditValues}
-                onSave={() => saveEdit(plant.id_plant)}
-                onCancel={() => setEditingId(null)}
-                onDelete={() => deletePlant.mutate(plant.id_plant)}
-                onTransfer={() => setTransferPlant(plant)}
-                saving={updatePlant.isPending} />
-            ))}
-          </div>
+
+          {isGrouped ? (
+            <div className="space-y-2">
+              {varietyGroups.map(group => (
+                <VarieteGroup
+                  key={group.key}
+                  group={group}
+                  editingId={editingId}
+                  editValues={editValues}
+                  pots={pots}
+                  recettesSol={recettesSol}
+                  onStartEdit={startEdit}
+                  onEditChange={setEditValues}
+                  onSave={saveEdit}
+                  onCancel={() => setEditingId(null)}
+                  onDelete={(id) => deletePlant.mutate(id)}
+                  onTransfer={setTransferPlant}
+                  saving={updatePlant.isPending}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {actives.map(plant => (
+                <PlantCard key={plant.id_plant} plant={plant}
+                  editing={editingId === plant.id_plant} editValues={editValues}
+                  pots={pots} recettesSol={recettesSol}
+                  onStartEdit={() => startEdit(plant)}
+                  onEditChange={setEditValues}
+                  onSave={() => saveEdit(plant.id_plant)}
+                  onCancel={() => setEditingId(null)}
+                  onDelete={() => deletePlant.mutate(plant.id_plant)}
+                  onTransfer={() => setTransferPlant(plant)}
+                  saving={updatePlant.isPending} />
+              ))}
+            </div>
+          )}
         </section>
       )}
 
@@ -236,6 +274,77 @@ export default function PlantesTab({ cultureId, plants }: Props) {
             ))}
           </div>
         </section>
+      )}
+    </div>
+  )
+}
+
+// ─── VarieteGroup ──────────────────────────────────────────────────────────────
+function VarieteGroup({
+  group, editingId, editValues, pots, recettesSol,
+  onStartEdit, onEditChange, onSave, onCancel, onDelete, onTransfer, saving
+}: {
+  group: { key: string; label: string; breeder?: string; plants: Plant[] }
+  editingId: number | null
+  editValues: PlantUpdate
+  pots: PotItem[]
+  recettesSol: RecetteSolItem[]
+  onStartEdit: (plant: Plant) => void
+  onEditChange: (v: PlantUpdate) => void
+  onSave: (plantId: number) => void
+  onCancel: () => void
+  onDelete: (id: number) => void
+  onTransfer: (plant: Plant) => void
+  saving: boolean
+}) {
+  const [open, setOpen] = useState(true)
+  const count = group.plants.length
+
+  return (
+    <div className="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
+      {/* Header du groupe — cliquable */}
+      <button
+        onClick={() => setOpen(v => !v)}
+        className="w-full flex items-center gap-3 px-4 py-3 bg-gray-50 dark:bg-gray-800/60 hover:bg-gray-100 dark:hover:bg-gray-700/40 transition-colors text-left"
+      >
+        {open
+          ? <ChevronDown size={15} className="text-gray-400 dark:text-gray-500 flex-shrink-0" />
+          : <ChevronRight size={15} className="text-gray-400 dark:text-gray-500 flex-shrink-0" />
+        }
+        <Leaf size={14} className="text-grow-500 flex-shrink-0" />
+        <div className="flex-1 min-w-0">
+          <span className="font-semibold text-sm text-gray-800 dark:text-gray-100">{group.label}</span>
+          {group.breeder && (
+            <span className="ml-2 text-xs text-gray-400 dark:text-gray-500">{group.breeder}</span>
+          )}
+        </div>
+        <span className="text-xs px-2 py-0.5 rounded-full bg-grow-100 text-grow-700 dark:bg-grow-900/30 dark:text-grow-400 font-medium flex-shrink-0">
+          {count} plante{count > 1 ? 's' : ''}
+        </span>
+      </button>
+
+      {/* Liste des plantes (expand/collapse) */}
+      {open && (
+        <div className="divide-y divide-gray-100 dark:divide-gray-700/60">
+          {group.plants.map(plant => (
+            <div key={plant.id_plant} className="px-2 py-2">
+              <PlantCard
+                plant={plant}
+                editing={editingId === plant.id_plant}
+                editValues={editValues}
+                pots={pots}
+                recettesSol={recettesSol}
+                onStartEdit={() => onStartEdit(plant)}
+                onEditChange={onEditChange}
+                onSave={() => onSave(plant.id_plant)}
+                onCancel={onCancel}
+                onDelete={() => onDelete(plant.id_plant)}
+                onTransfer={() => onTransfer(plant)}
+                saving={saving}
+              />
+            </div>
+          ))}
+        </div>
       )}
     </div>
   )

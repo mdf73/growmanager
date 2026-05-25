@@ -1,9 +1,8 @@
-fix: add --skip-ssl to mysql restore command
+feat(culture): grouper les plantes actives par variété dans PlantesTab
 
-The backup/restore endpoint was failing with:
-  ERROR 2026 (HY000): TLS/SSL error: self-signed certificate in certificate chain
-
-mysqldump already had --skip-ssl but the mysql client for restore did not.
-Added --skip-ssl to the subprocess call in backup_restore() to match.
-
-File: backend/app/routers/import_export.py
+- Nouveau composant VarieteGroup : accordéon cliquable par variété
+- Header = nom variété + breeder + badge compteur de plantes
+- Groupes ouverts par défaut, toggle expand/collapse
+- Groupement actif uniquement quand plusieurs variétés présentes
+- Affichage à plat conservé pour les cultures mono-variété
+- Wiki mis à jour (log.md + frontend/pages.md)

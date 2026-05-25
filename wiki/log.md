@@ -8,6 +8,25 @@ Operations: `bootstrap`, `ingest`, `query`, `lint`, `update`
 
 ---
 
+## [2026-05-25] update | PlantesTab — groupement des plantes actives par variété
+
+**Feature validée :**
+Dans l'onglet "Plantes" d'une culture, la section "Plantes actives" regroupe désormais les plantes par variété quand plusieurs variétés coexistent.
+
+**Comportement :**
+- Si ≥ 2 variétés différentes parmi les plantes actives → affichage en accordéons (un par variété)
+- Chaque accordéon : header cliquable (icône ▶/▼ + Leaf + nom variété + breeder + badge "N plantes")
+- Clic sur le header → déplier/replier la liste des PlantCards
+- Groupes ouverts par défaut
+- Si 1 seule variété → affichage à plat inchangé (rétro-compatibilité)
+
+**Composant ajouté :** `VarieteGroup` dans `PlantesTab.tsx`
+**Import ajouté :** `ChevronDown`, `ChevronRight` (lucide-react)
+
+**Fichier modifié :** `frontend/src/components/culture/PlantesTab.tsx`
+
+---
+
 ## [2026-05-18] update | Bugfix — Restauration SQL échoue (TLS self-signed certificate)
 
 **Bug corrigé :**
