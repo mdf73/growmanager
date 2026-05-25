@@ -1,8 +1,8 @@
-feat(culture): grouper les plantes actives par variété dans PlantesTab
+fix(plant): numéro de graine = rang dans le paquet (pas l'id global)
 
-- Nouveau composant VarieteGroup : accordéon cliquable par variété
-- Header = nom variété + breeder + badge compteur de plantes
-- Groupes ouverts par défaut, toggle expand/collapse
-- Groupement actif uniquement quand plusieurs variétés présentes
-- Affichage à plat conservé pour les cultures mono-variété
-- Wiki mis à jour (log.md + frontend/pages.md)
+- _build_plant_name : calcule le rang 1-based dans le pack (ORDER BY id_graine)
+  au lieu d'utiliser id_graine global (ex: #1758 → #5)
+- Création bulk : passage de db à _build_plant_name
+- add_plant (ajout unitaire) : recalcule le nom si id_graine présent
+- Script migration one-shot : backend/migrate_plant_names.py
+- Wiki mis à jour (log.md + features/plant-lifecycle.md)

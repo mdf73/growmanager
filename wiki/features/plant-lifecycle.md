@@ -62,14 +62,22 @@ External plants (bouture/clone) don't require a seed — used for secondary cult
 
 ### Naming Convention
 
-Le nom d'une plante est **`<nom_variété> #<id_graine>`** où `id_graine` est l'identifiant unique de la graine utilisée (PK de la table `Graine`), **pas** un compteur incrémental de la culture.
+Le nom d'une plante est **`<nom_variété> #<rang_dans_paquet>`** où le rang est la position 1-based de la graine dans son paquet (`id_packgraine`), triée par `id_graine`.
 
-Implémenté dans `_build_plant_name()` (routers/cultures.py) :
+Exemple : si le paquet contient 12 graines et que la graine utilisée est la 5ème → `Bleu Roi (True F1) #5`.
+
+Implémenté dans `_build_plant_name(graine, numero, db)` (routers/cultures.py) :
 ```python
-f"{graine.variete.nom_variete} #{graine.id_graine}"
+ids_in_pack = [r[0] for r in db.query(Graine.id_graine)
+    .filter(Graine.id_packgraine == graine.id_packgraine)
+    .order_by(Graine.id_graine).all()]
+rank = ids_in_pack.index(graine.id_graine) + 1
+f"{graine.variete.nom_variete} #{rank}"
 ```
 
-> ⚠️ Bug corrigé le 2026-04-28 : le nom utilisait auparavant `plant_counter` (compteur de boucle de création), ce qui donnait des numéros relatifs à la culture plutôt qu'au numéro de graine réel.
+> ⚠️ Historique corrections :
+> - 2026-04-28 : le nom utilisait `plant_counter` (compteur de boucle) → remplacé par `id_graine` global
+> - 2026-05-25 : `id_graine` global (ex: #1758) → rang dans le paquet (ex: #5). Migration one-shot : `backend/migrate_plant_names.py`
 
 ## Plant Transfer
 

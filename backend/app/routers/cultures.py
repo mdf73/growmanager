@@ -193,9 +193,19 @@ def _enrich_culture(culture: Culture, db: Session) -> dict:
     }
 
 
-def _build_plant_name(graine: Optional[Graine], numero: int) -> str:
+def _build_plant_name(graine: Optional[Graine], numero: int, db: Session = None) -> str:
     if graine and graine.variete:
-        return f"{graine.variete.nom_variete} #{graine.id_graine}"
+        rank = numero  # fallback
+        if db and graine.id_packgraine:
+            ids_in_pack = [
+                r[0] for r in db.query(Graine.id_graine)
+                .filter(Graine.id_packgraine == graine.id_packgraine)
+                .order_by(Graine.id_graine)
+                .all()
+            ]
+            if graine.id_graine in ids_in_pack:
+                rank = ids_in_pack.index(graine.id_graine) + 1
+        return f"{graine.variete.nom_variete} #{rank}"
     return f"Plant #{numero}"
 
 
@@ -1736,7 +1746,7 @@ def create_culture(payload: CultureCreate, db: Session = Depends(get_db)):
                            f"(demandé: {sel.nb_plantes}, disponible: {len(graines_disponibles)})"
                 )
             for graine in graines_disponibles:
-                nom_plant = _build_plant_name(graine, plant_counter)
+                nom_plant = _build_plant_name(graine, plant_counter, db)
                 plant = Plant(
                     id_culture=culture.id_culture,
                     id_graine=graine.id_graine,
@@ -1875,10 +1885,17 @@ def add_plant(culture_id: int, payload: PlantCreate, db: Session = Depends(get_d
     culture = db.query(Culture).filter(Culture.id_culture == culture_id).first()
     if not culture:
         raise HTTPException(status_code=404, detail="Culture non trouvée")
+    # Si une graine est liée, recalcule le nom avec le rang dans le paquet
+    nom_affichage = payload.nom_affichage
+    if payload.id_graine:
+        graine = db.query(Graine).filter(Graine.id_graine == payload.id_graine).first()
+        if graine:
+            nom_affichage = _build_plant_name(graine, payload.numero_plant or 1, db)
+
     plant = Plant(
         id_culture=culture_id,
         id_graine=payload.id_graine,
-        nom_affichage=payload.nom_affichage,
+        nom_affichage=nom_affichage,
         numero_plant=payload.numero_plant,
         origine=payload.origine,
         statut=payload.statut,

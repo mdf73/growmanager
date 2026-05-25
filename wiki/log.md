@@ -8,6 +8,26 @@ Operations: `bootstrap`, `ingest`, `query`, `lint`, `update`
 
 ---
 
+## [2026-05-25] update | Plant — numéro de graine dans le paquet (rang) au lieu de l'id_graine global
+
+**Bug corrigé :**
+Le `nom_affichage` d'une plante affichait `Bleu Roi (True F1) #1758` (id_graine global DB) au lieu du rang dans le paquet (`#5`, `#6`…).
+
+**Fix backend (`cultures.py`) :**
+- `_build_plant_name(graine, numero, db=None)` : si `db` est fourni et que la graine a un `id_packgraine`, calcule le rang 1-based de la graine dans son paquet (toutes les graines du pack triées par `id_graine`, `index + 1`). Fallback sur `numero` si db absent.
+- Création bulk (NouvellerCultureModal) : passage de `db` à `_build_plant_name`
+- `add_plant` (ajout unitaire depuis PlantesTab) : si `id_graine` fourni, recalcule le nom via `_build_plant_name` avant création — remplace le `nom_affichage` envoyé par le frontend (qui était juste `variete_nom` sans numéro)
+
+**Migration one-shot :** `backend/migrate_plant_names.py`
+- Recalcule et met à jour `nom_affichage` pour toutes les plantes existantes liées à une graine
+- Commande : `docker compose exec backend python migrate_plant_names.py`
+
+**Fichiers modifiés :**
+- `backend/app/routers/cultures.py` — `_build_plant_name`, `add_plant`
+- `backend/migrate_plant_names.py` — script migration (nouveau)
+
+---
+
 ## [2026-05-25] update | PlantesTab — groupement des plantes actives par variété
 
 **Feature validée :**
