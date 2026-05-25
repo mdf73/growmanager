@@ -188,7 +188,7 @@ export default function NouveauPackModal({ onClose, editPack }: NouveauPackModal
               <div className="flex gap-2">
                 <select value={form.id_breeder} onChange={e => setForm(f => ({ ...f, id_breeder: e.target.value ? Number(e.target.value) : '' }))} className={ic('id_breeder')}>
                   <option value="">— Sélectionner —</option>
-                  {breeders.map(b => <option key={b.id_breeder} value={b.id_breeder}>{b.nom_breeder}</option>)}
+                  {[...breeders].sort((a, b) => a.nom_breeder.localeCompare(b.nom_breeder, 'fr', { sensitivity: 'base' })).map(b => <option key={b.id_breeder} value={b.id_breeder}>{b.nom_breeder}</option>)}
                 </select>
                 <button onClick={() => setShowNewBreeder(true)} className="shrink-0 px-3 py-2 border border-grow-600 text-grow-600 rounded-lg hover:bg-grow-50"><Plus size={16} /></button>
               </div>
@@ -211,7 +211,7 @@ export default function NouveauPackModal({ onClose, editPack }: NouveauPackModal
               <div className="flex gap-2">
                 <select value={form.id_variete} onChange={e => setForm(f => ({ ...f, id_variete: e.target.value ? Number(e.target.value) : '' }))} className={ic('id_variete')}>
                   <option value="">— Sélectionner —</option>
-                  {varietes.map(v => <option key={v.id_variete} value={v.id_variete}>{v.nom_variete}</option>)}
+                  {[...varietes].sort((a, b) => a.nom_variete.localeCompare(b.nom_variete, 'fr', { sensitivity: 'base' })).map(v => <option key={v.id_variete} value={v.id_variete}>{v.nom_variete}</option>)}
                 </select>
                 <button onClick={() => setShowNewVariete(true)} className="shrink-0 px-3 py-2 border border-grow-600 text-grow-600 rounded-lg hover:bg-grow-50"><Plus size={16} /></button>
               </div>
@@ -313,7 +313,7 @@ export default function NouveauPackModal({ onClose, editPack }: NouveauPackModal
                 <div className="flex gap-2">
                   <select value={form.id_fournisseur} onChange={e => setForm(f => ({ ...f, id_fournisseur: e.target.value ? Number(e.target.value) : '' }))} className={ic()}>
                     <option value="">— Optionnel —</option>
-                    {fournisseurs.map(f => <option key={f.id_fournisseur} value={f.id_fournisseur}>{f.nom_fournisseur}</option>)}
+                    {[...fournisseurs].sort((a, b) => a.nom_fournisseur.localeCompare(b.nom_fournisseur, 'fr', { sensitivity: 'base' })).map(f => <option key={f.id_fournisseur} value={f.id_fournisseur}>{f.nom_fournisseur}</option>)}
                   </select>
                   <button onClick={() => setShowNewFournisseur(true)} className="shrink-0 px-2 py-2 border border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-400 dark:text-gray-500 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/40"><Plus size={14} /></button>
                 </div>

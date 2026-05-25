@@ -1,6 +1,6 @@
 ---
 type: frontend
-updated: 2026-04-09
+updated: 2026-05-25
 sources: [Documentation/claude.md, frontend/src/api/client.ts]
 ---
 
@@ -90,6 +90,27 @@ Return types from API calls are inlined as TypeScript interfaces in each `api/*.
 | `LoadingSpinner` | Loading state |
 | `EmptyState` | Empty list state (no data) |
 | `ImportExportModal` | CSV import/export for any entity |
+
+## Tri des listes déroulantes
+
+**Règle :** Toutes les listes déroulantes (`<select>`) alimentées par des données dynamiques (API) doivent être triées alphabétiquement à l'affichage, jamais dans l'ordre d'insertion en base.
+
+Pattern à utiliser (ne pas muter le tableau original) :
+
+```tsx
+{[...items].sort((a, b) => a.nom.localeCompare(b.nom, 'fr', { sensitivity: 'base' })).map(item => (
+  <option key={item.id} value={item.id}>{item.nom}</option>
+))}
+```
+
+**Localisation :** `'fr'` + `sensitivity: 'base'` → insensible à la casse et aux accents.
+
+**Fichiers appliqués :**
+- `NouveauPackModal.tsx` — breeders, variétés, fournisseurs
+- `Croisement.tsx` — variétés, pollen stock
+- `SuiviSolVivantModal.tsx` — recettes LSO, réamendement, engrais, TCO, fermentation
+
+---
 
 ## See Also
 

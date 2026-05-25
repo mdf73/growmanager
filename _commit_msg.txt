@@ -1,8 +1,8 @@
-fix(plant): numéro de graine = rang dans le paquet (pas l'id global)
+feat: tri alphabétique de toutes les listes déroulantes dynamiques
 
-- _build_plant_name : calcule le rang 1-based dans le pack (ORDER BY id_graine)
-  au lieu d'utiliser id_graine global (ex: #1758 → #5)
-- Création bulk : passage de db à _build_plant_name
-- add_plant (ajout unitaire) : recalcule le nom si id_graine présent
-- Script migration one-shot : backend/migrate_plant_names.py
-- Wiki mis à jour (log.md + features/plant-lifecycle.md)
+- NouveauPackModal: breeders, variétés, fournisseurs triés par nom
+- Croisement: variétés (×5 selects) et pollen stock triés par nom
+- SuiviSolVivantModal: recettes LSO, réamendement, engrais, TCO, fermentation triées par nom
+- Wiki: convention de tri documentée dans frontend/conventions.md
+
+Pattern: [...arr].sort((a, b) => a.nom.localeCompare(b.nom, 'fr', { sensitivity: 'base' }))

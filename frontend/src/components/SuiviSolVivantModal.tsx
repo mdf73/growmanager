@@ -223,7 +223,7 @@ export default function SuiviSolVivantModal({ editSuivi, onClose }: Props) {
             onChange={e => setForm(f => ({ ...f, id_recette_lso: e.target.value }))}
             className={sel}>
             <option value="">— Aucune —</option>
-            {recipesLSO.map(r => <option key={r.id_recette_lso} value={r.id_recette_lso}>{r.nom_recette}</option>)}
+            {[...recipesLSO].sort((a, b) => a.nom_recette.localeCompare(b.nom_recette, 'fr', { sensitivity: 'base' })).map(r => <option key={r.id_recette_lso} value={r.id_recette_lso}>{r.nom_recette}</option>)}
           </select>
         </div>
         <div>
@@ -263,7 +263,7 @@ export default function SuiviSolVivantModal({ editSuivi, onClose }: Props) {
               onChange={ev => updateRow(setReamendements, i, 'id_recette_reamend', ev.target.value)}
               className="flex-1 px-2 py-1.5 border border-gray-200 dark:border-gray-700 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-grow-500 bg-white dark:bg-gray-800">
               <option value="">— Recette réamendement —</option>
-              {recipesReam.map(r => <option key={r.id_recette_reamend} value={r.id_recette_reamend}>{r.nom_recette}{r.volume_pot ? ` (${r.volume_pot}L)` : ''}</option>)}
+              {[...recipesReam].sort((a, b) => a.nom_recette.localeCompare(b.nom_recette, 'fr', { sensitivity: 'base' })).map(r => <option key={r.id_recette_reamend} value={r.id_recette_reamend}>{r.nom_recette}{r.volume_pot ? ` (${r.volume_pot}L)` : ''}</option>)}
             </select>
             <input type="date" value={e.date_application}
               onChange={ev => updateRow(setReamendements, i, 'date_application', ev.target.value)}
@@ -300,7 +300,7 @@ export default function SuiviSolVivantModal({ editSuivi, onClose }: Props) {
               onChange={ev => updateRow(setArrosages, i, 'id_recette_engrais', ev.target.value)}
               className="flex-1 px-2 py-1.5 border border-gray-200 dark:border-gray-700 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-grow-500 bg-white dark:bg-gray-800">
               <option value="">— Recette arrosage (optionnel) —</option>
-              {recipesEngrais.map(r => <option key={r.id_recette} value={r.id_recette}>{r.nom_recette}</option>)}
+              {[...recipesEngrais].sort((a, b) => a.nom_recette.localeCompare(b.nom_recette, 'fr', { sensitivity: 'base' })).map(r => <option key={r.id_recette} value={r.id_recette}>{r.nom_recette}</option>)}
             </select>
             <input type="number" step="any" min="0" value={e.volume_eau_l}
               onChange={ev => updateRow(setArrosages, i, 'volume_eau_l', ev.target.value)}
@@ -341,7 +341,7 @@ export default function SuiviSolVivantModal({ editSuivi, onClose }: Props) {
               onChange={ev => updateRow(setTCOs, i, 'id_recette_tco', ev.target.value)}
               className="flex-1 px-2 py-1.5 border border-gray-200 dark:border-gray-700 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-grow-500 bg-white dark:bg-gray-800">
               <option value="">— Recette TCO —</option>
-              {recipesTCO.map(r => <option key={r.id_recette_tco} value={r.id_recette_tco}>{r.nom_recette}</option>)}
+              {[...recipesTCO].sort((a, b) => a.nom_recette.localeCompare(b.nom_recette, 'fr', { sensitivity: 'base' })).map(r => <option key={r.id_recette_tco} value={r.id_recette_tco}>{r.nom_recette}</option>)}
             </select>
             <input type="number" step="any" min="0" value={e.volume_applique}
               onChange={ev => updateRow(setTCOs, i, 'volume_applique', ev.target.value)}
@@ -382,7 +382,7 @@ export default function SuiviSolVivantModal({ editSuivi, onClose }: Props) {
               onChange={ev => updateRow(setFermentations, i, 'id_recette_ferm', ev.target.value)}
               className="flex-1 px-2 py-1.5 border border-gray-200 dark:border-gray-700 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-grow-500 bg-white dark:bg-gray-800">
               <option value="">— Recette fermentation —</option>
-              {recipesFerm.map(r => <option key={r.id_recette_ferm} value={r.id_recette_ferm}>{r.nom_recette}</option>)}
+              {[...recipesFerm].sort((a, b) => a.nom_recette.localeCompare(b.nom_recette, 'fr', { sensitivity: 'base' })).map(r => <option key={r.id_recette_ferm} value={r.id_recette_ferm}>{r.nom_recette}</option>)}
             </select>
             <input type="number" step="any" min="0" value={e.volume_applique}
               onChange={ev => updateRow(setFermentations, i, 'volume_applique', ev.target.value)}

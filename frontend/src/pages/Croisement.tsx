@@ -150,7 +150,7 @@ function NouveauCroisementModal({ varietes, pollenStock, onClose }: NouveauCrois
                     className="w-full rounded border-gray-300 dark:border-gray-600 px-3 py-2 text-sm"
                   >
                     <option value="">— Choisir une variété —</option>
-                    {varietes.map(v => <option key={v.id_variete} value={v.id_variete}>{v.nom_variete}</option>)}
+                    {[...varietes].sort((a, b) => a.nom_variete.localeCompare(b.nom_variete, 'fr', { sensitivity: 'base' })).map(v => <option key={v.id_variete} value={v.id_variete}>{v.nom_variete}</option>)}
                   </select>
                   <input
                     type="text"
@@ -192,7 +192,7 @@ function NouveauCroisementModal({ varietes, pollenStock, onClose }: NouveauCrois
                       className="w-full rounded border-gray-300 dark:border-gray-600 px-3 py-2 text-sm"
                     >
                       <option value="">— Choisir une variété —</option>
-                      {varietes.map(v => <option key={v.id_variete} value={v.id_variete}>{v.nom_variete}</option>)}
+                      {[...varietes].sort((a, b) => a.nom_variete.localeCompare(b.nom_variete, 'fr', { sensitivity: 'base' })).map(v => <option key={v.id_variete} value={v.id_variete}>{v.nom_variete}</option>)}
                     </select>
                     <input
                       type="text"
@@ -226,7 +226,7 @@ function NouveauCroisementModal({ varietes, pollenStock, onClose }: NouveauCrois
                           className="w-full rounded border-gray-300 dark:border-gray-600 px-3 py-2 text-sm"
                         >
                           <option value="">— Choisir du pollen —</option>
-                          {pollenStock.filter(p => p.actif).map(p => (
+                          {[...pollenStock].filter(p => p.actif).sort((a, b) => a.nom_pollen.localeCompare(b.nom_pollen, 'fr', { sensitivity: 'base' })).map(p => (
                             <option key={p.id_pollen} value={p.id_pollen}>
                               {p.nom_pollen}
                               {p.nom_variete_source && ` (${p.nom_variete_source})`}
@@ -601,7 +601,7 @@ function RecolteModal({ croisement, onClose }: { croisement: Croisement; onClose
                   className="w-full rounded border-gray-300 dark:border-gray-600 px-3 py-2 text-sm"
                 >
                   <option value="">— Aucune —</option>
-                  {varietes.map(v => (
+                  {[...varietes].sort((a, b) => a.nom_variete.localeCompare(b.nom_variete, 'fr', { sensitivity: 'base' })).map(v => (
                     <option key={v.id_variete} value={v.id_variete}>{v.nom_variete}</option>
                   ))}
                 </select>
@@ -682,7 +682,7 @@ function NouveauPollenModal({ varietes, onClose }: { varietes: Variete[]; onClos
                 className="w-full rounded border-gray-300 dark:border-gray-600 px-3 py-2 text-sm"
               >
                 <option value="">— Inconnue —</option>
-                {varietes.map(v => <option key={v.id_variete} value={v.id_variete}>{v.nom_variete}</option>)}
+                {[...varietes].sort((a, b) => a.nom_variete.localeCompare(b.nom_variete, 'fr', { sensitivity: 'base' })).map(v => <option key={v.id_variete} value={v.id_variete}>{v.nom_variete}</option>)}
               </select>
             </div>
             <div>
@@ -860,7 +860,7 @@ function EditCroisementModal({ croisement, varietes, pollenStock, onClose }: Edi
                 className="w-full rounded border-gray-300 dark:border-gray-600 px-3 py-2 text-sm"
               >
                 <option value="">— Choisir —</option>
-                {varietes.map(v => <option key={v.id_variete} value={v.id_variete}>{v.nom_variete}</option>)}
+                {[...varietes].sort((a, b) => a.nom_variete.localeCompare(b.nom_variete, 'fr', { sensitivity: 'base' })).map(v => <option key={v.id_variete} value={v.id_variete}>{v.nom_variete}</option>)}
               </select>
               <input
                 type="text"
@@ -879,7 +879,7 @@ function EditCroisementModal({ croisement, varietes, pollenStock, onClose }: Edi
                 className="w-full rounded border-gray-300 dark:border-gray-600 px-3 py-2 text-sm"
               >
                 <option value="">— Variété directe —</option>
-                {varietes.map(v => <option key={v.id_variete} value={v.id_variete}>{v.nom_variete}</option>)}
+                {[...varietes].sort((a, b) => a.nom_variete.localeCompare(b.nom_variete, 'fr', { sensitivity: 'base' })).map(v => <option key={v.id_variete} value={v.id_variete}>{v.nom_variete}</option>)}
               </select>
               <select
                 value={form.id_pollen || ''}
@@ -887,7 +887,7 @@ function EditCroisementModal({ croisement, varietes, pollenStock, onClose }: Edi
                 className="w-full rounded border-gray-300 dark:border-gray-600 px-3 py-2 text-sm"
               >
                 <option value="">— Depuis stock pollen —</option>
-                {pollenStock.map(p => <option key={p.id_pollen} value={p.id_pollen}>{p.nom_pollen}</option>)}
+                {[...pollenStock].sort((a, b) => a.nom_pollen.localeCompare(b.nom_pollen, 'fr', { sensitivity: 'base' })).map(p => <option key={p.id_pollen} value={p.id_pollen}>{p.nom_pollen}</option>)}
               </select>
             </div>
             <div className="grid grid-cols-2 gap-3">
