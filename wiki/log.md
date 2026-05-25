@@ -8,6 +8,29 @@ Operations: `bootstrap`, `ingest`, `query`, `lint`, `update`
 
 ---
 
+## [2026-05-25] update | Chantier TypeScript — 5 fichiers tronqués réparés + 7 erreurs tsc corrigées
+
+**Contexte :**
+`tsc --noEmit` retournait des erreurs JSX sur plusieurs fichiers. Diagnostic : fichiers écrits partiellement lors de sessions précédentes (tronqués en cours d'écriture), plus des erreurs de type pré-existantes.
+
+**Fichiers tronqués réparés (JSX reconstitué) :**
+- `frontend/src/components/NouveauPackModal.tsx` — bouton submit avec ternaire `isPending`/`Save`/`Plus`
+- `frontend/src/components/SuiviSolVivantModal.tsx` — contenu dupliqué retiré (footer déjà complet)
+- `frontend/src/pages/Culture.tsx` — fermeture `{showNewModal && ...}` + `</div>` + return + doublon supprimé
+- `frontend/src/pages/Croisement.tsx` — fermeture table pollen (`</td></tr></tbody></table>`) + `setRecolteCroisement(null)` tronqué
+- `frontend/src/components/culture/PhotoGallery.tsx` — bouton suppression, badge plante, fermeture grid, lightbox
+
+**Erreurs TypeScript corrigées :**
+- `api/stock.ts` : ajout champ `maillage_polinator?: string` dans l'interface `HashExtraction` (utilisé par `NouvelleHashModal` mais absent du type)
+- `SensorDayChart.tsx` : formatters recharts (`Tooltip` + `Legend`) typés `any` pour `props`/`entry` (recharts `DataKey` est `string | number | function`, pas juste `string`)
+- `StockOriginDrawer.tsx` : import `FlaskConical` inutilisé supprimé
+- `StatsTab.tsx` : constante `PHASES_VEG` inutilisée supprimée
+- `Croisement.tsx` : `EditCroisementModal` câblé dans la section modals (feature déjà codée mais jamais rendue — `editCroisement` state + composant désormais reliés)
+
+**Résultat :** `tsc --noEmit` → 0 erreur, build Vite propre.
+
+---
+
 ## [2026-05-25] update | Plant — numéro de graine dans le paquet (rang) au lieu de l'id_graine global
 
 **Bug corrigé :**

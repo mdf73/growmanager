@@ -409,34 +409,23 @@ export default function PhotoGallery({ idCulture, idPlant, plants = [] }: PhotoG
                 <button
                   className="absolute top-1.5 right-1.5 opacity-0 group-hover:opacity-100 transition-opacity bg-black/60 hover:bg-red-600 text-white rounded-full p-1.5 z-10"
                   title="Supprimer"
-                  onClick={e => {
-                    e.stopPropagation()
-                    if (confirm('Supprimer cette photo ?')) deleteMut.mutate(photo.id_photo)
-                  }}
+                  onClick={e => { e.stopPropagation(); deleteMut.mutate(photo.id_photo) }}
                 >
                   <Trash2 size={14} />
                 </button>
-                {/* Badge plante (uniquement en vue culture) */}
+                {/* Nom plante */}
                 {!isSinglePlant && plantName && (
-                  <div className="absolute top-1.5 left-1.5 flex items-center gap-1 bg-green-600/85 text-white text-[10px] px-1.5 py-0.5 rounded-full font-medium z-10 max-w-[70%] truncate">
-                    <Leaf size={9} className="shrink-0" />
-                    <span className="truncate">{plantName}</span>
+                  <div className="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-[10px] px-2 py-0.5 truncate">
+                    {plantName}
                   </div>
                 )}
-                {/* Date + Note badge */}
-                <div className="absolute bottom-0 left-0 right-0 px-2 py-1 bg-black/50 text-white text-xs truncate">
-                  <span className="opacity-70">
-                    {new Date(photo.date_prise).toLocaleDateString('fr-FR')}
-                  </span>
-                  {photo.notes && <span className="ml-1">· {photo.notes}</span>}
-                </div>
               </div>
             )
           })}
         </div>
       )}
 
-      {/* Lightbox */}
+      {/* ── Lightbox ─────────────────────────────────────────────────────────── */}
       {lightboxIdx !== null && (
         <Lightbox
           photos={filteredPhotos}

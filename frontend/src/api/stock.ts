@@ -86,6 +86,7 @@ export interface HashExtraction {
   date_hashextraction: string
   type_extraction?:    'Polinator' | 'Ice-o-lator'
   duree_polinator?:    number     // minutes, pour Polinator
+  maillage_polinator?: string     // taille de maille, pour Polinator
   passages?:           PassageIceo[]   // pour Ice-o-lator
   sacs?:               SacIceo[]       // pour Ice-o-lator
   sources?:            ExtractionSource[]  // multi-produits en entrée

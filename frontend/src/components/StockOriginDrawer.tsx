@@ -12,7 +12,7 @@
  */
 
 import { useQuery } from '@tanstack/react-query'
-import { X, Dna, Leaf, Archive, FlaskConical, Scale, Calendar, Package, GitBranch } from 'lucide-react'
+import { X, Dna, Leaf, Archive, Scale, Calendar, Package, GitBranch } from 'lucide-react'
 import { stockAPI } from '../api/stock'
 import type { PlantOrigine, CultureSource } from '../api/stock'
 

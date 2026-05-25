@@ -15,7 +15,6 @@ interface Props {
 // ── Constantes PPFD/DLI ───────────────────────────────────────────────────────
 const EFFICACITE_UMOL_J = 2.5        // µmol/J — efficacité typique LED full-spectrum
 const PHASES_FLORAISON  = ['floraison']
-const PHASES_VEG        = ['germination', 'croissance', 'veg']
 
 function getPhotoPeriode(phase?: string): number {
   if (phase && PHASES_FLORAISON.includes(phase)) return 12

@@ -195,7 +195,7 @@ export default function SensorDayChart({ date, idEspace }: Props) {
                 />
                 <Tooltip
                   contentStyle={{ fontSize: 11, padding: '4px 8px', borderRadius: 8, border: '1px solid #e5e7eb' }}
-                  formatter={(v: number, _: string, props: { dataKey?: string }) => {
+                  formatter={(v: number, _: string, props: any) => {
                     const deviceKey = String(props.dataKey ?? '').replace(`${metricKey}_`, '')
                     const deviceNom = allDevices.find(d => d.key === deviceKey)?.nom ?? deviceKey
                     return [`${v}${unit}`, deviceNom]
@@ -207,7 +207,7 @@ export default function SensorDayChart({ date, idEspace }: Props) {
                     iconType="line"
                     iconSize={12}
                     wrapperStyle={{ fontSize: 10, paddingTop: 4 }}
-                    formatter={(_: string, entry: { dataKey?: string }) => {
+                    formatter={(_: string, entry: any) => {
                       const deviceKey = String(entry.dataKey ?? '').replace(`${metricKey}_`, '')
                       return allDevices.find(d => d.key === deviceKey)?.nom ?? deviceKey
                     }}
