@@ -5,11 +5,11 @@ from datetime import date, timedelta, datetime
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy import extract, or_
+from sqlalchemy import extract, or_, func
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models import Culture, Plant, ActionCalendrier, EspaceCulture, Graine, ProduitEngrais, Stock
+from app.models import Culture, Plant, ActionCalendrier, EspaceCulture, Graine, ProduitEngrais, Stock, Box
 from app.models.all_models import RecetteEngrais, RecetteTCO, HistoriqueCulture, HistoriquePlant, RecetteLSO, CultureLampe, Lampe, AppSettings, EspaceMateriel, Materiel
 from app.schemas.culture import (
     CultureCreate, CultureUpdate, CultureRead, CultureWithDetails,
@@ -50,6 +50,13 @@ def _enrich_plant(plant: Plant, db: Session) -> dict:
         "nom_breeder": None,
         "duree_flo_min": None,
         "duree_flo_max": None,
+        # Clonage
+        "id_plant_mere": plant.id_plant_mere,
+        "nom_plant_mere": None,
+        "date_prelevement": plant.date_prelevement,
+        "date_enracinement": plant.date_enracinement,
+        "statut_clone": plant.statut_clone,
+        "nb_clones": 0,
     }
     if plant.id_graine:
         graine = db.query(Graine).filter(Graine.id_graine == plant.id_graine).first()
@@ -69,6 +76,11 @@ def _enrich_plant(plant: Plant, db: Session) -> dict:
         pot = db.query(PotModel).filter(PotModel.id_materiel == plant.id_pot).first()
         if pot:
             data["taille_pot"] = (pot.caracteristiques or {}).get("volume")
+    if plant.id_plant_mere:
+        mere = db.query(Plant).filter(Plant.id_plant == plant.id_plant_mere).first()
+        if mere:
+            data["nom_plant_mere"] = mere.nom_affichage
+    data["nb_clones"] = db.query(Plant).filter(Plant.id_plant_mere == plant.id_plant).count()
     return data
 
 
@@ -1234,6 +1246,49 @@ def get_transfer_targets(exclude_culture_id: int = Query(...), db: Session = Dep
     return {"cultures_actives": cultures_result, "espaces_disponibles": espaces_result}
 
 
+@router.get("/utils/espaces-clone")
+def get_espaces_clone(db: Session = Depends(get_db)):
+    """Liste tous les espaces avec leur culture active. Utilise par ClonageModal."""
+    espaces = db.query(EspaceCulture).filter(EspaceCulture.statut == "Actif").order_by(EspaceCulture.nom).all()
+    result = []
+    for esp in espaces:
+        culture_active = (
+            db.query(Culture)
+            .filter(Culture.id_espace == esp.id_espace, Culture.statut == "active")
+            .order_by(Culture.date_debut.desc())
+            .first()
+        )
+        result.append({
+            "id_espace": esp.id_espace,
+            "nom": esp.nom,
+            "type_espace": esp.type_espace,
+            "culture_active": {
+                "id_culture": culture_active.id_culture,
+                "nom": culture_active.nom or f"Culture #{culture_active.id_culture}",
+                "phase": culture_active.phase,
+            } if culture_active else None,
+        })
+    boxes = db.query(Box).all()
+    for box in boxes:
+        culture_active = (
+            db.query(Culture)
+            .filter(Culture.id_box == box.id_box, Culture.statut == "active")
+            .order_by(Culture.date_debut.desc())
+            .first()
+        )
+        result.append({
+            "id_box": box.id_box,
+            "nom": f"Box {box.largeur_tente}x{box.profondeur_tente}" if box.largeur_tente else f"Box #{box.id_box}",
+            "type_espace": "Box",
+            "culture_active": {
+                "id_culture": culture_active.id_culture,
+                "nom": culture_active.nom or f"Culture #{culture_active.id_culture}",
+                "phase": culture_active.phase,
+            } if culture_active else None,
+        })
+    return result
+
+
 @router.get("/recettes-sol")
 def list_recettes_sol(db: Session = Depends(get_db)):
     from app.models.all_models import RecetteLSO
@@ -2020,6 +2075,164 @@ def delete_plant(culture_id: int, plant_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Plant non trouvé")
     db.delete(plant)
     db.commit()
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CLONAGE
+# ═══════════════════════════════════════════════════════════════════════════════
+
+@router.post("/{culture_id}/plants/{plant_id}/clone", status_code=201)
+def clone_plant(
+    culture_id: int,
+    plant_id: int,
+    payload: dict,
+    db: Session = Depends(get_db),
+):
+    """Cree un ou plusieurs clones depuis une plante mere vers un espace/box cible.
+    Payload: id_espace | id_box (optionnel), nom_affichage, date_prelevement, notes, quantite.
+    Si pas d'espace: reste dans la meme culture. Si pas de culture active: auto-cree une culture Boutures.
+    """
+    from datetime import date as date_type, datetime as datetime_type
+
+    mere = db.query(Plant).filter(Plant.id_plant == plant_id, Plant.id_culture == culture_id).first()
+    if not mere:
+        raise HTTPException(status_code=404, detail="Plante mere non trouvee")
+
+    id_espace = payload.get("id_espace")
+    id_box    = payload.get("id_box")
+
+    if id_espace:
+        culture_cible = (
+            db.query(Culture)
+            .filter(Culture.id_espace == id_espace, Culture.statut == "active")
+            .order_by(Culture.date_debut.desc())
+            .first()
+        )
+        if not culture_cible:
+            espace = db.query(EspaceCulture).filter(EspaceCulture.id_espace == id_espace).first()
+            nom_espace = espace.nom if espace else f"Espace #{id_espace}"
+            culture_cible = Culture(
+                nom=f"Boutures — {nom_espace}",
+                id_espace=id_espace,
+                statut="active",
+                date_debut=date_type.today(),
+                type_culture="Indoor",
+                type_eclairage="Autre",
+                but_culture="Reproduction",
+                phase="veg",
+            )
+            db.add(culture_cible)
+            db.flush()
+    elif id_box:
+        culture_cible = (
+            db.query(Culture)
+            .filter(Culture.id_box == id_box, Culture.statut == "active")
+            .order_by(Culture.date_debut.desc())
+            .first()
+        )
+        if not culture_cible:
+            culture_cible = Culture(
+                nom=f"Boutures — Box #{id_box}",
+                id_box=id_box,
+                statut="active",
+                date_debut=date_type.today(),
+                type_culture="Indoor",
+                type_eclairage="Autre",
+                but_culture="Reproduction",
+                phase="veg",
+            )
+            db.add(culture_cible)
+            db.flush()
+    else:
+        culture_cible = db.query(Culture).filter(Culture.id_culture == culture_id).first()
+
+    id_culture_cible = culture_cible.id_culture
+    max_num = db.query(func.max(Plant.numero_plant)).filter(Plant.id_culture == id_culture_cible).scalar() or 0
+
+    date_prel = payload.get("date_prelevement")
+    if date_prel:
+        date_prel = datetime_type.strptime(date_prel, "%Y-%m-%d").date()
+    else:
+        date_prel = date_type.today()
+
+    nom_base = payload.get("nom_affichage") or f"Clone de {mere.nom_affichage}"
+    quantite = max(1, int(payload.get("quantite", 1)))
+
+    clones = []
+    for i in range(quantite):
+        nom = f"{nom_base} #{i + 1}" if quantite > 1 else nom_base
+        clone = Plant(
+            id_culture=id_culture_cible,
+            id_graine=mere.id_graine,
+            nom_affichage=nom,
+            numero_plant=max_num + i + 1,
+            origine="clone",
+            statut="germination",
+            substrat=mere.substrat,
+            id_recette_sol=mere.id_recette_sol,
+            notes=payload.get("notes"),
+            id_plant_mere=plant_id,
+            date_prelevement=date_prel,
+            statut_clone="en_attente",
+        )
+        db.add(clone)
+        clones.append(clone)
+
+    db.commit()
+    for clone in clones:
+        db.refresh(clone)
+
+    results = [_enrich_plant(c, db) for c in clones]
+    for r in results:
+        r["id_culture_cible"] = id_culture_cible
+        r["nom_culture_cible"] = culture_cible.nom
+    return results
+
+
+@router.patch("/{culture_id}/plants/{plant_id}/enraciner")
+def enraciner_clone(
+    culture_id: int,
+    plant_id: int,
+    payload: dict,
+    db: Session = Depends(get_db),
+):
+    """Marque un clone comme enracine avec la date d'enracinement constatee."""
+    plant = db.query(Plant).filter(Plant.id_plant == plant_id, Plant.id_culture == culture_id).first()
+    if not plant:
+        raise HTTPException(status_code=404, detail="Plant non trouve")
+    if plant.origine != "clone":
+        raise HTTPException(status_code=400, detail="Ce plant n'est pas un clone")
+
+    from datetime import date as date_type, datetime as datetime_type
+    date_enr = payload.get("date_enracinement")
+    if date_enr:
+        plant.date_enracinement = datetime_type.strptime(date_enr, "%Y-%m-%d").date()
+    else:
+        plant.date_enracinement = date_type.today()
+    plant.statut_clone = "enracine"
+    db.commit()
+    db.refresh(plant)
+    return _enrich_plant(plant, db)
+
+
+@router.patch("/{culture_id}/plants/{plant_id}/clone-rate")
+def rater_clone(
+    culture_id: int,
+    plant_id: int,
+    db: Session = Depends(get_db),
+):
+    """Marque un clone comme rate."""
+    plant = db.query(Plant).filter(Plant.id_plant == plant_id, Plant.id_culture == culture_id).first()
+    if not plant:
+        raise HTTPException(status_code=404, detail="Plant non trouve")
+    if plant.origine != "clone":
+        raise HTTPException(status_code=400, detail="Ce plant n'est pas un clone")
+
+    plant.statut_clone = "rate"
+    plant.statut = "abandonne"
+    db.commit()
+    db.refresh(plant)
+    return _enrich_plant(plant, db)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

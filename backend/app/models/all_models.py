@@ -476,12 +476,18 @@ class Plant(Base):
     id_pot = Column(Integer, nullable=True)                             # id_materiel du pot (table Materiel, catégorie Pots)
     volume_pot_l = Column(DECIMAL(6, 2), nullable=True)                 # volume du pot en litres (si pas de pot inventaire)
     notes = Column(Text)
+    # Clonage
+    id_plant_mere = Column(Integer, ForeignKey("Plant.id_plant", ondelete="SET NULL"), nullable=True)
+    date_prelevement = Column(Date, nullable=True)                      # date de prise de bouture
+    date_enracinement = Column(Date, nullable=True)                     # date d'enracinement constatée
+    statut_clone = Column(String(20), nullable=True)                    # en_attente | enracine | rate
 
     # Relations
     culture = relationship("Culture", back_populates="plants")
     graine = relationship("Graine", back_populates="plants")
     actions = relationship("ActionCalendrier", back_populates="plant")
     recette_sol = relationship("RecetteLSO", foreign_keys=[id_recette_sol])
+    plant_mere = relationship("Plant", remote_side="Plant.id_plant", foreign_keys="Plant.id_plant_mere", backref="clones")
 
 
 class ActionCalendrier(Base):

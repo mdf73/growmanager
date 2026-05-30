@@ -98,6 +98,10 @@ Bouton "Export PDF" dans le header de `/calendrier` · modal date début + date 
 ### Maillages Polinator paramétrables ✅ DONE — validé 2026-05-15
 `maillages_polinator` ajouté dans `ParametreListeValeur` (section "Stock — Maillages" de Parametrage.tsx). `NouvelleHashModal.tsx` : le champ maillage Polinator (anciennement fixe à 120µ) est désormais un `<select>` dynamique chargé depuis `useParametreListe('maillages_polinator')` (fallback `['120µ']`). Colonne `maillage_polinator VARCHAR(20) NULL` ajoutée à `HashExtraction` (migration automatique dans `run_migrations()`, `main.py`).
 
+### Clonage / Suivi bouture ✅ DONE — en attente validation (v2 : sélection espace)
+
+Champs DB ajoutés sur Plant : `id_plant_mere` (FK self), `date_prelevement`, `date_enracinement`, `statut_clone` (en_attente | enracine | rate). Migration auto dans `run_migrations()`. Endpoints : `POST .../clone` (accepte `id_espace` ou `id_box` — auto-crée une culture "Boutures" si aucune culture active dans l'espace), `PATCH .../enraciner`, `PATCH .../clone-rate`, `GET /utils/espaces-clone`. Frontend : `ClonageModal.tsx` (bouton ✂️ sur PlantCard) — sélection par espace physique avec indication si culture active ou création auto + badges mère/clone inline + panel enracinement/raté. Voir → [[features/plant-lifecycle#clonage--suivi-bouture]]
+
 ### PDF fiche culture = journal jour-par-jour (même format que Calendrier Global) ✅ DONE — validé 2026-05-17
 Bouton PDF dans Culture.tsx génère maintenant un journal HTML jour-par-jour (même moteur que CalendrierGlobal). Dates auto : `date_debut` → `date_fin` (ou aujourd'hui si encore active). Events filtrés par culture via `GET /api/calendrier/export?id_culture=`. Capteurs filtrés par `id_espace`. Cover page avec nom de la culture. `generateCalendarPDF` + `buildSensorSVGCharts` extraits dans `src/utils/calendarPdfExport.ts`, CalendrierGlobal délègue à ce module. `photo` ajouté dans `ACTION_META` + `ACTION_COLORS_PDF` du module partagé.
 

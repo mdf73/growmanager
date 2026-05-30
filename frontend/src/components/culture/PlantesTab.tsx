@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
-import { Leaf, Edit2, Check, X, Plus, Trash2, AlertTriangle, ArrowRightLeft, Sprout, Search, ChevronDown, ChevronRight } from 'lucide-react'
+import { Leaf, Edit2, Check, X, Plus, Trash2, AlertTriangle, ArrowRightLeft, Sprout, Search, ChevronDown, ChevronRight, Scissors, CheckCircle2, XCircle } from 'lucide-react'
 import { Plant, plantAPI, PlantUpdate, cultureUtilsAPI, PotItem, RecetteSolItem } from '../../api/cultures'
 import { catalogueAPI, packCompletAPI, CatalogueItem } from '../../api/graines'
 import TransfertPlantModal from './TransfertPlantModal'
+import ClonageModal from './ClonageModal'
 
 const STATUT_COLORS: Record<string, string> = {
   germination: 'bg-green-100 text-green-700',
@@ -51,6 +52,7 @@ export default function PlantesTab({ cultureId, plants }: Props) {
   const [searchQuery, setSearchQuery] = useState('')
   const [addingPackId, setAddingPackId] = useState<number | null>(null)
   const [transferPlant, setTransferPlant] = useState<Plant | null>(null)
+  const [clonePlant, setClonePlant] = useState<Plant | null>(null)
   const qc = useQueryClient()
 
   const { data: pots = [] } = useQuery<PotItem[]>({
@@ -124,7 +126,9 @@ export default function PlantesTab({ cultureId, plants }: Props) {
     updatePlant.mutate({ plantId, data: editValues })
   }
 
-  const actives = plants.filter(p => !['recolte', 'prete', 'abandonne', 'wpff'].includes(p.statut || ''))
+  const actives = plants
+    .filter(p => !['recolte', 'prete', 'abandonne', 'wpff'].includes(p.statut || ''))
+    .sort((a, b) => (a.nom_affichage || '').localeCompare(b.nom_affichage || '', 'fr', { sensitivity: 'base' }))
   const terminees = plants.filter(p => ['recolte', 'prete', 'abandonne', 'wpff'].includes(p.statut || ''))
 
   // Groupement des plantes actives par variété
@@ -140,6 +144,7 @@ export default function PlantesTab({ cultureId, plants }: Props) {
     }
     seen.get(key)!.plants.push(p)
   }
+  varietyGroups.sort((a, b) => a.label.localeCompare(b.label, 'fr', { sensitivity: 'base' }))
   const isGrouped = varietyGroups.length > 1
 
   return (
@@ -150,6 +155,14 @@ export default function PlantesTab({ cultureId, plants }: Props) {
           plant={transferPlant}
           cultureId={cultureId}
           onClose={() => setTransferPlant(null)}
+        />
+      )}
+      {/* Modal clonage */}
+      {clonePlant && (
+        <ClonageModal
+          plant={clonePlant}
+          cultureId={cultureId}
+          onClose={() => setClonePlant(null)}
         />
       )}
 
@@ -231,6 +244,7 @@ export default function PlantesTab({ cultureId, plants }: Props) {
                   onCancel={() => setEditingId(null)}
                   onDelete={(id) => deletePlant.mutate(id)}
                   onTransfer={setTransferPlant}
+                  onClone={setClonePlant}
                   saving={updatePlant.isPending}
                 />
               ))}
@@ -247,6 +261,7 @@ export default function PlantesTab({ cultureId, plants }: Props) {
                   onCancel={() => setEditingId(null)}
                   onDelete={() => deletePlant.mutate(plant.id_plant)}
                   onTransfer={() => setTransferPlant(plant)}
+                  onClone={() => setClonePlant(plant)}
                   saving={updatePlant.isPending} />
               ))}
             </div>
@@ -270,6 +285,7 @@ export default function PlantesTab({ cultureId, plants }: Props) {
                 onCancel={() => setEditingId(null)}
                 onDelete={() => deletePlant.mutate(plant.id_plant)}
                 onTransfer={() => setTransferPlant(plant)}
+                onClone={() => setClonePlant(plant)}
                 saving={updatePlant.isPending} />
             ))}
           </div>
@@ -282,7 +298,7 @@ export default function PlantesTab({ cultureId, plants }: Props) {
 // ─── VarieteGroup ──────────────────────────────────────────────────────────────
 function VarieteGroup({
   group, editingId, editValues, pots, recettesSol,
-  onStartEdit, onEditChange, onSave, onCancel, onDelete, onTransfer, saving
+  onStartEdit, onEditChange, onSave, onCancel, onDelete, onTransfer, onClone, saving
 }: {
   group: { key: string; label: string; breeder?: string; plants: Plant[] }
   editingId: number | null
@@ -295,6 +311,7 @@ function VarieteGroup({
   onCancel: () => void
   onDelete: (id: number) => void
   onTransfer: (plant: Plant) => void
+  onClone: (plant: Plant) => void
   saving: boolean
 }) {
   const [open, setOpen] = useState(true)
@@ -340,6 +357,7 @@ function VarieteGroup({
                 onCancel={onCancel}
                 onDelete={() => onDelete(plant.id_plant)}
                 onTransfer={() => onTransfer(plant)}
+                onClone={() => onClone(plant)}
                 saving={saving}
               />
             </div>
@@ -440,7 +458,7 @@ function SeedList({
 
 function PlantCard({
   plant, editing, editValues, pots, recettesSol,
-  onStartEdit, onEditChange, onSave, onCancel, onDelete, onTransfer, saving
+  onStartEdit, onEditChange, onSave, onCancel, onDelete, onTransfer, onClone, saving
 }: {
   plant: Plant
   editing: boolean
@@ -453,9 +471,23 @@ function PlantCard({
   onCancel: () => void
   onDelete: () => void
   onTransfer: () => void
+  onClone: () => void
   saving: boolean
 }) {
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const [showEnraciner, setShowEnraciner] = useState(false)
+  const [dateEnr, setDateEnr] = useState(new Date().toISOString().slice(0, 10))
+  const qc = useQueryClient()
+
+  const enracinerMutation = useMutation({
+    mutationFn: () => plantAPI.enraciner(plant.id_culture, plant.id_plant, dateEnr),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['culture', plant.id_culture] }); setShowEnraciner(false) },
+  })
+  const rateMutation = useMutation({
+    mutationFn: () => plantAPI.cloneRate(plant.id_culture, plant.id_plant),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['culture', plant.id_culture] }); setShowEnraciner(false) },
+  })
+
   const statut = plant.statut || 'germination'
   const colorClass = STATUT_COLORS[statut] || 'bg-gray-100 text-gray-600 dark:text-gray-300'
   const showSolVivant = (editing ? editValues.substrat : plant.substrat) === 'sol_vivant'
@@ -598,6 +630,44 @@ function PlantCard({
                 <span className="font-semibold text-green-700">⚖️ {plant.poids_recolte_g}g</span>
               )}
             </div>
+            {/* Badge clone : origine */}
+            {plant.origine === 'clone' && (
+              <div className="flex flex-wrap gap-1.5 mt-1.5">
+                {plant.nom_plant_mere && (
+                  <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300">
+                    ✂️ Bouture de {plant.nom_plant_mere}
+                  </span>
+                )}
+                {plant.statut_clone === 'en_attente' && (
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300">
+                    ⏳ En attente d'enracinement
+                  </span>
+                )}
+                {plant.statut_clone === 'enracine' && plant.date_enracinement && (
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300">
+                    🌱 Enraciné le {new Date(plant.date_enracinement + 'T12:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
+                  </span>
+                )}
+                {plant.statut_clone === 'rate' && (
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300">
+                    ❌ N'a pas pris
+                  </span>
+                )}
+                {plant.date_prelevement && (
+                  <span className="text-xs text-gray-400 dark:text-gray-500">
+                    Prélevé le {new Date(plant.date_prelevement + 'T12:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
+                  </span>
+                )}
+              </div>
+            )}
+            {/* Badge : nb de clones issus de cette plante */}
+            {(plant.nb_clones ?? 0) > 0 && (
+              <div className="mt-1.5">
+                <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-violet-50 text-violet-600 dark:bg-violet-900/20 dark:text-violet-400 border border-violet-200 dark:border-violet-800">
+                  <Scissors size={10} /> {plant.nb_clones} clone{(plant.nb_clones ?? 0) > 1 ? 's' : ''}
+                </span>
+              </div>
+            )}
             {plant.notes && (
               <p className="text-xs text-gray-400 dark:text-gray-500 mt-1 italic">{plant.notes}</p>
             )}
@@ -621,6 +691,18 @@ function PlantCard({
                 <button onClick={onStartEdit} className="p-1 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:text-gray-300" title="Modifier">
                   <Edit2 size={14} />
                 </button>
+                <button onClick={onClone} className="p-1 text-gray-400 dark:text-gray-500 hover:text-violet-600" title="Prendre une bouture">
+                  <Scissors size={14} />
+                </button>
+                {plant.origine === 'clone' && plant.statut_clone === 'en_attente' && (
+                  <button
+                    onClick={() => setShowEnraciner(v => !v)}
+                    className="p-1 text-yellow-500 hover:text-green-600"
+                    title="Marquer enraciné / raté"
+                  >
+                    <CheckCircle2 size={14} />
+                  </button>
+                )}
                 <button onClick={onTransfer} className="p-1 text-gray-400 dark:text-gray-500 hover:text-grow-600" title="Déplacer vers une autre culture">
                   <ArrowRightLeft size={14} />
                 </button>
@@ -632,6 +714,33 @@ function PlantCard({
           </div>
         </div>
       )}
+      {/* Panel inline enracinement */}
+        {showEnraciner && plant.statut_clone === 'en_attente' && (
+          <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700 flex flex-wrap items-end gap-3">
+            <div>
+              <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Date d'enracinement</label>
+              <input type="date" value={dateEnr} onChange={e => setDateEnr(e.target.value)}
+                className="px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg text-xs bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" />
+            </div>
+            <button
+              onClick={() => enracinerMutation.mutate()}
+              disabled={enracinerMutation.isPending}
+              className="flex items-center gap-1 px-3 py-1.5 bg-green-600 text-white rounded-lg text-xs hover:bg-green-700 disabled:opacity-50"
+            >
+              <CheckCircle2 size={12} /> Enraciné ✅
+            </button>
+            <button
+              onClick={() => rateMutation.mutate()}
+              disabled={rateMutation.isPending}
+              className="flex items-center gap-1 px-3 py-1.5 border border-red-300 text-red-600 rounded-lg text-xs hover:bg-red-50 dark:hover:bg-red-900/20 disabled:opacity-50"
+            >
+              <XCircle size={12} /> Raté ❌
+            </button>
+            <button onClick={() => setShowEnraciner(false)} className="text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+              Annuler
+            </button>
+          </div>
+        )}
     </div>
   )
 }

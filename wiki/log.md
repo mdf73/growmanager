@@ -8,6 +8,12 @@ Operations: `bootstrap`, `ingest`, `query`, `lint`, `update`
 
 ---
 
+## [2026-05-25] update | Tri alphabétique plantes actives dans PlantesTab
+
+Plantes actives triées A→Z par `nom_affichage` (`.localeCompare 'fr'`). Groupes de variétés également triés alphabétiquement. Fichier modifié : `frontend/src/components/culture/PlantesTab.tsx`.
+
+---
+
 ## [2026-05-25] update | Chantier TypeScript — 5 fichiers tronqués réparés + 7 erreurs tsc corrigées
 
 **Contexte :**

@@ -62,6 +62,10 @@ Individual plant within a culture.
 | `id_pot` | Int (nullable) | Pot size reference |
 | `volume_pot_l` | Float (nullable) | Pot volume in liters |
 | `notes` | Text (nullable) | |
+| `id_plant_mere` | FK → Plant (nullable) | Plante source si clone |
+| `date_prelevement` | Date (nullable) | Date de prise de bouture |
+| `date_enracinement` | Date (nullable) | Date d'enracinement constatée |
+| `statut_clone` | String (nullable) | `en_attente` \| `enracine` \| `rate` |
 
 Status flow: `germination → veg → floraison → sechage → curing → prete | recolte | abandonne`
 

@@ -67,6 +67,13 @@ export interface Plant {
   nom_breeder?: string
   duree_flo_min?: number
   duree_flo_max?: number
+  // Clonage
+  id_plant_mere?: number
+  nom_plant_mere?: string
+  date_prelevement?: string
+  date_enracinement?: string
+  statut_clone?: 'en_attente' | 'enracine' | 'rate'
+  nb_clones?: number
 }
 
 export interface Action {
@@ -268,6 +275,14 @@ export interface PlantTransferPayload {
   target_espace_id?: number
 }
 
+export interface EspaceCloneItem {
+  id_espace?: number
+  id_box?: number
+  nom: string
+  type_espace?: string
+  culture_active: { id_culture: number; nom: string; phase?: string } | null
+}
+
 export const cultureUtilsAPI = {
   getPots: () => client.get<PotItem[]>('/cultures/pots'),
   getRecettesSol: () => client.get<RecetteSolItem[]>('/cultures/recettes-sol'),
@@ -275,6 +290,7 @@ export const cultureUtilsAPI = {
     client.get<TransferTargets>('/cultures/utils/transfer-targets', {
       params: { exclude_culture_id: excludeCultureId },
     }),
+  getEspacesClone: () => client.get<EspaceCloneItem[]>('/cultures/utils/espaces-clone'),
 }
 
 export const cultureAPI = {
@@ -315,6 +331,12 @@ export const plantAPI = {
     client.delete(`/cultures/${cultureId}/plants/${plantId}`),
   transfer: (cultureId: number, plantId: number, data: PlantTransferPayload) =>
     client.post<Plant>(`/cultures/${cultureId}/plants/${plantId}/transfer`, data),
+  clone: (cultureId: number, plantId: number, data: { id_espace?: number; id_box?: number; nom_affichage?: string; date_prelevement?: string; notes?: string; quantite?: number }) =>
+    client.post<(Plant & { id_culture_cible: number; nom_culture_cible: string })[]>(`/cultures/${cultureId}/plants/${plantId}/clone`, data),
+  enraciner: (cultureId: number, plantId: number, date_enracinement?: string) =>
+    client.patch<Plant>(`/cultures/${cultureId}/plants/${plantId}/enraciner`, { date_enracinement }),
+  cloneRate: (cultureId: number, plantId: number) =>
+    client.patch<Plant>(`/cultures/${cultureId}/plants/${plantId}/clone-rate`),
 }
 
 export interface DernierTCO {

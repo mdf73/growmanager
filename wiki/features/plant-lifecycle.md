@@ -60,6 +60,37 @@ Plants are created via `POST /cultures/{id}/plants` with `PlantCreate`:
 
 External plants (bouture/clone) don't require a seed — used for secondary cultures or cutting experiments.
 
+## Clonage — suivi bouture
+
+Un clone suit un mini-cycle avant de rejoindre le cycle normal :
+
+```
+Prélèvement → (en attente d'enracinement) → Enraciné ✅ → cycle normal
+                                           → Raté ❌ → abandonne
+```
+
+### Champs DB (Plant)
+
+| Champ | Type | Notes |
+|---|---|---|
+| `id_plant_mere` | FK → Plant (nullable) | Plante source du clone |
+| `date_prelevement` | Date (nullable) | Date de prise de bouture |
+| `date_enracinement` | Date (nullable) | Date d'enracinement constatée |
+| `statut_clone` | String (nullable) | `en_attente` \| `enracine` \| `rate` |
+
+### Endpoints API
+
+| Endpoint | Action |
+|---|---|
+| `POST /cultures/{id}/plants/{id}/clone` | Crée un clone dans une culture cible |
+| `PATCH /cultures/{id}/plants/{id}/enraciner` | Marque enraciné + date |
+| `PATCH /cultures/{id}/plants/{id}/clone-rate` | Marque raté → statut `abandonne` |
+
+### Frontend
+
+- **`ClonageModal.tsx`** — déclenché via bouton ✂️ sur chaque `PlantCard`. Permet de choisir la culture cible, nommer le clone, saisir la date de prélèvement. Propose de saisir l'enracinement immédiatement après création.
+- **`PlantCard`** — badge violet "Bouture de X" si clone ; badge statut enracinement (⏳/🌱/❌) ; badge "N clone(s)" sur la plante mère ; bouton ✅ inline pour marquer enraciné ou raté depuis la plante clone.
+
 ### Naming Convention
 
 Le nom d'une plante est **`<nom_variété> #<rang_dans_paquet>`** où le rang est la position 1-based de la graine dans son paquet (`id_packgraine`), triée par `id_graine`.
@@ -78,6 +109,15 @@ f"{graine.variete.nom_variete} #{rank}"
 > ⚠️ Historique corrections :
 > - 2026-04-28 : le nom utilisait `plant_counter` (compteur de boucle) → remplacé par `id_graine` global
 > - 2026-05-25 : `id_graine` global (ex: #1758) → rang dans le paquet (ex: #5). Migration one-shot : `backend/migrate_plant_names.py`
+
+## Affichage — Tri alphabétique (PlantesTab)
+
+Dans l'onglet **Plantes actives** (`PlantesTab.tsx`) :
+
+- Les plantes actives sont triées par `nom_affichage` A→Z (`.localeCompare('fr', { sensitivity: 'base' })`) avant affichage, que ce soit en liste plate ou groupée par variété.
+- Les **groupes de variétés** (quand plusieurs variétés présentes) sont également triés alphabétiquement par nom de variété.
+
+Les plantes **terminées** (recolte, prete, abandonne, wpff) ne sont pas concernées par ce tri.
 
 ## Plant Transfer
 

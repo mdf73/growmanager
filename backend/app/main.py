@@ -111,6 +111,11 @@ def run_migrations():
         ("Stock", "id_plant", "ALTER TABLE Stock ADD COLUMN id_plant INT NULL REFERENCES Plant(id_plant)"),
         # Maillage Polinator — sélection dynamique depuis paramétrage
         ("HashExtraction", "maillage_polinator", "ALTER TABLE HashExtraction ADD COLUMN maillage_polinator VARCHAR(20) NULL"),
+        # Clonage — suivi bouture
+        ("Plant", "id_plant_mere",    "ALTER TABLE Plant ADD COLUMN id_plant_mere INT NULL REFERENCES Plant(id_plant) ON DELETE SET NULL"),
+        ("Plant", "date_prelevement", "ALTER TABLE Plant ADD COLUMN date_prelevement DATE NULL"),
+        ("Plant", "date_enracinement","ALTER TABLE Plant ADD COLUMN date_enracinement DATE NULL"),
+        ("Plant", "statut_clone",     "ALTER TABLE Plant ADD COLUMN statut_clone VARCHAR(20) NULL"),
     ]
     # Créer les tables manquantes (ProduitEngrais, TemperatureLog, etc.)
     Base.metadata.create_all(bind=engine)

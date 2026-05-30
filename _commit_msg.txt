@@ -1,17 +1,7 @@
-fix(ts): réparer 5 fichiers tronqués + corriger 7 erreurs tsc
+feat: multi-clones — prélever N boutures en une fois
 
-Fichiers tronqués réparés:
-- NouveauPackModal.tsx — bouton submit manquant
-- SuiviSolVivantModal.tsx — doublon supprimé (footer déjà complet)
-- Culture.tsx — fermeture modal + doublon retiré
-- Croisement.tsx — fermeture table pollen + setRecolteCroisement(null)
-- PhotoGallery.tsx — bouton delete, badge plante, grid, lightbox
-
-Erreurs TypeScript corrigées:
-- api/stock.ts: ajout maillage_polinator dans HashExtraction
-- SensorDayChart.tsx: formatter recharts typé any (DataKey incompatibility)
-- StockOriginDrawer.tsx: import FlaskConical inutilisé supprimé
-- StatsTab.tsx: PHASES_VEG inutilisée supprimée
-- Croisement.tsx: EditCroisementModal câblé dans les modals
-
-Result: tsc --noEmit → 0 erreur, build Vite propre
+- API: endpoint clone accepte `quantite` (1-50), crée N plants indépendants
+  numérotés automatiquement (#1, #2...) avec id_plant_mere commun
+- Frontend: ClonageModal — sélecteur +/- quantité (max 20),
+  label adaptatif, panel succès affiche toutes les boutures créées,
+  actions "toutes enracinées" / "toutes ratées" en bulk
