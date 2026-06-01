@@ -594,7 +594,7 @@ class Stock(Base):
     id_plant = Column(Integer, ForeignKey("Plant.id_plant"), nullable=True)   # V4-F traçabilité
     type_stock = Column(String(50))
     sous_type_stock = Column(String(50))
-    lampe_type = Column(String(50))
+    lampe_type = Column(String(200))
     engrais_type = Column(String(200), nullable=True)   # marques des engrais utilisés
     substrat_type = Column(String(200), nullable=True)  # substrat (coco, sol vivant…)
     maillage = Column(String(20), nullable=True)
