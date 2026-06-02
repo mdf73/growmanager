@@ -37,6 +37,16 @@ Plantes actives triées A→Z par `nom_affichage` (`.localeCompare 'fr'`). Group
 
 ---
 
+## [2026-06-02] update | Bug fix — onglet "En curing" affichait les plantes déjà en stock
+
+**Symptôme :** Les plantes dont le curing était terminé (bouton "Terminer" dans SechageCuring) continuaient d'apparaître dans l'onglet "En curing" de la page Stock.
+
+**Cause :** Dans `Stock.tsx`, le `useMemo` `curingPlants` itérait sur toutes les plantes de toutes les sessions `active`, sans filtrer celles dont `date_fin_curing` est renseigné. Une session curing reste `statut='active'` tant qu'elle n'est pas explicitement fermée, donc les plantes terminées restaient visibles.
+
+**Fix :** Ajout de `.filter(p => !p.date_fin_curing)` dans le `useMemo` `curingPlants` de `frontend/src/pages/Stock.tsx`.
+
+---
+
 ## [2026-05-25] update | Plant — numéro de graine dans le paquet (rang) au lieu de l'id_graine global
 
 **Bug corrigé :**

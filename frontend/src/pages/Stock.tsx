@@ -534,7 +534,9 @@ export default function StockPage() {
   const curingPlants = useMemo((): PlantWithSession[] => {
     const result: PlantWithSession[] = []
     curingSessions.forEach(session => {
-      session.plants.forEach(p => { result.push({ ...p, _session: session }) })
+      session.plants
+        .filter(p => !p.date_fin_curing)
+        .forEach(p => { result.push({ ...p, _session: session }) })
     })
     return result
   }, [curingSessions])

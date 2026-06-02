@@ -1,7 +1,7 @@
-feat: multi-clones — prélever N boutures en une fois
+fix(stock): masquer les plantes curing terminées dans l'onglet "En curing"
 
-- API: endpoint clone accepte `quantite` (1-50), crée N plants indépendants
-  numérotés automatiquement (#1, #2...) avec id_plant_mere commun
-- Frontend: ClonageModal — sélecteur +/- quantité (max 20),
-  label adaptatif, panel succès affiche toutes les boutures créées,
-  actions "toutes enracinées" / "toutes ratées" en bulk
+Les plantes avec date_fin_curing renseignée n'apparaissent plus dans
+l'onglet "En curing" de la page Stock.
+
+Fichier modifié : frontend/src/pages/Stock.tsx
+- curingPlants useMemo : ajout .filter(p => !p.date_fin_curing)
