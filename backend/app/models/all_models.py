@@ -1438,6 +1438,81 @@ class Croisement(Base):
     packgraine_resultat = relationship("PackGraine", foreign_keys=[id_packgraine_resultat])
 
 
+# ============ Croisement Open Field ============
+
+class ProjetOpenField(Base):
+    """Projet de sélection open field — regroupe N mères pollinisées dans un même contexte."""
+    __tablename__ = "ProjetOpenField"
+
+    id_projet           = Column(Integer, primary_key=True, autoincrement=True)
+    nom                 = Column(String(255), nullable=False)
+    saison              = Column(String(50), nullable=True)              # ex: "Été 2026"
+    lieu                = Column(String(255), nullable=True)             # description libre
+    conditions          = Column(String(50), nullable=True)              # outdoor | greenhouse | guerrilla
+    id_culture          = Column(Integer, ForeignKey("Culture.id_culture", ondelete="SET NULL"), nullable=True)
+    statut              = Column(String(20), default="planifie")         # planifie | en_cours | recolte | termine
+    description         = Column(Text, nullable=True)
+    notes               = Column(Text, nullable=True)
+    created_at          = Column(DateTime, nullable=True, default=datetime.utcnow)
+
+    culture   = relationship("Culture", foreign_keys=[id_culture])
+    meres     = relationship("PlanteMereOpenField", back_populates="projet", cascade="all, delete-orphan")
+    peres     = relationship("PlantePereOpenField",  back_populates="projet", cascade="all, delete-orphan")
+
+
+class PlanteMereOpenField(Base):
+    """Plante mère dans un projet open field — avec ses infos de pollinisation et résultat."""
+    __tablename__ = "PlanteMereOpenField"
+
+    id_mere             = Column(Integer, primary_key=True, autoincrement=True)
+    id_projet           = Column(Integer, ForeignKey("ProjetOpenField.id_projet", ondelete="CASCADE"), nullable=False)
+
+    # ─── Identité de la mère ──────────────────────────────────────────────────
+    id_variete          = Column(Integer, ForeignKey("Variete.id_variete"), nullable=True)
+    nom_phenotype       = Column(String(255), nullable=True)             # nom libre si pas de variété cataloguée
+    id_plant            = Column(Integer, ForeignKey("Plant.id_plant", ondelete="SET NULL"), nullable=True)
+
+    # ─── Pollinisation ────────────────────────────────────────────────────────
+    date_pollinisation  = Column(Date, nullable=True)
+    methode_pollinisation = Column(String(30), nullable=True)            # naturelle | manuelle | pinceau
+    pere_identifie      = Column(Boolean, default=False)
+    id_pollen           = Column(Integer, ForeignKey("Pollen.id_pollen", ondelete="SET NULL"), nullable=True)
+    nom_pere_libre      = Column(String(255), nullable=True)             # si père connu mais pas en stock pollen
+    id_peres            = Column(JSON, nullable=True)                    # liste d'ids PlantePereOpenField probables
+    notes_pollinisation = Column(Text, nullable=True)
+
+    # ─── Résultat ─────────────────────────────────────────────────────────────
+    date_recolte        = Column(Date, nullable=True)
+    nb_graines          = Column(Integer, nullable=True)
+    poids_graines_g     = Column(DECIMAL(6, 2), nullable=True)
+    qualite_graines     = Column(String(20), nullable=True)              # bonne | moyenne | immature
+    id_packgraine       = Column(Integer, ForeignKey("PackGraine.id_packgraine", ondelete="SET NULL"), nullable=True)
+
+    notes               = Column(Text, nullable=True)
+    created_at          = Column(DateTime, nullable=True, default=datetime.utcnow)
+
+    projet      = relationship("ProjetOpenField", back_populates="meres")
+    variete     = relationship("Variete", foreign_keys=[id_variete])
+    plant       = relationship("Plant", foreign_keys=[id_plant])
+    pollen      = relationship("Pollen", foreign_keys=[id_pollen])
+    packgraine  = relationship("PackGraine", foreign_keys=[id_packgraine])
+
+
+class PlantePereOpenField(Base):
+    """Plante mâle dans un projet open field."""
+    __tablename__ = "PlantePereOpenField"
+
+    id_pere     = Column(Integer, primary_key=True, autoincrement=True)
+    id_projet   = Column(Integer, ForeignKey("ProjetOpenField.id_projet", ondelete="CASCADE"), nullable=False)
+    id_variete  = Column(Integer, ForeignKey("Variete.id_variete"), nullable=True)
+    nom_libre   = Column(String(255), nullable=True)   # nom phénotype libre si pas de variété
+    notes       = Column(Text, nullable=True)
+    created_at  = Column(DateTime, nullable=True, default=datetime.utcnow)
+
+    projet  = relationship("ProjetOpenField", back_populates="peres")
+    variete = relationship("Variete", foreign_keys=[id_variete])
+
+
 # ============ Sessions de consommation ============
 
 class SessionConsommation(Base):
@@ -1449,14 +1524,9 @@ class SessionConsommation(Base):
     id_vaporisateur   = Column(Integer,      ForeignKey("Vaporisateur.id_vaporisateur", ondelete="SET NULL"), nullable=True)
     type_produit      = Column(String(20),   nullable=False)   # fleur | hash | rosin
     id_stock          = Column(Integer,      ForeignKey("Stock.id_stock", ondelete="SET NULL"), nullable=True)
-    quantite_g        = Column(DECIMAL(6, 3), nullable=False)  # grammes consommés
-    options_vapo      = Column(JSON,         nullable=True)    # {nb_ballons, temp_c, remplissage, nb_taffs, type_chauffe, …}
+    quantite_g        = Column(DECIMAL(6, 3), nullable=False)  # grammes consommes
+    options_vapo      = Column(JSON,         nullable=True)
     notes             = Column(Text,         nullable=True)
-    created_at        = Column(DateTime,     nullable=True, default=datetime.utcnow)
-
-    # Relations
-    vaporisateur = relationship("Vaporisateur")
-    stock        = relationship("Stock")
 
 
 class AppSettings(Base):
@@ -1466,37 +1536,36 @@ class AppSettings(Base):
     id     = Column(Integer, primary_key=True, autoincrement=True)
     cle    = Column(String(100), nullable=False, unique=True)
     valeur = Column(String(500), nullable=True)
-    label  = Column(String(200), nullable=True)   # libellé affiché dans l'UI
+    label  = Column(String(200), nullable=True)
 
 
-# ============ Photos (Feature 8 — V3) ============
+# ============ Photos ============
 
 class Photo(Base):
     """Photo attachée à une plante et/ou une culture."""
     __tablename__ = "Photo"
 
     id_photo       = Column(Integer,      primary_key=True, autoincrement=True)
-    filename       = Column(String(255),  nullable=False)           # nom unique sur disque
-    filepath       = Column(String(500),  nullable=False)           # chemin relatif uploads/photos/
-    thumbnail_path = Column(String(500),  nullable=True)            # chemin relatif uploads/photos/thumbs/
+    filename       = Column(String(255),  nullable=False)
+    filepath       = Column(String(500),  nullable=False)
+    thumbnail_path = Column(String(500),  nullable=True)
     date_prise     = Column(DateTime,     nullable=False, default=datetime.utcnow)
     notes          = Column(Text,         nullable=True)
-    id_plant       = Column(Integer,      ForeignKey("Plant.id_plant",    ondelete="SET NULL"), nullable=True)
+    id_plant       = Column(Integer,      ForeignKey("Plant.id_plant",     ondelete="SET NULL"), nullable=True)
     id_culture     = Column(Integer,      ForeignKey("Culture.id_culture", ondelete="SET NULL"), nullable=True)
     taille_ko      = Column(Integer,      nullable=True)
     largeur_px     = Column(Integer,      nullable=True)
     hauteur_px     = Column(Integer,      nullable=True)
     created_at     = Column(DateTime,     nullable=True, default=datetime.utcnow)
 
-    # Relations
     plant   = relationship("Plant")
     culture = relationship("Culture")
 
 
-# ============ Alertes stock (Feature G — V4) ============
+# ============ Alertes stock ============
 
 class StockAlertSeuil(Base):
-    """Seuils d'alerte par type de stock. Extensible a tous les types (Hash, Rosin...)."""
+    """Seuils d alerte par type de stock."""
     __tablename__ = "StockAlertSeuil"
 
     type_stock      = Column(String(50),     primary_key=True)

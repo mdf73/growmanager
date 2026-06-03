@@ -132,6 +132,32 @@ Nouvelle catégorie `photo` (rose, 📷) dans `actionTypes.ts`. `ActionModal.tsx
 
 ## Réalisé — Session 2026-06-03
 
+### Croisement Open Field ✅ — validé 2026-06-03
+
+Nouvelle entité `ProjetOpenField` (N mères, pères identifiés ou inconnus, lien culture optionnel) séparée du croisement indoor.
+
+**Backend**
+- `ProjetOpenField` + `PlanteMereOpenField` dans `all_models.py` (tables créées via `create_all`)
+- `backend/app/schemas/open_field.py` — schemas Pydantic
+- `backend/app/routers/open_field.py` — CRUD projets + mères, endpoint `POST .../recolte` (crée PackGraine auto)
+- Enregistré dans `main.py`
+
+**Frontend**
+- `frontend/src/api/openField.ts` — API client
+- 3ème onglet "Open Field" dans `Croisement.tsx`
+- `OpenFieldProjetCard` — carte projet avec liste des mères + statut pollinisation/récolte
+- `NouveauProjetOpenFieldModal` — créer/modifier un projet
+- `AddMereModal` — ajouter/modifier une mère (variété catalogue ou phénotype libre, père stock pollen / libre / inconnu)
+- `RecolteOpenFieldModal` — récolter une mère + création PackGraine optionnelle
+- **Mâles du projet** (`PlantePereOpenField`) — section dédiée par carte, checkboxes dans AddMereModal
+- `id_peres` JSON sur `PlanteMereOpenField` — pères probables cochés par mère
+- Récolte crée une **nouvelle `Variete`** (nom auto-généré `♀ × ♂`, éditable) + `PackGraine` + `Graine` individuelles dans le catalogue
+
+### Archivage forcé à la clôture manuelle ✅ — validé 2026-06-03
+- `_maybe_archive_culture` accepte `force=False` (défaut) — comportement auto inchangé
+- `close_culture` appelle `_maybe_archive_culture(culture, db, force=True)` — toute clôture manuelle crée une entrée `HistoriqueCulture` quels que soient les statuts des plantes
+- Fix : cultures clôturées de force étaient absentes des Statistiques
+
 ### ESPHome Integration ✅
 - `backend/app/schemas/esphome.py` + `backend/app/routers/esphome.py`
 - Stockage dans `GoveeDevice` (`modele="esphome"`) + `TemperatureLog` (`source="esphome"`)

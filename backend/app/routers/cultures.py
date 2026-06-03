@@ -234,16 +234,17 @@ def _maybe_close_culture(culture: Culture, db: Session) -> None:
         db.commit()
 
 
-def _maybe_archive_culture(culture: Culture, db: Session) -> None:
+def _maybe_archive_culture(culture: Culture, db: Session, force: bool = False) -> None:
     """Archive la culture dans HistoriqueCulture quand toutes les plantes sont effectivement terminées.
     Statuts considérés comme terminaux : curing (poids sec déjà enregistré), prete, wpff, abandonne.
+    Si force=True, archive même si des plantes ne sont pas en statut terminal (clôture manuelle forcée).
     La culture passe en 'terminee'."""
     plants = db.query(Plant).filter(Plant.id_culture == culture.id_culture).all()
     if not plants:
         return
     # curing = poids sec déjà enregistré au début du curing → considéré comme terminal pour l'archivage
     STATUTS_ARCHIVES = {"curing", "prete", "abandonne", "wpff"}
-    if not all(p.statut in STATUTS_ARCHIVES for p in plants):
+    if not force and not all(p.statut in STATUTS_ARCHIVES for p in plants):
         return
     # Ne pas créer un double archivage (le check terminee est supprimé : close_culture en avait besoin)
     existing = db.query(HistoriqueCulture).filter(
@@ -1909,15 +1910,14 @@ def close_culture(culture_id: int, db: Session = Depends(get_db)):
     culture = db.query(Culture).filter(Culture.id_culture == culture_id).first()
     if not culture:
         raise HTTPException(status_code=404, detail="Culture non trouvée")
-    # Tenter d'archiver AVANT de forcer le statut terminee
-    # (car _maybe_archive_culture vérifie les statuts des plantes, pas le statut de la culture)
-    _maybe_archive_culture(culture, db)
-    # Si l'archivage n'a pas eu lieu (conditions non remplies), forcer la clôture manuelle
+    # Archivage forcé : on archive quels que soient les statuts des plantes
+    # (clôture manuelle = intention explicite de l'utilisateur)
+    _maybe_archive_culture(culture, db, force=True)
     if culture.statut != "terminee":
         culture.statut = "terminee"
         if not culture.date_fin:
             culture.date_fin = date.today()
-        db.commit()
+    db.commit()
     db.refresh(culture)
     return _enrich_culture(culture, db)
 

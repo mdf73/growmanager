@@ -1,23 +1,8 @@
-feat: VPD foliaire + édition dates culture + Docker prod images
+feat: croisement open field complet
 
-## VPD offset foliaire (configurable)
-- AppSettings('vpd_leaf_offset') — défaut 2.0°C, seedé au démarrage
-- compute_vpd() : nouveau param leaf_offset, appliqué partout
-  (Govee poller auto, manual poll, ESPHome push, entrée manuelle)
-- Paramétrage UI : accordéon "Paramètres capteurs" (violet) en premier dans l'onglet Capteurs
-  Govee et ESPHome restent en dessous — structure : VPD → Govee → ESPHome
-
-## Édition dates culture
-- Culture.tsx : DatesModal (démarrage, 12/12, début flo, récolte estimée, date fin)
-- Bouton "Dates" dans le header de CultureDetail
-- Appelle PUT /cultures/{id} (endpoint existant)
-
-## Images Docker prod avec versioning
-- backend/Dockerfile.prod  : multi-stage, uvicorn --workers 2 (sans --reload)
-- frontend/Dockerfile.prod : build Vite → nginx:alpine (SPA routing)
-- .github/workflows/docker-publish.yml : push sur ghcr.io/mdf73/ à chaque tag vX.Y.Z
-- docker-compose.prod.yml  : déploiement depuis images pré-buildées (variable GROWMANAGER_VERSION)
-- update.sh : ./update.sh v1.2.0
-
-## Wiki
-- roadmap.md : session 2026-06-03 documentée
+- ProjetOpenField + PlanteMereOpenField + PlantePereOpenField
+- CRUD projets, meres, peres + endpoint recolte
+- Recolte cree nouvelle Variete (nom auto-genere editable) + PackGraine + Graines
+- 3eme onglet Open Field dans Croisement.tsx
+- fix: archivage force lors de close_culture
+- fix: cultures terminees incluses dans Statistiques

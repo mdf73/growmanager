@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy import text
 from app.database import Base, engine
-from app.routers import breeders, varietes, graines, cultures, stock, extractions, dashboard, fournisseurs, import_export, historique_culture, materiel, parametre, engrais, recette_engrais, recette_tco, recette_lso, recette_reamendement, recette_arrosage, recette_fermentation, suivi_sol_vivant, espaces, capteurs, plan_culture, preparation_substrat, notation_variete, vaporisateur, sechage, curing, croisement, app_settings, consommation, photos, stock_alert_seuils, search, calendrier, esphome
+from app.routers import breeders, varietes, graines, cultures, stock, extractions, dashboard, fournisseurs, import_export, historique_culture, materiel, parametre, engrais, recette_engrais, recette_tco, recette_lso, recette_reamendement, recette_arrosage, recette_fermentation, suivi_sol_vivant, espaces, capteurs, plan_culture, preparation_substrat, notation_variete, vaporisateur, sechage, curing, croisement, app_settings, consommation, photos, stock_alert_seuils, search, calendrier, esphome, open_field
 from app.services.govee_poller import start_poller
 
 # Création de l'application FastAPI
@@ -116,6 +116,8 @@ def run_migrations():
         ("Plant", "date_prelevement", "ALTER TABLE Plant ADD COLUMN date_prelevement DATE NULL"),
         ("Plant", "date_enracinement","ALTER TABLE Plant ADD COLUMN date_enracinement DATE NULL"),
         ("Plant", "statut_clone",     "ALTER TABLE Plant ADD COLUMN statut_clone VARCHAR(20) NULL"),
+        # Croisement Open Field — tables créées via create_all (ProjetOpenField, PlanteMereOpenField, PlantePereOpenField)
+        ("PlanteMereOpenField", "id_peres", "ALTER TABLE PlanteMereOpenField ADD COLUMN id_peres JSON NULL"),
     ]
     # Créer les tables manquantes (ProduitEngrais, TemperatureLog, etc.)
     Base.metadata.create_all(bind=engine)
@@ -291,6 +293,7 @@ app.include_router(vaporisateur.router)
 app.include_router(sechage.router)
 app.include_router(curing.router)
 app.include_router(croisement.router)
+app.include_router(open_field.router)
 app.include_router(app_settings.router)
 app.include_router(consommation.router)
 app.include_router(photos.router)

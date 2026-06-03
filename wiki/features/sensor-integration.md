@@ -153,10 +153,55 @@ interval:
 
 `device_id` dans le YAML doit correspondre exactement à celui enregistré dans Paramétrage > Capteurs ESPHome.
 
-### UI — Paramétrage
+### UI — Paramétrage (onglet Capteurs)
 
-Section "Capteurs ESPHome" dans l'onglet Capteurs de la page Paramétrage (`/parametrage`).
-Permet de créer, activer/désactiver, assigner à un espace, et supprimer des capteurs ESPHome sans passer par l'API.
+3 accordéons dans cet ordre :
+1. 🟣 **Paramètres capteurs** (violet, ouvert par défaut) — offset VPD foliaire
+2. 🟢 **Capteurs Govee** — configuration API cloud + liste des capteurs + import Gmail
+3. 🟠 **Capteurs ESPHome** — enregistrement + gestion des capteurs DIY
+
+---
+
+## Offset température foliaire VPD (2026-06-03)
+
+La température des feuilles est généralement 2–3°C inférieure à la température de l'air.
+Le VPD est calculé avec `T°feuille = T°air − offset` au lieu de la T° brute.
+
+### Configuration
+
+`AppSettings('vpd_leaf_offset')` — défaut `2.0`°C, seedé au démarrage.
+Modifiable depuis **Paramétrage > Capteurs > Paramètres capteurs**.
+
+### Formule
+
+```
+leaf_temp = temp_c - leaf_offset
+VPD = 0.6108 × exp(17.27 × leaf_temp / (leaf_temp + 237.3)) × (1 - RH/100)
+```
+
+Appliqué à chaque calcul : Govee auto-poll, Govee poll manuel, ESPHome push, entrée manuelle.
+
+### Implémentation
+
+- `govee_poller.py` : `compute_vpd(temp, hum, leaf_offset)` + `_get_leaf_offset(db)`
+- `govee_poller.py` : `poll_all_devices()` lit l'offset depuis la DB à chaque cycle
+- `capteurs.py` : manual poll + entrée manuelle utilisent aussi `_get_leaf_offset(db)`
+- `esphome.py` : push endpoint utilise `_get_leaf_offset(db)`
+
+---
+
+## Édition dates culture (2026-06-03)
+
+Bouton **"Dates"** dans le header de `CultureDetail` → `DatesModal`.
+
+Champs éditables :
+- Date de démarrage (`date_debut`)
+- Passage 12/12 (`date_passage_12_12`)
+- Début floraison visible (`date_debut_floraison`)
+- Récolte estimée (`date_recolte_estimee`)
+- Date de fin (`date_fin`) — affiché si culture non active
+
+Appelle `PUT /cultures/{id}` (endpoint existant). Recalcule la date de récolte estimée si `date_passage_12_12` est modifiée.
 
 ---
 

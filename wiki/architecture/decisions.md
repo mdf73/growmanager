@@ -75,4 +75,23 @@ sources: [Documentation/claude.md, Documentation/PHASE1_SUMMARY.txt]
 
 ---
 
+## ADR-008 — Images Docker versionnées via GitHub Container Registry (2026-06-03)
+
+**Decision:** Publier des images Docker taguées (`vX.Y.Z`) sur `ghcr.io/mdf73/` via GitHub Actions.
+
+**Rationale:** Le workflow `docker compose build` recompile tout localement à chaque mise à jour. Avec des images pré-buildées, une mise à jour se résume à `./update.sh v1.2.0` — plus rapide, plus fiable, reproductible sur n'importe quel serveur (Portainer, Unraid, VPS…).
+
+**Fichiers ajoutés :**
+- `backend/Dockerfile.prod` — multi-stage, `uvicorn --workers 2` sans `--reload`
+- `frontend/Dockerfile.prod` — build Vite → nginx:alpine (SPA routing)
+- `.github/workflows/docker-publish.yml` — build + push sur chaque tag `v*.*.*`
+- `docker-compose.prod.yml` — déploiement depuis images (variable `GROWMANAGER_VERSION`)
+- `update.sh` — script de mise à jour en une commande
+
+**Les Dockerfiles de dev** (`Dockerfile` originaux avec hot-reload) sont conservés pour le développement local.
+
+**Consequence:** Pour créer une release : `git tag v1.2.0 && git push --tags` → GitHub Actions publie automatiquement les images.
+
+---
+
 *Add new ADRs here as architectural decisions are made.*

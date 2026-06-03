@@ -12,6 +12,11 @@ import {
   TypeCroisement, StatutCroisement, MethodePollinisation,
   QualiteGraines, StockagePollen,
 } from '../api/croisement'
+import {
+  openFieldAPI,
+  ProjetOpenField, ProjetCreate, PlanteMereCreate, PlantePere, PlantePereCreate, RecolteInput,
+  StatutProjet, ConditionsProjet,
+} from '../api/openField'
 import { varieteAPI, Variete } from '../api/varietes'
 import { breederAPI, Breeder } from '../api/breeders'
 import LoadingSpinner from '../components/LoadingSpinner'
@@ -974,8 +979,527 @@ function EditCroisementModal({ croisement, varietes, pollenStock, onClose }: Edi
 //  PAGE PRINCIPALE
 // ════════════════════════════════════════════════════════════════════════════
 
+
+// ─────────────────────────────────────────────────────────────────────────────
+// OPEN FIELD COMPONENTS
+// ─────────────────────────────────────────────────────────────────────────────
+
+const STATUT_OF_META: Record<StatutProjet, { label: string; color: string }> = {
+  planifie:  { label: 'Planifié',  color: 'bg-gray-100 text-gray-600' },
+  en_cours:  { label: 'En cours',  color: 'bg-blue-100 text-blue-700' },
+  recolte:   { label: 'Récolté',   color: 'bg-green-100 text-green-700' },
+  termine:   { label: 'Terminé',   color: 'bg-gray-200 text-gray-500' },
+}
+
+const QUALITE_META: Record<string, { label: string; color: string }> = {
+  bonne:    { label: 'Bonne',    color: 'text-green-600' },
+  moyenne:  { label: 'Moyenne',  color: 'text-amber-600' },
+  immature: { label: 'Immature', color: 'text-red-600' },
+}
+
+function OpenFieldProjetCard({
+  projet,
+  onEditProjet, onDeleteProjet, onAddMere, onEditMere, onDeleteMere, onRecolte,
+  onAddPere, onEditPere, onDeletePere,
+}: {
+  projet: ProjetOpenField
+  onEditProjet: () => void
+  onDeleteProjet: () => void
+  onAddMere: () => void
+  onEditMere: (m: import('../api/openField').PlanteMere) => void
+  onDeleteMere: (m: import('../api/openField').PlanteMere) => void
+  onRecolte: (m: import('../api/openField').PlanteMere) => void
+  onAddPere: () => void
+  onEditPere: (p: PlantePere) => void
+  onDeletePere: (p: PlantePere) => void
+}) {
+  const meta = STATUT_OF_META[projet.statut] ?? STATUT_OF_META.planifie
+  return (
+    <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
+      <div className="flex items-start justify-between px-5 py-4 border-b border-gray-100 dark:border-gray-700">
+        <div className="flex items-start gap-3">
+          <div className="p-2 bg-grow-50 rounded-lg mt-0.5"><Leaf size={18} className="text-grow-600" /></div>
+          <div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h3 className="font-semibold text-gray-900 dark:text-gray-100">{projet.nom}</h3>
+              <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${meta.color}`}>{meta.label}</span>
+              {projet.saison && <span className="text-xs text-gray-400">{projet.saison}</span>}
+            </div>
+            <div className="flex items-center gap-3 mt-1 text-xs text-gray-500 flex-wrap">
+              {projet.lieu && <span>📍 {projet.lieu}</span>}
+              {projet.conditions && <span className="capitalize">{projet.conditions}</span>}
+              {projet.culture_nom && <span>🌱 {projet.culture_nom}</span>}
+              <span>{projet.nb_meres} mère{projet.nb_meres > 1 ? 's' : ''}</span>
+              {projet.nb_graines_total > 0 && <span>🌰 {projet.nb_graines_total} graines récoltées</span>}
+            </div>
+            {projet.description && <p className="text-xs text-gray-400 mt-1">{projet.description}</p>}
+          </div>
+        </div>
+        <div className="flex items-center gap-1 shrink-0">
+          <button onClick={onAddMere} className="p-1.5 text-gray-400 hover:text-grow-600 rounded" title="Ajouter une mère"><Plus size={15} /></button>
+          <button onClick={onEditProjet} className="p-1.5 text-gray-400 hover:text-blue-600 rounded"><Pencil size={15} /></button>
+          <button onClick={onDeleteProjet} className="p-1.5 text-gray-400 hover:text-red-600 rounded"><Trash2 size={15} /></button>
+        </div>
+      </div>
+      {/* Section mâles */}
+      <div className="px-5 py-3 bg-blue-50/50 dark:bg-blue-900/10 border-b border-gray-100 dark:border-gray-700">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-xs font-semibold text-blue-700 dark:text-blue-400 uppercase tracking-wide">♂ Mâles du projet ({projet.peres?.length ?? 0})</span>
+          <button onClick={onAddPere} className="text-xs text-blue-600 hover:underline">+ Ajouter</button>
+        </div>
+        {(projet.peres?.length ?? 0) === 0 ? (
+          <p className="text-xs text-gray-400 italic">Aucun mâle enregistré</p>
+        ) : (
+          <div className="flex flex-wrap gap-2">
+            {projet.peres.map(pere => (
+              <div key={pere.id_pere} className="flex items-center gap-1 bg-white dark:bg-gray-800 border border-blue-200 dark:border-blue-700 rounded-full px-3 py-1 text-xs">
+                <span className="text-blue-700 dark:text-blue-300 font-medium">{pere.variete_nom || pere.nom_libre || `Mâle #${pere.id_pere}`}</span>
+                <button onClick={() => onEditPere(pere)} className="text-gray-400 hover:text-blue-600 ml-1"><Pencil size={11} /></button>
+                <button onClick={() => onDeletePere(pere)} className="text-gray-400 hover:text-red-600"><Trash2 size={11} /></button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {projet.meres.length === 0 ? (
+        <div className="px-5 py-4 text-sm text-gray-400 italic">
+          Aucune plante mère — <button onClick={onAddMere} className="text-grow-600 hover:underline">ajouter la première</button>
+        </div>
+      ) : (
+        <div className="divide-y divide-gray-50 dark:divide-gray-700">
+          {projet.meres.map(mere => {
+            const qualMeta = mere.qualite_graines ? QUALITE_META[mere.qualite_graines] : null
+            const recoltee = !!mere.date_recolte
+            return (
+              <div key={mere.id_mere} className="px-5 py-3 flex items-start justify-between gap-4">
+                <div className="flex items-start gap-3 min-w-0">
+                  <div className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${recoltee ? 'bg-green-400' : 'bg-amber-400'}`} />
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-medium text-sm text-gray-800 dark:text-gray-200">
+                        {mere.variete_nom || mere.nom_phenotype || `Mère #${mere.id_mere}`}
+                      </span>
+                      {mere.plant_label && <span className="text-xs text-gray-400">{mere.plant_label}</span>}
+                    </div>
+                    <div className="flex items-center gap-3 mt-0.5 text-xs text-gray-500 flex-wrap">
+                      {mere.date_pollinisation && <span>🌸 {fmtDate(mere.date_pollinisation)}</span>}
+                      {mere.methode_pollinisation && <span className="capitalize">{mere.methode_pollinisation}</span>}
+                      {mere.pere_identifie
+                        ? <span>♂ {mere.pollen_nom || mere.nom_pere_libre || 'père identifié'}</span>
+                        : <span className="text-gray-400">♂ inconnu</span>}
+                      {recoltee && <>
+                        <span>🌰 {mere.nb_graines ?? '?'} gr.</span>
+                        {mere.poids_graines_g && <span>{mere.poids_graines_g} g</span>}
+                        {qualMeta && <span className={qualMeta.color}>{qualMeta.label}</span>}
+                        {mere.id_packgraine && <span className="text-green-600">✓ Pack créé</span>}
+                      </>}
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1 shrink-0">
+                  {!recoltee && (
+                    <button onClick={() => onRecolte(mere)} className="text-xs px-2 py-1 bg-grow-50 text-grow-700 hover:bg-grow-100 rounded font-medium">
+                      Récolter
+                    </button>
+                  )}
+                  <button onClick={() => onEditMere(mere)} className="p-1 text-gray-400 hover:text-blue-600 rounded"><Pencil size={13} /></button>
+                  <button onClick={() => onDeleteMere(mere)} className="p-1 text-gray-400 hover:text-red-600 rounded"><Trash2 size={13} /></button>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function NouveauProjetOpenFieldModal({ projet, onClose }: { projet?: ProjetOpenField; onClose: () => void }) {
+  const qc = useQueryClient()
+  const [nom, setNom] = useState(projet?.nom ?? '')
+  const [saison, setSaison] = useState(projet?.saison ?? '')
+  const [lieu, setLieu] = useState(projet?.lieu ?? '')
+  const [conditions, setConditions] = useState<ConditionsProjet | ''>(projet?.conditions ?? '')
+  const [description, setDescription] = useState(projet?.description ?? '')
+  const [loading, setLoading] = useState(false)
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!nom.trim()) return
+    setLoading(true)
+    const payload: ProjetCreate = {
+      nom: nom.trim(),
+      saison: saison || undefined,
+      lieu: lieu || undefined,
+      conditions: (conditions as ConditionsProjet) || undefined,
+      description: description || undefined,
+    }
+    try {
+      if (projet) await openFieldAPI.update(projet.id_projet, payload)
+      else await openFieldAPI.create(payload)
+      qc.invalidateQueries({ queryKey: ['open-field'] })
+      onClose()
+    } finally { setLoading(false) }
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-md shadow-xl">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-700">
+          <h2 className="font-semibold text-gray-900 dark:text-gray-100">{projet ? 'Modifier le projet' : 'Nouveau projet open field'}</h2>
+          <button onClick={onClose}><X size={18} className="text-gray-400" /></button>
+        </div>
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          <div>
+            <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Nom *</label>
+            <input value={nom} onChange={e => setNom(e.target.value)} required
+              className="w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-800"
+              placeholder="ex: Sélection été 2026" />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Saison</label>
+              <input value={saison} onChange={e => setSaison(e.target.value)}
+                className="w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-800" placeholder="Été 2026" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Conditions</label>
+              <select value={conditions} onChange={e => setConditions(e.target.value as ConditionsProjet | '')}
+                className="w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-800">
+                <option value="">—</option>
+                <option value="outdoor">Outdoor</option>
+                <option value="greenhouse">Greenhouse</option>
+                <option value="guerrilla">Guerrilla</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Lieu</label>
+            <input value={lieu} onChange={e => setLieu(e.target.value)}
+              className="w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-800" />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Description</label>
+            <textarea value={description} onChange={e => setDescription(e.target.value)} rows={2}
+              className="w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-800" />
+          </div>
+          <div className="flex justify-end gap-3 pt-2">
+            <button type="button" onClick={onClose} className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg">Annuler</button>
+            <button type="submit" disabled={loading} className="px-4 py-2 text-sm bg-grow-600 text-white rounded-lg hover:bg-grow-700 disabled:opacity-50">
+              {loading ? 'Enregistrement…' : projet ? 'Modifier' : 'Créer'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+function AddMereModal({ projet, mere, varietes, pollenStock, onClose }: {
+  projet: ProjetOpenField
+  mere?: import('../api/openField').PlanteMere
+  varietes: Variete[]
+  pollenStock: Pollen[]
+  onClose: () => void
+}) {
+  const qc = useQueryClient()
+  const [idVariete, setIdVariete] = useState<string>(mere?.id_variete?.toString() ?? '')
+  const [nomPheno, setNomPheno]   = useState(mere?.nom_phenotype ?? '')
+  const [datePoll, setDatePoll]   = useState(mere?.date_pollinisation ?? '')
+  const [methode, setMethode]     = useState<string>(mere?.methode_pollinisation ?? 'naturelle')
+  const [pereId, setPereId]       = useState<string>(mere?.pere_identifie ? (mere.id_pollen?.toString() ?? 'libre') : '')
+  const [nomPereLi, setNomPereLi] = useState(mere?.nom_pere_libre ?? '')
+  const [notesPoll, setNotesPoll] = useState(mere?.notes_pollinisation ?? '')
+  const [idPeres, setIdPeres]     = useState<number[]>(mere?.id_peres ?? [])
+  const [loading, setLoading]     = useState(false)
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    const payload: PlanteMereCreate = {
+      id_variete: idVariete ? parseInt(idVariete) : undefined,
+      nom_phenotype: nomPheno || undefined,
+      date_pollinisation: datePoll || undefined,
+      methode_pollinisation: methode as import('../api/openField').MethodePollinisation,
+      pere_identifie: pereId !== '',
+      id_pollen: pereId && pereId !== 'libre' ? parseInt(pereId) : undefined,
+      nom_pere_libre: pereId === 'libre' ? nomPereLi || undefined : undefined,
+      id_peres: idPeres.length > 0 ? idPeres : undefined,
+      notes_pollinisation: notesPoll || undefined,
+    }
+    try {
+      if (mere) await openFieldAPI.updateMere(projet.id_projet, mere.id_mere, payload)
+      else await openFieldAPI.addMere(projet.id_projet, payload)
+      qc.invalidateQueries({ queryKey: ['open-field'] })
+      onClose()
+    } finally { setLoading(false) }
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-md shadow-xl max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-700 sticky top-0 bg-white dark:bg-gray-800">
+          <h2 className="font-semibold text-gray-900 dark:text-gray-100">{mere ? 'Modifier la mère' : 'Ajouter une mère'} — {projet.nom}</h2>
+          <button onClick={onClose}><X size={18} className="text-gray-400" /></button>
+        </div>
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          <div>
+            <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Variété (catalogue)</label>
+            <select value={idVariete} onChange={e => setIdVariete(e.target.value)}
+              className="w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-800">
+              <option value="">— Sélectionner —</option>
+              {varietes.map(v => <option key={v.id_variete} value={v.id_variete}>{v.nom_variete}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Nom phénotype libre</label>
+            <input value={nomPheno} onChange={e => setNomPheno(e.target.value)}
+              className="w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-800"
+              placeholder="ex: Phéno #3 à grands colas" />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Date pollinisation</label>
+              <input type="date" value={datePoll} onChange={e => setDatePoll(e.target.value)}
+                className="w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-800" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Méthode</label>
+              <select value={methode} onChange={e => setMethode(e.target.value)}
+                className="w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-800">
+                <option value="naturelle">Naturelle</option>
+                <option value="manuelle">Manuelle</option>
+                <option value="pinceau">Pinceau</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Père</label>
+            <select value={pereId} onChange={e => setPereId(e.target.value)}
+              className="w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-800">
+              <option value="">Inconnu / naturel</option>
+              <option value="libre">Identifié (saisie libre)</option>
+              {pollenStock.filter(p => p.actif).map(p => <option key={p.id_pollen} value={p.id_pollen}>{p.nom_pollen}</option>)}
+            </select>
+          </div>
+          {pereId === 'libre' && (
+            <div>
+              <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Nom du père</label>
+              <input value={nomPereLi} onChange={e => setNomPereLi(e.target.value)}
+                className="w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-800"
+                placeholder="ex: Mâle sélectionné #2" />
+            </div>
+          )}
+          {projet.peres?.length > 0 && (
+            <div>
+              <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Pères probables</label>
+              <div className="space-y-1">
+                {projet.peres.map(pere => (
+                  <label key={pere.id_pere} className="flex items-center gap-2 text-sm cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={idPeres.includes(pere.id_pere)}
+                      onChange={e => setIdPeres(e.target.checked
+                        ? [...idPeres, pere.id_pere]
+                        : idPeres.filter(id => id !== pere.id_pere)
+                      )}
+                      className="rounded"
+                    />
+                    <span className="text-gray-700 dark:text-gray-200">{pere.variete_nom || pere.nom_libre || `Mâle #${pere.id_pere}`}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
+          <div>
+            <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Notes pollinisation</label>
+            <textarea value={notesPoll} onChange={e => setNotesPoll(e.target.value)} rows={2}
+              className="w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-800" />
+          </div>
+          <div className="flex justify-end gap-3 pt-2">
+            <button type="button" onClick={onClose} className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg">Annuler</button>
+            <button type="submit" disabled={loading} className="px-4 py-2 text-sm bg-grow-600 text-white rounded-lg hover:bg-grow-700 disabled:opacity-50">
+              {loading ? 'Enregistrement…' : mere ? 'Modifier' : 'Ajouter'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+
+function AddPereModal({ projet, pere, varietes, onClose }: {
+  projet: ProjetOpenField
+  pere?: PlantePere
+  varietes: Variete[]
+  onClose: () => void
+}) {
+  const qc = useQueryClient()
+  const [idVariete, setIdVariete] = useState<string>(pere?.id_variete?.toString() ?? '')
+  const [nomLibre, setNomLibre]   = useState(pere?.nom_libre ?? '')
+  const [notes, setNotes]         = useState(pere?.notes ?? '')
+  const [loading, setLoading]     = useState(false)
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!idVariete && !nomLibre.trim()) return
+    setLoading(true)
+    const payload: PlantePereCreate = {
+      id_variete: idVariete ? parseInt(idVariete) : undefined,
+      nom_libre:  nomLibre || undefined,
+      notes:      notes || undefined,
+    }
+    try {
+      if (pere) await openFieldAPI.updatePere(projet.id_projet, pere.id_pere, payload)
+      else await openFieldAPI.addPere(projet.id_projet, payload)
+      qc.invalidateQueries({ queryKey: ['open-field'] })
+      onClose()
+    } finally { setLoading(false) }
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-sm shadow-xl">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-700">
+          <h2 className="font-semibold text-gray-900 dark:text-gray-100">{pere ? 'Modifier le mâle' : 'Ajouter un mâle'} — {projet.nom}</h2>
+          <button onClick={onClose}><X size={18} className="text-gray-400" /></button>
+        </div>
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          <div>
+            <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Variété (catalogue)</label>
+            <select value={idVariete} onChange={e => setIdVariete(e.target.value)}
+              className="w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-800">
+              <option value="">— Sélectionner —</option>
+              {varietes.map(v => <option key={v.id_variete} value={v.id_variete}>{v.nom_variete}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Nom libre</label>
+            <input value={nomLibre} onChange={e => setNomLibre(e.target.value)}
+              className="w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-800"
+              placeholder="ex: Mâle phéno #2 long calice" />
+            <p className="text-xs text-gray-400 mt-1">Remplis l'un ou l'autre (ou les deux)</p>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Notes</label>
+            <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={2}
+              className="w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-800" />
+          </div>
+          <div className="flex justify-end gap-3 pt-2">
+            <button type="button" onClick={onClose} className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg">Annuler</button>
+            <button type="submit" disabled={loading || (!idVariete && !nomLibre.trim())}
+              className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50">
+              {loading ? 'Enregistrement…' : pere ? 'Modifier' : 'Ajouter'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+function RecolteOpenFieldModal({ projet, mere, onClose }: {
+  projet: ProjetOpenField
+  mere: import('../api/openField').PlanteMere
+  onClose: () => void
+}) {
+  const qc = useQueryClient()
+  const [date_, setDate]      = useState(new Date().toISOString().slice(0, 10))
+  const [nbGraines, setNb]    = useState('')
+  const [poids, setPoids]     = useState('')
+  const [qualite, setQualite] = useState<RecolteInput['qualite_graines']>('bonne')
+  const [creerPack, setCreer] = useState(true)
+  const [nomVariete, setNomVariete] = useState(() => {
+    const mereName = mere.variete_nom || mere.nom_phenotype || 'Inconnue'
+    const peresNames = mere.peres_labels?.length ? mere.peres_labels.join(' / ') : mere.nom_pere_libre || 'inconnu'
+    const saison = projet.saison || new Date().getFullYear().toString()
+    return `${mereName} × ${peresNames} (OF ${saison})`
+  })
+  const [loading, setLoading] = useState(false)
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    try {
+      await openFieldAPI.recolte(projet.id_projet, mere.id_mere, {
+        date_recolte: date_,
+        nb_graines: nbGraines ? parseInt(nbGraines) : undefined,
+        poids_graines_g: poids ? parseFloat(poids) : undefined,
+        qualite_graines: qualite,
+        creer_pack: creerPack,
+        nom_variete_croisement: nomVariete || undefined,
+      })
+      qc.invalidateQueries({ queryKey: ['open-field'] })
+      qc.invalidateQueries({ queryKey: ['catalogue'] })
+      onClose()
+    } finally { setLoading(false) }
+  }
+
+  const mereName = mere.variete_nom || mere.nom_phenotype || `Mère #${mere.id_mere}`
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-sm shadow-xl">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-700">
+          <h2 className="font-semibold text-gray-900 dark:text-gray-100">Récolte — {mereName}</h2>
+          <button onClick={onClose}><X size={18} className="text-gray-400" /></button>
+        </div>
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          <div>
+            <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Date de récolte</label>
+            <input type="date" value={date_} onChange={e => setDate(e.target.value)} required
+              className="w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-800" />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Nb graines</label>
+              <input type="number" min="0" value={nbGraines} onChange={e => setNb(e.target.value)}
+                className="w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-800" placeholder="ex: 42" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Poids (g)</label>
+              <input type="number" step="0.01" min="0" value={poids} onChange={e => setPoids(e.target.value)}
+                className="w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-800" placeholder="ex: 2.5" />
+            </div>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Qualité</label>
+            <select value={qualite} onChange={e => setQualite(e.target.value as RecolteInput['qualite_graines'])}
+              className="w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-800">
+              <option value="bonne">Bonne</option>
+              <option value="moyenne">Moyenne</option>
+              <option value="immature">Immature</option>
+            </select>
+          </div>
+          <div className="flex items-center gap-2">
+            <input type="checkbox" id="creer-pack" checked={creerPack} onChange={e => setCreer(e.target.checked)} className="rounded" />
+            <label htmlFor="creer-pack" className="text-sm text-gray-700 dark:text-gray-200">Créer un PackGraine automatiquement</label>
+          </div>
+          {creerPack && (
+            <div>
+              <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Nom de la nouvelle variété</label>
+              <input value={nomVariete} onChange={e => setNomVariete(e.target.value)}
+                className="w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-800"
+                placeholder="Auto-généré" />
+              <p className="text-xs text-gray-400 mt-1">Une nouvelle variété sera créée dans le catalogue avec ce nom.</p>
+            </div>
+          )}
+          <div className="flex justify-end gap-3 pt-2">
+            <button type="button" onClick={onClose} className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg">Annuler</button>
+            <button type="submit" disabled={loading} className="px-4 py-2 text-sm bg-grow-600 text-white rounded-lg hover:bg-grow-700 disabled:opacity-50">
+              {loading ? 'Enregistrement…' : 'Valider la récolte'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
 export default function CroisementPage() {
-  const [tab, setTab] = useState<'croisements' | 'pollen'>('croisements')
+  const [tab, setTab] = useState<'croisements' | 'pollen' | 'openfield'>('croisements')
   const [showNewCroisement, setShowNewCroisement] = useState(false)
   const [showNewPollen, setShowNewPollen] = useState(false)
   const [recolteCroisement, setRecolteCroisement] = useState<Croisement | null>(null)
@@ -983,6 +1507,14 @@ export default function CroisementPage() {
   const [statutFilter, setStatutFilter] = useState<StatutCroisement | 'all'>('all')
   // Tri tableau pollen
   const [pollenSort, setPollenSort] = useState<{ col: keyof Pollen; dir: 'asc' | 'desc' } | null>(null)
+  // Open field
+  const [showNewProjet, setShowNewProjet] = useState(false)
+  const [editProjet, setEditProjet] = useState<ProjetOpenField | null>(null)
+  const [showAddMere, setShowAddMere] = useState<ProjetOpenField | null>(null)
+  const [editMere, setEditMere] = useState<{ projet: ProjetOpenField; mere: import('../api/openField').PlanteMere } | null>(null)
+  const [recolteMere, setRecolteMere] = useState<{ projet: ProjetOpenField; mere: import('../api/openField').PlanteMere } | null>(null)
+  const [showAddPere, setShowAddPere] = useState<ProjetOpenField | null>(null)
+  const [editPere, setEditPere] = useState<{ projet: ProjetOpenField; pere: PlantePere } | null>(null)
   const qc = useQueryClient()
 
   const { data: croisements = [], isLoading: loadingC } = useQuery<Croisement[]>({
@@ -996,6 +1528,10 @@ export default function CroisementPage() {
   const { data: varietes = [] } = useQuery<Variete[]>({
     queryKey: ['varietes'],
     queryFn: async () => (await varieteAPI.getAll()).data,
+  })
+  const { data: projetsOf = [], isLoading: loadingOf } = useQuery<ProjetOpenField[]>({
+    queryKey: ['open-field'],
+    queryFn: async () => (await openFieldAPI.list()).data,
   })
 
   const filtered = useMemo(() => {
@@ -1051,11 +1587,15 @@ export default function CroisementPage() {
           </p>
         </div>
         <button
-          onClick={() => tab === 'croisements' ? setShowNewCroisement(true) : setShowNewPollen(true)}
+          onClick={() => {
+            if (tab === 'croisements') setShowNewCroisement(true)
+            else if (tab === 'pollen') setShowNewPollen(true)
+            else setShowNewProjet(true)
+          }}
           className="flex items-center gap-2 px-4 py-2 bg-grow-600 text-white rounded-lg text-sm font-medium hover:bg-grow-700"
         >
           <Plus size={16} />
-          {tab === 'croisements' ? 'Nouveau croisement' : 'Collecter du pollen'}
+          {tab === 'croisements' ? 'Nouveau croisement' : tab === 'pollen' ? 'Collecter du pollen' : 'Nouveau projet'}
         </button>
       </div>
 
@@ -1073,6 +1613,12 @@ export default function CroisementPage() {
             className={`pb-3 px-1 text-sm font-medium border-b-2 transition ${tab === 'pollen' ? 'border-grow-600 text-grow-700' : 'border-transparent text-gray-500 dark:text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:text-gray-200'}`}
           >
             <FlaskConical size={14} className="inline mr-1" /> Stock pollen ({pollen.length})
+          </button>
+          <button
+            onClick={() => setTab('openfield')}
+            className={`pb-3 px-1 text-sm font-medium border-b-2 transition ${tab === 'openfield' ? 'border-grow-600 text-grow-700' : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:text-gray-200'}`}
+          >
+            <Leaf size={14} className="inline mr-1" /> Open Field ({projetsOf.length})
           </button>
         </div>
       </div>
@@ -1284,11 +1830,61 @@ export default function CroisementPage() {
         </>
       )}
 
+      {/* ── Onglet Open Field ─────────────────────────────── */}
+      {tab === 'openfield' && (
+        <>
+          {loadingOf ? <LoadingSpinner /> : projetsOf.length === 0 ? (
+            <EmptyState
+              icon={Leaf}
+              title="Aucun projet open field"
+              description="Lance un projet de sélection en plein air pour tracer tes mères, pollinisations et récoltes de graines."
+            />
+          ) : (
+            <div className="space-y-4">
+              {projetsOf.map(projet => (
+                <OpenFieldProjetCard
+                  key={projet.id_projet}
+                  projet={projet}
+                  onEditProjet={() => setEditProjet(projet)}
+                  onDeleteProjet={() => {
+                    if (confirm(`Supprimer le projet "${projet.nom}" ?`)) {
+                      openFieldAPI.delete(projet.id_projet).then(() => qc.invalidateQueries({ queryKey: ['open-field'] }))
+                    }
+                  }}
+                  onAddMere={() => setShowAddMere(projet)}
+                  onEditMere={(mere) => setEditMere({ projet, mere })}
+                  onDeleteMere={(mere) => {
+                    if (confirm(`Supprimer la mère ?`)) {
+                      openFieldAPI.deleteMere(projet.id_projet, mere.id_mere).then(() => qc.invalidateQueries({ queryKey: ['open-field'] }))
+                    }
+                  }}
+                  onRecolte={(mere) => setRecolteMere({ projet, mere })}
+                  onAddPere={() => setShowAddPere(projet)}
+                  onEditPere={(pere) => setEditPere({ projet, pere })}
+                  onDeletePere={(pere) => {
+                    if (confirm(`Supprimer ce mâle ?`)) {
+                      openFieldAPI.deletePere(projet.id_projet, pere.id_pere).then(() => qc.invalidateQueries({ queryKey: ['open-field'] }))
+                    }
+                  }}
+                />
+              ))}
+            </div>
+          )}
+        </>
+      )}
+
       {/* Modals */}
       {showNewCroisement && <NouveauCroisementModal varietes={varietes} pollenStock={pollen} onClose={() => setShowNewCroisement(false)} />}
       {showNewPollen && <NouveauPollenModal varietes={varietes} onClose={() => setShowNewPollen(false)} />}
       {recolteCroisement && <RecolteModal croisement={recolteCroisement} onClose={() => setRecolteCroisement(null)} />}
       {editCroisement && <EditCroisementModal croisement={editCroisement} varietes={varietes} pollenStock={pollen} onClose={() => setEditCroisement(null)} />}
+      {showNewProjet && <NouveauProjetOpenFieldModal onClose={() => setShowNewProjet(false)} />}
+      {editProjet && <NouveauProjetOpenFieldModal projet={editProjet} onClose={() => setEditProjet(null)} />}
+      {showAddMere && <AddMereModal projet={showAddMere} varietes={varietes} pollenStock={pollen} onClose={() => setShowAddMere(null)} />}
+      {editMere && <AddMereModal projet={editMere.projet} mere={editMere.mere} varietes={varietes} pollenStock={pollen} onClose={() => setEditMere(null)} />}
+      {recolteMere && <RecolteOpenFieldModal projet={recolteMere.projet} mere={recolteMere.mere} onClose={() => setRecolteMere(null)} />}
+      {showAddPere && <AddPereModal projet={showAddPere} varietes={varietes} onClose={() => setShowAddPere(null)} />}
+      {editPere && <AddPereModal projet={editPere.projet} pere={editPere.pere} varietes={varietes} onClose={() => setEditPere(null)} />}
     </div>
   )
 }
