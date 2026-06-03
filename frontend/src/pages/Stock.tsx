@@ -50,12 +50,12 @@ function durationLabel(start?: string, end?: string): string {
 
 // ── Badges type ──────────────────────────────────────────────────────────────
 const TYPE_COLORS: Record<string, string> = {
-  Fleur:     'bg-green-100 text-green-700',
-  Trim:      'bg-lime-100 text-lime-700',
+  Fleur:     'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300',
+  Trim:      'bg-lime-100 dark:bg-lime-900/30 text-lime-700 dark:text-lime-300',
   WPFF:      'bg-cyan-100 text-cyan-700',
-  Hash:      'bg-amber-100 text-amber-700',
-  Rosin:     'bg-orange-100 text-orange-700',
-  Poussière: 'bg-yellow-100 text-yellow-700',
+  Hash:      'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300',
+  Rosin:     'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300',
+  Poussière: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300',
   Autre:     'bg-gray-100 text-gray-600 dark:text-gray-300',
 }
 const EXTRACTION_TYPES = ['Trim', 'WPFF']
@@ -94,8 +94,8 @@ function StockRow({ item, onEdit, onDeleted, onSortie, onOrigine, onLabel }: {
   })
 
   if (confirmDelete) return (
-    <tr className="bg-red-50">
-      <td colSpan={9} className="px-5 py-3 text-sm text-red-700">
+    <tr className="bg-red-50 dark:bg-red-900/20">
+      <td colSpan={9} className="px-5 py-3 text-sm text-red-700 dark:text-red-300">
         <span className="flex items-center gap-2">
           <AlertTriangle size={14} />
           Supprimer <strong>{item.variete_nom ?? 'ce stock'}</strong> ({item.quantite_stock}g) ?
@@ -117,8 +117,8 @@ function StockRow({ item, onEdit, onDeleted, onSortie, onOrigine, onLabel }: {
   )
 
   if (confirmSortie) return (
-    <tr className="bg-amber-50">
-      <td colSpan={9} className="px-5 py-3 text-sm text-amber-800">
+    <tr className="bg-amber-50 dark:bg-amber-900/20">
+      <td colSpan={9} className="px-5 py-3 text-sm text-amber-800 dark:text-amber-300">
         <span className="flex items-center gap-2">
           <LogOut size={14} />
           Déclarer <strong>{item.variete_nom ?? 'ce stock'}</strong> comme terminé (0 g restant) ?
@@ -167,7 +167,7 @@ function StockRow({ item, onEdit, onDeleted, onSortie, onOrigine, onLabel }: {
 
   const rowClass = isCloture
     ? 'opacity-50 bg-gray-50 dark:bg-gray-700/30'
-    : 'hover:bg-violet-50/40 dark:hover:bg-violet-900/10 group cursor-pointer'
+    : 'hover:bg-violet-50 dark:bg-violet-900/20/40 dark:hover:bg-violet-900/10 group cursor-pointer'
 
   return (
     <tr className={rowClass} onClick={e => { if (!(e.target as HTMLElement).closest('button')) onOrigine(item.id_stock) }} title="Cliquer pour voir l'origine">
@@ -205,17 +205,17 @@ function StockRow({ item, onEdit, onDeleted, onSortie, onOrigine, onLabel }: {
       <td className="px-5 py-3 text-right">
         <div className={`flex justify-end gap-1 ${isCloture ? 'opacity-0' : 'opacity-0 group-hover:opacity-100'} transition-opacity`}>
           {!isCloture && (
-            <button onClick={() => setConfirmSortie(true)} className="p-1.5 text-gray-400 hover:text-amber-600 hover:bg-amber-50 rounded" title="Déclarer comme terminé">
+            <button onClick={() => setConfirmSortie(true)} className="p-1.5 text-gray-400 hover:text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:bg-amber-900/20 rounded" title="Déclarer comme terminé">
               <LogOut size={14} />
             </button>
           )}
-          <button onClick={() => onLabel(item.id_stock)} className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded" title="Télécharger l'étiquette PDF">
+          <button onClick={() => onLabel(item.id_stock)} className="p-1.5 text-gray-400 hover:text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:bg-blue-900/20 rounded" title="Télécharger l'étiquette PDF">
             <Printer size={14} />
           </button>
           <button onClick={() => onEdit(item)} className="p-1.5 text-gray-400 hover:text-grow-600 hover:bg-grow-50 rounded" title="Modifier">
             <Pencil size={14} />
           </button>
-          <button onClick={() => setConfirmDelete(true)} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded" title="Supprimer">
+          <button onClick={() => setConfirmDelete(true)} className="p-1.5 text-gray-400 hover:text-red-600 dark:text-red-400 hover:bg-red-50 dark:bg-red-900/20 rounded" title="Supprimer">
             <Trash2 size={14} />
           </button>
         </div>
@@ -247,8 +247,8 @@ function ExtractionRow({ item, onEdit, onDeleted, onSortie }: {
   })
 
   if (confirmDelete) return (
-    <tr className="bg-red-50">
-      <td colSpan={5} className="px-5 py-3 text-sm text-red-700">
+    <tr className="bg-red-50 dark:bg-red-900/20">
+      <td colSpan={5} className="px-5 py-3 text-sm text-red-700 dark:text-red-300">
         <span className="flex items-center gap-2">
           <AlertTriangle size={14} />
           Supprimer <strong>{item.variete_nom ?? 'cette extraction'}</strong> ({item.quantite_stock}g) ?
@@ -270,8 +270,8 @@ function ExtractionRow({ item, onEdit, onDeleted, onSortie }: {
   )
 
   if (confirmSortie) return (
-    <tr className="bg-amber-50">
-      <td colSpan={5} className="px-5 py-3 text-sm text-amber-800">
+    <tr className="bg-amber-50 dark:bg-amber-900/20">
+      <td colSpan={5} className="px-5 py-3 text-sm text-amber-800 dark:text-amber-300">
         <span className="flex items-center gap-2">
           <LogOut size={14} />
           Déclarer <strong>{item.variete_nom ?? 'cette extraction'}</strong> comme terminé (0 g restant) ?
@@ -313,14 +313,14 @@ function ExtractionRow({ item, onEdit, onDeleted, onSortie }: {
       <td className="px-5 py-3 text-right">
         <div className={`flex justify-end gap-1 ${isCloture ? 'opacity-0' : 'opacity-0 group-hover:opacity-100'} transition-opacity`}>
           {!isCloture && (
-            <button onClick={() => setConfirmSortie(true)} className="p-1.5 text-gray-400 hover:text-amber-600 hover:bg-amber-50 rounded" title="Déclarer comme terminé">
+            <button onClick={() => setConfirmSortie(true)} className="p-1.5 text-gray-400 hover:text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:bg-amber-900/20 rounded" title="Déclarer comme terminé">
               <LogOut size={14} />
             </button>
           )}
           <button onClick={() => onEdit(item)} className="p-1.5 text-gray-400 hover:text-grow-600 hover:bg-grow-50 rounded" title="Modifier">
             <Pencil size={14} />
           </button>
-          <button onClick={() => setConfirmDelete(true)} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded" title="Supprimer">
+          <button onClick={() => setConfirmDelete(true)} className="p-1.5 text-gray-400 hover:text-red-600 dark:text-red-400 hover:bg-red-50 dark:bg-red-900/20 rounded" title="Supprimer">
             <Trash2 size={14} />
           </button>
         </div>
@@ -350,10 +350,10 @@ function joursCuringLabel(dateStr?: string): string {
 function curingBadgeClass(dateStr?: string): string {
   if (!dateStr) return 'bg-gray-100 text-gray-500'
   const j = curingDaysAgo(dateStr)
-  if (j <= 7)  return 'bg-blue-50 text-blue-700'
-  if (j <= 14) return 'bg-purple-50 text-purple-700'
-  if (j <= 28) return 'bg-violet-50 text-violet-700'
-  return 'bg-indigo-50 text-indigo-700'
+  if (j <= 7)  return 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300'
+  if (j <= 14) return 'bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300'
+  if (j <= 28) return 'bg-violet-50 dark:bg-violet-900/20 text-violet-700 dark:text-violet-300'
+  return 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300'
 }
 
 const CURING_SORTABLE: [CuringSortCol, string][] = [
@@ -415,9 +415,9 @@ function CuringTab({ plants, isLoading }: { plants: PlantWithSession[]; isLoadin
     <div className="space-y-4">
       {/* Carte total */}
       <div className="flex items-center gap-3">
-        <div className="flex items-center gap-1 px-3 py-1.5 bg-purple-50 border border-purple-100 rounded-lg">
+        <div className="flex items-center gap-1 px-3 py-1.5 bg-purple-50 dark:bg-purple-900/20 border border-purple-100 rounded-lg">
           <span className="text-xs text-purple-500">Total en curing</span>
-          <span className="text-sm font-semibold text-purple-700">{totalPoids.toFixed(1)} g</span>
+          <span className="text-sm font-semibold text-purple-700 dark:text-purple-300">{totalPoids.toFixed(1)} g</span>
         </div>
         <div className="flex items-center gap-1 px-3 py-1.5 bg-gray-50 border border-gray-200 dark:border-gray-700 dark:bg-gray-800 rounded-lg">
           <span className="text-xs text-gray-400 dark:text-gray-500">{plants.length} plante{plants.length > 1 ? 's' : ''}</span>
@@ -666,9 +666,9 @@ export default function StockPage() {
             </div>
           )}
           {activeTab === 'curing' && curingPlants.length > 0 && (
-            <div className="flex items-center gap-1 px-3 py-1.5 bg-purple-50 border border-purple-100 rounded-lg">
+            <div className="flex items-center gap-1 px-3 py-1.5 bg-purple-50 dark:bg-purple-900/20 border border-purple-100 rounded-lg">
               <span className="text-xs text-purple-500">Total en curing</span>
-              <span className="text-sm font-semibold text-purple-700">{curingPlants.reduce((s, p) => s + (p.poids_debut_g ?? 0), 0).toFixed(1)} g</span>
+              <span className="text-sm font-semibold text-purple-700 dark:text-purple-300">{curingPlants.reduce((s, p) => s + (p.poids_debut_g ?? 0), 0).toFixed(1)} g</span>
             </div>
           )}
           {activeTab === 'extractions' && stats.totalExt > 0 && (
@@ -735,7 +735,7 @@ export default function StockPage() {
           <FlaskConical size={14} />
           En curing
           <span className={`px-1.5 py-0.5 rounded-full text-xs ${
-            activeTab === 'curing' ? 'bg-purple-100 text-purple-700' : 'bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300'
+            activeTab === 'curing' ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300' : 'bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300'
           }`}>{curingPlants.length}</span>
         </button>
       </div>

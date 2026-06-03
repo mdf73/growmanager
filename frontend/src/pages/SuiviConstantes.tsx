@@ -39,7 +39,7 @@ function vpdColor(vpd?: number): string {
   if (vpd == null) return 'text-gray-400 dark:text-gray-500'
   if (vpd < 0.4)  return 'text-blue-500'   // trop humide
   if (vpd < 0.8)  return 'text-green-500'  // seedling/clone
-  if (vpd < 1.2)  return 'text-green-600'  // veg/early flo
+  if (vpd < 1.2)  return 'text-green-600 dark:text-green-400'  // veg/early flo
   if (vpd < 1.6)  return 'text-amber-500'  // late flo
   return 'text-red-500'                     // trop sec
 }
@@ -74,7 +74,7 @@ function SensorCard({
       className={`
         w-full text-left p-4 rounded-xl border-2 transition-all
         ${selected
-          ? 'border-teal-500 bg-teal-50 shadow-md'
+          ? 'border-teal-500 bg-teal-50 dark:bg-teal-900/20 shadow-md'
           : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-teal-300 hover:shadow'}
       `}
     >
@@ -92,13 +92,13 @@ function SensorCard({
       {device.derniere_temperature != null ? (
         <div className="grid grid-cols-3 gap-1">
           <div className="text-center">
-            <p className="text-lg font-bold text-orange-600">
+            <p className="text-lg font-bold text-orange-600 dark:text-orange-400">
               {device.derniere_temperature?.toFixed(1)}°
             </p>
             <p className="text-xs text-gray-400 dark:text-gray-500">Temp</p>
           </div>
           <div className="text-center">
-            <p className="text-lg font-bold text-blue-600">
+            <p className="text-lg font-bold text-blue-600 dark:text-blue-400">
               {device.derniere_humidite?.toFixed(0)}%
             </p>
             <p className="text-xs text-gray-400 dark:text-gray-500">Hum</p>
@@ -231,7 +231,7 @@ function SensorChart({
 
       {/* ── Température ── */}
       <div>
-        <p className="text-xs font-semibold text-orange-600 mb-2 uppercase tracking-wide">
+        <p className="text-xs font-semibold text-orange-600 dark:text-orange-400 mb-2 uppercase tracking-wide">
           Température (°C){aggrLabel}
         </p>
         <ResponsiveContainer width="100%" height={180}>
@@ -280,7 +280,7 @@ function SensorChart({
 
       {/* ── Humidité ── */}
       <div>
-        <p className="text-xs font-semibold text-blue-600 mb-2 uppercase tracking-wide">
+        <p className="text-xs font-semibold text-blue-600 dark:text-blue-400 mb-2 uppercase tracking-wide">
           Humidité (%RH){aggrLabel}
         </p>
         <ResponsiveContainer width="100%" height={180}>
@@ -329,7 +329,7 @@ function SensorChart({
 
       {/* ── VPD ── */}
       <div>
-        <p className="text-xs font-semibold text-emerald-600 mb-2 uppercase tracking-wide">
+        <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 mb-2 uppercase tracking-wide">
           VPD (kPa){aggrLabel}
         </p>
         <ResponsiveContainer width="100%" height={180}>
@@ -399,21 +399,21 @@ function SensorChart({
 function LiveStats({ device }: { device: GoveeDevice }) {
   return (
     <div className="grid grid-cols-3 gap-3 mb-6">
-      <div className="bg-orange-50 rounded-xl p-3 text-center">
+      <div className="bg-orange-50 dark:bg-orange-900/20 rounded-xl p-3 text-center">
         <Thermometer size={18} className="mx-auto text-orange-500 mb-1" />
-        <p className="text-2xl font-bold text-orange-600">
+        <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">
           {device.derniere_temperature != null ? `${device.derniere_temperature.toFixed(1)}°C` : '—'}
         </p>
         <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">Température</p>
       </div>
-      <div className="bg-blue-50 rounded-xl p-3 text-center">
+      <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-3 text-center">
         <Droplets size={18} className="mx-auto text-blue-500 mb-1" />
-        <p className="text-2xl font-bold text-blue-600">
+        <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
           {device.derniere_humidite != null ? `${device.derniere_humidite.toFixed(0)}%` : '—'}
         </p>
         <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">Humidité</p>
       </div>
-      <div className="bg-green-50 rounded-xl p-3 text-center">
+      <div className="bg-green-50 dark:bg-green-900/20 rounded-xl p-3 text-center">
         <Wind size={18} className="mx-auto text-green-500 mb-1" />
         <p className={`text-2xl font-bold ${vpdColor(device.derniere_vpd)}`}>
           {device.derniere_vpd != null ? `${device.derniere_vpd.toFixed(2)}` : '—'}
@@ -493,7 +493,7 @@ function CsvImportPanel({
           text-sm font-medium cursor-pointer transition-colors
           ${importing
             ? 'border-gray-200 dark:border-gray-700 text-gray-400 dark:text-gray-500 pointer-events-none'
-            : 'border-teal-300 text-teal-600 hover:border-teal-500 hover:bg-teal-50'}
+            : 'border-teal-300 text-teal-600 dark:text-teal-400 hover:border-teal-500 hover:bg-teal-50 dark:bg-teal-900/20'}
         `}
       >
         <Upload size={16} className={importing ? 'animate-bounce' : ''} />
@@ -501,9 +501,9 @@ function CsvImportPanel({
       </label>
 
       {result && (
-        <div className="flex items-start gap-2 bg-green-50 border border-green-200 rounded-lg p-3">
+        <div className="flex items-start gap-2 bg-green-50 dark:bg-green-900/20 border border-green-200 rounded-lg p-3">
           <CheckCircle size={16} className="text-green-500 shrink-0 mt-0.5" />
-          <div className="text-xs text-green-700">
+          <div className="text-xs text-green-700 dark:text-green-300">
             <p className="font-semibold mb-0.5">Import terminé</p>
             <p>{result.message}</p>
           </div>
@@ -511,9 +511,9 @@ function CsvImportPanel({
       )}
 
       {error && (
-        <div className="flex items-start gap-2 bg-red-50 border border-red-200 rounded-lg p-3">
+        <div className="flex items-start gap-2 bg-red-50 dark:bg-red-900/20 border border-red-200 rounded-lg p-3">
           <AlertCircle size={16} className="text-red-500 shrink-0 mt-0.5" />
-          <p className="text-xs text-red-700">{error}</p>
+          <p className="text-xs text-red-700 dark:text-red-300">{error}</p>
         </div>
       )}
 
@@ -609,7 +609,7 @@ export default function SuiviConstantes() {
           <p className="text-gray-500 dark:text-gray-400 dark:text-gray-500 font-medium">Aucun capteur configuré</p>
           <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
             Ajoutez vos capteurs Govee dans la page{' '}
-            <span className="text-teal-600 font-medium">Paramétrage → Capteurs Govee</span>
+            <span className="text-teal-600 dark:text-teal-400 font-medium">Paramétrage → Capteurs Govee</span>
           </p>
         </div>
       ) : (

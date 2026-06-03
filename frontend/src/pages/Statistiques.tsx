@@ -39,18 +39,18 @@ function MiniStat({
   icon?: React.ElementType
 }) {
   const bg: Record<string, string> = {
-    grow:   'bg-grow-50',   purple: 'bg-purple-50',
-    blue:   'bg-blue-50',   amber:  'bg-amber-50',
-    orange: 'bg-orange-50', teal:   'bg-teal-50',
-    rose:   'bg-rose-50',   gray:   'bg-gray-50 dark:bg-gray-700/50',
-    green:  'bg-green-50',  indigo: 'bg-indigo-50',
+    grow:   'bg-grow-50',   purple: 'bg-purple-50 dark:bg-purple-900/20',
+    blue:   'bg-blue-50 dark:bg-blue-900/20',   amber:  'bg-amber-50 dark:bg-amber-900/20',
+    orange: 'bg-orange-50 dark:bg-orange-900/20', teal:   'bg-teal-50 dark:bg-teal-900/20',
+    rose:   'bg-rose-50 dark:bg-rose-900/20',   gray:   'bg-gray-50 dark:bg-gray-700/50',
+    green:  'bg-green-50 dark:bg-green-900/20',  indigo: 'bg-indigo-50 dark:bg-indigo-900/20',
   }
   const txt: Record<string, string> = {
-    grow:   'text-grow-700',   purple: 'text-purple-700',
-    blue:   'text-blue-700',   amber:  'text-amber-700',
-    orange: 'text-orange-700', teal:   'text-teal-700',
-    rose:   'text-rose-700',   gray:   'text-gray-700 dark:text-gray-200',
-    green:  'text-green-700',  indigo: 'text-indigo-700',
+    grow:   'text-grow-700',   purple: 'text-purple-700 dark:text-purple-300',
+    blue:   'text-blue-700 dark:text-blue-300',   amber:  'text-amber-700 dark:text-amber-300',
+    orange: 'text-orange-700 dark:text-orange-300', teal:   'text-teal-700 dark:text-teal-300',
+    rose:   'text-rose-700 dark:text-rose-300',   gray:   'text-gray-700 dark:text-gray-200',
+    green:  'text-green-700 dark:text-green-300',  indigo: 'text-indigo-700 dark:text-indigo-300',
   }
   const sub_: Record<string, string> = {
     grow:   'text-grow-400',   purple: 'text-purple-400',
@@ -500,9 +500,9 @@ export default function Statistiques() {
   }
   const TYPE_TEXT: Record<string, string> = {
     Fleur:  'text-grow-600',
-    Trim:   'text-blue-600',
-    Hash:   'text-amber-600',
-    Rosin:  'text-purple-600',
+    Trim:   'text-blue-600 dark:text-blue-400',
+    Hash:   'text-amber-600 dark:text-amber-400',
+    Rosin:  'text-purple-600 dark:text-purple-400',
     Autre:  'text-gray-600 dark:text-gray-300',
   }
 
@@ -530,7 +530,7 @@ export default function Statistiques() {
                 {grainesStats.repartition.filter(r => r.count > 0).map(r => {
                   const pct = Math.round((r.count / grainesStats.totalStock) * 100)
                   const colors: Record<string, string> = { 'Féminisée': 'bg-pink-400', 'Régulière': 'bg-blue-400', 'Auto': 'bg-grow-400', 'Autre': 'bg-gray-400' }
-                  const textColors: Record<string, string> = { 'Féminisée': 'text-pink-600', 'Régulière': 'text-blue-600', 'Auto': 'text-grow-600', 'Autre': 'text-gray-600 dark:text-gray-300' }
+                  const textColors: Record<string, string> = { 'Féminisée': 'text-pink-600 dark:text-pink-400', 'Régulière': 'text-blue-600 dark:text-blue-400', 'Auto': 'text-grow-600', 'Autre': 'text-gray-600 dark:text-gray-300' }
                   return (
                     <div key={r.label} className="flex items-center gap-3">
                       <span className={`text-xs font-medium w-20 shrink-0 ${textColors[r.label] ?? 'text-gray-600 dark:text-gray-300'}`}>{r.label}</span>
@@ -571,14 +571,14 @@ export default function Statistiques() {
               color="grow"   />
             <MiniStat icon={Hash}    label="Variétés"       value={stockStats.nbVarietes}                   sub="en stock"                   color="blue"   />
             <MiniStat icon={BarChart2} label="Qté moy./variété" value={`${stockStats.qteMoyenne.toFixed(1)} g`} sub="moyenne"                color="purple" />
-            <div className="bg-green-50 rounded-xl p-4">
-              <div className="flex items-center gap-1.5 mb-1 text-green-500"><ArrowUp size={13} /><span className="text-xs font-semibold uppercase tracking-wide text-green-600">Qté max variété</span></div>
-              <p className="text-2xl font-bold text-green-700">{stockStats.qteMax.toFixed(1)} g</p>
+            <div className="bg-green-50 dark:bg-green-900/20 rounded-xl p-4">
+              <div className="flex items-center gap-1.5 mb-1 text-green-500"><ArrowUp size={13} /><span className="text-xs font-semibold uppercase tracking-wide text-green-600 dark:text-green-400">Qté max variété</span></div>
+              <p className="text-2xl font-bold text-green-700 dark:text-green-300">{stockStats.qteMax.toFixed(1)} g</p>
               <p className="text-xs text-green-400 mt-0.5 truncate" title={stockStats.varieteMax}>{stockStats.varieteMax}</p>
             </div>
-            <div className="bg-rose-50 rounded-xl p-4">
-              <div className="flex items-center gap-1.5 mb-1 text-rose-500"><ArrowDown size={13} /><span className="text-xs font-semibold uppercase tracking-wide text-rose-600">Qté min variété</span></div>
-              <p className="text-2xl font-bold text-rose-700">{stockStats.qteMin.toFixed(1)} g</p>
+            <div className="bg-rose-50 dark:bg-rose-900/20 rounded-xl p-4">
+              <div className="flex items-center gap-1.5 mb-1 text-rose-500"><ArrowDown size={13} /><span className="text-xs font-semibold uppercase tracking-wide text-rose-600 dark:text-rose-400">Qté min variété</span></div>
+              <p className="text-2xl font-bold text-rose-700 dark:text-rose-300">{stockStats.qteMin.toFixed(1)} g</p>
               <p className="text-xs text-rose-400 mt-0.5 truncate" title={stockStats.varieteMin}>{stockStats.varieteMin}</p>
             </div>
             <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4">
@@ -690,13 +690,13 @@ export default function Statistiques() {
 
               {/* Meilleure variété */}
               {cultStats.bestVariete && (
-                <div className="bg-amber-50 rounded-xl p-4 flex items-start gap-3">
+                <div className="bg-amber-50 dark:bg-amber-900/20 rounded-xl p-4 flex items-start gap-3">
                   <Trophy size={20} className="text-amber-500 mt-0.5 shrink-0" />
                   <div>
                     <p className="text-xs font-semibold text-amber-400 uppercase tracking-wide mb-0.5">
                       Variété la plus productive sur la période
                     </p>
-                    <p className="text-lg font-bold text-amber-800">{cultStats.bestVariete.nom}</p>
+                    <p className="text-lg font-bold text-amber-800 dark:text-amber-300">{cultStats.bestVariete.nom}</p>
                     <p className="text-xs text-amber-500 mt-0.5">
                       Moy. {cultStats.bestVariete.avg.toFixed(1)} g/plante · Total {cultStats.bestVariete.total.toFixed(1)} g
                     </p>
@@ -753,9 +753,9 @@ export default function Statistiques() {
                     <MiniStat icon={Percent}  label="Ratio moyen"  value={`${exStats.ratioMoy.toFixed(1)}%`}  color="grow"   />
                     <MiniStat icon={ArrowUp}  label="Ratio max"    value={`${exStats.ratioMax.toFixed(1)}%`}  color="green"  />
                     <MiniStat icon={ArrowDown} label="Ratio min"   value={`${exStats.ratioMin.toFixed(1)}%`}  color="rose"   />
-                    <div className="bg-amber-50 rounded-xl p-4 col-span-2">
+                    <div className="bg-amber-50 dark:bg-amber-900/20 rounded-xl p-4 col-span-2">
                       <p className="text-xs font-semibold uppercase tracking-wide text-amber-400 mb-1">Meilleure variété</p>
-                      <p className="text-sm font-bold text-amber-700 truncate" title={exStats.bestVariete}>{exStats.bestVariete}</p>
+                      <p className="text-sm font-bold text-amber-700 dark:text-amber-300 truncate" title={exStats.bestVariete}>{exStats.bestVariete}</p>
                       <p className="text-xs text-amber-400 mt-0.5">ratio moyen le plus élevé</p>
                     </div>
                     <MiniStat icon={Hash} label="Variétés pressées" value={exStats.nbVarietes} sub="différentes" color="orange" />
@@ -792,9 +792,9 @@ export default function Statistiques() {
                     <MiniStat icon={Percent}   label="Ratio moyen" value={`${hashStats.ratioMoy.toFixed(1)}%`} color="grow"   />
                     <MiniStat icon={ArrowUp}   label="Ratio max"   value={`${hashStats.ratioMax.toFixed(1)}%`} color="green"  />
                     <MiniStat icon={ArrowDown} label="Ratio min"   value={`${hashStats.ratioMin.toFixed(1)}%`} color="rose"   />
-                    <div className="bg-amber-50 rounded-xl p-4 col-span-2">
+                    <div className="bg-amber-50 dark:bg-amber-900/20 rounded-xl p-4 col-span-2">
                       <p className="text-xs font-semibold uppercase tracking-wide text-amber-400 mb-1">Meilleure variété</p>
-                      <p className="text-sm font-bold text-amber-700 truncate" title={hashStats.bestVariete}>{hashStats.bestVariete}</p>
+                      <p className="text-sm font-bold text-amber-700 dark:text-amber-300 truncate" title={hashStats.bestVariete}>{hashStats.bestVariete}</p>
                       <p className="text-xs text-amber-400 mt-0.5">ratio moyen le plus élevé</p>
                     </div>
                     <MiniStat icon={Hash} label="Variétés" value={hashStats.nbVarietes} sub="différentes" color="orange" />

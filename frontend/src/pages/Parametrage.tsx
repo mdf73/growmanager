@@ -214,7 +214,7 @@ function ListeEditor({ listeNom, label }: { listeNom: string; label: string }) {
                     <button
                       onClick={() => deleteMut.mutate(item.id_parametre)}
                       disabled={deleteMut.isPending}
-                      className="p-1 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded opacity-0 group-hover:opacity-100 transition-opacity">
+                      className="p-1 text-gray-300 hover:text-red-500 hover:bg-red-50 dark:bg-red-900/20 rounded opacity-0 group-hover:opacity-100 transition-opacity">
                       <Trash2 size={12} />
                     </button>
                   </>
@@ -383,7 +383,7 @@ function BreedersEditor() {
                   <button
                     onClick={() => deleteMut.mutate(b.id_breeder)}
                     disabled={deleteMut.isPending}
-                    className="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+                    className="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 dark:bg-red-900/20 rounded opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
                     <Trash2 size={13} />
                   </button>
                 </div>
@@ -592,7 +592,7 @@ function VarietesEditor() {
                   <button
                     onClick={() => deleteMut.mutate(v.id_variete)}
                     disabled={deleteMut.isPending}
-                    className="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+                    className="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 dark:bg-red-900/20 rounded opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
                     <Trash2 size={13} />
                   </button>
                 </div>
@@ -706,7 +706,7 @@ function VPDSettingsSectionContent() {
             />
             <span className="text-sm text-gray-500 dark:text-gray-400">°C</span>
             <button onClick={save} disabled={vpdOffset.isPending}
-              className="p-1.5 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors">
+              className="p-1.5 text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:bg-purple-900/20 rounded-lg transition-colors">
               {vpdOffset.isPending ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
             </button>
             <button onClick={() => setEditing(false)}
@@ -716,13 +716,13 @@ function VPDSettingsSectionContent() {
           </div>
         ) : (
           <div className="flex items-center gap-3 mt-2">
-            <span className="text-2xl font-bold text-purple-700">
+            <span className="text-2xl font-bold text-purple-700 dark:text-purple-300">
               −{vpdOffset.value ?? '2.0'} °C
             </span>
             <span className="text-xs text-gray-400 dark:text-gray-500">T°feuille = T°air − offset</span>
-            {saved && <span className="text-xs text-purple-600 flex items-center gap-1"><CheckCircle2 size={12} /> Enregistré</span>}
+            {saved && <span className="text-xs text-purple-600 dark:text-purple-400 flex items-center gap-1"><CheckCircle2 size={12} /> Enregistré</span>}
             <button onClick={startEdit}
-              className="flex items-center gap-1 text-xs text-gray-400 dark:text-gray-500 hover:text-purple-600 px-2 py-1 hover:bg-purple-50 rounded-lg transition-colors">
+              className="flex items-center gap-1 text-xs text-gray-400 dark:text-gray-500 hover:text-purple-600 dark:text-purple-400 px-2 py-1 hover:bg-purple-50 dark:bg-purple-900/20 rounded-lg transition-colors">
               <Pencil size={12} /> Modifier
             </button>
           </div>
@@ -752,14 +752,14 @@ function CapteurAccordion({
   const [open, setOpen] = useState(id === 'vpd') // Govee ouvert par défaut
 
   const headerColors = {
-    teal:   'bg-teal-50 hover:bg-teal-100/60',
-    orange: 'bg-orange-50 hover:bg-orange-100/60',
-    purple: 'bg-purple-50 hover:bg-purple-100/60',
+    teal:   'bg-teal-50 dark:bg-teal-900/20 hover:bg-teal-100/60',
+    orange: 'bg-orange-50 dark:bg-orange-900/20 hover:bg-orange-100/60',
+    purple: 'bg-purple-50 dark:bg-purple-900/20 hover:bg-purple-100/60',
   }
   const iconColors = {
-    teal:   'text-teal-600',
+    teal:   'text-teal-600 dark:text-teal-400',
     orange: 'text-orange-500',
-    purple: 'text-purple-600',
+    purple: 'text-purple-600 dark:text-purple-400',
   }
 
   return (
@@ -893,10 +893,10 @@ function ESPHomeSectionContent() {
 
         {/* Info protocole */}
         <div className="text-xs text-gray-400 dark:text-gray-500 bg-orange-50 dark:bg-orange-900/10 border border-orange-100 rounded-lg p-3 space-y-1">
-          <p className="font-medium text-orange-600">💡 Comment ça marche ?</p>
+          <p className="font-medium text-orange-600 dark:text-orange-400">💡 Comment ça marche ?</p>
           <p>Chaque capteur ESPHome envoie un <strong>POST</strong> vers GrowManager toutes les 60 secondes.</p>
           <p>L'URL à configurer dans ton YAML ESPHome :</p>
-          <code className="block mt-1 px-2 py-1 bg-white dark:bg-gray-800 rounded border border-orange-200 text-xs text-orange-700 font-mono break-all">
+          <code className="block mt-1 px-2 py-1 bg-white dark:bg-gray-800 rounded border border-orange-200 text-xs text-orange-700 dark:text-orange-300 font-mono break-all">
             {window.location.origin.replace(':5173', ':8000')}/api/capteurs/esphome/push
           </code>
           <p className="mt-1">Le <strong>device_id</strong> dans le YAML doit correspondre exactement à celui saisi ici.</p>
@@ -920,8 +920,8 @@ function ESPHomeSectionContent() {
 
           {/* Formulaire ajout */}
           {showForm && (
-            <div className="mb-4 p-4 border border-orange-200 bg-orange-50 rounded-xl space-y-3">
-              <h4 className="text-xs font-semibold text-orange-600 uppercase tracking-wide">Nouveau capteur ESPHome</h4>
+            <div className="mb-4 p-4 border border-orange-200 bg-orange-50 dark:bg-orange-900/20 rounded-xl space-y-3">
+              <h4 className="text-xs font-semibold text-orange-600 dark:text-orange-400 uppercase tracking-wide">Nouveau capteur ESPHome</h4>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs text-gray-600 dark:text-gray-300 mb-1">Nom affiché *</label>
@@ -1025,7 +1025,7 @@ function ESPHomeSectionContent() {
                       onClick={() => handleToggleActif(d)}
                       className={`shrink-0 p-1.5 rounded-lg transition-colors ${
                         d.actif
-                          ? 'bg-green-100 text-green-600 hover:bg-green-200'
+                          ? 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 hover:bg-green-200'
                           : 'bg-gray-200 text-gray-400 dark:text-gray-500 hover:bg-gray-300'
                       }`}
                       title={d.actif ? 'Actif — cliquer pour désactiver' : 'Inactif — cliquer pour activer'}
@@ -1034,7 +1034,7 @@ function ESPHomeSectionContent() {
                     </button>
                     <button
                       onClick={() => handleDelete(d.id_device)}
-                      className="shrink-0 p-1.5 text-red-400 hover:bg-red-50 rounded-lg transition-colors"
+                      className="shrink-0 p-1.5 text-red-400 hover:bg-red-50 dark:bg-red-900/20 rounded-lg transition-colors"
                     >
                       <Trash2 size={14} />
                     </button>
@@ -1063,7 +1063,7 @@ function ESPHomeSectionContent() {
                       className="flex items-center gap-1.5 text-xs text-left w-fit px-2 py-1 rounded-lg hover:bg-gray-200 transition-colors"
                     >
                       <span className="text-gray-400 dark:text-gray-500">🏠</span>
-                      <span className={d.nom_espace ? 'text-orange-600 font-medium' : 'text-gray-400 dark:text-gray-500 italic'}>
+                      <span className={d.nom_espace ? 'text-orange-600 dark:text-orange-400 font-medium' : 'text-gray-400 dark:text-gray-500 italic'}>
                         {d.nom_espace ?? 'Aucun espace — cliquer pour assigner'}
                       </span>
                       <Pencil size={10} className="text-gray-400 dark:text-gray-500 ml-0.5" />
@@ -1211,7 +1211,7 @@ function GoveeSectionContent() {
             Si l'IP locale n'est pas disponible, le polling utilise l'API Cloud Govee.
             Obtenez votre clé sur{' '}
             <a href="https://developer.govee.com" target="_blank" rel="noreferrer"
-               className="text-teal-600 underline">developer.govee.com</a>.
+               className="text-teal-600 dark:text-teal-400 underline">developer.govee.com</a>.
           </p>
           <div className="flex gap-2">
             <input
@@ -1232,7 +1232,7 @@ function GoveeSectionContent() {
             </button>
           </div>
           {config?.api_key && (
-            <p className="text-xs text-green-600 mt-1">✓ Clé API enregistrée</p>
+            <p className="text-xs text-green-600 dark:text-green-400 mt-1">✓ Clé API enregistrée</p>
           )}
         </div>
 
@@ -1293,13 +1293,13 @@ function GoveeSectionContent() {
 
           {/* Panneau import Govee Cloud */}
           {showImport && (
-            <div className="mb-4 p-4 border border-blue-200 bg-blue-50 rounded-xl">
+            <div className="mb-4 p-4 border border-blue-200 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
               <div className="flex items-center justify-between mb-3">
-                <h4 className="text-xs font-semibold text-blue-700 uppercase tracking-wide">
+                <h4 className="text-xs font-semibold text-blue-700 dark:text-blue-300 uppercase tracking-wide">
                   Appareils Govee détectés sur ton compte
                 </h4>
                 <button onClick={() => setShowImport(false)}
-                  className="text-blue-400 hover:text-blue-600">
+                  className="text-blue-400 hover:text-blue-600 dark:text-blue-400">
                   <X size={14} />
                 </button>
               </div>
@@ -1319,7 +1319,7 @@ function GoveeSectionContent() {
                         <p className="text-xs text-gray-400 dark:text-gray-500">{d.sku} · {d.device_id}</p>
                       </div>
                       {d.already_registered ? (
-                        <span className="text-xs text-green-600 font-medium flex items-center gap-1">
+                        <span className="text-xs text-green-600 dark:text-green-400 font-medium flex items-center gap-1">
                           <Check size={12} /> Enregistré
                         </span>
                       ) : (
@@ -1341,8 +1341,8 @@ function GoveeSectionContent() {
 
           {/* Formulaire ajout manuel */}
           {showForm && (
-            <div className="mb-4 p-4 border border-teal-200 bg-teal-50 rounded-xl space-y-3">
-              <h4 className="text-xs font-semibold text-teal-700 uppercase tracking-wide">Nouveau capteur</h4>
+            <div className="mb-4 p-4 border border-teal-200 bg-teal-50 dark:bg-teal-900/20 rounded-xl space-y-3">
+              <h4 className="text-xs font-semibold text-teal-700 dark:text-teal-300 uppercase tracking-wide">Nouveau capteur</h4>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs text-gray-600 dark:text-gray-300 mb-1">Nom *</label>
@@ -1416,14 +1416,14 @@ function GoveeSectionContent() {
                     <button onClick={() => handleToggleActif(d)}
                       className={`shrink-0 p-1.5 rounded-lg transition-colors ${
                         d.actif
-                          ? 'bg-green-100 text-green-600 hover:bg-green-200'
+                          ? 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 hover:bg-green-200'
                           : 'bg-gray-200 text-gray-400 dark:text-gray-500 hover:bg-gray-300'
                       }`}
                       title={d.actif ? 'Actif — cliquer pour désactiver' : 'Inactif — cliquer pour activer'}>
                       <Wifi size={14} />
                     </button>
                     <button onClick={() => handleDelete(d.id_device)}
-                      className="shrink-0 p-1.5 text-red-400 hover:bg-red-50 rounded-lg transition-colors">
+                      className="shrink-0 p-1.5 text-red-400 hover:bg-red-50 dark:bg-red-900/20 rounded-lg transition-colors">
                       <Trash2 size={14} />
                     </button>
                   </div>
@@ -1452,7 +1452,7 @@ function GoveeSectionContent() {
                       className="flex items-center gap-1.5 text-xs text-left w-fit px-2 py-1 rounded-lg hover:bg-gray-200 transition-colors"
                     >
                       <span className="text-gray-400 dark:text-gray-500">🏠</span>
-                      <span className={d.nom_espace ? 'text-teal-700 font-medium' : 'text-gray-400 dark:text-gray-500 italic'}>
+                      <span className={d.nom_espace ? 'text-teal-700 dark:text-teal-300 font-medium' : 'text-gray-400 dark:text-gray-500 italic'}>
                         {d.nom_espace ?? 'Aucun espace — cliquer pour assigner'}
                       </span>
                       <Pencil size={10} className="text-gray-400 dark:text-gray-500 ml-0.5" />
@@ -1638,7 +1638,7 @@ function GmailImportSection({
       {/* Résultat du test manuel */}
       {checkResult && (
         <div className={`mb-4 rounded-lg px-3 py-2 text-sm flex items-start gap-2
-          ${checkResult.ok ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+          ${checkResult.ok ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300' : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300'}`}>
           {checkResult.ok
             ? <CheckCircle2 size={15} className="shrink-0 mt-0.5" />
             : <AlertCircle  size={15} className="shrink-0 mt-0.5" />}
@@ -1657,7 +1657,7 @@ function GmailImportSection({
       )}
 
       {saveMsg && (
-        <p className={`text-xs mb-3 ${saveMsg.startsWith('✓') ? 'text-green-600' : 'text-red-500'}`}>
+        <p className={`text-xs mb-3 ${saveMsg.startsWith('✓') ? 'text-green-600 dark:text-green-400' : 'text-red-500'}`}>
           {saveMsg}
         </p>
       )}
@@ -1687,17 +1687,17 @@ function GmailImportSection({
 
       {/* Guide pas à pas */}
       <details className="mt-4">
-        <summary className="text-xs text-blue-500 cursor-pointer hover:text-blue-700 select-none">
+        <summary className="text-xs text-blue-500 cursor-pointer hover:text-blue-700 dark:text-blue-300 select-none">
           📋 Comment créer un mot de passe d'application Google ?
         </summary>
-        <div className="mt-2 text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 bg-blue-50 rounded-lg p-3 space-y-1.5">
+        <div className="mt-2 text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3 space-y-1.5">
           <p><strong>1.</strong> Assure-toi d'avoir la <strong>validation en 2 étapes activée</strong> sur ton compte Google
             (<a href="https://myaccount.google.com/security" target="_blank" rel="noreferrer" className="text-blue-500 underline">myaccount.google.com/security</a>).</p>
           <p><strong>2.</strong> Va sur{' '}
             <a href="https://myaccount.google.com/apppasswords" target="_blank" rel="noreferrer" className="text-blue-500 underline">
               myaccount.google.com/apppasswords
             </a>.</p>
-          <p><strong>3.</strong> Dans le champ "Nom de l'application", tape <code className="bg-blue-100 px-1 rounded">GrowManager</code> et clique <strong>Créer</strong>.</p>
+          <p><strong>3.</strong> Dans le champ "Nom de l'application", tape <code className="bg-blue-100 dark:bg-blue-900/30 px-1 rounded">GrowManager</code> et clique <strong>Créer</strong>.</p>
           <p><strong>4.</strong> Google affiche un mot de passe de <strong>16 caractères</strong> (format : xxxx xxxx xxxx xxxx). Copie-le.</p>
           <p><strong>5.</strong> Colle-le dans le champ "Mot de passe d'application" ci-dessus et clique <strong>Enregistrer</strong>.</p>
           <p className="text-gray-400 dark:text-gray-500 pt-1">Ce mot de passe ne fonctionne que pour GrowManager et peut être révoqué à tout moment.</p>
@@ -1968,7 +1968,7 @@ function BackupSection() {
             className={`flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed
                         px-4 py-6 cursor-pointer transition-colors
                         ${dragOver
-                          ? 'border-orange-400 bg-orange-50'
+                          ? 'border-orange-400 bg-orange-50 dark:bg-orange-900/20'
                           : 'border-gray-200 dark:border-gray-700 hover:border-grow-400 hover:bg-grow-50'}`}
           >
             <UploadCloud size={24} className={dragOver ? 'text-orange-400' : 'text-gray-300'} />
@@ -1991,7 +1991,7 @@ function BackupSection() {
           {/* Message résultat */}
           {restoreMsg && (
             <div className={`flex items-start gap-2 rounded-lg px-3 py-2 text-sm
-              ${restoreMsg.ok ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-600'}`}>
+              ${restoreMsg.ok ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300' : 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400'}`}>
               {restoreMsg.ok
                 ? <CheckCircle2 size={15} className="shrink-0 mt-0.5" />
                 : <AlertCircle  size={15} className="shrink-0 mt-0.5" />}
@@ -2006,7 +2006,7 @@ function BackupSection() {
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-sm w-full p-6 space-y-4">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-orange-100 rounded-xl">
+              <div className="p-2.5 bg-orange-100 dark:bg-orange-900/30 rounded-xl">
                 <AlertCircle size={20} className="text-orange-500" />
               </div>
               <div>
@@ -2167,7 +2167,7 @@ function StockAlertSeuilsSection() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <span className="font-semibold text-sm text-gray-800 dark:text-gray-100">{s.type_stock}</span>
-                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${s.actif ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${s.actif ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300' : 'bg-gray-100 text-gray-500'}`}>
                       {s.actif ? 'Actif' : 'Inactif'}
                     </span>
                   </div>
@@ -2182,7 +2182,7 @@ function StockAlertSeuilsSection() {
                   <button onClick={() => startEdit(s)} className="p-1.5 text-gray-400 hover:text-grow-600 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg">
                     <Pencil size={14} />
                   </button>
-                  <button onClick={() => deleteMut.mutate(s.type_stock)} className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg">
+                  <button onClick={() => deleteMut.mutate(s.type_stock)} className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:bg-red-900/20 dark:hover:bg-red-900/20 rounded-lg">
                     <Trash2 size={14} />
                   </button>
                 </div>
