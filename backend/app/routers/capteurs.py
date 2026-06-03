@@ -235,7 +235,8 @@ def create_log(payload: TemperatureLogCreate, db: Session = Depends(get_db)):
     """Insertion manuelle d'un relevé."""
     vpd = None
     if payload.temperature is not None and payload.humidite is not None:
-        vpd = compute_vpd(payload.temperature, payload.humidite)
+        from app.services.govee_poller import _get_leaf_offset
+        vpd = compute_vpd(payload.temperature, payload.humidite, leaf_offset=_get_leaf_offset(db))
 
     log = TemperatureLog(
         id_device=   payload.id_device,
@@ -385,7 +386,9 @@ def manual_poll(db: Session = Depends(get_db)):
         GoveeDevice.actif  == True,
         GoveeDevice.modele != "esphome",
     ).all()
-    api_key = _get_cloud_api_key(db)
+    api_key     = _get_cloud_api_key(db)
+    from app.services.govee_poller import _get_leaf_offset
+    leaf_offset = _get_leaf_offset(db)
     results: List[PollResult] = []
 
     for device in devices:
@@ -408,7 +411,7 @@ def manual_poll(db: Session = Depends(get_db)):
 
         temp = reading["temperature"]
         hum  = reading["humidity"]
-        vpd  = compute_vpd(temp, hum)
+        vpd  = compute_vpd(temp, hum, leaf_offset=leaf_offset)
 
         id_culture = None
         if device.id_espace:

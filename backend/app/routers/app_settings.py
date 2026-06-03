@@ -11,8 +11,9 @@ router = APIRouter(prefix="/api/app-settings", tags=["app-settings"])
 
 # ── Valeurs par défaut ────────────────────────────────────────────────────────
 SETTINGS_DEFAULTS = [
-    {"cle": "prix_kwh",  "valeur": "0.18", "label": "Prix du kWh (€)"},
-    {"cle": "devise",    "valeur": "EUR",   "label": "Devise"},
+    {"cle": "prix_kwh",        "valeur": "0.18", "label": "Prix du kWh (€)"},
+    {"cle": "devise",          "valeur": "EUR",   "label": "Devise"},
+    {"cle": "vpd_leaf_offset", "valeur": "2.0",   "label": "Offset température foliaire VPD (°C)"},
 ]
 
 

@@ -1,0 +1,66 @@
+# ── docker-compose.prod.yml ───────────────────────────────────────────────────
+# Déploiement depuis les images Docker pré-buildées (GitHub Container Registry).
+# Usage :
+#   export GROWMANAGER_VERSION=v1.2.0   # ou "latest" pour la dernière
+#   docker compose -f docker-compose.prod.yml pull
+#   docker compose -f docker-compose.prod.yml up -d
+#
+# Variables d'environnement requises (dans un fichier .env ou en export) :
+#   GROWMANAGER_VERSION   Tag de l'image (ex: v1.0.0, latest)
+#   MYSQL_ROOT_PASSWORD   Mot de passe root MySQL
+#   MYSQL_PASSWORD        Mot de passe utilisateur MySQL
+#   SECRET_KEY            Clé secrète FastAPI
+#   GROWMANAGER_URL       URL publique de l'application (ex: http://192.168.1.10:420)
+#   GM_DATA_ROOT          Répertoire de données persistantes (ex: /mnt/user/appdata/growmanager)
+#   APP_PORT              Port public de l'application (défaut: 80)
+# ─────────────────────────────────────────────────────────────────────────────
+version: "3.8"
+
+services:
+  db:
+    image: mysql:8.2
+    container_name: growmanager-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-growroot}
+      MYSQL_DATABASE:      ${MYSQL_DATABASE:-growmanager}
+      MYSQL_USER:          ${MYSQL_USER:-grow}
+      MYSQL_PASSWORD:      ${MYSQL_PASSWORD:-grow2024}
+      TZ:                  ${TZ:-Europe/Paris}
+    volumes:
+      - ${GM_DATA_ROOT:-./data}/mysql:/var/lib/mysql
+      - ./backend/init.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u${MYSQL_USER:-grow} -p${MYSQL_PASSWORD:-grow2024} --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    image: ghcr.io/mdf73/growmanager-backend:${GROWMANAGER_VERSION:-latest}
+    container_name: growmanager-backend
+    restart: unless-stopped
+    environment:
+      DATABASE_URL:    mysql+pymysql://${MYSQL_USER:-grow}:${MYSQL_PASSWORD:-grow2024}@db:3306/${MYSQL_DATABASE:-growmanager}
+      SECRET_KEY:      ${SECRET_KEY:-changeme-in-production}
+      GROWMANAGER_URL: ${GROWMANAGER_URL:-http://localhost}
+      TZ:              ${TZ:-Europe/Paris}
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    volumes:
+      - ${GM_DATA_ROOT:-./data}/uploads:/app/uploads
+
+  frontend:
+    image: ghcr.io/mdf73/growmanager-frontend:${GROWMANAGER_VERSION:-latest}
+    container_name: growmanager-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "${APP_PORT:-80}:80"
+
+volumes:
+  mysql_data:

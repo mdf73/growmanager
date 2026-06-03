@@ -1,6 +1,6 @@
 ---
 type: roadmap
-updated: 2026-05-17
+updated: 2026-06-03
 sources: [Documentation/claude.md, Documentation/Instructions de reprises v1.txt, Documentation/GrowManager_Specifications_v4.docx]
 sprint1_completed: 2026-05-10
 ---
@@ -127,6 +127,32 @@ Nouvelle catégorie `photo` (rose, 📷) dans `actionTypes.ts`. `ActionModal.tsx
 
 ### Statistics Page
 - Verify all aggregations include archived (terminee) cultures
+
+---
+
+## Réalisé — Session 2026-06-03
+
+### ESPHome Integration ✅
+- `backend/app/schemas/esphome.py` + `backend/app/routers/esphome.py`
+- Stockage dans `GoveeDevice` (`modele="esphome"`) + `TemperatureLog` (`source="esphome"`)
+- Poller Govee exclu des capteurs ESPHome (`modele != "esphome"`)
+- Section UI accordéon dans Paramétrage → onglet Capteurs (Govee + ESPHome côte à côte)
+
+### Offset VPD foliaire configurable ✅
+- `AppSettings('vpd_leaf_offset')` — défaut 2.0°C
+- `compute_vpd(temp, hum, leaf_offset)` — utilisé partout (Govee poller, manual poll, ESPHome push, entrée manuelle)
+- Champ éditable dans Paramétrage → onglet Général → section Économique
+
+### Édition dates culture ✅
+- Composant `DatesModal` dans `Culture.tsx`
+- Bouton "Dates" dans le header de `CultureDetail`
+- Champs : démarrage, passage 12/12, début floraison, récolte estimée, date de fin
+
+### Images Docker avec versioning ✅
+- `backend/Dockerfile.prod` + `frontend/Dockerfile.prod` (multi-stage, production-ready)
+- `.github/workflows/docker-publish.yml` — build + push sur `ghcr.io/mdf73/` à chaque tag `vX.Y.Z`
+- `docker-compose.prod.yml` — déploiement depuis les images pré-buildées
+- `update.sh` — script de mise à jour en une ligne : `./update.sh v1.2.0`
 
 ---
 

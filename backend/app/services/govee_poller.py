@@ -37,13 +37,37 @@ GOVEE_TIMEOUT   = 3.0
 
 # ── VPD ───────────────────────────────────────────────────────────────────────
 
-def compute_vpd(temp_c: float, humidity_pct: float) -> float:
+# Offset température foliaire par défaut (°C).
+# La température des feuilles est généralement inférieure à la température de l'air.
+# Remplacé dynamiquement par la valeur de AppSettings('vpd_leaf_offset') si disponible.
+_DEFAULT_LEAF_OFFSET = 2.0
+
+
+def _get_leaf_offset(db=None) -> float:
+    """Lit l'offset foliaire depuis AppSettings. Retourne le défaut si non configuré."""
+    if db is None:
+        return _DEFAULT_LEAF_OFFSET
+    try:
+        from app.models.all_models import AppSettings as _AppSettings
+        row = db.query(_AppSettings).filter(_AppSettings.cle == "vpd_leaf_offset").first()
+        if row and row.valeur is not None:
+            return float(row.valeur)
+    except Exception:
+        pass
+    return _DEFAULT_LEAF_OFFSET
+
+
+def compute_vpd(temp_c: float, humidity_pct: float, leaf_offset: float = _DEFAULT_LEAF_OFFSET) -> float:
     """
-    Déficit de Pression de Vapeur (kPa).
+    Déficit de Pression de Vapeur (kPa) basé sur la température foliaire.
     Formule Tetens : es = 0.6108 * exp(17.27 * T / (T + 237.3))
     VPD = es * (1 - RH/100)
+
+    leaf_offset : correction T°air → T°feuille (défaut 2.0°C).
+                  Configurable via AppSettings('vpd_leaf_offset').
     """
-    es  = 0.6108 * math.exp(17.27 * temp_c / (temp_c + 237.3))
+    leaf_temp = temp_c - leaf_offset
+    es  = 0.6108 * math.exp(17.27 * leaf_temp / (leaf_temp + 237.3))
     vpd = es * (1.0 - humidity_pct / 100.0)
     return round(vpd, 4)
 
@@ -206,7 +230,8 @@ def poll_all_devices():
         ).all()
         if not devices:
             return
-        api_key = _get_cloud_api_key(db)
+        api_key    = _get_cloud_api_key(db)
+        leaf_offset = _get_leaf_offset(db)
 
         for device in devices:
             reading: Optional[dict] = None
@@ -226,7 +251,7 @@ def poll_all_devices():
 
             temp = reading["temperature"]
             hum  = reading["humidity"]
-            vpd  = compute_vpd(temp, hum)
+            vpd  = compute_vpd(temp, hum, leaf_offset=leaf_offset)
 
             id_culture = None
             if device.id_espace:

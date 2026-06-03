@@ -1,14 +1,23 @@
-feat: intégration capteurs ESPHome
+feat: VPD foliaire + édition dates culture + Docker prod images
 
-- Nouveau fichier backend/app/schemas/esphome.py (ESPHomePushPayload, ESPHomePushResult, ESPHomeDeviceCreate, ESPHomeDeviceUpdate)
-- Nouveau fichier backend/app/routers/esphome.py (push endpoint + CRUD devices)
-- main.py : ajout import + app.include_router(esphome.router)
-- capteurs.py : fix source hardcodée 'govee' → 'aggregated' dans l'agrégation horaire
-- Parametrage.tsx : onglet Capteurs refactorisé en accordéons (CapteurAccordion)
-  - Govee dans un accordéon teal (ouvert par défaut)
-  - ESPHome dans un accordéon orange
-  - Architecture extensible : ajouter un nouveau type de capteur = ajouter un accordéon
-- Wiki : features/sensor-integration.md + api/infrastructure.md mis à jour
+## VPD offset foliaire (configurable)
+- AppSettings('vpd_leaf_offset') — défaut 2.0°C, seedé au démarrage
+- compute_vpd() : nouveau param leaf_offset, appliqué partout
+  (Govee poller auto, manual poll, ESPHome push, entrée manuelle)
+- Paramétrage UI : accordéon "Paramètres capteurs" (violet) en premier dans l'onglet Capteurs
+  Govee et ESPHome restent en dessous — structure : VPD → Govee → ESPHome
 
-Les capteurs ESPHome réutilisent GoveeDevice (modele="esphome") et TemperatureLog (source="esphome").
-Govee et ESPHome sont totalement indépendants — aucun impact sur l'intégration existante.
+## Édition dates culture
+- Culture.tsx : DatesModal (démarrage, 12/12, début flo, récolte estimée, date fin)
+- Bouton "Dates" dans le header de CultureDetail
+- Appelle PUT /cultures/{id} (endpoint existant)
+
+## Images Docker prod avec versioning
+- backend/Dockerfile.prod  : multi-stage, uvicorn --workers 2 (sans --reload)
+- frontend/Dockerfile.prod : build Vite → nginx:alpine (SPA routing)
+- .github/workflows/docker-publish.yml : push sur ghcr.io/mdf73/ à chaque tag vX.Y.Z
+- docker-compose.prod.yml  : déploiement depuis images pré-buildées (variable GROWMANAGER_VERSION)
+- update.sh : ./update.sh v1.2.0
+
+## Wiki
+- roadmap.md : session 2026-06-03 documentée

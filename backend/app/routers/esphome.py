@@ -19,7 +19,7 @@ from app.schemas.esphome import (
     ESPHomePushPayload, ESPHomePushResult,
     ESPHomeDeviceCreate, ESPHomeDeviceUpdate,
 )
-from app.services.govee_poller import compute_vpd, _get_active_culture_id
+from app.services.govee_poller import compute_vpd, _get_active_culture_id, _get_leaf_offset
 
 router = APIRouter(tags=["esphome"])
 
@@ -102,10 +102,10 @@ def esphome_push(payload: ESPHomePushPayload, db: Session = Depends(get_db)):
     if not device.actif:
         return ESPHomePushResult(status="ignored", message="Capteur inactif — donnée ignorée")
 
-    # Calcul VPD si temp + humidité disponibles
+    # Calcul VPD si temp + humidité disponibles (avec offset foliaire configuré)
     vpd = None
     if payload.temperature is not None and payload.humidite is not None:
-        vpd = compute_vpd(payload.temperature, payload.humidite)
+        vpd = compute_vpd(payload.temperature, payload.humidite, leaf_offset=_get_leaf_offset(db))
 
     # Culture active liée à l'espace du capteur
     id_culture = None

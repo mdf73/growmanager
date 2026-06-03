@@ -1,25 +1,21 @@
 #!/bin/bash
-# GrowManager — Script de mise à jour production Linux
-# Usage : ./update.sh
-# À lancer depuis le dossier du projet après chaque push Windows
+# update.sh — Met à jour GrowManager vers une version donnée
+# Usage : ./update.sh v1.2.0
+#         ./update.sh latest
 
 set -e
 
-echo ""
-echo "=== GrowManager — Mise à jour production ==="
-echo ""
+VERSION=${1:-latest}
+echo "🌱 Mise à jour GrowManager → ${VERSION}"
 
-echo "[1/3] Pull des derniers commits..."
-git pull
+export GROWMANAGER_VERSION=${VERSION}
 
-echo ""
-echo "[2/3] Rebuild des images Docker et redémarrage..."
-docker compose -f docker-compose.server.yml up -d --build
+# Pull des nouvelles images
+docker compose -f docker-compose.prod.yml pull backend frontend
 
-echo ""
-echo "[3/3] Vérification des conteneurs..."
-docker compose -f docker-compose.server.yml ps
+# Redémarrage des services (la DB n'est pas redémarrée)
+docker compose -f docker-compose.prod.yml up -d --no-deps backend frontend
 
-echo ""
-echo "=== Mise à jour terminée ! ==="
-echo ""
+echo "✅ GrowManager ${VERSION} déployé"
+echo "   Backend  : $(docker inspect --format='{{.Config.Image}}' growmanager-backend 2>/dev/null || echo 'N/A')"
+echo "   Frontend : $(docker inspect --format='{{.Config.Image}}' growmanager-frontend 2>/dev/null || echo 'N/A')"

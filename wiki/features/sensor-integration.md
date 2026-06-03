@@ -1,7 +1,7 @@
 ---
 type: feature
 updated: 2026-06-03
-sources: [routers/capteurs.py, routers/esphome.py, schemas/esphome.py, models/all_models.py]
+sources: [routers/capteurs.py, routers/esphome.py, schemas/esphome.py, models/all_models.py, routers/app_settings.py]
 ---
 
 # Feature — Sensor Integration (Govee + ESPHome)

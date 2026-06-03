@@ -248,11 +248,99 @@ function CultureCard({
 }
 
 // ─── Vue détail d'une culture ─────────────────────────────────────────────────
+// ─── Modal édition des dates clés ─────────────────────────────────────────────
+
+interface DatesModalProps {
+  culture: CultureWithDetails
+  onClose: () => void
+  onSave:  (data: Record<string, string | null>) => void
+  isPending: boolean
+}
+
+function DatesModal({ culture, onClose, onSave, isPending }: DatesModalProps) {
+  const [form, setForm] = useState({
+    date_debut:           culture.date_debut?.slice(0, 10)           ?? '',
+    date_passage_12_12:   culture.date_passage_12_12?.slice(0, 10)   ?? '',
+    date_debut_floraison: culture.date_debut_floraison?.slice(0, 10) ?? '',
+    date_recolte_estimee: culture.date_recolte_estimee?.slice(0, 10) ?? '',
+    date_fin:             culture.date_fin?.slice(0, 10)             ?? '',
+  })
+
+  const handleSave = () => {
+    const data: Record<string, string | null> = {}
+    for (const [k, v] of Object.entries(form)) {
+      data[k] = v.trim() || null
+    }
+    onSave(data)
+  }
+
+  const Field = ({ label, field, help }: { label: string; field: keyof typeof form; help?: string }) => (
+    <div>
+      <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">{label}</label>
+      {help && <p className="text-xs text-gray-400 dark:text-gray-500 mb-1">{help}</p>}
+      <input
+        type="date"
+        value={form[field]}
+        onChange={e => setForm(f => ({ ...f, [field]: e.target.value }))}
+        className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm
+                   focus:outline-none focus:ring-2 focus:ring-grow-400 dark:bg-gray-700 dark:text-gray-100"
+      />
+    </div>
+  )
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-700">
+          <h2 className="text-base font-semibold text-gray-800 dark:text-gray-100">Dates clés de la culture</h2>
+          <button onClick={onClose} className="p-1 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:text-gray-300">
+            <X size={18} />
+          </button>
+        </div>
+        <div className="p-6 space-y-4">
+          <Field label="Date de démarrage" field="date_debut" />
+          <Field
+            label="Passage 12/12"
+            field="date_passage_12_12"
+            help="Date de basculement en cycle floraison (éclairage 12h/12h)"
+          />
+          <Field
+            label="Début floraison (visible)"
+            field="date_debut_floraison"
+            help="Date où les premiers pistils apparaissent. Calculée automatiquement si vide."
+          />
+          <Field label="Récolte estimée" field="date_recolte_estimee" help="Override du calcul automatique (optionnel)" />
+          {culture.statut !== 'active' && (
+            <Field label="Date de fin" field="date_fin" />
+          )}
+        </div>
+        <div className="flex justify-end gap-3 px-6 py-4 border-t border-gray-100 dark:border-gray-700">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 text-sm text-gray-600 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/40"
+          >
+            Annuler
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={isPending}
+            className="px-4 py-2 text-sm text-white bg-grow-600 rounded-lg hover:bg-grow-700 disabled:opacity-50 flex items-center gap-2"
+          >
+            {isPending ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
+            Enregistrer
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function CultureDetail({ cultureId, onBack }: { cultureId: number; onBack: () => void }) {
   const [activeTab, setActiveTab] = useState<'calendrier' | 'plantes' | 'stats' | 'photos'>('calendrier')
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [editingName, setEditingName] = useState(false)
   const [nameValue, setNameValue] = useState('')
+  const [showDatesModal, setShowDatesModal] = useState(false)
   const qc = useQueryClient()
 
   const { data: culture, isLoading } = useQuery<CultureWithDetails>({
@@ -288,6 +376,15 @@ function CultureDetail({ cultureId, onBack }: { cultureId: number; onBack: () =>
       qc.invalidateQueries({ queryKey: ['cultures'] })
       qc.invalidateQueries({ queryKey: ['culture', cultureId] })
       setEditingName(false)
+    },
+  })
+
+  const updateDates = useMutation({
+    mutationFn: (data: Record<string, string | null>) => cultureAPI.update(cultureId, data as any),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['cultures'] })
+      qc.invalidateQueries({ queryKey: ['culture', cultureId] })
+      setShowDatesModal(false)
     },
   })
 
@@ -432,6 +529,15 @@ function CultureDetail({ cultureId, onBack }: { cultureId: number; onBack: () =>
               </button>
             )
           )}
+          {/* Bouton édition dates */}
+          <button
+            onClick={() => setShowDatesModal(true)}
+            className="flex items-center gap-1.5 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/40"
+            title="Éditer les dates clés de la culture"
+          >
+            <Calendar size={15} /> Dates
+          </button>
+
           {/* Export PDF — toujours visible */}
           <button
             onClick={handleExportPdf}
@@ -627,6 +733,16 @@ function CultureDetail({ cultureId, onBack }: { cultureId: number; onBack: () =>
           <PhotoGallery idCulture={cultureId} plants={culture.plants} />
         )}
       </div>
+
+      {/* ── Modal édition des dates clés ─────────────────────────────── */}
+      {showDatesModal && (
+        <DatesModal
+          culture={culture}
+          onClose={() => setShowDatesModal(false)}
+          onSave={(data) => updateDates.mutate(data)}
+          isPending={updateDates.isPending}
+        />
+      )}
     </div>
   )
 }

@@ -664,6 +664,74 @@ function VarietesEditor() {
 
 // ── Section Capteurs Govee ────────────────────────────────────────────────────
 
+// ── Section paramètres capteurs (VPD offset) ─────────────────────────────────
+
+function VPDSettingsSectionContent() {
+  const vpdOffset = useAppSetting('vpd_leaf_offset')
+  const [editing, setEditing] = useState(false)
+  const [val, setVal]         = useState('')
+  const [saved, setSaved]     = useState(false)
+
+  const startEdit = () => { setVal(vpdOffset.value ?? '2.0'); setEditing(true); setSaved(false) }
+
+  const save = async () => {
+    const v = parseFloat(val)
+    if (isNaN(v) || v < 0 || v > 10) return
+    await vpdOffset.update(String(v))
+    setEditing(false)
+    setSaved(true)
+    setTimeout(() => setSaved(false), 2000)
+  }
+
+  return (
+    <div className="p-6 space-y-3">
+      <div className="space-y-2">
+        <label className="text-sm font-medium text-gray-700 dark:text-gray-200">
+          Offset température foliaire (°C)
+        </label>
+        <p className="text-xs text-gray-400 dark:text-gray-500">
+          La température des feuilles est généralement inférieure à la T° ambiante mesurée par le capteur.
+          Cet offset est soustrait avant le calcul du VPD. Valeur recommandée :
+          <strong> 2°C</strong> (plage 0–4°C selon votre setup).
+        </p>
+        {editing ? (
+          <div className="flex items-center gap-2 mt-2">
+            <input
+              type="number" step="0.5" min="0" max="10"
+              value={val}
+              onChange={e => setVal(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') save(); if (e.key === 'Escape') setEditing(false) }}
+              className="w-24 text-sm border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-400 focus:outline-none dark:bg-gray-700 dark:text-gray-100"
+              autoFocus
+            />
+            <span className="text-sm text-gray-500 dark:text-gray-400">°C</span>
+            <button onClick={save} disabled={vpdOffset.isPending}
+              className="p-1.5 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors">
+              {vpdOffset.isPending ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
+            </button>
+            <button onClick={() => setEditing(false)}
+              className="p-1.5 text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
+              <X size={14} />
+            </button>
+          </div>
+        ) : (
+          <div className="flex items-center gap-3 mt-2">
+            <span className="text-2xl font-bold text-purple-700">
+              −{vpdOffset.value ?? '2.0'} °C
+            </span>
+            <span className="text-xs text-gray-400 dark:text-gray-500">T°feuille = T°air − offset</span>
+            {saved && <span className="text-xs text-purple-600 flex items-center gap-1"><CheckCircle2 size={12} /> Enregistré</span>}
+            <button onClick={startEdit}
+              className="flex items-center gap-1 text-xs text-gray-400 dark:text-gray-500 hover:text-purple-600 px-2 py-1 hover:bg-purple-50 rounded-lg transition-colors">
+              <Pencil size={12} /> Modifier
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 // ── Conteneur accordéons capteurs ────────────────────────────────────────────
 
 function CapteurAccordion({
@@ -677,19 +745,21 @@ function CapteurAccordion({
   id: string
   title: string
   subtitle: string
-  color: 'teal' | 'orange'
+  color: 'teal' | 'orange' | 'purple'
   icon: ReactNode
   children: ReactNode
 }) {
-  const [open, setOpen] = useState(id === 'govee') // Govee ouvert par défaut
+  const [open, setOpen] = useState(id === 'vpd') // Govee ouvert par défaut
 
   const headerColors = {
     teal:   'bg-teal-50 hover:bg-teal-100/60',
     orange: 'bg-orange-50 hover:bg-orange-100/60',
+    purple: 'bg-purple-50 hover:bg-purple-100/60',
   }
   const iconColors = {
     teal:   'text-teal-600',
     orange: 'text-orange-500',
+    purple: 'text-purple-600',
   }
 
   return (
@@ -715,6 +785,16 @@ function CapteurAccordion({
 function CapteursTabs() {
   return (
     <div className="space-y-4">
+      <CapteurAccordion
+        id="vpd"
+        title="Paramètres capteurs"
+        subtitle="Offset température foliaire pour le calcul du VPD"
+        color="purple"
+        icon={<Thermometer size={18} />}
+      >
+        <VPDSettingsSectionContent />
+      </CapteurAccordion>
+
       <CapteurAccordion
         id="govee"
         title="Capteurs Govee"
@@ -1630,17 +1710,17 @@ function GmailImportSection({
 // ── Section Économique (prix kWh, devise) ─────────────────────────────────────
 
 function AppSettingsSection() {
-  const prixKwh = useAppSetting('prix_kwh')
-  const devise  = useAppSetting('devise')
+  const prixKwh   = useAppSetting('prix_kwh')
+  const devise    = useAppSetting('devise')
 
-  const [editingKwh,   setEditingKwh]   = useState(false)
+  const [editingKwh,    setEditingKwh]    = useState(false)
   const [editingDevise, setEditingDevise] = useState(false)
-  const [valKwh,   setValKwh]   = useState('')
+  const [valKwh,    setValKwh]    = useState('')
   const [valDevise, setValDevise] = useState('')
-  const [savedKwh,   setSavedKwh]   = useState(false)
+  const [savedKwh,    setSavedKwh]    = useState(false)
   const [savedDevise, setSavedDevise] = useState(false)
 
-  const startEditKwh = () => { setValKwh(prixKwh.value ?? ''); setEditingKwh(true); setSavedKwh(false) }
+  const startEditKwh    = () => { setValKwh(prixKwh.value ?? ''); setEditingKwh(true); setSavedKwh(false) }
   const startEditDevise = () => { setValDevise(devise.value ?? ''); setEditingDevise(true); setSavedDevise(false) }
 
   const saveKwh = async () => {
@@ -1658,6 +1738,7 @@ function AppSettingsSection() {
     setSavedDevise(true)
     setTimeout(() => setSavedDevise(false), 2000)
   }
+
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
@@ -1746,6 +1827,7 @@ function AppSettingsSection() {
             </div>
           )}
         </div>
+
 
       </div>
     </div>
