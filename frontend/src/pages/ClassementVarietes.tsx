@@ -26,9 +26,9 @@ function clamp(v: number | null | undefined, max: number): number {
 }
 
 function scoreColor(pct: number): string {
-  if (pct >= 80) return 'text-emerald-600 font-bold'
-  if (pct >= 65) return 'text-green-600 font-semibold'
-  if (pct >= 50) return 'text-yellow-600 font-semibold'
+  if (pct >= 80) return 'text-emerald-600 dark:text-emerald-400 font-bold'
+  if (pct >= 65) return 'text-green-600 dark:text-green-400 font-semibold'
+  if (pct >= 50) return 'text-yellow-600 dark:text-yellow-400 font-semibold'
   if (pct >= 35) return 'text-orange-500'
   return 'text-red-500'
 }
@@ -303,11 +303,11 @@ function NotationFormModal({ initial, onClose, onSave, saving, varietes, breeder
           </div>
 
           {/* ── Partie A : Culture ── */}
-          <div className="bg-green-50 rounded-xl p-5 space-y-5">
+          <div className="bg-green-50 dark:bg-green-900/20 rounded-xl p-5 space-y-5">
             <div className="flex items-center gap-2">
-              <Leaf size={18} className="text-green-600" />
-              <h3 className="font-semibold text-green-800">Partie A — Culture</h3>
-              <span className="ml-auto text-sm font-bold text-green-700">
+              <Leaf size={18} className="text-green-600 dark:text-green-400" />
+              <h3 className="font-semibold text-green-800 dark:text-green-300">Partie A — Culture</h3>
+              <span className="ml-auto text-sm font-bold text-green-700 dark:text-green-300">
                 {totalCulture.toFixed(1)} / 30
               </span>
             </div>
@@ -335,11 +335,11 @@ function NotationFormModal({ initial, onClose, onSave, saving, varietes, breeder
           </div>
 
           {/* ── Partie B : Consommation ── */}
-          <div className="bg-purple-50 rounded-xl p-5 space-y-5">
+          <div className="bg-purple-50 dark:bg-purple-900/20 rounded-xl p-5 space-y-5">
             <div className="flex items-center gap-2">
-              <Wind size={18} className="text-purple-600" />
-              <h3 className="font-semibold text-purple-800">Partie B — Consommation</h3>
-              <span className="ml-auto text-sm font-bold text-purple-700">
+              <Wind size={18} className="text-purple-600 dark:text-purple-400" />
+              <h3 className="font-semibold text-purple-800 dark:text-purple-300">Partie B — Consommation</h3>
+              <span className="ml-auto text-sm font-bold text-purple-700 dark:text-purple-300">
                 {totalConso.toFixed(1)} / 70
               </span>
             </div>
@@ -379,11 +379,11 @@ function NotationFormModal({ initial, onClose, onSave, saving, varietes, breeder
             <span
               className={`text-2xl font-black ${
                 notaFinale >= 80
-                  ? 'text-emerald-600'
+                  ? 'text-emerald-600 dark:text-emerald-400'
                   : notaFinale >= 65
-                  ? 'text-green-600'
+                  ? 'text-green-600 dark:text-green-400'
                   : notaFinale >= 50
-                  ? 'text-yellow-600'
+                  ? 'text-yellow-600 dark:text-yellow-400'
                   : notaFinale >= 35
                   ? 'text-orange-500'
                   : 'text-red-500'
@@ -464,7 +464,7 @@ function NotationFormModal({ initial, onClose, onSave, saving, varietes, breeder
 
           {/* Boutons */}
           {formError && (
-            <div className="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 text-sm">
+            <div className="flex items-center gap-2 bg-red-50 dark:bg-red-900/20 border border-red-200 text-red-700 dark:text-red-300 rounded-lg px-4 py-3 text-sm">
               <span className="text-red-500">⚠</span>
               {formError}
             </div>
@@ -551,14 +551,14 @@ function DetailModal({
         <div className="p-6 space-y-5">
           {/* Récap scores */}
           <div className="grid grid-cols-2 gap-3">
-            <div className="bg-green-50 rounded-xl p-3 text-center">
-              <div className="text-xs text-green-600 font-medium mb-0.5">🌿 Culture</div>
-              <div className="text-xl font-black text-green-700">{tc.toFixed(1)}</div>
+            <div className="bg-green-50 dark:bg-green-900/20 rounded-xl p-3 text-center">
+              <div className="text-xs text-green-600 dark:text-green-400 font-medium mb-0.5">🌿 Culture</div>
+              <div className="text-xl font-black text-green-700 dark:text-green-300">{tc.toFixed(1)}</div>
               <div className="text-xs text-green-500">/ 30</div>
             </div>
-            <div className="bg-purple-50 rounded-xl p-3 text-center">
-              <div className="text-xs text-purple-600 font-medium mb-0.5">💨 Consommation</div>
-              <div className="text-xl font-black text-purple-700">{tco.toFixed(1)}</div>
+            <div className="bg-purple-50 dark:bg-purple-900/20 rounded-xl p-3 text-center">
+              <div className="text-xs text-purple-600 dark:text-purple-400 font-medium mb-0.5">💨 Consommation</div>
+              <div className="text-xl font-black text-purple-700 dark:text-purple-300">{tco.toFixed(1)}</div>
               <div className="text-xs text-purple-500">/ 70</div>
             </div>
           </div>
@@ -567,9 +567,9 @@ function DetailModal({
           {extractionStat && (extractionStat.avg_rosin_pct != null || extractionStat.avg_hash_pct != null) && (
             <div className="grid grid-cols-2 gap-3">
               {extractionStat.avg_rosin_pct != null && (
-                <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-center">
-                  <div className="text-xs text-amber-600 font-medium mb-0.5">🍯 Rosin moy.</div>
-                  <div className="text-xl font-black text-amber-700">
+                <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 rounded-xl p-3 text-center">
+                  <div className="text-xs text-amber-600 dark:text-amber-400 font-medium mb-0.5">🍯 Rosin moy.</div>
+                  <div className="text-xl font-black text-amber-700 dark:text-amber-300">
                     {extractionStat.avg_rosin_pct.toFixed(1)}
                     <span className="text-sm font-normal text-amber-500">%</span>
                   </div>
@@ -577,9 +577,9 @@ function DetailModal({
                 </div>
               )}
               {extractionStat.avg_hash_pct != null && (
-                <div className="bg-stone-50 border border-stone-200 rounded-xl p-3 text-center">
-                  <div className="text-xs text-stone-600 font-medium mb-0.5">🍫 Hash moy.</div>
-                  <div className="text-xl font-black text-stone-700">
+                <div className="bg-stone-50 dark:bg-stone-900/20 border border-stone-200 rounded-xl p-3 text-center">
+                  <div className="text-xs text-stone-600 dark:text-stone-400 font-medium mb-0.5">🍫 Hash moy.</div>
+                  <div className="text-xl font-black text-stone-700 dark:text-stone-300">
                     {extractionStat.avg_hash_pct.toFixed(1)}
                     <span className="text-sm font-normal text-stone-500">%</span>
                   </div>
@@ -637,8 +637,8 @@ function DetailModal({
 
           {/* Données labo */}
           {(notation.taux_thc || notation.taux_cbd || notation.terpene_dominant || notation.commentaire_labo) && (
-            <div className="bg-blue-50 rounded-xl p-4 space-y-2">
-              <h4 className="text-sm font-semibold text-blue-700 mb-2 flex items-center gap-1.5">
+            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 space-y-2">
+              <h4 className="text-sm font-semibold text-blue-700 dark:text-blue-300 mb-2 flex items-center gap-1.5">
                 <FlaskConical size={14} /> Données Labo
               </h4>
               {(notation.taux_thc || notation.taux_cbd) && (
@@ -911,7 +911,7 @@ export default function ClassementVarietes() {
                   key={n.id_notation}
                   onClick={() => setDetailTarget(n)}
                   className={`w-full text-left transition-colors hover:bg-gray-50 dark:hover:bg-gray-700/40 ${
-                    isTop ? 'bg-yellow-50 hover:bg-yellow-100' : ''
+                    isTop ? 'bg-yellow-50 dark:bg-yellow-900/20 hover:bg-yellow-100' : ''
                   }`}
                 >
                   {/* Mobile layout */}
@@ -924,12 +924,12 @@ export default function ClassementVarietes() {
                           <span className="text-xs text-gray-400 dark:text-gray-500">{n.breeder}</span>
                         )}
                         {exStat?.avg_rosin_pct != null && (
-                          <span className="text-xs bg-amber-100 text-amber-700 px-1 py-0.5 rounded-full">
+                          <span className="text-xs bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 px-1 py-0.5 rounded-full">
                             🍯 {exStat.avg_rosin_pct.toFixed(1)}%
                           </span>
                         )}
                         {exStat?.avg_hash_pct != null && (
-                          <span className="text-xs bg-stone-100 text-stone-700 px-1 py-0.5 rounded-full">
+                          <span className="text-xs bg-stone-100 dark:bg-stone-900/30 text-stone-700 dark:text-stone-300 px-1 py-0.5 rounded-full">
                             🍫 {exStat.avg_hash_pct.toFixed(1)}%
                           </span>
                         )}
@@ -956,17 +956,17 @@ export default function ClassementVarietes() {
                           <span className="text-xs text-gray-400 dark:text-gray-500">{n.breeder}</span>
                         )}
                         {n.taux_thc && (
-                          <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full">
+                          <span className="text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded-full">
                             THC {n.taux_thc}%
                           </span>
                         )}
                         {exStat?.avg_rosin_pct != null && (
-                          <span className="text-xs bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full font-medium">
+                          <span className="text-xs bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 px-1.5 py-0.5 rounded-full font-medium">
                             🍯 {exStat.avg_rosin_pct.toFixed(1)}%
                           </span>
                         )}
                         {exStat?.avg_hash_pct != null && (
-                          <span className="text-xs bg-stone-100 text-stone-700 px-1.5 py-0.5 rounded-full font-medium">
+                          <span className="text-xs bg-stone-100 dark:bg-stone-900/30 text-stone-700 dark:text-stone-300 px-1.5 py-0.5 rounded-full font-medium">
                             🍫 {exStat.avg_hash_pct.toFixed(1)}%
                           </span>
                         )}
@@ -977,14 +977,14 @@ export default function ClassementVarietes() {
                     </div>
 
                     <div className="text-center">
-                      <span className="text-sm font-semibold text-green-700">
+                      <span className="text-sm font-semibold text-green-700 dark:text-green-300">
                         {(n.total_culture ?? 0).toFixed(1)}
                         <span className="font-normal text-gray-400 dark:text-gray-500">/30</span>
                       </span>
                     </div>
 
                     <div className="text-center">
-                      <span className="text-sm font-semibold text-purple-700">
+                      <span className="text-sm font-semibold text-purple-700 dark:text-purple-300">
                         {(n.total_consommation ?? 0).toFixed(1)}
                         <span className="font-normal text-gray-400 dark:text-gray-500">/70</span>
                       </span>
@@ -994,14 +994,14 @@ export default function ClassementVarietes() {
                       <div
                         className={`px-3 py-1.5 rounded-xl text-sm font-black ${
                           pct >= 80
-                            ? 'bg-emerald-100 text-emerald-700'
+                            ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300'
                             : pct >= 65
-                            ? 'bg-green-100 text-green-700'
+                            ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
                             : pct >= 50
-                            ? 'bg-yellow-100 text-yellow-700'
+                            ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300'
                             : pct >= 35
-                            ? 'bg-orange-100 text-orange-700'
-                            : 'bg-red-100 text-red-700'
+                            ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300'
+                            : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
                         }`}
                       >
                         {nf.toFixed(1)}

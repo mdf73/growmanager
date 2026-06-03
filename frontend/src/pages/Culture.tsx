@@ -19,8 +19,8 @@ import PhotoGallery from '../components/culture/PhotoGallery'
 
 // ─── Statut badges ────────────────────────────────────────────────────────────
 const STATUT_CONFIG = {
-  active:          { label: 'Active',          className: 'bg-green-100 text-green-700' },
-  sechage_curing:  { label: 'Séchage & Curing',className: 'bg-yellow-100 text-yellow-700' },
+  active:          { label: 'Active',          className: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300' },
+  sechage_curing:  { label: 'Séchage & Curing',className: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300' },
   terminee:        { label: 'Terminée',         className: 'bg-gray-100 text-gray-600 dark:text-gray-300' },
 }
 
@@ -110,18 +110,18 @@ function CultureCard({
           <p className="text-lg font-bold text-gray-900 dark:text-gray-100">{culture.jours_culture ?? '—'}</p>
           <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">jours</p>
         </div>
-        <div className={`rounded-lg p-2 ${culture.date_debut_floraison ? 'bg-purple-50' : 'bg-gray-50 dark:bg-gray-700/50'}`}>
-          <p className={`text-lg font-bold ${culture.date_debut_floraison ? 'text-purple-700' : 'text-gray-400 dark:text-gray-500'}`}>
+        <div className={`rounded-lg p-2 ${culture.date_debut_floraison ? 'bg-purple-50 dark:bg-purple-900/20' : 'bg-gray-50 dark:bg-gray-700/50'}`}>
+          <p className={`text-lg font-bold ${culture.date_debut_floraison ? 'text-purple-700 dark:text-purple-300' : 'text-gray-400 dark:text-gray-500'}`}>
             {culture.date_debut_floraison
               ? `${Math.max(0, Math.floor((Date.now() - new Date(culture.date_debut_floraison + 'T12:00').getTime()) / (1000*60*60*24)))}j`
               : '—'}
           </p>
           <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">🌸 flo.</p>
         </div>
-        <div className={`rounded-lg p-2 col-span-1 ${culture.date_recolte_min ? 'bg-amber-50' : 'bg-gray-50 dark:bg-gray-700/50'}`}>
+        <div className={`rounded-lg p-2 col-span-1 ${culture.date_recolte_min ? 'bg-amber-50 dark:bg-amber-900/20' : 'bg-gray-50 dark:bg-gray-700/50'}`}>
           {culture.date_recolte_min ? (
             <>
-              <p className="text-xs font-bold text-amber-800 leading-tight">
+              <p className="text-xs font-bold text-amber-800 dark:text-amber-300 leading-tight">
                 {new Date(culture.date_recolte_min + 'T12:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
               </p>
               <p className="text-xs font-bold text-amber-900 leading-tight">
@@ -143,7 +143,7 @@ function CultureCard({
           if (culture.statut === 'terminee') {
             const poids = culture.total_recolte_g
             return (
-              <div className="flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg bg-green-50 text-green-700 font-medium">
+              <div className="flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 font-medium">
                 🌿 {poids != null ? `Récolte totale : ${poids.toFixed(1)} g` : 'Récolte clôturée'}
               </div>
             )
@@ -157,7 +157,7 @@ function CultureCard({
               : jours != null ? `En séchage depuis ${jours}j`
               : 'En séchage'
             return (
-              <div className="flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg bg-amber-50 text-amber-700 font-medium">
+              <div className="flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300 font-medium">
                 🌬️ {txt}
               </div>
             )
@@ -168,10 +168,10 @@ function CultureCard({
               <Droplets size={12} /> Aucun arrosage enregistré
             </div>
           )
-          const cls = j === 0 ? 'bg-blue-50 text-blue-700'
-            : j <= 2 ? 'bg-green-50 text-green-700'
-            : j <= 5 ? 'bg-orange-50 text-orange-700'
-            : 'bg-red-50 text-red-700'
+          const cls = j === 0 ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300'
+            : j <= 2 ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300'
+            : j <= 5 ? 'bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300'
+            : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300'
           const label = j === 0 ? "Arrosé aujourd'hui" : `Dernier arrosage il y a ${j}j`
           return (
             <div className={`flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg font-medium ${cls}`}>
@@ -187,10 +187,10 @@ function CultureCard({
               🫧 Aucun TCO enregistré
             </div>
           )
-          const cls = j === 0 ? 'bg-blue-50 text-blue-700'
-            : j <= 7  ? 'bg-green-50 text-green-700'
-            : j <= 14 ? 'bg-orange-50 text-orange-700'
-            : 'bg-red-50 text-red-700'
+          const cls = j === 0 ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300'
+            : j <= 7  ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300'
+            : j <= 14 ? 'bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300'
+            : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300'
           const label = j === 0 ? 'TCO préparé aujourd\'hui' : `Dernier TCO il y a ${j}j`
           return (
             <div className={`flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg font-medium ${cls}`}>
@@ -218,12 +218,12 @@ function CultureCard({
       {/* Confirmation suppression */}
       {confirmDelete && (
         <div
-          className="mt-3 p-2.5 bg-red-50 border border-red-200 rounded-lg"
+          className="mt-3 p-2.5 bg-red-50 dark:bg-red-900/20 border border-red-200 rounded-lg"
           onClick={e => e.stopPropagation()}
         >
           <div className="flex items-center gap-1.5 mb-2">
-            <AlertTriangle size={13} className="text-red-600" />
-            <span className="text-xs font-medium text-red-700">
+            <AlertTriangle size={13} className="text-red-600 dark:text-red-400" />
+            <span className="text-xs font-medium text-red-700 dark:text-red-300">
               Supprimer définitivement cette culture et toutes ses données ?
             </span>
           </div>
@@ -563,16 +563,16 @@ function CultureDetail({ cultureId, onBack }: { cultureId: number; onBack: () =>
           {(culture.statut === 'terminee' || culture.statut === 'sechage_curing') && !confirmDelete && (
             <button
               onClick={() => setConfirmDelete(true)}
-              className="flex items-center gap-1.5 px-3 py-2 border border-red-200 rounded-lg text-sm text-red-600 hover:bg-red-50"
+              className="flex items-center gap-1.5 px-3 py-2 border border-red-200 rounded-lg text-sm text-red-600 dark:text-red-400 hover:bg-red-50"
               title="Supprimer la culture et toutes ses données"
             >
               <Trash2 size={15} /> Supprimer
             </button>
           )}
           {confirmDelete && (
-            <div className="flex items-center gap-2 px-3 py-2 bg-red-50 border border-red-200 rounded-lg">
-              <AlertTriangle size={14} className="text-red-600 flex-shrink-0" />
-              <span className="text-xs text-red-700">Supprimer définitivement&nbsp;?</span>
+            <div className="flex items-center gap-2 px-3 py-2 bg-red-50 dark:bg-red-900/20 border border-red-200 rounded-lg">
+              <AlertTriangle size={14} className="text-red-600 dark:text-red-400 flex-shrink-0" />
+              <span className="text-xs text-red-700 dark:text-red-300">Supprimer définitivement&nbsp;?</span>
               <button
                 onClick={() => deleteCulture.mutate()}
                 disabled={deleteCulture.isPending}
@@ -616,13 +616,13 @@ function CultureDetail({ cultureId, onBack }: { cultureId: number; onBack: () =>
 
         {/* Fenêtre de récolte : première → dernière date */}
         <div className={`border rounded-xl p-3 flex items-center gap-3 ${culture.date_recolte_min ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200' : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700'}`}>
-          <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${culture.date_recolte_min ? 'bg-amber-100' : 'bg-grow-50'}`}>
-            <Flower2 size={16} className={culture.date_recolte_min ? 'text-amber-700' : 'text-grow-600'} />
+          <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${culture.date_recolte_min ? 'bg-amber-100 dark:bg-amber-900/30' : 'bg-grow-50'}`}>
+            <Flower2 size={16} className={culture.date_recolte_min ? 'text-amber-700 dark:text-amber-300' : 'text-grow-600'} />
           </div>
           <div>
             <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">Fenêtre récolte</p>
             {culture.date_recolte_min ? (
-              <p className="text-sm font-bold text-amber-800">
+              <p className="text-sm font-bold text-amber-800 dark:text-amber-300">
                 {new Date(culture.date_recolte_min + 'T12:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
                 {' → '}
                 {culture.date_recolte_max
@@ -641,12 +641,12 @@ function CultureDetail({ cultureId, onBack }: { cultureId: number; onBack: () =>
           const { bg, iconColor, text } = j == null
             ? { bg: 'bg-gray-50 dark:bg-gray-700/50',    iconColor: 'text-gray-400 dark:text-gray-500',   text: '—' }
             : j === 0
-            ? { bg: 'bg-blue-50',   iconColor: 'text-blue-600',   text: "Aujourd'hui" }
+            ? { bg: 'bg-blue-50 dark:bg-blue-900/20',   iconColor: 'text-blue-600 dark:text-blue-400',   text: "Aujourd'hui" }
             : j <= 2
-            ? { bg: 'bg-green-50',  iconColor: 'text-green-600',  text: `${j}j` }
+            ? { bg: 'bg-green-50 dark:bg-green-900/20',  iconColor: 'text-green-600 dark:text-green-400',  text: `${j}j` }
             : j <= 5
-            ? { bg: 'bg-orange-50', iconColor: 'text-orange-600', text: `${j}j` }
-            : { bg: 'bg-red-50',    iconColor: 'text-red-600',    text: `${j}j` }
+            ? { bg: 'bg-orange-50 dark:bg-orange-900/20', iconColor: 'text-orange-600 dark:text-orange-400', text: `${j}j` }
+            : { bg: 'bg-red-50 dark:bg-red-900/20',    iconColor: 'text-red-600 dark:text-red-400',    text: `${j}j` }
           return (
             <div className={`${bg} border border-gray-200 dark:border-gray-700 rounded-xl p-3 flex items-center gap-3`}>
               <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${bg}`}>
@@ -666,12 +666,12 @@ function CultureDetail({ cultureId, onBack }: { cultureId: number; onBack: () =>
           const { bg, textColor, text } = j == null
             ? { bg: 'bg-gray-50 dark:bg-gray-700/50',    textColor: 'text-gray-400 dark:text-gray-500',   text: '—' }
             : j === 0
-            ? { bg: 'bg-blue-50',   textColor: 'text-blue-600',   text: "Aujourd'hui" }
+            ? { bg: 'bg-blue-50 dark:bg-blue-900/20',   textColor: 'text-blue-600 dark:text-blue-400',   text: "Aujourd'hui" }
             : j <= 7
-            ? { bg: 'bg-green-50',  textColor: 'text-green-600',  text: `${j}j` }
+            ? { bg: 'bg-green-50 dark:bg-green-900/20',  textColor: 'text-green-600 dark:text-green-400',  text: `${j}j` }
             : j <= 14
-            ? { bg: 'bg-orange-50', textColor: 'text-orange-600', text: `${j}j` }
-            : { bg: 'bg-red-50',    textColor: 'text-red-600',    text: `${j}j` }
+            ? { bg: 'bg-orange-50 dark:bg-orange-900/20', textColor: 'text-orange-600 dark:text-orange-400', text: `${j}j` }
+            : { bg: 'bg-red-50 dark:bg-red-900/20',    textColor: 'text-red-600 dark:text-red-400',    text: `${j}j` }
           return (
             <div className={`${bg} border border-gray-200 dark:border-gray-700 rounded-xl p-3 flex items-center gap-3`}>
               <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${bg} text-lg`}>
@@ -688,11 +688,11 @@ function CultureDetail({ cultureId, onBack }: { cultureId: number; onBack: () =>
 
       {/* Poids total si récoltes */}
       {pesoTotal > 0 && (
-        <div className="bg-green-50 border border-green-200 rounded-xl p-4 flex items-center gap-3">
+        <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 rounded-xl p-4 flex items-center gap-3">
           <span className="text-2xl">⚖️</span>
           <div>
-            <p className="text-sm font-bold text-green-800">Récolte totale : {pesoTotal.toFixed(1)} g</p>
-            <p className="text-xs text-green-600">
+            <p className="text-sm font-bold text-green-800 dark:text-green-300">Récolte totale : {pesoTotal.toFixed(1)} g</p>
+            <p className="text-xs text-green-600 dark:text-green-400">
               {culture.plants.filter(p => p.poids_recolte_g != null).length} plante(s) récoltée(s)
             </p>
           </div>
