@@ -195,7 +195,7 @@ function ListeEditor({ listeNom, label }: { listeNom: string; label: string }) {
                       autoFocus
                     />
                     <button onClick={handleEditSave}
-                      className="p-1 text-grow-600 hover:bg-grow-50 rounded">
+                      className="p-1 text-grow-600 hover:bg-grow-50 dark:bg-gray-700/40 rounded">
                       <Check size={13} />
                     </button>
                     <button onClick={() => setEditId(null)}
@@ -208,7 +208,7 @@ function ListeEditor({ listeNom, label }: { listeNom: string; label: string }) {
                     <span className="flex-1 text-sm text-gray-700 dark:text-gray-200">{item.valeur}</span>
                     <button
                       onClick={() => { setEditId(item.id_parametre); setEditVal(item.valeur) }}
-                      className="p-1 text-gray-300 hover:text-grow-600 hover:bg-grow-50 rounded opacity-0 group-hover:opacity-100 transition-opacity">
+                      className="p-1 text-gray-300 hover:text-grow-600 hover:bg-grow-50 dark:bg-gray-700/40 rounded opacity-0 group-hover:opacity-100 transition-opacity">
                       <Pencil size={12} />
                     </button>
                     <button
@@ -377,7 +377,7 @@ function BreedersEditor() {
                   </div>
                   <button
                     onClick={() => startEdit(b)}
-                    className="p-1.5 text-gray-300 hover:text-grow-600 hover:bg-grow-50 rounded opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+                    className="p-1.5 text-gray-300 hover:text-grow-600 hover:bg-grow-50 dark:bg-gray-700/40 rounded opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
                     <Pencil size={13} />
                   </button>
                   <button
@@ -390,8 +390,8 @@ function BreedersEditor() {
 
                 {/* Formulaire d'édition inline */}
                 {editId === b.id_breeder && (
-                  <div className="px-4 pb-4 pt-1 bg-grow-50 border-t border-grow-100 space-y-3">
-                    <p className="text-xs font-semibold text-grow-700">Modifier le breeder</p>
+                  <div className="px-4 pb-4 pt-1 bg-grow-50 dark:bg-gray-700/40 border-t border-grow-100 space-y-3">
+                    <p className="text-xs font-semibold text-grow-700 dark:text-grow-400">Modifier le breeder</p>
                     <Field label="Nom" value={form.nom_breeder} onChange={v => setForm(f => ({ ...f, nom_breeder: v }))} placeholder="Ex: Barney's Farm" required />
                     <Field label="Origine / Pays" value={form.origine_breeder} onChange={v => setForm(f => ({ ...f, origine_breeder: v }))} placeholder="Ex: Pays-Bas" />
                     <Field label="Informations" value={form.information_breeder} onChange={v => setForm(f => ({ ...f, information_breeder: v }))} placeholder="Notes diverses…" textarea />
@@ -440,7 +440,7 @@ function BreedersEditor() {
             <div className="px-4 py-3 border-t border-gray-100 dark:border-gray-700">
               <button
                 onClick={() => { setShowForm(true); setForm(emptyForm); setError('') }}
-                className="flex items-center gap-1.5 text-sm text-grow-600 hover:text-grow-700 font-medium">
+                className="flex items-center gap-1.5 text-sm text-grow-600 hover:text-grow-700 dark:text-grow-400 font-medium">
                 <Plus size={14} /> Ajouter un breeder
               </button>
             </div>
@@ -586,7 +586,7 @@ function VarietesEditor() {
                   )}
                   <button
                     onClick={() => startEdit(v)}
-                    className="p-1.5 text-gray-300 hover:text-grow-600 hover:bg-grow-50 rounded opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+                    className="p-1.5 text-gray-300 hover:text-grow-600 hover:bg-grow-50 dark:bg-gray-700/40 rounded opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
                     <Pencil size={13} />
                   </button>
                   <button
@@ -599,8 +599,8 @@ function VarietesEditor() {
 
                 {/* Formulaire d'édition inline */}
                 {editId === v.id_variete && (
-                  <div className="px-4 pb-4 pt-1 bg-grow-50 border-t border-grow-100 space-y-3">
-                    <p className="text-xs font-semibold text-grow-700">Modifier la variété</p>
+                  <div className="px-4 pb-4 pt-1 bg-grow-50 dark:bg-gray-700/40 border-t border-grow-100 space-y-3">
+                    <p className="text-xs font-semibold text-grow-700 dark:text-grow-400">Modifier la variété</p>
                     <Field label="Nom" value={form.nom_variete} onChange={val => setForm(f => ({ ...f, nom_variete: val }))} placeholder="Ex: Blue Dream" required />
                     <Field label="Croisement" value={form.croisement_variete} onChange={val => setForm(f => ({ ...f, croisement_variete: val }))} placeholder="Ex: Blueberry × Haze" />
                     <Field label="Lien web" value={form.lien_web} onChange={val => setForm(f => ({ ...f, lien_web: val }))} placeholder="https://…" />
@@ -651,7 +651,7 @@ function VarietesEditor() {
             <div className="px-4 py-3 border-t border-gray-100 dark:border-gray-700">
               <button
                 onClick={() => { setShowForm(true); setForm(emptyForm); setError('') }}
-                className="flex items-center gap-1.5 text-sm text-grow-600 hover:text-grow-700 font-medium">
+                className="flex items-center gap-1.5 text-sm text-grow-600 hover:text-grow-700 dark:text-grow-400 font-medium">
                 <Plus size={14} /> Ajouter une variété
               </button>
             </div>
@@ -752,9 +752,9 @@ function CapteurAccordion({
   const [open, setOpen] = useState(id === 'vpd') // Govee ouvert par défaut
 
   const headerColors = {
-    teal:   'bg-teal-50 dark:bg-teal-900/20 hover:bg-teal-100/60',
-    orange: 'bg-orange-50 dark:bg-orange-900/20 hover:bg-orange-100/60',
-    purple: 'bg-purple-50 dark:bg-purple-900/20 hover:bg-purple-100/60',
+    teal:   'bg-teal-50 dark:bg-teal-900/20 hover:bg-teal-100/60 dark:hover:bg-teal-800/40',
+    orange: 'bg-orange-50 dark:bg-orange-900/20 hover:bg-orange-100/60 dark:hover:bg-orange-800/40',
+    purple: 'bg-purple-50 dark:bg-purple-900/20 hover:bg-purple-100/60 dark:hover:bg-purple-800/40',
   }
   const iconColors = {
     teal:   'text-teal-600 dark:text-teal-400',
@@ -1742,9 +1742,9 @@ function AppSettingsSection() {
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
-      <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-700 bg-grow-50 flex items-center gap-3">
-        <div className="p-2 bg-grow-100 rounded-lg">
-          <Euro size={18} className="text-grow-700" />
+      <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-700 bg-grow-50 dark:bg-gray-700/40 flex items-center gap-3">
+        <div className="p-2 bg-grow-100 dark:bg-gray-700/60 rounded-lg">
+          <Euro size={18} className="text-grow-700 dark:text-grow-400" />
         </div>
         <div>
           <h2 className="text-base font-semibold text-gray-800 dark:text-gray-100">Économique</h2>
@@ -1769,7 +1769,7 @@ function AppSettingsSection() {
               />
               <span className="text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500">€/kWh</span>
               <button onClick={saveKwh} disabled={prixKwh.isPending}
-                className="p-1.5 text-grow-600 hover:bg-grow-50 rounded-lg transition-colors">
+                className="p-1.5 text-grow-600 hover:bg-grow-50 dark:bg-gray-700/40 rounded-lg transition-colors">
                 {prixKwh.isPending ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
               </button>
               <button onClick={() => setEditingKwh(false)}
@@ -1784,7 +1784,7 @@ function AppSettingsSection() {
               </span>
               {savedKwh && <span className="text-xs text-grow-600 flex items-center gap-1"><CheckCircle2 size={12} /> Enregistré</span>}
               <button onClick={startEditKwh}
-                className="flex items-center gap-1 text-xs text-gray-400 dark:text-gray-500 hover:text-grow-600 px-2 py-1 hover:bg-grow-50 rounded-lg transition-colors">
+                className="flex items-center gap-1 text-xs text-gray-400 dark:text-gray-500 hover:text-grow-600 px-2 py-1 hover:bg-grow-50 dark:bg-gray-700/40 rounded-lg transition-colors">
                 <Pencil size={12} /> Modifier
               </button>
             </div>
@@ -1806,7 +1806,7 @@ function AppSettingsSection() {
                 autoFocus
               />
               <button onClick={saveDevise} disabled={devise.isPending}
-                className="p-1.5 text-grow-600 hover:bg-grow-50 rounded-lg transition-colors">
+                className="p-1.5 text-grow-600 hover:bg-grow-50 dark:bg-gray-700/40 rounded-lg transition-colors">
                 {devise.isPending ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
               </button>
               <button onClick={() => setEditingDevise(false)}
@@ -1821,7 +1821,7 @@ function AppSettingsSection() {
               </span>
               {savedDevise && <span className="text-xs text-grow-600 flex items-center gap-1"><CheckCircle2 size={12} /> Enregistré</span>}
               <button onClick={startEditDevise}
-                className="flex items-center gap-1 text-xs text-gray-400 dark:text-gray-500 hover:text-grow-600 px-2 py-1 hover:bg-grow-50 rounded-lg transition-colors">
+                className="flex items-center gap-1 text-xs text-gray-400 dark:text-gray-500 hover:text-grow-600 px-2 py-1 hover:bg-grow-50 dark:bg-gray-700/40 rounded-lg transition-colors">
                 <Pencil size={12} /> Modifier
               </button>
             </div>
@@ -1914,9 +1914,9 @@ function BackupSection() {
     <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
 
       {/* Header */}
-      <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-700 bg-grow-50 flex items-center gap-3">
-        <div className="p-2 bg-grow-100 rounded-lg">
-          <Database size={18} className="text-grow-700" />
+      <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-700 bg-grow-50 dark:bg-gray-700/40 flex items-center gap-3">
+        <div className="p-2 bg-grow-100 dark:bg-gray-700/60 rounded-lg">
+          <Database size={18} className="text-grow-700 dark:text-grow-400" />
         </div>
         <div>
           <h2 className="text-base font-semibold text-gray-800 dark:text-gray-100">Sauvegarde & Restauration</h2>
@@ -1969,7 +1969,7 @@ function BackupSection() {
                         px-4 py-6 cursor-pointer transition-colors
                         ${dragOver
                           ? 'border-orange-400 bg-orange-50 dark:bg-orange-900/20'
-                          : 'border-gray-200 dark:border-gray-700 hover:border-grow-400 hover:bg-grow-50'}`}
+                          : 'border-gray-200 dark:border-gray-700 hover:border-grow-400 hover:bg-grow-50 dark:bg-gray-700/40'}`}
           >
             <UploadCloud size={24} className={dragOver ? 'text-orange-400' : 'text-gray-300'} />
             <span className="text-xs text-gray-400 dark:text-gray-500 text-center">
