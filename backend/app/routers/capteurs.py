@@ -203,7 +203,7 @@ def get_logs(
                 temperature= r.temperature,
                 humidite=    r.humidite,
                 vpd=         r.vpd,
-                source=      'govee',
+                source=      'aggregated',
             )
             for r in rows
         ]
@@ -381,7 +381,10 @@ def list_cloud_devices(db: Session = Depends(get_db)):
 @router.post("/api/govee/poll", response_model=List[PollResult])
 def manual_poll(db: Session = Depends(get_db)):
     """Déclenche immédiatement un cycle de polling sur tous les capteurs actifs (API V2)."""
-    devices = db.query(GoveeDevice).filter(GoveeDevice.actif == True).all()
+    devices = db.query(GoveeDevice).filter(
+        GoveeDevice.actif  == True,
+        GoveeDevice.modele != "esphome",
+    ).all()
     api_key = _get_cloud_api_key(db)
     results: List[PollResult] = []
 

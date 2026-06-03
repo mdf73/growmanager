@@ -1,7 +1,14 @@
-fix(stock): masquer les plantes curing terminées dans l'onglet "En curing"
+feat: intégration capteurs ESPHome
 
-Les plantes avec date_fin_curing renseignée n'apparaissent plus dans
-l'onglet "En curing" de la page Stock.
+- Nouveau fichier backend/app/schemas/esphome.py (ESPHomePushPayload, ESPHomePushResult, ESPHomeDeviceCreate, ESPHomeDeviceUpdate)
+- Nouveau fichier backend/app/routers/esphome.py (push endpoint + CRUD devices)
+- main.py : ajout import + app.include_router(esphome.router)
+- capteurs.py : fix source hardcodée 'govee' → 'aggregated' dans l'agrégation horaire
+- Parametrage.tsx : onglet Capteurs refactorisé en accordéons (CapteurAccordion)
+  - Govee dans un accordéon teal (ouvert par défaut)
+  - ESPHome dans un accordéon orange
+  - Architecture extensible : ajouter un nouveau type de capteur = ajouter un accordéon
+- Wiki : features/sensor-integration.md + api/infrastructure.md mis à jour
 
-Fichier modifié : frontend/src/pages/Stock.tsx
-- curingPlants useMemo : ajout .filter(p => !p.date_fin_curing)
+Les capteurs ESPHome réutilisent GoveeDevice (modele="esphome") et TemperatureLog (source="esphome").
+Govee et ESPHome sont totalement indépendants — aucun impact sur l'intégration existante.

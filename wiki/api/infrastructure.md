@@ -1,7 +1,7 @@
 ---
 type: api
-updated: 2026-04-09
-sources: [routers/capteurs.py, routers/espaces.py, routers/materiel.py, routers/parametre.py, api/capteurs.ts, api/espaces.ts]
+updated: 2026-06-03
+sources: [routers/capteurs.py, routers/esphome.py, routers/espaces.py, routers/materiel.py, routers/parametre.py]
 ---
 
 # API — Infrastructure
@@ -37,6 +37,23 @@ Router: `capteurs.py` | Prefix: `/api`
 | POST | `/govee/config` | `{api_key}` | — |
 | POST | `/govee/poll` | — | `PollResult` |
 | POST | `/capteurs/govee/sync` | — | `GmailImportResult` |
+
+## Sensors (ESPHome)
+
+Router: `esphome.py` | No prefix
+
+| Method | Path | Body | Returns |
+|---|---|---|---|
+| POST | `/api/capteurs/esphome/push` | `ESPHomePushPayload` | `ESPHomePushResult` |
+| GET | `/api/capteurs/esphome/devices` | — | `list[dict]` (enrichi) |
+| POST | `/api/capteurs/esphome/devices` | `ESPHomeDeviceCreate` | device enrichi |
+| PUT | `/api/capteurs/esphome/devices/{id}` | `ESPHomeDeviceUpdate` | device enrichi |
+| DELETE | `/api/capteurs/esphome/devices/{id}` | — | 204 |
+
+Les capteurs ESPHome sont stockés dans `GoveeDevice` avec `modele="esphome"`.
+Les relevés sont dans `TemperatureLog` avec `source="esphome"` — compatibles avec tous les graphiques existants.
+
+---
 
 ## Growing Spaces
 

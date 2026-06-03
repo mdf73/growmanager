@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy import text
 from app.database import Base, engine
-from app.routers import breeders, varietes, graines, cultures, stock, extractions, dashboard, fournisseurs, import_export, historique_culture, materiel, parametre, engrais, recette_engrais, recette_tco, recette_lso, recette_reamendement, recette_arrosage, recette_fermentation, suivi_sol_vivant, espaces, capteurs, plan_culture, preparation_substrat, notation_variete, vaporisateur, sechage, curing, croisement, app_settings, consommation, photos, stock_alert_seuils, search, calendrier
+from app.routers import breeders, varietes, graines, cultures, stock, extractions, dashboard, fournisseurs, import_export, historique_culture, materiel, parametre, engrais, recette_engrais, recette_tco, recette_lso, recette_reamendement, recette_arrosage, recette_fermentation, suivi_sol_vivant, espaces, capteurs, plan_culture, preparation_substrat, notation_variete, vaporisateur, sechage, curing, croisement, app_settings, consommation, photos, stock_alert_seuils, search, calendrier, esphome
 from app.services.govee_poller import start_poller
 
 # Création de l'application FastAPI
@@ -297,6 +297,7 @@ app.include_router(photos.router)
 app.include_router(stock_alert_seuils.router)
 app.include_router(search.router)
 app.include_router(calendrier.router)
+app.include_router(esphome.router)
 
 # Fichiers statiques — photos uploadées
 import os

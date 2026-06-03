@@ -1,10 +1,10 @@
 ---
 type: feature
-updated: 2026-04-09
-sources: [routers/capteurs.py, models/all_models.py, Documentation/PHASE1_SUMMARY.txt]
+updated: 2026-06-03
+sources: [routers/capteurs.py, routers/esphome.py, schemas/esphome.py, models/all_models.py]
 ---
 
-# Feature — Govee Sensor Integration
+# Feature — Sensor Integration (Govee + ESPHome)
 
 ## Overview
 
@@ -93,6 +93,72 @@ Used for bulk historical data import.
 ## Manual Entries
 
 `POST /api/temperature-logs` with `source: 'manual'` — for logging readings manually when sensors are offline.
+
+---
+
+## ESPHome Integration (2026-06-03)
+
+ESPHome capteurs DIY qui poussent leurs données vers GrowManager via HTTP POST.
+
+### Architecture
+
+- Capteurs stockés dans `GoveeDevice` avec `modele="esphome"` — aucune table supplémentaire
+- Relevés dans `TemperatureLog` avec `source="esphome"` — compatibles avec tous les graphiques existants
+- Govee et ESPHome sont **totalement indépendants** : routes séparées, polling Govee non impacté
+
+### Nouveaux fichiers
+
+- `backend/app/schemas/esphome.py` — schémas Pydantic (ESPHomePushPayload, ESPHomePushResult, ESPHomeDeviceCreate, ESPHomeDeviceUpdate)
+- `backend/app/routers/esphome.py` — router FastAPI (push + CRUD devices)
+
+### Endpoints ESPHome
+
+| Method | Path | Description |
+|---|---|---|
+| POST | `/api/capteurs/esphome/push` | Réception d'un relevé depuis ESPHome |
+| GET | `/api/capteurs/esphome/devices` | Liste les capteurs ESPHome |
+| POST | `/api/capteurs/esphome/devices` | Enregistre un nouveau capteur |
+| PUT | `/api/capteurs/esphome/devices/{id}` | Modifie un capteur (nom, espace, actif) |
+| DELETE | `/api/capteurs/esphome/devices/{id}` | Supprime un capteur (logs conservés) |
+
+### Flux de données
+
+1. ESPHome envoie `POST /api/capteurs/esphome/push` avec `{device_id, temperature, humidite, co2?, timestamp?}`
+2. Backend vérifie que le `device_id` existe et est actif
+3. Calcule le VPD (`compute_vpd` partagé avec Govee)
+4. Récupère la culture active de l'espace lié (si configuré)
+5. Insère un `TemperatureLog` avec `source="esphome"`
+
+### Configuration ESPHome (YAML)
+
+```yaml
+interval:
+  - interval: 60s
+    then:
+      - if:
+          condition:
+            lambda: |-
+              return !isnan(id(MON_CAPTEUR_temperature).state) &&
+                     !isnan(id(MON_CAPTEUR_humidite).state);
+          then:
+            - http_request.post:
+                url: "http://IP_GROWMANAGER:8000/api/capteurs/esphome/push"
+                request_headers:
+                  Content-Type: application/json
+                json: |-
+                  root["device_id"] = "MON_CAPTEUR";
+                  root["temperature"] = id(MON_CAPTEUR_temperature).state;
+                  root["humidite"] = id(MON_CAPTEUR_humidite).state;
+```
+
+`device_id` dans le YAML doit correspondre exactement à celui enregistré dans Paramétrage > Capteurs ESPHome.
+
+### UI — Paramétrage
+
+Section "Capteurs ESPHome" dans l'onglet Capteurs de la page Paramétrage (`/parametrage`).
+Permet de créer, activer/désactiver, assigner à un espace, et supprimer des capteurs ESPHome sans passer par l'API.
+
+---
 
 ## See Also
 

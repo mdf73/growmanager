@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, type ReactNode } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Plus, Trash2, Pencil, Check, X, Settings, ChevronDown, ChevronUp, ExternalLink,
          Thermometer, Wifi, WifiOff, RefreshCw, Save, Mail, Eye, EyeOff, AlertCircle,
@@ -664,7 +664,341 @@ function VarietesEditor() {
 
 // ── Section Capteurs Govee ────────────────────────────────────────────────────
 
-function GoveeSection() {
+// ── Conteneur accordéons capteurs ────────────────────────────────────────────
+
+function CapteurAccordion({
+  id,
+  title,
+  subtitle,
+  color,
+  icon,
+  children,
+}: {
+  id: string
+  title: string
+  subtitle: string
+  color: 'teal' | 'orange'
+  icon: ReactNode
+  children: ReactNode
+}) {
+  const [open, setOpen] = useState(id === 'govee') // Govee ouvert par défaut
+
+  const headerColors = {
+    teal:   'bg-teal-50 hover:bg-teal-100/60',
+    orange: 'bg-orange-50 hover:bg-orange-100/60',
+  }
+  const iconColors = {
+    teal:   'text-teal-600',
+    orange: 'text-orange-500',
+  }
+
+  return (
+    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+      <button
+        onClick={() => setOpen(v => !v)}
+        className={`w-full flex items-center gap-3 px-6 py-4 border-b border-gray-100 dark:border-gray-700 transition-colors ${headerColors[color]}`}
+      >
+        <span className={iconColors[color]}>{icon}</span>
+        <div className="flex-1 text-left">
+          <h2 className="text-base font-semibold text-gray-800 dark:text-gray-100">{title}</h2>
+          <p className="text-xs text-gray-400 dark:text-gray-500">{subtitle}</p>
+        </div>
+        {open
+          ? <ChevronUp size={16} className="text-gray-400 dark:text-gray-500 shrink-0" />
+          : <ChevronDown size={16} className="text-gray-400 dark:text-gray-500 shrink-0" />}
+      </button>
+      {open && <div>{children}</div>}
+    </div>
+  )
+}
+
+function CapteursTabs() {
+  return (
+    <div className="space-y-4">
+      <CapteurAccordion
+        id="govee"
+        title="Capteurs Govee"
+        subtitle="Thermomètres/hygromètres H5179 via API LAN (UDP) ou Cloud"
+        color="teal"
+        icon={<Thermometer size={18} />}
+      >
+        <GoveeSectionContent />
+      </CapteurAccordion>
+
+      <CapteurAccordion
+        id="esphome"
+        title="Capteurs ESPHome"
+        subtitle="Capteurs DIY via ESPHome — poussent leurs données vers GrowManager"
+        color="orange"
+        icon={<Thermometer size={18} />}
+      >
+        <ESPHomeSectionContent />
+      </CapteurAccordion>
+    </div>
+  )
+}
+
+// ── Section ESPHome ───────────────────────────────────────────────────────────
+
+interface ESPHomeDevice {
+  id_device:            number
+  nom:                  string
+  device_id:            string
+  ip_lan?:              string | null
+  id_espace?:           number | null
+  nom_espace?:          string | null
+  actif:                boolean
+  notes?:               string | null
+  derniere_temperature?: number | null
+  derniere_humidite?:    number | null
+  derniere_vpd?:         number | null
+  derniere_lecture?:     string | null
+}
+
+function ESPHomeSectionContent() {
+  const { data: devices = [], refetch: refetchDevices } = useQuery<ESPHomeDevice[]>({
+    queryKey: ['esphome-devices'],
+    queryFn:  async () => (await apiClient.get<ESPHomeDevice[]>('/capteurs/esphome/devices')).data,
+  })
+
+  const { data: espaces = [] } = useQuery<any[]>({
+    queryKey: ['espaces'],
+    queryFn:  async () => (await apiClient.get<any[]>('/espaces/')).data,
+  })
+
+  const emptyForm = { nom: '', device_id: '', ip_lan: '', id_espace: undefined as number | undefined, notes: '' }
+  const [showForm, setShowForm]   = useState(false)
+  const [form, setForm]           = useState(emptyForm)
+  const [saving, setSaving]       = useState(false)
+  const [editingEspace, setEditingEspace] = useState<number | null>(null)
+
+  const handleAdd = async () => {
+    if (!form.nom.trim() || !form.device_id.trim()) return
+    setSaving(true)
+    try {
+      await apiClient.post('/capteurs/esphome/devices', {
+        nom:       form.nom.trim(),
+        device_id: form.device_id.trim(),
+        ip_lan:    form.ip_lan?.trim() || null,
+        id_espace: form.id_espace || null,
+        notes:     form.notes?.trim() || null,
+      })
+      setForm(emptyForm)
+      setShowForm(false)
+      await refetchDevices()
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleToggleActif = async (d: ESPHomeDevice) => {
+    await apiClient.put(`/capteurs/esphome/devices/${d.id_device}`, { actif: !d.actif })
+    await refetchDevices()
+  }
+
+  const handleDelete = async (id: number) => {
+    if (!confirm('Supprimer ce capteur ESPHome ? Les logs associés seront conservés.')) return
+    await apiClient.delete(`/capteurs/esphome/devices/${id}`)
+    await refetchDevices()
+  }
+
+  const handleSaveEspace = async (deviceId: number, idEspace: number | null) => {
+    await apiClient.put(`/capteurs/esphome/devices/${deviceId}`, { id_espace: idEspace })
+    await refetchDevices()
+    setEditingEspace(null)
+  }
+
+  return (
+    <div className="p-6 space-y-6">
+
+        {/* Info protocole */}
+        <div className="text-xs text-gray-400 dark:text-gray-500 bg-orange-50 dark:bg-orange-900/10 border border-orange-100 rounded-lg p-3 space-y-1">
+          <p className="font-medium text-orange-600">💡 Comment ça marche ?</p>
+          <p>Chaque capteur ESPHome envoie un <strong>POST</strong> vers GrowManager toutes les 60 secondes.</p>
+          <p>L'URL à configurer dans ton YAML ESPHome :</p>
+          <code className="block mt-1 px-2 py-1 bg-white dark:bg-gray-800 rounded border border-orange-200 text-xs text-orange-700 font-mono break-all">
+            {window.location.origin.replace(':5173', ':8000')}/api/capteurs/esphome/push
+          </code>
+          <p className="mt-1">Le <strong>device_id</strong> dans le YAML doit correspondre exactement à celui saisi ici.</p>
+        </div>
+
+        {/* Liste des capteurs */}
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-200">
+              Capteurs enregistrés ({devices.length})
+            </h3>
+            <button
+              onClick={() => setShowForm(v => !v)}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-500 text-white
+                         rounded-lg text-xs hover:bg-orange-600 transition-colors"
+            >
+              <Plus size={12} />
+              Ajouter un capteur
+            </button>
+          </div>
+
+          {/* Formulaire ajout */}
+          {showForm && (
+            <div className="mb-4 p-4 border border-orange-200 bg-orange-50 rounded-xl space-y-3">
+              <h4 className="text-xs font-semibold text-orange-600 uppercase tracking-wide">Nouveau capteur ESPHome</h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs text-gray-600 dark:text-gray-300 mb-1">Nom affiché *</label>
+                  <input
+                    value={form.nom}
+                    onChange={e => setForm(f => ({...f, nom: e.target.value}))}
+                    placeholder="Tente veg — SHT31"
+                    className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-600 dark:text-gray-300 mb-1">
+                    Device ID *
+                    <span className="ml-1 font-normal text-gray-400">(doit correspondre au YAML ESPHome)</span>
+                  </label>
+                  <input
+                    value={form.device_id}
+                    onChange={e => setForm(f => ({...f, device_id: e.target.value}))}
+                    placeholder="capteur-veg-01"
+                    className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-600 dark:text-gray-300 mb-1">IP locale (optionnel)</label>
+                  <input
+                    value={form.ip_lan ?? ''}
+                    onChange={e => setForm(f => ({...f, ip_lan: e.target.value}))}
+                    placeholder="192.168.1.55"
+                    className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-600 dark:text-gray-300 mb-1">Espace de culture</label>
+                  <select
+                    value={form.id_espace ?? ''}
+                    onChange={e => setForm(f => ({...f, id_espace: e.target.value ? Number(e.target.value) : undefined}))}
+                    className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
+                  >
+                    <option value="">— Aucun —</option>
+                    {espaces.map((e: any) => (
+                      <option key={e.id_espace} value={e.id_espace}>{e.nom}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="block text-xs text-gray-600 dark:text-gray-300 mb-1">Notes (optionnel)</label>
+                  <input
+                    value={form.notes ?? ''}
+                    onChange={e => setForm(f => ({...f, notes: e.target.value}))}
+                    placeholder="SHT31 — sonde déportée 50cm du sol"
+                    className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
+                  />
+                </div>
+              </div>
+              <div className="flex gap-2 justify-end">
+                <button
+                  onClick={() => { setShowForm(false); setForm(emptyForm) }}
+                  className="px-3 py-1.5 text-sm text-gray-600 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50"
+                >
+                  Annuler
+                </button>
+                <button
+                  onClick={handleAdd}
+                  disabled={saving || !form.nom.trim() || !form.device_id.trim()}
+                  className="px-3 py-1.5 text-sm text-white bg-orange-500 rounded-lg hover:bg-orange-600 disabled:opacity-50"
+                >
+                  {saving ? 'Enregistrement…' : 'Enregistrer'}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Tableau capteurs */}
+          {devices.length === 0 ? (
+            <p className="text-sm text-gray-400 dark:text-gray-500 text-center py-4">Aucun capteur ESPHome enregistré</p>
+          ) : (
+            <div className="space-y-2">
+              {devices.map(d => (
+                <div key={d.id_device}
+                  className="flex flex-col gap-2 px-4 py-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl border border-gray-100 dark:border-gray-700">
+                  <div className="flex items-center gap-3">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-800 dark:text-gray-100 truncate">{d.nom}</p>
+                      <p className="text-xs text-gray-400 dark:text-gray-500">
+                        id: <span className="font-mono">{d.device_id}</span>
+                        {d.ip_lan ? ` · ${d.ip_lan}` : ''}
+                        {d.notes ? ` · ${d.notes}` : ''}
+                      </p>
+                    </div>
+                    {d.derniere_temperature != null ? (
+                      <div className="text-xs text-gray-600 dark:text-gray-300 shrink-0 text-right">
+                        <div>{d.derniere_temperature.toFixed(1)}°C · {d.derniere_humidite?.toFixed(0)}%</div>
+                        {d.derniere_vpd != null && (
+                          <div className="text-gray-400">VPD {d.derniere_vpd.toFixed(2)}</div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="text-xs text-gray-400 dark:text-gray-500 shrink-0 italic">Aucune donnée reçue</div>
+                    )}
+                    <button
+                      onClick={() => handleToggleActif(d)}
+                      className={`shrink-0 p-1.5 rounded-lg transition-colors ${
+                        d.actif
+                          ? 'bg-green-100 text-green-600 hover:bg-green-200'
+                          : 'bg-gray-200 text-gray-400 dark:text-gray-500 hover:bg-gray-300'
+                      }`}
+                      title={d.actif ? 'Actif — cliquer pour désactiver' : 'Inactif — cliquer pour activer'}
+                    >
+                      <Wifi size={14} />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(d.id_device)}
+                      className="shrink-0 p-1.5 text-red-400 hover:bg-red-50 rounded-lg transition-colors"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+
+                  {/* Espace — édition inline */}
+                  {editingEspace === d.id_device ? (
+                    <div className="flex items-center gap-2">
+                      <select
+                        defaultValue={d.id_espace ?? ''}
+                        onChange={e => handleSaveEspace(d.id_device, e.target.value ? Number(e.target.value) : null)}
+                        className="flex-1 border border-orange-300 rounded-lg px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-orange-400"
+                      >
+                        <option value="">— Aucun espace —</option>
+                        {espaces.map((e: any) => (
+                          <option key={e.id_espace} value={e.id_espace}>{e.nom}</option>
+                        ))}
+                      </select>
+                      <button onClick={() => setEditingEspace(null)} className="p-1 text-gray-400 hover:text-gray-600">
+                        <X size={13} />
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => setEditingEspace(d.id_device)}
+                      className="flex items-center gap-1.5 text-xs text-left w-fit px-2 py-1 rounded-lg hover:bg-gray-200 transition-colors"
+                    >
+                      <span className="text-gray-400 dark:text-gray-500">🏠</span>
+                      <span className={d.nom_espace ? 'text-orange-600 font-medium' : 'text-gray-400 dark:text-gray-500 italic'}>
+                        {d.nom_espace ?? 'Aucun espace — cliquer pour assigner'}
+                      </span>
+                      <Pencil size={10} className="text-gray-400 dark:text-gray-500 ml-0.5" />
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+  )
+}
+
+function GoveeSectionContent() {
   const qc = useQueryClient()
 
   // Config API cloud
@@ -787,16 +1121,8 @@ function GoveeSection() {
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
-      <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-700 bg-teal-50 flex items-center gap-3">
-        <Thermometer size={18} className="text-teal-600" />
-        <div>
-          <h2 className="text-base font-semibold text-gray-800 dark:text-gray-100">Capteurs Govee</h2>
-          <p className="text-xs text-gray-400 dark:text-gray-500">Thermomètres/hygromètres H5179 via API LAN (UDP) ou Cloud</p>
-        </div>
-      </div>
-
-      <div className="p-6 space-y-6">
+    <>
+    <div className="p-6 space-y-6">
 
         {/* Config API Cloud */}
         <div>
@@ -1067,10 +1393,9 @@ function GoveeSection() {
         </div>
       </div>
 
-      {/* ── Import automatique Gmail ─────────────────────────────────────── */}
-      <GmailImportSection config={config} onConfigSaved={() => qc.invalidateQueries({ queryKey: ['govee-config'] })} />
-
-    </div>
+    {/* ── Import automatique Gmail ─────────────────────────────────────── */}
+    <GmailImportSection config={config} onConfigSaved={() => qc.invalidateQueries({ queryKey: ['govee-config'] })} />
+    </>
   )
 }
 
@@ -1930,9 +2255,7 @@ export default function ParametragePage() {
 
       {/* Tab — Capteurs */}
       {activeTab === 'capteurs' && (
-        <div className="space-y-8">
-          <GoveeSection />
-        </div>
+        <CapteursTabs />
       )}
 
       {/* Tab — Alertes Stock */}

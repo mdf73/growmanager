@@ -200,7 +200,10 @@ def poll_all_devices():
     """
     db: Session = SessionLocal()
     try:
-        devices = db.query(GoveeDevice).filter(GoveeDevice.actif == True).all()
+        devices = db.query(GoveeDevice).filter(
+            GoveeDevice.actif  == True,
+            GoveeDevice.modele != "esphome",
+        ).all()
         if not devices:
             return
         api_key = _get_cloud_api_key(db)
