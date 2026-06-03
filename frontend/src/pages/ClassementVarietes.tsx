@@ -694,7 +694,7 @@ function DetailModal({
               </button>
               <button
                 onClick={onDelete}
-                className="flex items-center gap-1.5 px-3 py-2 border border-red-500 text-red-500 rounded-lg text-sm hover:bg-red-50 dark:bg-red-900/20"
+                className="flex items-center gap-1.5 px-3 py-2 border border-red-500 text-red-500 rounded-lg text-sm hover:bg-red-50"
               >
                 <Trash2 size={14} /> Supprimer
               </button>

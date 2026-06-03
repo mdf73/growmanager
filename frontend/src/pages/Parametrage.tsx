@@ -214,7 +214,7 @@ function ListeEditor({ listeNom, label }: { listeNom: string; label: string }) {
                     <button
                       onClick={() => deleteMut.mutate(item.id_parametre)}
                       disabled={deleteMut.isPending}
-                      className="p-1 text-gray-300 hover:text-red-500 hover:bg-red-50 dark:bg-red-900/20 rounded opacity-0 group-hover:opacity-100 transition-opacity">
+                      className="p-1 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded opacity-0 group-hover:opacity-100 transition-opacity">
                       <Trash2 size={12} />
                     </button>
                   </>
@@ -383,7 +383,7 @@ function BreedersEditor() {
                   <button
                     onClick={() => deleteMut.mutate(b.id_breeder)}
                     disabled={deleteMut.isPending}
-                    className="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 dark:bg-red-900/20 rounded opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+                    className="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
                     <Trash2 size={13} />
                   </button>
                 </div>
@@ -592,7 +592,7 @@ function VarietesEditor() {
                   <button
                     onClick={() => deleteMut.mutate(v.id_variete)}
                     disabled={deleteMut.isPending}
-                    className="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 dark:bg-red-900/20 rounded opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+                    className="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
                     <Trash2 size={13} />
                   </button>
                 </div>
@@ -706,7 +706,7 @@ function VPDSettingsSectionContent() {
             />
             <span className="text-sm text-gray-500 dark:text-gray-400">°C</span>
             <button onClick={save} disabled={vpdOffset.isPending}
-              className="p-1.5 text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:bg-purple-900/20 rounded-lg transition-colors">
+              className="p-1.5 text-purple-600 dark:text-purple-400 hover:bg-purple-50 rounded-lg transition-colors">
               {vpdOffset.isPending ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
             </button>
             <button onClick={() => setEditing(false)}
@@ -722,7 +722,7 @@ function VPDSettingsSectionContent() {
             <span className="text-xs text-gray-400 dark:text-gray-500">T°feuille = T°air − offset</span>
             {saved && <span className="text-xs text-purple-600 dark:text-purple-400 flex items-center gap-1"><CheckCircle2 size={12} /> Enregistré</span>}
             <button onClick={startEdit}
-              className="flex items-center gap-1 text-xs text-gray-400 dark:text-gray-500 hover:text-purple-600 dark:text-purple-400 px-2 py-1 hover:bg-purple-50 dark:bg-purple-900/20 rounded-lg transition-colors">
+              className="flex items-center gap-1 text-xs text-gray-400 dark:text-gray-500 hover:text-purple-600 px-2 py-1 hover:bg-purple-50 rounded-lg transition-colors">
               <Pencil size={12} /> Modifier
             </button>
           </div>
@@ -1034,7 +1034,7 @@ function ESPHomeSectionContent() {
                     </button>
                     <button
                       onClick={() => handleDelete(d.id_device)}
-                      className="shrink-0 p-1.5 text-red-400 hover:bg-red-50 dark:bg-red-900/20 rounded-lg transition-colors"
+                      className="shrink-0 p-1.5 text-red-400 hover:bg-red-50 rounded-lg transition-colors"
                     >
                       <Trash2 size={14} />
                     </button>
@@ -1299,7 +1299,7 @@ function GoveeSectionContent() {
                   Appareils Govee détectés sur ton compte
                 </h4>
                 <button onClick={() => setShowImport(false)}
-                  className="text-blue-400 hover:text-blue-600 dark:text-blue-400">
+                  className="text-blue-400 hover:text-blue-600">
                   <X size={14} />
                 </button>
               </div>
@@ -1423,7 +1423,7 @@ function GoveeSectionContent() {
                       <Wifi size={14} />
                     </button>
                     <button onClick={() => handleDelete(d.id_device)}
-                      className="shrink-0 p-1.5 text-red-400 hover:bg-red-50 dark:bg-red-900/20 rounded-lg transition-colors">
+                      className="shrink-0 p-1.5 text-red-400 hover:bg-red-50 rounded-lg transition-colors">
                       <Trash2 size={14} />
                     </button>
                   </div>
@@ -1687,7 +1687,7 @@ function GmailImportSection({
 
       {/* Guide pas à pas */}
       <details className="mt-4">
-        <summary className="text-xs text-blue-500 cursor-pointer hover:text-blue-700 dark:text-blue-300 select-none">
+        <summary className="text-xs text-blue-500 cursor-pointer hover:text-blue-700 select-none">
           📋 Comment créer un mot de passe d'application Google ?
         </summary>
         <div className="mt-2 text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3 space-y-1.5">
@@ -2182,7 +2182,7 @@ function StockAlertSeuilsSection() {
                   <button onClick={() => startEdit(s)} className="p-1.5 text-gray-400 hover:text-grow-600 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg">
                     <Pencil size={14} />
                   </button>
-                  <button onClick={() => deleteMut.mutate(s.type_stock)} className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:bg-red-900/20 dark:hover:bg-red-900/20 rounded-lg">
+                  <button onClick={() => deleteMut.mutate(s.type_stock)} className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg">
                     <Trash2 size={14} />
                   </button>
                 </div>

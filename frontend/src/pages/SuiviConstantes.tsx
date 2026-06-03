@@ -493,7 +493,7 @@ function CsvImportPanel({
           text-sm font-medium cursor-pointer transition-colors
           ${importing
             ? 'border-gray-200 dark:border-gray-700 text-gray-400 dark:text-gray-500 pointer-events-none'
-            : 'border-teal-300 text-teal-600 dark:text-teal-400 hover:border-teal-500 hover:bg-teal-50 dark:bg-teal-900/20'}
+            : 'border-teal-300 text-teal-600 dark:text-teal-400 hover:border-teal-500 hover:bg-teal-50'}
         `}
       >
         <Upload size={16} className={importing ? 'animate-bounce' : ''} />

@@ -167,7 +167,7 @@ function StockRow({ item, onEdit, onDeleted, onSortie, onOrigine, onLabel }: {
 
   const rowClass = isCloture
     ? 'opacity-50 bg-gray-50 dark:bg-gray-700/30'
-    : 'hover:bg-violet-50 dark:bg-violet-900/20/40 dark:hover:bg-violet-900/10 group cursor-pointer'
+    : 'hover:bg-violet-50/40 dark:hover:bg-violet-900/10 group cursor-pointer'
 
   return (
     <tr className={rowClass} onClick={e => { if (!(e.target as HTMLElement).closest('button')) onOrigine(item.id_stock) }} title="Cliquer pour voir l'origine">
@@ -205,17 +205,17 @@ function StockRow({ item, onEdit, onDeleted, onSortie, onOrigine, onLabel }: {
       <td className="px-5 py-3 text-right">
         <div className={`flex justify-end gap-1 ${isCloture ? 'opacity-0' : 'opacity-0 group-hover:opacity-100'} transition-opacity`}>
           {!isCloture && (
-            <button onClick={() => setConfirmSortie(true)} className="p-1.5 text-gray-400 hover:text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:bg-amber-900/20 rounded" title="Déclarer comme terminé">
+            <button onClick={() => setConfirmSortie(true)} className="p-1.5 text-gray-400 hover:text-amber-600 hover:bg-amber-50 rounded" title="Déclarer comme terminé">
               <LogOut size={14} />
             </button>
           )}
-          <button onClick={() => onLabel(item.id_stock)} className="p-1.5 text-gray-400 hover:text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:bg-blue-900/20 rounded" title="Télécharger l'étiquette PDF">
+          <button onClick={() => onLabel(item.id_stock)} className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded" title="Télécharger l'étiquette PDF">
             <Printer size={14} />
           </button>
           <button onClick={() => onEdit(item)} className="p-1.5 text-gray-400 hover:text-grow-600 hover:bg-grow-50 rounded" title="Modifier">
             <Pencil size={14} />
           </button>
-          <button onClick={() => setConfirmDelete(true)} className="p-1.5 text-gray-400 hover:text-red-600 dark:text-red-400 hover:bg-red-50 dark:bg-red-900/20 rounded" title="Supprimer">
+          <button onClick={() => setConfirmDelete(true)} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded" title="Supprimer">
             <Trash2 size={14} />
           </button>
         </div>
@@ -313,14 +313,14 @@ function ExtractionRow({ item, onEdit, onDeleted, onSortie }: {
       <td className="px-5 py-3 text-right">
         <div className={`flex justify-end gap-1 ${isCloture ? 'opacity-0' : 'opacity-0 group-hover:opacity-100'} transition-opacity`}>
           {!isCloture && (
-            <button onClick={() => setConfirmSortie(true)} className="p-1.5 text-gray-400 hover:text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:bg-amber-900/20 rounded" title="Déclarer comme terminé">
+            <button onClick={() => setConfirmSortie(true)} className="p-1.5 text-gray-400 hover:text-amber-600 hover:bg-amber-50 rounded" title="Déclarer comme terminé">
               <LogOut size={14} />
             </button>
           )}
           <button onClick={() => onEdit(item)} className="p-1.5 text-gray-400 hover:text-grow-600 hover:bg-grow-50 rounded" title="Modifier">
             <Pencil size={14} />
           </button>
-          <button onClick={() => setConfirmDelete(true)} className="p-1.5 text-gray-400 hover:text-red-600 dark:text-red-400 hover:bg-red-50 dark:bg-red-900/20 rounded" title="Supprimer">
+          <button onClick={() => setConfirmDelete(true)} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded" title="Supprimer">
             <Trash2 size={14} />
           </button>
         </div>

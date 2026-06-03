@@ -83,7 +83,7 @@ function CultureCard({
           {isDeletable && onDelete && !confirmDelete && (
             <button
               onClick={e => { e.stopPropagation(); setConfirmDelete(true) }}
-              className="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 dark:bg-red-900/20 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+              className="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded opacity-0 group-hover:opacity-100 transition-opacity"
               title="Supprimer cette culture"
             >
               <Trash2 size={14} />
@@ -522,7 +522,7 @@ function CultureDetail({ cultureId, onBack }: { cultureId: number; onBack: () =>
             ) : (
               <button
                 onClick={() => toggleFlush.mutate(new Date().toISOString().slice(0, 10))}
-                className="flex items-center gap-1.5 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-600 dark:text-gray-300 hover:bg-blue-50 dark:bg-blue-900/20 dark:hover:bg-blue-900/30 hover:border-blue-300 hover:text-blue-700 dark:text-blue-300"
+                className="flex items-center gap-1.5 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-600 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:border-blue-300 hover:text-blue-700"
                 title="Démarrer le flush"
               >
                 <Droplets size={15} /> Flush
@@ -563,7 +563,7 @@ function CultureDetail({ cultureId, onBack }: { cultureId: number; onBack: () =>
           {(culture.statut === 'terminee' || culture.statut === 'sechage_curing') && !confirmDelete && (
             <button
               onClick={() => setConfirmDelete(true)}
-              className="flex items-center gap-1.5 px-3 py-2 border border-red-200 rounded-lg text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:bg-red-900/20"
+              className="flex items-center gap-1.5 px-3 py-2 border border-red-200 rounded-lg text-sm text-red-600 dark:text-red-400 hover:bg-red-50"
               title="Supprimer la culture et toutes ses données"
             >
               <Trash2 size={15} /> Supprimer
