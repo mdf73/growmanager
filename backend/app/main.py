@@ -85,9 +85,10 @@ def run_migrations():
         # TemperatureLog — extension Govee (vpd, id_device, id_culture nullable)
         ("TemperatureLog", "vpd",       "ALTER TABLE TemperatureLog ADD COLUMN vpd FLOAT"),
         ("TemperatureLog", "id_device", "ALTER TABLE TemperatureLog ADD COLUMN id_device INT REFERENCES GoveeDevice(id_device)"),
-        # Stock — sortie de stock + bocal Materiel
+        # Stock — sortie de stock + bocal Materiel + substrat
         ("Stock", "date_fin_stock",    "ALTER TABLE Stock ADD COLUMN date_fin_stock DATE NULL"),
         ("Stock", "id_materiel_bocal", "ALTER TABLE Stock ADD COLUMN id_materiel_bocal INT NULL REFERENCES Materiel(id_materiel)"),
+        ("Stock", "substrat_type",     "ALTER TABLE Stock ADD COLUMN substrat_type VARCHAR(200) NULL"),
         # SessionCuring — espace de culture optionnel + bocal inventaire
         ("SessionCuring", "id_espace",         "ALTER TABLE SessionCuring ADD COLUMN id_espace INT NULL REFERENCES EspaceCulture(id_espace)"),
         ("SessionCuring", "id_materiel_bocal", "ALTER TABLE SessionCuring ADD COLUMN id_materiel_bocal INT NULL REFERENCES Materiel(id_materiel)"),

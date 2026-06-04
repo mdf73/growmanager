@@ -4,6 +4,29 @@ Append-only chronological record of all wiki operations.
 
 Format: `## [YYYY-MM-DD] <operation> | <description>`
 
+---
+
+## [2026-06-04] Bugfix | Migration manquante : Stock.substrat_type
+
+### Problème
+Les nouvelles installations depuis GitHub crashaient au démarrage du backend avec :
+```
+sqlalchemy.exc.OperationalError: (1054, "Unknown column 'Stock.substrat_type' in 'field list'")
+```
+Le Dashboard était inaccessible.
+
+### Cause
+La colonne `substrat_type VARCHAR(200)` était présente dans le modèle SQLAlchemy (`Stock`) mais absente de la liste `run_migrations()` dans `main.py`. La migration automatique au démarrage ne créait donc jamais cette colonne sur les nouvelles installations.
+
+### Fix
+- **`backend/app/main.py`** — ajout de l'entrée `("Stock", "substrat_type", "ALTER TABLE Stock ADD COLUMN substrat_type VARCHAR(200) NULL")` dans `run_migrations()`
+
+### Fix ponctuel pour les installations existantes affectées
+```powershell
+docker compose exec db mysql -u growuser -pgrowpassword growmanager -e "ALTER TABLE Stock ADD COLUMN substrat_type VARCHAR(200) NULL;"
+docker compose restart backend
+```
+
 Operations: `bootstrap`, `ingest`, `query`, `lint`, `update`
 
 ---

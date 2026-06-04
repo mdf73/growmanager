@@ -1,8 +1,7 @@
-feat: croisement open field complet
+fix: ajout migration manquante Stock.substrat_type
 
-- ProjetOpenField + PlanteMereOpenField + PlantePereOpenField
-- CRUD projets, meres, peres + endpoint recolte
-- Recolte cree nouvelle Variete (nom auto-genere editable) + PackGraine + Graines
-- 3eme onglet Open Field dans Croisement.tsx
-- fix: archivage force lors de close_culture
-- fix: cultures terminees incluses dans Statistiques
+La colonne `substrat_type` était définie dans le modèle SQLAlchemy
+mais absente de run_migrations() → crash au démarrage sur toute
+nouvelle installation (Unknown column 'Stock.substrat_type').
+
+- backend/app/main.py : ajout entrée substrat_type dans run_migrations()

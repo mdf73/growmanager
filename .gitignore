@@ -56,3 +56,4 @@ wiki/.obsidian/
 *.log
 logs/
 tmp/
+.mcp.json

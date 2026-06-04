@@ -167,7 +167,7 @@ Nouvelle entité `ProjetOpenField` (N mères, pères identifiés ou inconnus, li
 ### Offset VPD foliaire configurable ✅
 - `AppSettings('vpd_leaf_offset')` — défaut 2.0°C
 - `compute_vpd(temp, hum, leaf_offset)` — utilisé partout (Govee poller, manual poll, ESPHome push, entrée manuelle)
-- Champ éditable dans Paramétrage → onglet Général → section Économique
+- Champ éditable dans Paramétrage → onglet Capteurs
 
 ### Édition dates culture ✅
 - Composant `DatesModal` dans `Culture.tsx`
