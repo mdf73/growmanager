@@ -45,6 +45,10 @@ services:
       SECRET_KEY:      ${SECRET_KEY:-changeme-in-production}
       GROWMANAGER_URL: ${GROWMANAGER_URL:-http://localhost}
       TZ:              ${TZ:-Europe/Paris}
+      DB_HOST:         db
+      MYSQL_USER:      ${MYSQL_USER:-grow}
+      MYSQL_PASSWORD:  ${MYSQL_PASSWORD:-grow2024}
+      MYSQL_DATABASE:  ${MYSQL_DATABASE:-growmanager}
     depends_on:
       db:
         condition: service_healthy
