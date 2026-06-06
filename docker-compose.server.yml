@@ -38,6 +38,10 @@ services:
     environment:
       - DATABASE_URL=mysql+pymysql://${MYSQL_USER}:${MYSQL_PASSWORD}@db:3306/growmanager
       - SECRET_KEY=${SECRET_KEY}
+      - DB_HOST=db
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_DATABASE=growmanager
     depends_on:
       db:
         condition: service_healthy
