@@ -20,14 +20,43 @@ from app.schemas.suivi_sol_vivant import (
 router = APIRouter(prefix="/api/suivi-sols-vivants", tags=["suivi-sols-vivants"])
 
 
-def _ingredient_cost(quantite: float, produit) -> float | None:
-    """Calcule le coût d'un ingrédient en €  (quantite × prix_achat / volume_conditionnement)."""
+_UNIT_FACTORS = {
+    "mL": 1,
+    "L": 1000,
+    "cL": 10,
+    "g": 1,
+    "Kg": 1000,
+    "kg": 1000,
+}
+
+
+def _to_small_unit(value: float, unite: str | None) -> float:
+    """Convertit une valeur vers son unité "petite" (mL ou g par défaut)."""
+    factor = _UNIT_FACTORS.get(unite or "", 1)
+    return float(value) * factor
+
+
+def _extract_base_unit(unite: str | None) -> str | None:
+    """Extrait l'unité de base (ex: 'mL' depuis 'mL/L')."""
+    if not unite:
+        return None
+    return unite.split("/")[0]
+
+
+def _ingredient_cost(quantite: float, unite_quantite: str | None, produit) -> float | None:
+    """Calcule le coût d'un ingrédient en € en normalisant les unités.
+
+    On convertit la quantité de la ligne de recette et le volume de conditionnement
+    du produit dans leurs unités "petites" (mL ou g) avant d'appliquer le ratio
+    prix_achat / volume_conditionnement.
+    """
     if produit is None or produit.prix_achat is None or produit.volume_conditionnement is None:
         return None
-    vc = float(produit.volume_conditionnement)
-    if vc == 0:
+    vc_small = _to_small_unit(float(produit.volume_conditionnement), produit.unite_volume)
+    if vc_small == 0:
         return None
-    return round(quantite * (float(produit.prix_achat) / vc), 4)
+    q_small = _to_small_unit(float(quantite), unite_quantite)
+    return round(q_small * (float(produit.prix_achat) / vc_small), 4)
 
 
 def _enrich_reamend(e: SuiviReamendement, db: Session) -> SuiviReamendementRead:
@@ -41,9 +70,11 @@ def _enrich_reamend(e: SuiviReamendement, db: Session) -> SuiviReamendementRead:
             valid = True
             for ligne in db.query(RecetteReamendementLigne).filter(RecetteReamendementLigne.id_recette_reamend == r.id_recette_reamend).all():
                 p = db.query(ProduitEngrais).filter(ProduitEngrais.id_produit == ligne.id_produit).first()
-                c = _ingredient_cost(float(ligne.quantite), p)
+                base_unit = _extract_base_unit(ligne.unite)
+                c = _ingredient_cost(float(ligne.quantite), base_unit, p)
                 if c is None:
-                    valid = False; break
+                    valid = False
+                    break
                 total += c
             if valid:
                 cout = round(total, 2)
@@ -63,14 +94,18 @@ def _enrich_arrosage(e: SuiviArrosage, db: Session) -> SuiviArrosageRead:
     if e.id_recette_engrais:
         r = db.query(RecetteEngrais).filter(RecetteEngrais.id_recette == e.id_recette_engrais).first()
         nom = r.nom_recette if r else None
-        if r:
+        if r and e.volume_eau_l is not None:
             total = 0.0
             valid = True
+            volume_l = float(e.volume_eau_l)
             for ligne in db.query(RecetteEngraisLigne).filter(RecetteEngraisLigne.id_recette == r.id_recette).all():
                 p = db.query(ProduitEngrais).filter(ProduitEngrais.id_produit == ligne.id_produit).first()
-                c = _ingredient_cost(float(ligne.dosage), p)
+                base_unit = _extract_base_unit(ligne.unite)
+                qte_totale = float(ligne.dosage) * volume_l  # dosage en mL/L ou g/L
+                c = _ingredient_cost(qte_totale, base_unit, p)
                 if c is None:
-                    valid = False; break
+                    valid = False
+                    break
                 total += c
             if valid:
                 cout = round(total, 2)
@@ -136,9 +171,11 @@ def _enrich(s: SuiviSolVivant, db: Session) -> SuiviSolVivantRead:
             valid = True
             for ligne in db.query(RecetteLSOLigne).filter(RecetteLSOLigne.id_recette_lso == lso.id_recette_lso).all():
                 p = db.query(ProduitEngrais).filter(ProduitEngrais.id_produit == ligne.id_produit).first()
-                c = _ingredient_cost(float(ligne.quantite), p)
+                base_unit = _extract_base_unit(ligne.unite)
+                c = _ingredient_cost(float(ligne.quantite), base_unit, p)
                 if c is None:
-                    valid = False; break
+                    valid = False
+                    break
                 total += c
             if valid:
                 cout_lso = round(total, 2)
@@ -211,9 +248,11 @@ def create(payload: SuiviSolVivantCreate, db: Session = Depends(get_db)):
         date_preparation=payload.date_preparation,
         commentaires=payload.commentaires,
     )
-    db.add(s); db.flush()
+    db.add(s)
+    db.flush()
     _create_children(s, payload, db)
-    db.commit(); db.refresh(s)
+    db.commit()
+    db.refresh(s)
     return _enrich(s, db)
 
 
@@ -228,31 +267,37 @@ def update(suivi_id: int, payload: SuiviSolVivantUpdate, db: Session = Depends(g
             setattr(s, field, val)
     # Pour chaque collection, si fournie, on remplace
     if payload.reamendements is not None:
-        for e in s.reamendements: db.delete(e)
+        for e in s.reamendements:
+            db.delete(e)
         db.flush()
         for e in payload.reamendements:
             db.add(SuiviReamendement(id_suivi=s.id_suivi, **e.model_dump()))
     if payload.arrosages is not None:
-        for e in s.arrosages: db.delete(e)
+        for e in s.arrosages:
+            db.delete(e)
         db.flush()
         for e in payload.arrosages:
             db.add(SuiviArrosage(id_suivi=s.id_suivi, **e.model_dump()))
     if payload.tcos is not None:
-        for e in s.tcos: db.delete(e)
+        for e in s.tcos:
+            db.delete(e)
         db.flush()
         for e in payload.tcos:
             db.add(SuiviTCO(id_suivi=s.id_suivi, **e.model_dump()))
     if payload.fermentations is not None:
-        for e in s.fermentations: db.delete(e)
+        for e in s.fermentations:
+            db.delete(e)
         db.flush()
         for e in payload.fermentations:
             db.add(SuiviFermentation(id_suivi=s.id_suivi, **e.model_dump()))
     if payload.cultures is not None:
-        for e in s.cultures: db.delete(e)
+        for e in s.cultures:
+            db.delete(e)
         db.flush()
         for e in payload.cultures:
             db.add(SuiviCulture(id_suivi=s.id_suivi, **e.model_dump()))
-    db.commit(); db.refresh(s)
+    db.commit()
+    db.refresh(s)
     return _enrich(s, db)
 
 
@@ -267,7 +312,8 @@ def add_reamendement(suivi_id: int, payload: dict, db: Session = Depends(get_db)
     from pydantic import TypeAdapter
     e = TypeAdapter(SuiviReamendementCreate).validate_python(payload)
     db.add(SuiviReamendement(id_suivi=suivi_id, **e.model_dump()))
-    db.commit(); db.refresh(s)
+    db.commit()
+    db.refresh(s)
     return _enrich(s, db)
 
 
@@ -298,7 +344,8 @@ def add_arrosage(suivi_id: int, payload: dict, db: Session = Depends(get_db)):
                 if prod and prod.quantite_stock is not None:
                     prod.quantite_stock = max(0, float(prod.quantite_stock) - qte_calculee)
 
-    db.commit(); db.refresh(s)
+    db.commit()
+    db.refresh(s)
     return _enrich(s, db)
 
 
@@ -311,7 +358,8 @@ def add_tco(suivi_id: int, payload: dict, db: Session = Depends(get_db)):
     from pydantic import TypeAdapter
     e = TypeAdapter(SuiviTCOCreate).validate_python(payload)
     db.add(SuiviTCO(id_suivi=suivi_id, **e.model_dump()))
-    db.commit(); db.refresh(s)
+    db.commit()
+    db.refresh(s)
     return _enrich(s, db)
 
 
@@ -324,7 +372,8 @@ def add_fermentation(suivi_id: int, payload: dict, db: Session = Depends(get_db)
     from pydantic import TypeAdapter
     e = TypeAdapter(SuiviFermentationCreate).validate_python(payload)
     db.add(SuiviFermentation(id_suivi=suivi_id, **e.model_dump()))
-    db.commit(); db.refresh(s)
+    db.commit()
+    db.refresh(s)
     return _enrich(s, db)
 
 
@@ -337,7 +386,8 @@ def add_culture(suivi_id: int, payload: dict, db: Session = Depends(get_db)):
     from pydantic import TypeAdapter
     e = TypeAdapter(SuiviCultureCreate).validate_python(payload)
     db.add(SuiviCulture(id_suivi=suivi_id, **e.model_dump()))
-    db.commit(); db.refresh(s)
+    db.commit()
+    db.refresh(s)
     return _enrich(s, db)
 
 
@@ -346,4 +396,5 @@ def delete(suivi_id: int, db: Session = Depends(get_db)):
     s = db.query(SuiviSolVivant).filter(SuiviSolVivant.id_suivi == suivi_id).first()
     if not s:
         raise HTTPException(status_code=404, detail="Suivi sol vivant introuvable")
-    db.delete(s); db.commit()
+    db.delete(s)
+    db.commit()
