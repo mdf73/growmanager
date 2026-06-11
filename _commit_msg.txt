@@ -1,7 +1,13 @@
-fix: ajout migration manquante Stock.substrat_type
+fix: normalisation des unités (mL/L/g/Kg) dans les coûts engrais et déductions de stock
 
-La colonne `substrat_type` était définie dans le modèle SQLAlchemy
-mais absente de run_migrations() → crash au démarrage sur toute
-nouvelle installation (Unknown column 'Stock.substrat_type').
+Suite au merge de la PR #4 (suivi_sol_vivant), audit complet du même bug :
 
-- backend/app/main.py : ajout entrée substrat_type dans run_migrations()
+- cultures.py : 3 calculs de coût engrais corrigés (cout culture, détail
+  par recette dans /compare, coût arrosage individuel) — le prix était
+  divisé par volume_conditionnement sans normaliser unite_volume
+  (coûts ×1000 pour les produits en L/Kg)
+- cultures.py : déductions de stock arrosage_engrais et preparation_tco
+  converties vers unite_quantite du produit avant soustraction
+- suivi_sol_vivant.py : même fix de déduction de stock dans add_arrosage
+- helpers partagés : _to_small_unit, _prix_par_petite_unite, _deduire_stock
+- wiki : entrée log.md du 2026-06-11

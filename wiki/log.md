@@ -415,3 +415,21 @@ Explored entire GrowManager codebase (backend + frontend + docs) and bootstrappe
 - `frontend/src/pages/ComparaisonCultures.tsx` — page complète (~600 lignes)
 - `frontend/src/App.tsx` — route `/comparaison-cultures`
 - `frontend/src/components/Layout.tsx` — nav sous-menu Culture
+
+## [2026-06-11] Normalisation des unités — coûts & déductions de stock
+
+### Contexte
+Merge de la **PR #4** (contributeur externe Boblespam) : fix du calcul des coûts LSO, réamendements et arrosages dans `suivi_sol_vivant.py` — normalisation des unités (mL/L/g/Kg) avant le ratio `prix_achat / volume_conditionnement`, et prise en compte de `volume_eau_l` pour les arrosages. Audit complet ensuite : le même bug existait ailleurs.
+
+### Bugfixes (suite de l'audit)
+- **`cultures.py` — 3 calculs de coût engrais** (`_compute_culture_cost` ~l.480, détail coût par recette dans `/compare` ~l.1053, coût d'un arrosage individuel ~l.2422) : le prix était divisé par `volume_conditionnement` sans tenir compte de `unite_volume` → coûts surévalués ×1000 pour les produits conditionnés en L ou Kg (ex. flacon 1 L à 30 € compté 30 €/mL au lieu de 0,03 €/mL)
+- **Déductions de stock** : `quantite_stock` était décrémenté d'une quantité en mL/g sans conversion vers `unite_quantite` du produit (faux ×1000 si stock saisi en L ou Kg). Corrigé dans `cultures.py` (arrosage_engrais l.844, preparation_tco l.867) et `suivi_sol_vivant.py` (`add_arrosage`)
+
+### Implémentation
+- Helpers partagés par fichier : `_UNIT_FACTORS` (mL/L/cL/g/Kg), `_to_small_unit()` (normalise vers mL ou g, gère les unités composées 'mL/L' → 'mL'), `_prix_par_petite_unite()` (cultures.py), `_deduire_stock()` (conversion bidirectionnelle : quantité ligne → petite unité → réécriture dans l'unité du stock)
+- Même logique que `culture_helpers.py` (déjà correct) et que le `toBase()`/`norm()` du frontend (déjà correct partout)
+- Exception volontaire : liste manuelle legacy (`cultures.py` l.869) — quantité saisie sans unité, supposée dans l'unité du stock
+
+### Files modified
+- `backend/app/routers/cultures.py` — helpers unités + 3 fix coûts + 2 fix déductions stock
+- `backend/app/routers/suivi_sol_vivant.py` — `_deduire_stock()` + fix déduction dans `add_arrosage` (en plus de la PR #4 mergée)

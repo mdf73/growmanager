@@ -24,6 +24,43 @@ router = APIRouter(prefix="/api/cultures", tags=["cultures"])
 
 # ─── Helpers ──────────────────────────────────────────────────────────────────
 
+_UNIT_FACTORS = {"mL": 1, "L": 1000, "cL": 10, "g": 1, "Kg": 1000, "kg": 1000}
+
+
+def _to_small_unit(value: float, unite: str | None) -> float:
+    """Convertit une valeur vers son unité « petite » (mL ou g).
+
+    Accepte aussi les unités composées ('mL/L' → base 'mL')."""
+    base = (unite or "").split("/")[0]
+    return float(value) * _UNIT_FACTORS.get(base, 1)
+
+
+def _prix_par_petite_unite(prod) -> float | None:
+    """Prix d'achat ramené au mL (ou g) en normalisant unite_volume.
+
+    Évite la confusion €/L vs €/mL quand le conditionnement est en L ou Kg."""
+    if not prod or not prod.prix_achat or not prod.volume_conditionnement:
+        return None
+    base = _to_small_unit(float(prod.volume_conditionnement), prod.unite_volume)
+    if not base:
+        return None
+    return float(prod.prix_achat) / base
+
+
+def _deduire_stock(prod, quantite: float, unite_quantite: str | None) -> None:
+    """Déduit une quantité du stock produit en respectant les unités.
+
+    La quantité utilisée (dans l'unité de la ligne de recette) et le stock
+    (dans prod.unite_quantite) sont convertis en petite unité (mL/g) avant
+    soustraction, puis le résultat est réécrit dans l'unité du stock."""
+    if prod is None or prod.quantite_stock is None:
+        return
+    qte_small = _to_small_unit(quantite, unite_quantite)
+    stock_factor = _UNIT_FACTORS.get((prod.unite_quantite or "").split("/")[0], 1)
+    stock_small = float(prod.quantite_stock) * stock_factor
+    prod.quantite_stock = max(0.0, stock_small - qte_small) / stock_factor
+
+
 def _enrich_plant(plant: Plant, db: Session) -> dict:
     from app.models import RecetteLSO, Materiel as PotModel
     data = {
@@ -474,10 +511,10 @@ def _compute_culture_cost(id_culture: int, db: Session, date_fin_override=None) 
             continue
         for ligne in recette.lignes:
             prod = db.query(ProduitEngrais).filter(ProduitEngrais.id_produit == ligne.id_produit).first()
-            if not prod or not prod.prix_achat or not prod.volume_conditionnement:
+            prix_par_unite = _prix_par_petite_unite(prod)
+            if prix_par_unite is None:
                 continue
-            qte_utilisee = ligne.dosage * volume_l          # mL ou g utilisés
-            prix_par_unite = float(prod.prix_achat) / float(prod.volume_conditionnement)
+            qte_utilisee = _to_small_unit(ligne.dosage * volume_l, ligne.unite)  # mL ou g utilisés
             cout_engrais += qte_utilisee * prix_par_unite
 
     cout_engrais = round(cout_engrais, 2)
@@ -820,8 +857,7 @@ def _handle_action_effects(action: ActionCalendrier, culture: Culture, db: Sessi
                 for ligne in recette.lignes:
                     qte_calculee = float(ligne.dosage) * volume_l  # dosage en mL/L ou g/L
                     prod = db.query(ProduitEngrais).filter(ProduitEngrais.id_produit == ligne.id_produit).first()
-                    if prod and prod.quantite_stock is not None:
-                        prod.quantite_stock = max(0, float(prod.quantite_stock) - qte_calculee)
+                    _deduire_stock(prod, qte_calculee, ligne.unite)
         else:
             # Legacy : liste manuelle de produits
             for item in p.get("produits", []):
@@ -843,8 +879,7 @@ def _handle_action_effects(action: ActionCalendrier, culture: Culture, db: Sessi
                 for ligne in recette.lignes:
                     qte_calculee = float(ligne.quantite) * scale
                     prod = db.query(ProduitEngrais).filter(ProduitEngrais.id_produit == ligne.id_produit).first()
-                    if prod and prod.quantite_stock is not None:
-                        prod.quantite_stock = max(0, float(prod.quantite_stock) - qte_calculee)
+                    _deduire_stock(prod, qte_calculee, ligne.unite)
         # arrosage_tco : PAS de déduction stock (déjà fait à la préparation)
 
     elif t == "rempotage":
@@ -1048,9 +1083,10 @@ def compare_cultures(ids: str = Query(..., description="IDs séparés par virgul
             cout_action = 0.0
             for ligne2 in rec2.lignes:
                 prod2 = db.query(ProduitEngrais).filter(ProduitEngrais.id_produit == ligne2.id_produit).first()
-                if not prod2 or not prod2.prix_achat or not prod2.volume_conditionnement:
+                prix2 = _prix_par_petite_unite(prod2)
+                if prix2 is None:
                     continue
-                cout_action += ligne2.dosage * vol2 * (float(prod2.prix_achat) / float(prod2.volume_conditionnement))
+                cout_action += _to_small_unit(ligne2.dosage * vol2, ligne2.unite) * prix2
             if nom_rec not in recettes_cout:
                 recettes_cout[nom_rec] = {"volume_l": 0.0, "cout": 0.0, "nb_actions": 0}
             recettes_cout[nom_rec]["volume_l"]   += vol2
@@ -2412,14 +2448,15 @@ def get_action_cout(culture_id: int, action_id: int, db: Session = Depends(get_d
     cout_total = 0.0
     for ligne in recette.lignes:
         prod = db.query(ProduitEngrais).filter(ProduitEngrais.id_produit == ligne.id_produit).first()
-        if not prod or not prod.prix_achat or not prod.volume_conditionnement:
+        prix_unite = _prix_par_petite_unite(prod)
+        if prix_unite is None:
             par_produit.append({
                 "nom": ligne.nom_produit or prod.nom_produit if prod else f"Produit #{ligne.id_produit}",
                 "cout": None,
             })
             continue
-        qte = ligne.dosage * volume_l
-        cout = qte * (float(prod.prix_achat) / float(prod.volume_conditionnement))
+        qte = _to_small_unit(ligne.dosage * volume_l, ligne.unite)
+        cout = qte * prix_unite
         cout_total += cout
         par_produit.append({
             "nom": prod.nom_produit,

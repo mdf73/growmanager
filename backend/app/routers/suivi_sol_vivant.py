@@ -59,6 +59,20 @@ def _ingredient_cost(quantite: float, unite_quantite: str | None, produit) -> fl
     return round(q_small * (float(produit.prix_achat) / vc_small), 4)
 
 
+def _deduire_stock(prod, quantite: float, unite_quantite: str | None) -> None:
+    """Déduit une quantité du stock produit en respectant les unités.
+
+    La quantité utilisée (unité de la ligne de recette) et le stock
+    (prod.unite_quantite) sont convertis en petite unité (mL/g) avant
+    soustraction, puis le résultat est réécrit dans l'unité du stock."""
+    if prod is None or prod.quantite_stock is None:
+        return
+    qte_small = _to_small_unit(quantite, _extract_base_unit(unite_quantite))
+    stock_factor = _UNIT_FACTORS.get(_extract_base_unit(prod.unite_quantite) or "", 1)
+    stock_small = float(prod.quantite_stock) * stock_factor
+    prod.quantite_stock = max(0.0, stock_small - qte_small) / stock_factor
+
+
 def _enrich_reamend(e: SuiviReamendement, db: Session) -> SuiviReamendementRead:
     nom = None
     cout = None
@@ -341,8 +355,7 @@ def add_arrosage(suivi_id: int, payload: dict, db: Session = Depends(get_db)):
                 prod = db.query(ProduitEngrais).filter(
                     ProduitEngrais.id_produit == ligne.id_produit
                 ).first()
-                if prod and prod.quantite_stock is not None:
-                    prod.quantite_stock = max(0, float(prod.quantite_stock) - qte_calculee)
+                _deduire_stock(prod, qte_calculee, ligne.unite)
 
     db.commit()
     db.refresh(s)
