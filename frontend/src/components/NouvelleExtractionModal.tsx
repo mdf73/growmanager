@@ -126,6 +126,7 @@ export default function NouvelleExtractionModal({ stocks, onClose }: Props) {
           throw new Error(`Dépassement du stock disponible (${Number(stock.quantite_stock).toFixed(1)} g dispo)`)
       }
 
+      if (!maillage)        throw new Error('Le maillage du sac est obligatoire')
       if (!presses[0])      throw new Error('La passe de presse 1 est obligatoire')
       if (poidsSortie <= 0) throw new Error('Le poids de sortie doit être > 0')
 
@@ -274,8 +275,8 @@ export default function NouvelleExtractionModal({ stocks, onClose }: Props) {
                 onChange={e => setTemperature(e.target.value)} placeholder="ex: 80" className={inputCls} />
             </div>
             <div>
-              {lbl('Maillage du sac')}
-              <select value={maillage} onChange={e => setMaillage(e.target.value)} className={inputCls}>
+              {lbl('Maillage du sac', true)}
+              <select value={maillage} onChange={e => setMaillage(e.target.value)} className={inputCls} required>
                 <option value="">— Sélectionner —</option>
                 {MAILLAGES.map(m => <option key={m} value={m}>{m}</option>)}
               </select>

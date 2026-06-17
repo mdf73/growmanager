@@ -1,11 +1,12 @@
 import { useMemo, useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Plus, Sparkles, AlertTriangle, Loader2, Trash2, FlaskConical, TrendingUp, Weight, Percent, ArrowUpDown, Search, ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-react'
+import { Plus, Sparkles, AlertTriangle, Loader2, Trash2, Pencil, FlaskConical, TrendingUp, Weight, Percent, ArrowUpDown, Search, ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-react'
 import { rosinAPI, stockAPI } from '../api/stock'
 import type { RosinExtraction, Stock } from '../api/stock'
 import LoadingSpinner from '../components/LoadingSpinner'
 import EmptyState from '../components/EmptyState'
 import NouvelleExtractionModal from '../components/NouvelleExtractionModal'
+import EditExtractionModal from '../components/EditExtractionModal'
 import ExtractionDetailModal from '../components/ExtractionDetailModal'
 import ImportExportModal from '../components/ImportExportModal'
 
@@ -35,7 +36,7 @@ function pressesCount(e: RosinExtraction): number {
 }
 
 // Composant ligne
-function ExtractionRow({ item, onDeleted, onDetail }: { item: RosinExtraction; onDeleted: () => void; onDetail: () => void }) {
+function ExtractionRow({ item, onDeleted, onDetail, onEdit }: { item: RosinExtraction; onDeleted: () => void; onDetail: () => void; onEdit: () => void }) {
   const [confirm, setConfirm] = useState(false)
   const remove = useMutation({
     mutationFn: () => rosinAPI.delete(item.id_rosinextraction),
@@ -84,11 +85,18 @@ function ExtractionRow({ item, onDeleted, onDetail }: { item: RosinExtraction; o
         {item.date_rosinextraction ? new Date(item.date_rosinextraction).toLocaleDateString('fr-FR') : '---'}
       </td>
       <td className="px-5 py-3 text-right" onClick={e => e.stopPropagation()}>
-        <button onClick={() => setConfirm(true)}
-          className="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded opacity-0 group-hover:opacity-100 transition-opacity"
-          title="Supprimer">
-          <Trash2 size={14} />
-        </button>
+        <div className="flex justify-end gap-1">
+          <button onClick={onEdit}
+            className="p-1.5 text-gray-300 hover:text-grow-600 hover:bg-grow-50 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+            title="Modifier">
+            <Pencil size={14} />
+          </button>
+          <button onClick={() => setConfirm(true)}
+            className="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+            title="Supprimer">
+            <Trash2 size={14} />
+          </button>
+        </div>
       </td>
     </tr>
   )
@@ -100,6 +108,7 @@ export default function ExtractionsPage() {
   const [showModal,        setShowModal]        = useState(false)
   const [showImportExport, setShowImportExport] = useState(false)
   const [detailItem,       setDetailItem]       = useState<RosinExtraction | null>(null)
+  const [editItem,         setEditItem]         = useState<RosinExtraction | null>(null)
   const [selectedYear,     setSelectedYear]     = useState<number | 'all'>('all')
   const [searchVariete,    setSearchVariete]    = useState('')
   const [sortCol,          setSortCol]          = useState<ExtractSortCol | null>(null)
@@ -306,7 +315,7 @@ export default function ExtractionsPage() {
                 </thead>
                 <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                   {filtered.map(e => (
-                    <ExtractionRow key={e.id_rosinextraction} item={e} onDeleted={invalidate} onDetail={() => setDetailItem(e)} />
+                    <ExtractionRow key={e.id_rosinextraction} item={e} onDeleted={invalidate} onDetail={() => setDetailItem(e)} onEdit={() => setEditItem(e)} />
                   ))}
                 </tbody>
               </table>
@@ -316,6 +325,7 @@ export default function ExtractionsPage() {
       </div>
 
       {showModal && <NouvelleExtractionModal stocks={stocks} onClose={() => setShowModal(false)} />}
+      {editItem && <EditExtractionModal extraction={editItem} onClose={() => setEditItem(null)} />}
       {showImportExport && <ImportExportModal onClose={() => setShowImportExport(false)} defaultTab="extractions" />}
       {detailItem && <ExtractionDetailModal extraction={detailItem} onClose={() => setDetailItem(null)} />}
     </div>

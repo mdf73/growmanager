@@ -610,7 +610,8 @@ class Stock(Base):
     bocal = relationship("Bocal", back_populates="stocks")
     materiel_bocal = relationship("Materiel", foreign_keys=[id_materiel_bocal])
     plant = relationship("Plant", foreign_keys=[id_plant])
-    rosin_extractions = relationship("RosinExtraction", back_populates="stock_source")
+    rosin_extractions = relationship("RosinExtraction", back_populates="stock_source",
+                                     foreign_keys="RosinExtraction.id_stock_source")
 
 
 # ============ Tables d'extractions ============
@@ -623,6 +624,7 @@ class RosinExtraction(Base):
     id_rosinbag = Column(Integer, ForeignKey("RosinBag.id_rosinbag"))
     id_press = Column(Integer, ForeignKey("Press.id_press"))
     id_stock_source = Column(Integer, ForeignKey("Stock.id_stock"))
+    id_stock_produit = Column(Integer, ForeignKey("Stock.id_stock"))  # stock Rosin produit (pour sync édition)
     nom_variete_extract = Column(String(50))
     date_rosinextraction = Column(Date)
     temperature_extraction = Column(Integer)
@@ -648,7 +650,7 @@ class RosinExtraction(Base):
     bocal = relationship("Bocal", back_populates="rosin_extractions")
     rosin_bag = relationship("RosinBag", back_populates="rosin_extractions")
     press = relationship("Press", back_populates="rosin_extractions")
-    stock_source = relationship("Stock", back_populates="rosin_extractions")
+    stock_source = relationship("Stock", back_populates="rosin_extractions", foreign_keys=[id_stock_source])
 
 
 # ============ Historique des cultures ============

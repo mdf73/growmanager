@@ -7,6 +7,7 @@ from app.database import get_db
 from app.models import RosinExtraction, HashExtraction, Stock, Variete
 from app.schemas.extraction import (
     RosinExtractionCreate,
+    RosinExtractionUpdate,
     RosinExtractionRead,
     HashExtractionCreate,
     HashExtractionRead,
@@ -146,6 +147,10 @@ def create_rosin_extraction(
     - Multi-sources : déduit quantite_utilisee de chaque stock source
     - Crée une nouvelle entrée Stock (type Rosin) avec quantite_extraite
     """
+    # ── Maillage obligatoire ──────────────────────────────────────────────
+    if not (extraction.maillage or "").strip():
+        raise HTTPException(status_code=400, detail="Le maillage du sac est obligatoire")
+
     # ── Résoudre les sources (multi ou legacy mono-source) ────────────────
     sources = extraction.sources or []
     if not sources and extraction.id_stock_source:
@@ -215,6 +220,87 @@ def create_rosin_extraction(
         quantite_stock=extraction.quantite_extraite,
     )
     db.add(rosin_stock)
+    db.flush()  # obtenir l'id du stock produit pour le lier à l'extraction
+
+    # Lier le stock produit à l'extraction (pour la synchro lors de l'édition)
+    db_extraction.id_stock_produit = rosin_stock.id_stock
+
+    db.commit()
+    db.refresh(db_extraction)
+    return _enrich_rosin(db_extraction, db)
+
+
+@router.put("/rosin/{extraction_id}", response_model=RosinExtractionRead)
+def update_rosin_extraction(
+    extraction_id: int,
+    extraction: RosinExtractionUpdate,
+    db: Session = Depends(get_db),
+):
+    """
+    Met à jour une extraction rosin (maillage, poids sortie, paramètres…).
+    Ne re-déduit PAS les stocks sources (l'entrée a déjà été consommée).
+    Synchronise le stock Rosin produit lié : quantité (= poids sortie) + maillage.
+    """
+    db_extraction = db.query(RosinExtraction).filter(
+        RosinExtraction.id_rosinextraction == extraction_id
+    ).first()
+    if not db_extraction:
+        raise HTTPException(status_code=404, detail="Extraction introuvable")
+
+    if not (extraction.maillage or "").strip():
+        raise HTTPException(status_code=400, detail="Le maillage du sac est obligatoire")
+
+    # ── Mémoriser les anciennes valeurs pour la synchro stock ─────────────
+    old_quantite = float(db_extraction.quantite_extraite or 0)
+    old_maillage = db_extraction.maillage
+
+    # ── Appliquer les modifications (pas de re-déduction des sources) ─────
+    db_extraction.date_rosinextraction   = extraction.date_rosinextraction
+    db_extraction.temperature_extraction = extraction.temperature_extraction
+    db_extraction.maillage               = extraction.maillage
+    db_extraction.duree_preheat          = extraction.duree_preheat
+    db_extraction.duree_extraction       = extraction.duree_extraction
+    db_extraction.sac_1_poids            = extraction.sac_1_poids
+    db_extraction.sac_2_poids            = extraction.sac_2_poids
+    db_extraction.sac_3_poids            = extraction.sac_3_poids
+    db_extraction.sac_4_poids            = extraction.sac_4_poids
+    db_extraction.quantite_utilisee      = extraction.quantite_utilisee
+    db_extraction.presse_1_poids         = extraction.presse_1_poids
+    db_extraction.presse_2_poids         = extraction.presse_2_poids
+    db_extraction.presse_3_poids         = extraction.presse_3_poids
+    db_extraction.presse_4_poids         = extraction.presse_4_poids
+    db_extraction.quantite_extraite      = extraction.quantite_extraite
+    db_extraction.info_rosinextraction   = extraction.info_rosinextraction
+
+    # ── Synchroniser le stock Rosin produit ───────────────────────────────
+    stock_produit = None
+    if db_extraction.id_stock_produit:
+        stock_produit = db.query(Stock).filter(
+            Stock.id_stock == db_extraction.id_stock_produit
+        ).first()
+    # Best-effort pour les extractions créées avant le lien : on retrouve le
+    # stock Rosin par date + maillage + ancienne quantité, encore intact.
+    if stock_produit is None:
+        stock_produit = (
+            db.query(Stock)
+            .filter(
+                Stock.type_stock == "Rosin",
+                Stock.date_stock == db_extraction.date_rosinextraction,
+                Stock.maillage == old_maillage,
+                Stock.quantite_stock == old_quantite,
+            )
+            .first()
+        )
+        if stock_produit:
+            db_extraction.id_stock_produit = stock_produit.id_stock
+
+    if stock_produit:
+        # On reporte l'écart de poids sortie pour préserver une éventuelle
+        # consommation déjà effectuée sur ce stock.
+        delta = float(extraction.quantite_extraite) - old_quantite
+        nouvelle_qte = float(stock_produit.quantite_stock or 0) + delta
+        stock_produit.quantite_stock = max(nouvelle_qte, 0)
+        stock_produit.maillage = extraction.maillage
 
     db.commit()
     db.refresh(db_extraction)

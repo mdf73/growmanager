@@ -180,6 +180,8 @@ export const rosinAPI = {
   getStats: ()                                                      => client.get<ExtractionStats>('/rosin/stats'),
   create:   (data: Omit<RosinExtraction, 'id_rosinextraction' | 'variete_nom'>) =>
     client.post<RosinExtraction>('/rosin', data),
+  update:   (id: number, data: Omit<RosinExtraction, 'id_rosinextraction' | 'variete_nom'>) =>
+    client.put<RosinExtraction>(`/rosin/${id}`, data),
   delete:   (id: number)                                           => client.delete(`/rosin/${id}`),
 }
 

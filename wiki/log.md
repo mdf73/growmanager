@@ -6,6 +6,24 @@ Format: `## [YYYY-MM-DD] <operation> | <description>`
 
 ---
 
+## [2026-06-17] Feature | Édition d'extraction Rosin + maillage obligatoire
+
+### Besoin
+Une extraction Rosin a pu être validée sans maillage. Deux demandes : (1) pouvoir modifier une extraction depuis la liste (notamment maillage et poids sortie), (2) rendre le maillage obligatoire.
+
+### Modifications
+- **Maillage obligatoire** : `RosinExtractionCreate`/`RosinExtractionUpdate` → `maillage: str` ; garde backend (400 si vide) dans `create`+`update` ; `<select required>` + validation JS dans les deux modals.
+- **Endpoint `PUT /api/rosin/{id}`** (`update_rosin_extraction`) : édite tous les paramètres, **ne re-déduit pas** les stocks sources, **synchronise le stock Rosin produit** (quantité par delta + maillage).
+- **Lien extraction ↔ stock produit** : nouvelle colonne `RosinExtraction.id_stock_produit` (posée à la création après `flush`). Rétrocompat : best-effort par date+maillage+quantité pour les anciennes extractions.
+- **Frontend** : nouveau `EditExtractionModal.tsx` (édition complète préremplie) ; bouton crayon ✏️ sur chaque ligne `Extractions.tsx` ; `rosinAPI.update()` dans `api/stock.ts`.
+- **Migration auto** : `("RosinExtraction", "id_stock_produit", "ALTER TABLE RosinExtraction ADD COLUMN id_stock_produit INT")` ajoutée à `run_migrations()` dans `main.py` → créée au prochain démarrage backend, aucun SQL manuel.
+
+### Wiki
+- `api/stock-extractions.md` — endpoint PUT + section édition/maillage
+- `database/stock.md` — colonnes `id_stock_produit` et `maillage` obligatoire
+
+---
+
 ## [2026-06-04] Bugfix | Migration manquante : Stock.substrat_type
 
 ### Problème

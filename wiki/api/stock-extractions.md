@@ -1,6 +1,6 @@
 ---
 type: api
-updated: 2026-05-15
+updated: 2026-06-17
 sources: [routers/stock.py, routers/extractions.py, api/stock.ts]
 ---
 
@@ -68,9 +68,27 @@ Router: `extractions.py` | Prefix: `/api/rosin`
 | GET | `/rosin` | — | `list[RosinExtractionRead]` |
 | GET | `/rosin/stats` | — | `ExtractionStats` |
 | POST | `/rosin` | `RosinExtractionCreate` | `RosinExtractionRead` |
+| PUT | `/rosin/{id}` | `RosinExtractionUpdate` | `RosinExtractionRead` |
 | DELETE | `/rosin/{id}` | — | 204 |
 
 `ExtractionStats`: count, total input (g), total output (g), avg yield %.
+
+### Édition d'une extraction + maillage obligatoire (2026-06-17)
+
+**Maillage obligatoire** : `maillage` est désormais requis à la création comme à l'édition.
+- Schémas `RosinExtractionCreate` / `RosinExtractionUpdate` : `maillage: str` (plus `Optional`)
+- Backend : garde explicite (`HTTPException 400` si maillage vide/espaces) dans `create` et `update`
+- Frontend : `<select required>` + validation JS dans les deux modals
+
+**`PUT /rosin/{id}`** (`update_rosin_extraction`) : édite tous les paramètres d'une extraction.
+- **Ne re-déduit PAS** les stocks sources (l'entrée a déjà été consommée à la création)
+- **Synchronise le stock Rosin produit** lié : `quantite_stock += (nouveau_poids_sortie − ancien)` et `maillage` mis à jour
+- Lien extraction ↔ stock produit via la nouvelle colonne `id_stock_produit` (posée à la création après `flush`)
+- Rétrocompat anciennes extractions (sans lien) : best-effort par `type_stock='Rosin'` + `date_stock` + `maillage` + `quantite_stock` d'origine
+
+**DB** : colonne `id_stock_produit INT NULL` sur `RosinExtraction`. Migration **automatique** au démarrage via `run_migrations()` dans `main.py` (pas de SQL manuel).
+
+**Frontend** : nouveau `EditExtractionModal.tsx` (édition complète, préremplie). Bouton crayon ✏️ sur chaque ligne de `Extractions.tsx` (à côté de la corbeille), via prop `onEdit`. `rosinAPI.update(id, data)` ajouté dans `api/stock.ts`.
 
 ### Multi-sources Rosin (2026-05-15)
 

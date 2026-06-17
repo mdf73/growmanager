@@ -40,7 +40,11 @@ class RosinExtractionBase(BaseModel):
 
 
 class RosinExtractionCreate(RosinExtractionBase):
-    pass
+    maillage: str   # obligatoire à la création
+
+
+class RosinExtractionUpdate(RosinExtractionBase):
+    maillage: str   # obligatoire à l'édition
 
 
 class RosinExtractionRead(RosinExtractionBase):

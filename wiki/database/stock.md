@@ -73,10 +73,11 @@ Rosin press session record.
 | `id_rosinbag` | FK → RosinBag | Filter bag used |
 | `id_press` | FK → Press | Press used |
 | `id_stock_source` | FK → Stock | Input material |
+| `id_stock_produit` | FK → Stock (nullable) | Stock Rosin produit par l'extraction — lien pour synchro à l'édition (2026-06-17) |
 | `nom_variete_extract` | String | Variety name (denormalized) |
 | `date_rosinextraction` | Date | |
 | `temperature_extraction` | Float | Plate temperature (°C) |
-| `maillage` | String | Bag mesh size |
+| `maillage` | String | Bag mesh size — **obligatoire** à la création/édition (2026-06-17) |
 | `duree_preheat` | Int | Preheat time (sec) |
 | `duree_extraction` | Int | Press time (sec) |
 | `sac_1_poids` … `sac_4_poids` | Float | Bag weight per pass (g) |

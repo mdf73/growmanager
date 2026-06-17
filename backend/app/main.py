@@ -43,6 +43,7 @@ def run_migrations():
         ("RosinExtraction",  "presse_2_poids",    "ALTER TABLE RosinExtraction ADD COLUMN presse_2_poids DECIMAL(10,2)"),
         ("RosinExtraction",  "presse_3_poids",    "ALTER TABLE RosinExtraction ADD COLUMN presse_3_poids DECIMAL(10,2)"),
         ("RosinExtraction",  "presse_4_poids",    "ALTER TABLE RosinExtraction ADD COLUMN presse_4_poids DECIMAL(10,2)"),
+        ("RosinExtraction",  "id_stock_produit",  "ALTER TABLE RosinExtraction ADD COLUMN id_stock_produit INT"),
         # HistoriqueCulture — colonnes ajoutées progressivement
         ("HistoriqueCulture", "notes",    "ALTER TABLE HistoriqueCulture ADD COLUMN notes TEXT"),
         ("HistoriqueCulture", "substrat", "ALTER TABLE HistoriqueCulture ADD COLUMN substrat VARCHAR(100)"),

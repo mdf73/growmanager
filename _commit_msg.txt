@@ -1,13 +1,7 @@
-fix: normalisation des unités (mL/L/g/Kg) dans les coûts engrais et déductions de stock
+feat(rosin): édition d'extraction + maillage obligatoire
 
-Suite au merge de la PR #4 (suivi_sol_vivant), audit complet du même bug :
-
-- cultures.py : 3 calculs de coût engrais corrigés (cout culture, détail
-  par recette dans /compare, coût arrosage individuel) — le prix était
-  divisé par volume_conditionnement sans normaliser unite_volume
-  (coûts ×1000 pour les produits en L/Kg)
-- cultures.py : déductions de stock arrosage_engrais et preparation_tco
-  converties vers unite_quantite du produit avant soustraction
-- suivi_sol_vivant.py : même fix de déduction de stock dans add_arrosage
-- helpers partagés : _to_small_unit, _prix_par_petite_unite, _deduire_stock
-- wiki : entrée log.md du 2026-06-11
+- Maillage rendu obligatoire à la création et à l'édition (schémas, garde backend, select required + validation front)
+- Nouvel endpoint PUT /api/rosin/{id} : édite tous les paramètres sans re-déduire les stocks sources, et synchronise le stock Rosin produit (quantité + maillage)
+- Colonne RosinExtraction.id_stock_produit pour lier l'extraction au stock produit (migration auto via run_migrations, pas de SQL manuel)
+- Front : EditExtractionModal.tsx + bouton crayon sur chaque ligne + rosinAPI.update()
+- Wiki mis à jour (api/stock-extractions, database/stock, log)
