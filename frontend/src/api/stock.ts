@@ -37,6 +37,13 @@ export interface ExtractionSource {
   quantite: number
 }
 
+export interface AgeSource {
+  id_stock?: number
+  nom?: string                 // nom de la plante / variété source
+  date_fin_curing?: string     // fin de curing de la plante source
+  age_jours?: number | null    // date_rosinextraction − date_fin_curing
+}
+
 export interface RosinExtraction {
   id_rosinextraction: number
   id_bocal?: number
@@ -65,6 +72,7 @@ export interface RosinExtraction {
   presse_4_poids?: number
   quantite_extraite: number
   info_rosinextraction?: string
+  ages_sources?: AgeSource[]    // âge plante par source (enrichi serveur)
 }
 
 export interface SacIceo {
@@ -178,9 +186,9 @@ export const stockAPI = {
 export const rosinAPI = {
   getAll:   ()                                                      => client.get<RosinExtraction[]>('/rosin'),
   getStats: ()                                                      => client.get<ExtractionStats>('/rosin/stats'),
-  create:   (data: Omit<RosinExtraction, 'id_rosinextraction' | 'variete_nom'>) =>
+  create:   (data: Omit<RosinExtraction, 'id_rosinextraction' | 'variete_nom' | 'ages_sources'>) =>
     client.post<RosinExtraction>('/rosin', data),
-  update:   (id: number, data: Omit<RosinExtraction, 'id_rosinextraction' | 'variete_nom'>) =>
+  update:   (id: number, data: Omit<RosinExtraction, 'id_rosinextraction' | 'variete_nom' | 'ages_sources'>) =>
     client.put<RosinExtraction>(`/rosin/${id}`, data),
   delete:   (id: number)                                           => client.delete(`/rosin/${id}`),
 }

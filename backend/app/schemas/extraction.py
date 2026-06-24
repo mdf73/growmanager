@@ -10,6 +10,14 @@ class ExtractionSource(BaseModel):
     quantite: float   # grammes prélevés de ce stock
 
 
+class AgeSource(BaseModel):
+    """Âge de la plante source au moment de l'extraction (par stock source)."""
+    id_stock: Optional[int] = None
+    nom: Optional[str] = None              # nom de la plante / variété source
+    date_fin_curing: Optional[date] = None # fin de curing de la plante source
+    age_jours: Optional[int] = None        # date_rosinextraction − date_fin_curing
+
+
 class RosinExtractionBase(BaseModel):
     """Schéma de base pour RosinExtraction"""
     id_bocal: Optional[int] = None
@@ -50,6 +58,7 @@ class RosinExtractionUpdate(RosinExtractionBase):
 class RosinExtractionRead(RosinExtractionBase):
     id_rosinextraction: int
     variete_nom: Optional[str] = None   # enrichi côté serveur
+    ages_sources: Optional[list[AgeSource]] = None   # âge plante par source (enrichi serveur)
 
     model_config = ConfigDict(from_attributes=True)
 

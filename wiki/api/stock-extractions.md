@@ -73,6 +73,17 @@ Router: `extractions.py` | Prefix: `/api/rosin`
 
 `ExtractionStats`: count, total input (g), total output (g), avg yield %.
 
+### Âge lors de l'extraction (2026-06-24)
+
+`RosinExtractionRead` expose un champ enrichi côté serveur **`ages_sources: list[AgeSource]`** — l'âge **figé** de la plante au moment de l'extraction.
+
+- **Calcul** : `age_jours = date_rosinextraction − date_fin_curing` (valeur figée, ne dépend PAS de la date du jour).
+- **Chaîne de données** : `id_stock_source` / `sources[]` → `Stock.id_plant` → `Plant` → dernière `PlantCuring` clôturée (`date_fin_curing` non nulle, triée desc).
+- **Une entrée par stock source** (ids dédoublonnés). `AgeSource` = `{ id_stock, nom, date_fin_curing, age_jours }`.
+- **Fallbacks** : `age_jours = null` si pas de plante liée (`Stock.id_plant` nul) ou curing non clôturé ; `nom` retombe sur le nom de variété si pas de plante.
+- Helpers backend : `_age_source_for_stock()` + `_build_ages_sources()` dans `extractions.py`. Aucune migration DB.
+- **Frontend** : section **« Âge lors de l'extraction »** dans `ExtractionDetailModal.tsx`, placée juste avant les Notes. Format : `21 jours`, et `84 jours (~3 mois)` au-delà de 45 j. `AgeSource` ajouté dans `api/stock.ts` (+ exclu des payloads create/update via `Omit`).
+
 ### Édition d'une extraction + maillage obligatoire (2026-06-17)
 
 **Maillage obligatoire** : `maillage` est désormais requis à la création comme à l'édition.

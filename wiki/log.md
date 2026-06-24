@@ -6,6 +6,24 @@ Format: `## [YYYY-MM-DD] <operation> | <description>`
 
 ---
 
+## [2026-06-24] Feature | Âge de la plante lors de l'extraction Rosin
+
+### Besoin
+Dans la fiche d'une extraction Rosin (Extractions → clic sur une extraction), afficher l'âge **figé** de la plante au moment de l'extraction = `date d'extraction − date de fin de curing`. Valeur qui ne bouge jamais (ne dépend pas de la date du jour). Affichage juste avant les Notes.
+
+### Modifications
+- **Backend** (`extractions.py`) : helpers `_age_source_for_stock()` + `_build_ages_sources()` ; remonte `id_stock_source`/`sources[]` → `Stock.id_plant` → `Plant` → dernière `PlantCuring` clôturée. Une entrée par source (ids dédoublonnés).
+- **Schéma** (`schemas/extraction.py`) : nouveau `AgeSource` + champ `RosinExtractionRead.ages_sources`.
+- **Frontend** : section « Âge lors de l'extraction » dans `ExtractionDetailModal.tsx` (avant Notes) ; format `21 jours` / `84 jours (~3 mois)` au-delà de 45 j ; `AgeSource` + champ dans `api/stock.ts` (exclu des payloads create/update).
+- **Fallbacks** : « Plante source non liée » (pas de `Stock.id_plant`) / « Fin de curing non renseignée » (curing non clôturé).
+- Aucune migration DB.
+
+### Wiki
+- `api/stock-extractions.md` — section « Âge lors de l'extraction (2026-06-24) »
+- `database/stock.md` — note enrichissement `ages_sources` sous RosinExtraction
+
+---
+
 ## [2026-06-17] Feature | Édition d'extraction Rosin + maillage obligatoire
 
 ### Besoin

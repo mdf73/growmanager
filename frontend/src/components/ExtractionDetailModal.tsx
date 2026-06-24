@@ -1,4 +1,4 @@
-import { X, Thermometer, Layers, FlaskConical, Package } from 'lucide-react'
+import { X, Thermometer, Layers, FlaskConical, Package, Sprout } from 'lucide-react'
 import type { RosinExtraction } from '../api/stock'
 
 interface Props {
@@ -57,6 +57,16 @@ export default function ExtractionDetailModal({ extraction, onClose }: Props) {
     if (v == null) return null
     if (v < 60) return `${v} sec`
     return `${Math.floor(v / 60)}min ${v % 60 > 0 ? `${v % 60}sec` : ''}`.trim()
+  }
+
+  // Âge de l'extraction = jours écoulés depuis la fin de curing de la plante source
+  const agesSources = extraction.ages_sources ?? []
+  const fmtAge = (j?: number | null) => {
+    if (j == null) return null
+    if (j < 0) return '—'
+    const base = `${j} jour${j > 1 ? 's' : ''}`
+    if (j >= 45) return `${base} (~${Math.round(j / 30)} mois)`
+    return base
   }
 
   return (
@@ -135,6 +145,24 @@ export default function ExtractionDetailModal({ extraction, onClose }: Props) {
                 <span className="text-sm font-semibold text-gray-600 dark:text-gray-300">Total</span>
                 <span className="text-sm font-bold text-purple-700">{extraction.quantite_extraite.toFixed(2)} g</span>
               </div>
+            )}
+          </Section>
+
+          {/* Âge lors de l'extraction (jours depuis la fin de curing) */}
+          <Section title="Âge lors de l'extraction" icon={Sprout}>
+            {agesSources.length === 0 ? (
+              <p className="text-sm text-gray-400 dark:text-gray-500">— Plante source non liée</p>
+            ) : (
+              agesSources.map((a, i) => {
+                const age = fmtAge(a.age_jours)
+                return (
+                  <Row
+                    key={i}
+                    label={agesSources.length > 1 ? (a.nom || `Source ${i + 1}`) : 'Âge'}
+                    value={age ?? 'Fin de curing non renseignée'}
+                  />
+                )
+              })
             )}
           </Section>
 

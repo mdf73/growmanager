@@ -4,7 +4,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.database import get_db
-from app.models import RosinExtraction, HashExtraction, Stock, Variete
+from app.models import RosinExtraction, HashExtraction, Stock, Variete, Plant, PlantCuring
 from app.schemas.extraction import (
     RosinExtractionCreate,
     RosinExtractionUpdate,
@@ -12,6 +12,7 @@ from app.schemas.extraction import (
     HashExtractionCreate,
     HashExtractionRead,
     ExtractionStats,
+    AgeSource,
 )
 
 router = APIRouter(prefix="/api", tags=["extractions"])
@@ -50,6 +51,70 @@ def _apply_deductions(stock_objects: list, date_fin: dt_date):
                 stock.date_fin_stock = date_fin
 
 
+def _age_source_for_stock(id_stock: int, date_extraction: dt_date, db: Session) -> Optional[AgeSource]:
+    """
+    Remonte stock -> plante -> fin de curing et calcule l'age de la plante
+    au moment de l'extraction (date_extraction - date_fin_curing).
+    Retourne None si le stock n'existe pas ; sinon un AgeSource avec age_jours
+    a None quand l'info manque (pas de plante liee ou curing non cloture).
+    """
+    stock = db.query(Stock).filter(Stock.id_stock == id_stock).first()
+    if not stock:
+        return None
+
+    nom = None
+    date_fin_curing = None
+    age_jours = None
+
+    if stock.id_plant:
+        plant = db.query(Plant).filter(Plant.id_plant == stock.id_plant).first()
+        if plant:
+            nom = plant.nom_affichage
+            pc = (
+                db.query(PlantCuring)
+                .filter(
+                    PlantCuring.id_plant == plant.id_plant,
+                    PlantCuring.date_fin_curing.isnot(None),
+                )
+                .order_by(PlantCuring.date_fin_curing.desc())
+                .first()
+            )
+            if pc and pc.date_fin_curing:
+                date_fin_curing = pc.date_fin_curing
+                if date_extraction:
+                    age_jours = (date_extraction - date_fin_curing).days
+
+    if not nom and stock.id_variete:
+        variete = db.query(Variete).filter(Variete.id_variete == stock.id_variete).first()
+        if variete:
+            nom = variete.nom_variete
+
+    return AgeSource(
+        id_stock=id_stock,
+        nom=nom,
+        date_fin_curing=date_fin_curing,
+        age_jours=age_jours,
+    )
+
+
+def _build_ages_sources(extraction: RosinExtraction, db: Session) -> list[AgeSource]:
+    """Calcule l'age (date extraction - fin curing) pour chaque stock source."""
+    ids: list[int] = []
+    for src in (extraction.sources or []):
+        sid = src.get("id_stock") if isinstance(src, dict) else getattr(src, "id_stock", None)
+        if sid is not None and sid not in ids:
+            ids.append(sid)
+    if not ids and extraction.id_stock_source:
+        ids.append(extraction.id_stock_source)
+
+    result: list[AgeSource] = []
+    for sid in ids:
+        age = _age_source_for_stock(sid, extraction.date_rosinextraction, db)
+        if age is not None:
+            result.append(age)
+    return result
+
+
 def _enrich_rosin(extraction: RosinExtraction, db: Session) -> RosinExtractionRead:
     """Enrichit une extraction avec le nom de variété depuis le stock source."""
     variete_nom = None
@@ -62,6 +127,8 @@ def _enrich_rosin(extraction: RosinExtraction, db: Session) -> RosinExtractionRe
     # Fallback sur nom_variete_extract si pas de FK
     if not variete_nom:
         variete_nom = extraction.nom_variete_extract
+
+    ages_sources = _build_ages_sources(extraction, db)
 
     def _f(v) -> Optional[float]:
         return float(v) if v is not None else None
@@ -91,6 +158,7 @@ def _enrich_rosin(extraction: RosinExtraction, db: Session) -> RosinExtractionRe
         quantite_extraite=float(extraction.quantite_extraite),
         info_rosinextraction=extraction.info_rosinextraction,
         variete_nom=variete_nom,
+        ages_sources=ages_sources,
     )
 
 

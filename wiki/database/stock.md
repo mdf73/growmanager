@@ -88,6 +88,8 @@ Rosin press session record.
 
 Yield % = `quantite_extraite / quantite_utilisee * 100`
 
+**Enrichi serveur** (`RosinExtractionRead.ages_sources`) : âge figé de la plante au moment de l'extraction = `date_rosinextraction − PlantCuring.date_fin_curing`, via `id_stock_source`/`sources[]` → `Stock.id_plant` → `Plant` → dernière session de curing clôturée. Une entrée par source. Voir [[api/stock-extractions]].
+
 ---
 
 ## HashExtraction
