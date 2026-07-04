@@ -68,6 +68,7 @@ Content catalog for the GrowManager development wiki. Read this first when start
 - [[features/sensor-integration]] — Govee H5179 setup, polling, VPD, manual entries
 - [[features/living-soil-system]] — LSO recipe library, substrate preparation, pot tracking workflow
 - [[features/photos]] — Galerie photos : photo globale culture vs photo de plante spécifique, upload, filtres, badges
+- [[features/mobile-app]] — App Android Capacitor : config, build APK CI, écran premier lancement, accès distant Tailscale
 
 ---
 

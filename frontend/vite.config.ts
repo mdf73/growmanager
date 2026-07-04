@@ -1,33 +1,18 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import { VitePWA } from 'vite-plugin-pwa'
 import { readFileSync } from 'fs'
 
 const pkg = JSON.parse(readFileSync('./package.json', 'utf-8'))
 
+// PWA : le manifest est statique (public/manifest.webmanifest) + icônes pwa-*.png,
+// lié dans index.html. vite-plugin-pwa retiré (config obsolète qui référençait
+// une icône inexistante et entrait en collision avec le manifest statique).
 export default defineConfig({
   define: {
     __APP_VERSION__: JSON.stringify(pkg.version),
   },
   plugins: [
     react(),
-    VitePWA({
-      registerType: 'autoUpdate',
-      manifest: {
-        name: 'GrowManager',
-        short_name: 'GrowMgr',
-        theme_color: '#2D6A4F',
-        background_color: '#ffffff',
-        display: 'standalone',
-        icons: [
-          {
-            src: '/icon-192.png',
-            sizes: '192x192',
-            type: 'image/png',
-          }
-        ]
-      }
-    })
   ],
   server: {
     host: '0.0.0.0',

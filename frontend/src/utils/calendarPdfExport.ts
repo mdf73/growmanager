@@ -5,6 +5,7 @@
 import { CalendrierEvent } from '../api/calendrier'
 import { TemperatureLog } from '../api/capteurs'
 import { Photo } from '../api/photos'
+import { getServerUrl } from '../api/client'
 
 // ─── Couleurs actions ─────────────────────────────────────────────────────────
 export const ACTION_COLORS_PDF: Record<string, string> = {
@@ -182,7 +183,8 @@ export function generateCalendarPDF(
   // Si aucun event photo pour la culture → fallback sur date_prise.
   const photoEvents = events.filter(e => e.type_action === 'photo')
   const photosByDay = new Map<string, Photo[]>()
-  const origin = window.location.origin
+  // En app mobile (serveur distant configuré), les images doivent pointer vers le serveur
+  const origin = getServerUrl() || window.location.origin
   for (const p of photos) {
     // Events photo de la même culture
     const cultureEvts = photoEvents.filter(e => e.id_culture === p.id_culture)

@@ -1,5 +1,5 @@
 import axios from 'axios'
-import client from './client'
+import client, { serverFileURL } from './client'
 
 export interface Photo {
   id_photo:       number
@@ -17,7 +17,8 @@ export interface Photo {
 }
 
 export function photoUrl(relativePath: string): string {
-  return `/uploads/${relativePath}`
+  // Passe par serverFileURL pour fonctionner aussi en app mobile (serveur distant)
+  return serverFileURL(`/uploads/${relativePath}`)
 }
 
 export const photosAPI = {

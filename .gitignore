@@ -30,6 +30,13 @@ frontend/build/
 vite.config.ts.timestamp-*
 
 # ========================
+# Capacitor / Android (généré par CI ou npx cap add android)
+# ========================
+frontend/android/
+frontend/icons/
+*.apk
+
+# ========================
 # Docker / Database
 # ========================
 mysql_data/
