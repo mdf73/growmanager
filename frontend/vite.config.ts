@@ -27,6 +27,11 @@ export default defineConfig({
         target: 'http://backend:8000',
         changeOrigin: true,
       },
+      // Health check utilisé par l'app mobile (test de connexion serveur)
+      '/health': {
+        target: 'http://backend:8000',
+        changeOrigin: true,
+      },
     }
   }
 })

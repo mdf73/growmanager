@@ -39,13 +39,21 @@ Workflow `.github/workflows/android-apk.yml` :
 
 ## Accès distant — Tailscale (recommandé)
 
-Le serveur reste local, rien n'est exposé sur internet. Tailscale crée un VPN privé entre tes appareils.
+Le serveur reste local, rien n'est exposé sur internet. Tailscale crée un VPN privé entre les appareils. Le serveur expose l'app sur le port 80 (`APP_PORT` par défaut dans `docker-compose.server.yml`) → URLs sans port.
 
-1. Installer Tailscale sur le serveur Linux : `curl -fsSL https://tailscale.com/install.sh | sh` puis `sudo tailscale up`.
-2. Installer l'app Tailscale sur le téléphone (Play Store), se connecter au même compte.
-3. Récupérer l'IP Tailscale du serveur : `tailscale ip -4` (forme `100.x.y.z`).
-4. Dans l'app GrowManager (premier lancement ou Paramétrage → Général → Serveur) : `http://100.x.y.z` (ou `http://100.x.y.z:PORT` selon le port nginx).
-5. Le téléphone atteint le serveur depuis n'importe où tant que Tailscale est actif (l'app Android Tailscale peut rester connectée en permanence, consommation négligeable).
+**Procédure complète :**
+
+1. **Compte** : tailscale.com → "Get started" → connexion Google/GitHub/Microsoft. Plan gratuit suffisant (100 appareils, usage perso).
+2. **Serveur Linux** : `curl -fsSL https://tailscale.com/install.sh | sh` puis `sudo tailscale up` → ouvrir l'URL affichée dans un navigateur et se connecter.
+3. **Adresse du serveur** : `tailscale ip -4` → IP permanente de forme `100.x.y.z`.
+4. **⚠ Désactiver l'expiration de clé** (sinon déconnexion silencieuse après ~6 mois) : https://login.tailscale.com/admin/machines → machine serveur → "..." → **Disable key expiry**. À faire une fois.
+5. **Téléphone** : app Tailscale (Play Store) → même compte → activer le VPN. Peut rester actif en permanence (consommation négligeable).
+6. **Test** : téléphone en données mobiles (WiFi coupé) → `http://100.x.y.z` dans Chrome → GrowManager doit s'afficher.
+7. **App GrowManager** : premier lancement ou Paramétrage → Général → Serveur : `http://100.x.y.z`.
+
+**Astuce** : utiliser l'IP Tailscale comme URL unique même à la maison (Tailscale route en direct sur le LAN quand les appareils sont sur le même réseau) — une seule config qui marche partout.
+
+**Bonus** : activer MagicDNS dans la console admin → serveur joignable par son nom (`http://monserveur`).
 
 Alternative réseau local pur : `http://<ip-locale-du-serveur>` — fonctionne uniquement en WiFi maison.
 

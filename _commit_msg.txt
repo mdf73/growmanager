@@ -1,1 +1,5 @@
-ci(android): Node 20 → 22 (Node 20 déprécié sur les runners GitHub)
+fix(mobile): /health non proxifié — test de connexion serveur échouait
+
+- vite.config.ts : proxy /health → backend (dev :5173)
+- nginx.conf (dev :80) : location /health → backend
+- frontend/Dockerfile.prod : la config nginx prod ne proxifiait RIEN (ni /api ni /uploads ni /health, contrairement au commentaire du compose) — ajout des 3 proxies + client_max_body_size 20M

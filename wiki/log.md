@@ -6,6 +6,20 @@ Format: `## [YYYY-MM-DD] <operation> | <description>`
 
 ---
 
+## [2026-07-04] Feature | Sprint Mobile A4 — App Android Capacitor + APK CI (validé) — Phase A complète
+
+- `frontend/capacitor.config.ts` — appId `com.growmanager.app`, webDir dist, androidScheme `http` + cleartext true (serveurs locaux/Tailscale sans mixed-content).
+- `package.json` — @capacitor/core+cli+android ^7 en devDeps · retrait `vite-plugin-pwa` (config obsolète : icône inexistante + collision avec le manifest statique A3) · lockfile régénéré · `vite.config.ts` nettoyé.
+- `ServerSetup.tsx` (nouveau) — écran premier lancement natif : saisie URL + test `/health` + reload. Gate dans `App.tsx` via `window.Capacitor.isNativePlatform()` + `getServerUrl()`.
+- `photos.ts` (`photoUrl`) + `calendarPdfExport.ts` — URLs `/uploads` via `serverFileURL()`/`getServerUrl()` pour le mode distant.
+- `frontend/assets/` — icon.png 1024 + splash.png 2732 générés depuis `IconSeul.png` (source pour `@capacitor/assets`).
+- `.github/workflows/android-apk.yml` — build APK debug sur workflow_dispatch ou tag `vX.Y.Z` : npm ci → build → cap add android → assets generate → gradlew assembleDebug → artifact + release. Premier run : ✅ Success 2m30s. Node 20→22 (dépréciation runners).
+- `.gitignore` — frontend/android/, frontend/icons/, *.apk.
+- Wiki : [[features/mobile-app]] créé (architecture, build, procédure Tailscale détaillée) + index.
+- **Phase A terminée** : app mobile Android connectée au serveur auto-hébergé. Phase B (autonome SQLite) au backlog.
+
+---
+
 ## [2026-07-04] Feature | Sprint Mobile A3 — URL serveur configurable + PWA (validé)
 
 **URL serveur configurable**
