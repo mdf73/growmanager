@@ -1577,7 +1577,7 @@ export default function CroisementPage() {
   return (
     <div className="p-6 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
             <Dna className="text-grow-600" /> Croisements
@@ -1754,7 +1754,7 @@ export default function CroisementPage() {
               description="Enregistre la collecte d'un nouveau lot pour commencer."
             />
           ) : (
-            <div className="bg-white dark:bg-gray-800 border rounded-lg overflow-hidden">
+            <div className="bg-white dark:bg-gray-800 border rounded-lg overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="bg-gray-50 dark:bg-gray-700/50 text-xs text-gray-600 dark:text-gray-300 uppercase select-none">
                   <tr>

@@ -9,6 +9,31 @@ sprint1_completed: 2026-05-10
 
 ---
 
+## Phase Mobile — Plan A puis B (validé 2026-07-04)
+
+**Vision** : app mobile Android, données personnelles chez chaque utilisateur (rien de centralisé).
+**Stratégie** : Phase A = app connectée au serveur auto-hébergé (Capacitor) → Phase B (plus tard) = version 100% autonome (réécriture couche API en TS + SQLite embarqué, frontend réutilisé).
+**Contrainte** : zéro changement de rendu/comportement desktop — responsive via breakpoints Tailwind uniquement. Backend non touché.
+
+### Sprints Phase A
+
+| Sprint | Contenu | État |
+|--------|---------|------|
+| A1 | Bottom nav mobile refaite (4 raccourcis + Plus) · modals mobile OK · safe-area | ✅ validé 2026-07-04 |
+| A2 | Pages responsive (28 pages : tables → scroll/cartes, grilles, formulaires) | ✅ validé 2026-07-04 (batch 1 : 4 pages principales · batch 2 : Croisement, SuiviConstantes, Consommation corrigées, le reste déjà conforme) |
+| A3 | URL serveur configurable (client Axios) + manifest PWA (installable Chrome) | ⏳ |
+| A4 | Capacitor init + APK Android + icône/splash + doc Tailscale accès distant | ⏳ |
+
+**Audit A1 (2026-07-04)** : Layout mobile déjà en place (header, sidebar hamburger) · 12 pages avec tables dont 6 sans scroll horizontal · peu de breakpoints dans les pages · client Axios `baseURL: '/api'` en dur (à rendre configurable en A3).
+
+### Phase B (backlog, après A4)
+- Réécriture des 29 routers FastAPI en TypeScript local (SQLite via plugin Capacitor)
+- Les 28 fichiers `src/api/` définissent le contrat à réimplémenter
+- Limite connue : intégration capteurs Govee inopérante en mode autonome
+- Distribution Play Store possible (aucune donnée embarquée dans l'app)
+
+---
+
 ## V4 Backlog — Bilan & Plan d'action (review 2026-05-10)
 
 Source : `Documentation/GrowManager_Specifications_v4.docx` + `Documentation/growmanager_roadmap_v4_review.html`

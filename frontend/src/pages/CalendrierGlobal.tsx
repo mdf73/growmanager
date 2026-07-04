@@ -531,10 +531,10 @@ function DayCell({
 
   return (
     <div
-      className={`min-h-[90px] p-1.5 border-b border-r border-gray-100 dark:border-gray-700 flex flex-col gap-0.5 cursor-pointer group ${isToday ? 'bg-grow-50 dark:bg-grow-900/20' : 'hover:bg-gray-50 dark:hover:bg-gray-700/30'} transition-colors`}
+      className={`min-h-[52px] sm:min-h-[90px] p-1 sm:p-1.5 border-b border-r border-gray-100 dark:border-gray-700 flex flex-col gap-0.5 cursor-pointer group ${isToday ? 'bg-grow-50 dark:bg-grow-900/20' : 'hover:bg-gray-50 dark:hover:bg-gray-700/30'} transition-colors`}
       onClick={onDayClick}
     >
-      <span className={`text-xs font-semibold mb-0.5 w-6 h-6 flex items-center justify-center rounded-full ${
+      <span className={`text-[10px] sm:text-xs font-semibold mb-0.5 w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center rounded-full ${
         isToday
           ? 'bg-grow-600 text-white'
           : 'text-gray-600 dark:text-gray-300 group-hover:bg-gray-200 dark:group-hover:bg-gray-600 transition-colors'
@@ -542,6 +542,23 @@ function DayCell({
         {day}
       </span>
 
+      {/* Mobile : pastilles compactes (1 par type d'action) — clic cellule → modal jour */}
+      <div className="flex sm:hidden flex-wrap gap-1 pl-0.5">
+        {groups.map(([type, evts]) => {
+          const color = evts.length === 1
+            ? (colorMap.get(evts[0].id_culture) ?? CULTURE_COLORS[0])
+            : null
+          return (
+            <span
+              key={type}
+              className={`w-2 h-2 rounded-full ${color ? color.dot : 'bg-gray-400 dark:bg-gray-500'}`}
+            />
+          )
+        })}
+      </div>
+
+      {/* Desktop / tablette : chips détaillées */}
+      <div className="hidden sm:flex flex-col gap-0.5">
       {visibleGroups.map(([type, evts]) => {
         // Groupe unique → chip couleur culture, clic direct sur l'event
         if (evts.length === 1) {
@@ -574,6 +591,7 @@ function DayCell({
           +{overflow} type{overflow > 1 ? 's' : ''}
         </span>
       )}
+      </div>
     </div>
   )
 }
@@ -938,7 +956,7 @@ export default function CalendrierGlobal() {
                 return (
                   <div
                     key={`empty-${i}`}
-                    className="min-h-[90px] p-1.5 border-b border-r border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50"
+                    className="min-h-[52px] sm:min-h-[90px] p-1 sm:p-1.5 border-b border-r border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50"
                   />
                 )
               }

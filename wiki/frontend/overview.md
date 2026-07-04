@@ -55,6 +55,13 @@ App
 - Logo affiché centré en haut de la sidebar desktop (`max-w-[162px]`, `pt-2`) et dans la sidebar mobile (`h-12`).
 - En bas de la sidebar : texte `Pik` (à la place de "© 2024 GrowManager").
 
+### Layout — bottom nav mobile (Sprint mobile A1, 2026-07-04)
+- Visible < `lg` uniquement. 4 raccourcis fixes : Dashboard `/`, Culture `/culture`, Calendrier `/calendrier`, Stock `/stock` + bouton **Plus** qui ouvre la sidebar mobile (menu complet).
+- `bottomNavItems` défini dans `Layout.tsx` ; "Plus" est actif (couleur grow) quand la route courante n'est pas un des 4 raccourcis.
+- `pb-[env(safe-area-inset-bottom)]` sur le `<nav>` — support encoche/barre gestuelle (préparation Capacitor).
+- Remplace l'ancienne bottom nav qui aplatissait les 28 items de navigation.
+- Règle modals mobile : pattern standard `max-h-[90vh] overflow-y-auto` sur le conteneur interne (fix appliqué à `NouveauSessionVapoModal.tsx`, seule exception sur 39 modals).
+
 ## Component Directory
 
 ```

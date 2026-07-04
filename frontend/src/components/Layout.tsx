@@ -280,13 +280,14 @@ export default function Layout({ children }: LayoutProps) {
       )
     })
 
-  // Bottom nav mobile — aplatir tous les items (y compris sous-groupes)
-  const flatItems: LeafItem[] = navItems.flatMap(item => {
-    if (!('children' in item) || !item.children) return [item as LeafItem]
-    return (item.children as SubItem[]).flatMap(child =>
-      isSubGroup(child) ? child.children : [child as LeafItem]
-    )
-  })
+  // Bottom nav mobile — 4 items principaux + bouton "Plus" (menu complet)
+  const bottomNavItems: LeafItem[] = [
+    { path: '/',           label: 'Dashboard',  icon: Home },
+    { path: '/culture',    label: 'Culture',    icon: Leaf },
+    { path: '/calendrier', label: 'Calendrier', icon: CalendarDays },
+    { path: '/stock',      label: 'Stock',      icon: Package },
+  ]
+  const isBottomNavActive = bottomNavItems.some(i => i.path === location.pathname)
 
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
@@ -392,23 +393,35 @@ export default function Layout({ children }: LayoutProps) {
         {searchOpen && <GlobalSearch onClose={() => setSearchOpen(false)} />}
 
         {/* Bottom Navigation Mobile */}
-        <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
-          <div className="flex justify-around overflow-x-auto">
-            {flatItems.map((item) => (
+        <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 pb-[env(safe-area-inset-bottom)]">
+          <div className="flex justify-around">
+            {bottomNavItems.map((item) => (
               <Link
                 key={item.path}
                 to={item.path}
                 className={clsx(
-                  'flex flex-col items-center space-y-1 flex-1 py-3 transition-colors min-w-[4rem]',
+                  'flex flex-col items-center space-y-1 flex-1 py-2.5 transition-colors',
                   location.pathname === item.path
-                    ? 'text-grow-600 dark:text-grow-400 bg-grow-50 dark:bg-grow-900/20'
-                    : 'text-gray-500 dark:text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:text-gray-200 dark:hover:text-gray-200'
+                    ? 'text-grow-600 dark:text-grow-400'
+                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
                 )}
               >
-                <NavIcon item={item} size={20} />
-                <span className="text-xs text-center leading-tight">{item.label}</span>
+                <NavIcon item={item} size={22} />
+                <span className="text-[11px] text-center leading-tight">{item.label}</span>
               </Link>
             ))}
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className={clsx(
+                'flex flex-col items-center space-y-1 flex-1 py-2.5 transition-colors',
+                !isBottomNavActive
+                  ? 'text-grow-600 dark:text-grow-400'
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+              )}
+            >
+              <Menu size={22} />
+              <span className="text-[11px] text-center leading-tight">Plus</span>
+            </button>
           </div>
         </nav>
       </div>

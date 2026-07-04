@@ -6,6 +6,41 @@ Format: `## [YYYY-MM-DD] <operation> | <description>`
 
 ---
 
+## [2026-07-04] Feature | Sprint Mobile A2 batch 2 — pages restantes responsive (validé)
+
+Audit des 24 pages restantes : la plupart déjà conformes (headers `flex-col lg:flex-row` ou `flex-wrap`, tables `overflow-auto`, grilles avec breakpoints). Corrections :
+- `Croisement.tsx` — header `flex-wrap gap-3` + table croisements `overflow-hidden` → `overflow-x-auto`
+- `SuiviConstantes.tsx` — header `flex-wrap gap-3` (boutons Import CSV / Lire maintenant)
+- `Consommation.tsx` — header `flex-wrap gap-3` (bouton Nouvelle session)
+- Graines / Extractions (prioritaires Pik) : déjà conformes, aucun changement
+- Cas limites laissés tels quels (tiennent sur 360px) : mini-grilles stats 3-4 col (Statistiques, Culture, Materiel, durées SechageCuring)
+- `tsc --noEmit` OK · Sprint A2 complet validé
+
+---
+
+## [2026-07-04] Feature | Sprint Mobile A2 batch 1 — 4 pages principales responsive (validé)
+
+- `CalendrierGlobal.tsx` — `DayCell` mode compact mobile (< `sm`) : pastilles colorées par type d'action (couleur culture si event unique, gris si groupe), cellules `min-h-[52px]`, tap jour → DayModal. Chips détaillées inchangées ≥ `sm`.
+- `Culture.tsx` — modal Dates clés : `max-h-[90vh] overflow-y-auto`.
+- `Parametrage.tsx` — modal confirmation import : idem.
+- Dashboard et Stock audités : déjà responsive (grilles breakpoints, tables `overflow-auto`), aucun changement.
+- Compilation `tsc --noEmit` OK. Zéro impact desktop.
+
+---
+
+## [2026-07-04] Feature | Sprint Mobile A1 — bottom nav + modals (validé)
+
+Lancement de la **Phase Mobile** (plan "A puis B" validé — voir section dédiée dans [[roadmap]]).
+
+**Sprint A1 livré :**
+- `Layout.tsx` — bottom nav mobile refaite : 4 raccourcis (Dashboard, Culture, Calendrier, Stock) + bouton "Plus" ouvrant la sidebar mobile. Remplace l'aplatissement des 28 items. Safe-area `env(safe-area-inset-bottom)`.
+- `NouveauSessionVapoModal.tsx` — ajout `max-h-[90vh] overflow-y-auto` (seule modal sur 39 sans le pattern standard).
+- Zéro impact desktop (breakpoints `lg:` inchangés). Compilation `tsc --noEmit` OK.
+
+**Wiki :** section Phase Mobile dans [[roadmap]] + section bottom nav dans [[frontend/overview]].
+
+---
+
 ## [2026-07-04] Bugfix | Coquille "bocalx" → "bocaux" (pluriel)
 
 **Bug corrigé :** Le badge d'alerte stock du Dashboard et le bouton de confirmation d'ouverture bocaux dans SechageCuring affichaient "2 bocalx" au lieu de "2 bocaux".

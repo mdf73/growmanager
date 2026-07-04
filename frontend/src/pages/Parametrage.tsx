@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Plus, Trash2, Pencil, Check, X, Settings, ChevronDown, ChevronUp, ExternalLink,
          Thermometer, Wifi, WifiOff, RefreshCw, Save, Mail, Eye, EyeOff, AlertCircle,
          CheckCircle2, Loader2, Database, Download, Upload, UploadCloud, Euro } from 'lucide-react'
-import apiClient from '../api/client'
+import apiClient, { getServerUrl, setServerUrl, testServerConnection } from '../api/client'
 import { parametresAPI } from '../api/parametres'
 import type { ParametreValeur } from '../api/parametres'
 import { useAppSetting } from '../api/appSettings'
@@ -2004,7 +2004,7 @@ function BackupSection() {
       {/* ── Modale de confirmation ── */}
       {confirmOpen && pendingFile && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-sm w-full p-6 space-y-4">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-sm w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center gap-3">
               <div className="p-2.5 bg-orange-100 dark:bg-orange-900/30 rounded-xl">
                 <AlertCircle size={20} className="text-orange-500" />
@@ -2245,6 +2245,81 @@ function SeuilFormFields({ form, onChange }: { form: SeuilUpsert; onChange: (f: 
 }
 
 
+// ── Section Serveur (PWA / app mobile) ───────────────────────────────────────
+function ServeurSection() {
+  const [url, setUrl] = useState(getServerUrl())
+  const [testing, setTesting] = useState(false)
+  const [testResult, setTestResult] = useState<null | 'ok' | 'ko'>(null)
+  const [saved, setSaved] = useState(false)
+
+  const handleTest = async () => {
+    setTesting(true)
+    setTestResult(null)
+    const ok = await testServerConnection(url)
+    setTestResult(ok ? 'ok' : 'ko')
+    setTesting(false)
+  }
+
+  const handleSave = () => {
+    setServerUrl(url)
+    setSaved(true)
+    // Recharge pour que le client Axios prenne la nouvelle base URL
+    setTimeout(() => window.location.reload(), 800)
+  }
+
+  return (
+    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+      <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50">
+        <h2 className="text-base font-semibold text-gray-800 dark:text-gray-100">Serveur (app mobile)</h2>
+        <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+          Laisser vide en utilisation normale (le frontend parle au serveur qui le sert).
+          À renseigner uniquement depuis l'app mobile pour pointer vers ton serveur GrowManager
+          (ex : http://192.168.1.50 ou https://growmanager.mondomaine.fr).
+        </p>
+      </div>
+      <div className="p-6 space-y-3">
+        <div className="flex flex-col sm:flex-row gap-2">
+          <input
+            type="url"
+            value={url}
+            onChange={e => { setUrl(e.target.value); setTestResult(null); setSaved(false) }}
+            placeholder="Vide = même origine (défaut)"
+            className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-grow-600"
+          />
+          <div className="flex gap-2">
+            <button
+              onClick={handleTest}
+              disabled={testing || !url.trim()}
+              className="flex items-center gap-1.5 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/40 disabled:opacity-50"
+            >
+              {testing ? <Loader2 size={14} className="animate-spin" /> : <Wifi size={14} />}
+              Tester
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={saved}
+              className="flex items-center gap-1.5 px-4 py-2 bg-grow-600 text-white rounded-lg text-sm hover:bg-grow-700 disabled:opacity-50"
+            >
+              <Save size={14} />
+              {saved ? 'Rechargement…' : 'Enregistrer'}
+            </button>
+          </div>
+        </div>
+        {testResult === 'ok' && (
+          <p className="text-sm text-green-600 dark:text-green-400 flex items-center gap-1.5">
+            <CheckCircle2 size={14} /> Serveur GrowManager joignable.
+          </p>
+        )}
+        {testResult === 'ko' && (
+          <p className="text-sm text-red-600 dark:text-red-400 flex items-center gap-1.5">
+            <AlertCircle size={14} /> Serveur injoignable — vérifie l'URL et que le serveur est démarré.
+          </p>
+        )}
+      </div>
+    </div>
+  )
+}
+
 // ── Page ──────────────────────────────────────────────────────────────────────
 type TabId = 'general' | 'backup' | 'capteurs' | 'alertes'
 
@@ -2325,6 +2400,9 @@ export default function ParametragePage() {
               <VarietesEditor />
             </div>
           </div>
+
+          {/* Serveur — PWA / app mobile */}
+          <ServeurSection />
         </div>
       )}
 

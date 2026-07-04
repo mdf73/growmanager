@@ -1,6 +1,7 @@
-Fix: coquille "bocalx" -> "bocaux" (pluriel)
+feat(mobile): Sprint A2 batch 2 — pages restantes responsive
 
-- Dashboard.tsx: badge alerte stock
-- SechageCuring.tsx: bouton "Ouvrir X bocaux"
-
-Pluralisation naive `bocal${n>1?'x':''}` remplacee par ternaire complet.
+- Croisement : header flex-wrap + table croisements scrollable horizontalement
+- SuiviConstantes : header flex-wrap (boutons Import CSV / Lire maintenant)
+- Consommation : header flex-wrap (bouton Nouvelle session)
+- Audit complet des 24 pages restantes : Graines, Extractions et les autres déjà conformes
+- Sprint A2 validé — wiki roadmap + log à jour
