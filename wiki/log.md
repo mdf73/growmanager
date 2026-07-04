@@ -6,6 +6,23 @@ Format: `## [YYYY-MM-DD] <operation> | <description>`
 
 ---
 
+## [2026-07-04] Bugfix | Mobile — /health non proxifié + contenu caché derrière la bottom nav (validés)
+
+**Fix 1 — test de connexion "serveur injoignable"** alors que le navigateur marchait :
+l'app teste `GET <url>/health`, mais la route n'était relayée vers le backend nulle part.
+- `vite.config.ts` — proxy `/health` → backend (dev :5173)
+- `nginx.conf` (dev :80) — location `/health`
+- `frontend/Dockerfile.prod` — la config nginx prod ne proxifiait **rien** (ni /api, ni /uploads — contrairement au commentaire du compose ; la prod entière aurait été cassée) → ajout des 3 proxies + `client_max_body_size 20M`
+
+**Fix 2 — dernières lignes cachées derrière la bottom nav** (toutes pages) : bug 100vh mobile — `h-screen` dépasse la zone visible (barre URL / barre gestes / webview).
+- `index.css` — classe `.h-screen-safe` (100vh fallback + **100dvh**)
+- `Layout.tsx` — racine `h-screen-safe` + padding bas `calc(6rem + env(safe-area-inset-bottom))`
+- Desktop inchangé (100dvh = 100vh sur PC)
+
+**Règle de mise à jour APK** (documentée dans [[features/mobile-app]]) : fix backend/serveur → rien côté téléphone · fix interface → rebuild APK (Actions ou tag).
+
+---
+
 ## [2026-07-04] Feature | Sprint Mobile A4 — App Android Capacitor + APK CI (validé) — Phase A complète
 
 - `frontend/capacitor.config.ts` — appId `com.growmanager.app`, webDir dist, androidScheme `http` + cleartext true (serveurs locaux/Tailscale sans mixed-content).

@@ -1,5 +1,4 @@
-fix(mobile): contenu caché derrière la bottom nav (bug 100vh mobile)
+docs(mobile): fixes /health + 100dvh validés — wiki log + règle de mise à jour APK
 
-- index.css : classe .h-screen-safe (100vh fallback + 100dvh = hauteur visible réelle sur mobile)
-- Layout.tsx : racine h-screen → h-screen-safe + padding bas du contenu mobile avec env(safe-area-inset-bottom)
-- Desktop inchangé (100dvh = 100vh sur PC)
+- wiki/log.md : entrée bugfixes mobile (proxy /health partout + h-screen-safe 100dvh)
+- wiki/features/mobile-app.md : section "Mises à jour de l'app" (backend = rien, UI = rebuild APK)

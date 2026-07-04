@@ -57,6 +57,16 @@ Le serveur reste local, rien n'est exposé sur internet. Tailscale crée un VPN 
 
 Alternative réseau local pur : `http://<ip-locale-du-serveur>` — fonctionne uniquement en WiFi maison.
 
+## Mises à jour de l'app
+
+L'APK **embarque sa propre copie du frontend** (figée au build). Règle :
+- Fix **backend / nginx / serveur** → rien à faire côté téléphone.
+- Fix **interface (frontend)** → nouvel APK : Actions → Build Android APK (ou tag `vX.Y.Z`), installer par-dessus (config conservée, pas de désinstallation).
+- Le pull-to-refresh n'existe pas en natif — fermer/rouvrir ne recharge pas le code, seul un nouvel APK le fait.
+- Alternative possible si besoin (non implémentée) : APK "coquille mince" qui charge l'UI depuis le serveur (toujours à jour, mais UI indisponible hors connexion serveur).
+
+Le test de connexion utilise `GET <url>/health` — proxifié partout depuis le fix du 2026-07-04 (vite dev, nginx dev, nginx prod du Dockerfile.prod).
+
 ## Limites connues (v1)
 
 - L'app nécessite le serveur joignable (pas de mode hors-ligne) — c'est la Phase B qui apportera le mode 100% autonome.
