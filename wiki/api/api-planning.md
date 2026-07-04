@@ -61,6 +61,6 @@ Historical cultures are also created automatically when `POST /cultures/{id}/clo
 
 ## See Also
 
-- [[database/planning]] — PlanCulture, PlanCultureVariete, PreparationSubstrat, HistoriqueCulture models
+- [[database/database-planning]] — PlanCulture, PlanCultureVariete, PreparationSubstrat, HistoriqueCulture models
 - [[features/culture-lifecycle]] — how cultures get closed and archived
 - [[roadmap]] — TODO: "Launch culture" button from PlanCulture

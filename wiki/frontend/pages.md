@@ -223,7 +223,7 @@ Variety scoring and ranking system.
 
 ## See Also
 
-- [[frontend/overview]] — routing table + component hierarchy
+- [[frontend/frontend-overview]] — routing table + component hierarchy
 - [[frontend/conventions]] — React patterns
 
 ### ComparaisonCultures (`/comparaison-cultures`)

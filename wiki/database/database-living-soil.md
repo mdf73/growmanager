@@ -81,6 +81,6 @@ All follow the same pattern: foreign keys to `SuiviSolVivant` and to a recipe, p
 
 ## See Also
 
-- [[api/living-soil]] — endpoints
-- [[database/recipes]] — RecetteLSO, RecetteReamendement, RecetteTCO, RecetteFermentation, RecetteEngrais
+- [[api/api-living-soil]] — endpoints
+- [[database/database-recipes]] — RecetteLSO, RecetteReamendement, RecetteTCO, RecetteFermentation, RecetteEngrais
 - [[features/living-soil-system]] — full workflow explanation

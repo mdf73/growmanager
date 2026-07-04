@@ -20,7 +20,7 @@ All models defined in `backend/app/models/all_models.py`.
 | `Pollen` | Pollen stock (mâle ou femelle reversée STS) — quantité, stockage, date péremption auto |
 | `Croisement` | Crossing record (mère × père) — type F1/F2/BX/S1/IBL, récolte de graines |
 
-→ [[database/graines]]
+→ [[database/database-graines]]
 
 ### Cultures & Plants
 | Table | Description |
@@ -52,7 +52,7 @@ All models defined in `backend/app/models/all_models.py`.
 | `RecetteFermentation` / `RecetteFermentationLigne` | Fermentation recipe |
 | `RecetteEngrais` / `RecetteEngraisLigne` | Nutrient schedule recipe |
 
-→ [[database/recipes]]
+→ [[database/database-recipes]]
 
 ### Fertilizers & Products
 | Table | Description |
@@ -60,7 +60,7 @@ All models defined in `backend/app/models/all_models.py`.
 | `ProduitEngrais` | Fertilizer/amendment product (stock item) |
 | `AchatEngrais` | Purchase history for a product |
 
-→ [[database/recipes]]
+→ [[database/database-recipes]]
 
 ### Equipment
 | Table | Description |
@@ -106,7 +106,7 @@ All models defined in `backend/app/models/all_models.py`.
 | `SuiviFermentation` | Fermentation application event |
 | `SuiviCulture` | Culture usage record for a pot |
 
-→ [[database/living-soil]]
+→ [[database/database-living-soil]]
 
 ### Planning
 | Table | Description |
@@ -117,7 +117,7 @@ All models defined in `backend/app/models/all_models.py`.
 | `HistoriqueCulture` | Archived past grow cycle |
 | `HistoriquePlant` | Archived plant in a past grow |
 
-→ [[database/planning]]
+→ [[database/database-planning]]
 
 ### Séchage & Curing
 | Table | Description |

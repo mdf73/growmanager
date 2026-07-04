@@ -1,4 +1,16 @@
-docs(mobile): fixes /health + 100dvh validés — wiki log + règle de mise à jour APK
+docs(wiki): ajoute une vue metier par domaine fonctionnel
 
-- wiki/log.md : entrée bugfixes mobile (proxy /health partout + h-screen-safe 100dvh)
-- wiki/features/mobile-app.md : section "Mises à jour de l'app" (backend = rien, UI = rebuild APK)
+Nouveau dossier wiki/domains/ : navigation par fonctionnalite (cultures,
+graines, recettes/sol vivant, stock/extractions, equipement/espaces,
+capteurs, photos, mobile) en complement du wiki technique existant.
+
+- metier-index.md + 8 hubs (metier-cultures, metier-graines,
+  metier-recettes-sol-vivant, metier-stock-extractions,
+  metier-equipement-espaces, metier-capteurs, metier-photos,
+  metier-mobile-app)
+- Chaque hub decrit les fonctionnalites en langage naturel puis renvoie
+  vers le detail technique (api/database/frontend) existant
+- Lien ajoute en tete de wiki/index.md
+
+Fichiers prefixes "metier-" pour eviter toute collision de basename avec
+les fichiers techniques (meme classe de bug que le renommage precedent).

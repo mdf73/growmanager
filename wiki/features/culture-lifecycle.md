@@ -91,7 +91,7 @@ Full TODO context: → [[roadmap]]
 ## See Also
 
 - [[database/culture]] — Culture model
-- [[database/planning]] — HistoriqueCulture, PlanCulture
+- [[database/database-planning]] — HistoriqueCulture, PlanCulture
 - [[features/plant-lifecycle]] — individual plant status
 - [[api/cultures]] — close + transfer endpoints
-- [[api/planning]] — historique-cultures endpoints
+- [[api/api-planning]] — historique-cultures endpoints

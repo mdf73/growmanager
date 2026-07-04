@@ -6,6 +6,34 @@ Format: `## [YYYY-MM-DD] <operation> | <description>`
 
 ---
 
+## [2026-07-04] Feature | Wiki — vue métier "Vue métier" (wiki/domains/) — validé
+
+Ajout d'une navigation par domaine fonctionnel (cultures, graines, recettes/sol vivant, stock/extractions, équipement/espaces, capteurs, photos, mobile) en complément du wiki technique (api/database/frontend), pour une lecture plus "parlante" côté humain.
+
+9 fichiers créés dans `wiki/domains/` : `metier-index.md` + 8 hubs (`metier-cultures.md`, `metier-graines.md`, `metier-recettes-sol-vivant.md`, `metier-stock-extractions.md`, `metier-equipement-espaces.md`, `metier-capteurs.md`, `metier-photos.md`, `metier-mobile-app.md`). Chaque hub liste les fonctionnalités en langage naturel puis renvoie vers le détail technique existant. Lien ajouté en tête de `wiki/index.md`.
+
+**Correction appliquée en cours de route** : les fichiers avaient d'abord été créés sans préfixe (`domains/cultures.md`, `domains/photos.md`, `domains/mobile-app.md`, `domains/stock-extractions.md`, `domains/index.md`) — collision de basename avec des fichiers existants (`api/cultures.md`, `features/photos.md`, `features/mobile-app.md`, `api/stock-extractions.md`, `wiki/index.md`), rendant le graph view à nouveau illisible (même symptôme que le fix précédent). Renommés avec préfixe `metier-` pour garantir l'unicité, tous les wikilinks mis à jour.
+
+---
+
+## [2026-07-04] Maintenance | Wiki — renommage fichiers ambigus pour le graph view Obsidian (validé)
+
+Le vault Obsidian ("2nd Brain" basé sur NicholasSpisak/second-brain) affichait un graph illisible : plusieurs dossiers (`api/`, `database/`, `frontend/`) réutilisaient les mêmes noms de fichiers génériques (`overview.md`, `recipes.md`, `planning.md`, `living-soil.md`, `graines.md`). Obsidian affiche le nom de fichier seul dans le graph view (pas le chemin), donc ces doublons apparaissaient comme des nœuds distincts mais indiscernables.
+
+**Fix — renommage en noms uniques et auto-descriptifs**, liens internes mis à jour :
+- `api/overview.md` → `api/api-overview.md`
+- `frontend/overview.md` → `frontend/frontend-overview.md`
+- `api/recipes.md` → `api/api-recipes.md`, `database/recipes.md` → `database/database-recipes.md`
+- `api/planning.md` → `api/api-planning.md`, `database/planning.md` → `database/database-planning.md`
+- `api/living-soil.md` → `api/api-living-soil.md`, `database/living-soil.md` → `database/database-living-soil.md`
+- `api/graines.md` → `api/api-graines.md`, `database/graines.md` → `database/database-graines.md`
+
+Tous les `[[wikilinks]]` (index.md + fichiers concernés) mis à jour en conséquence. Aucun lien cassé, plus aucun basename dupliqué dans `wiki/`.
+
+**Note :** "Sans titre.base" / "Sans titre.canvas" visibles isolés dans le graph = fichiers Obsidian par défaut, sans rapport avec le wiki — à supprimer manuellement dans Obsidian si besoin.
+
+---
+
 ## [2026-07-04] Bugfix | Mobile — /health non proxifié + contenu caché derrière la bottom nav (validés)
 
 **Fix 1 — test de connexion "serveur injoignable"** alors que le navigateur marchait :
@@ -82,7 +110,7 @@ Lancement de la **Phase Mobile** (plan "A puis B" validé — voir section dédi
 - `NouveauSessionVapoModal.tsx` — ajout `max-h-[90vh] overflow-y-auto` (seule modal sur 39 sans le pattern standard).
 - Zéro impact desktop (breakpoints `lg:` inchangés). Compilation `tsc --noEmit` OK.
 
-**Wiki :** section Phase Mobile dans [[roadmap]] + section bottom nav dans [[frontend/overview]].
+**Wiki :** section Phase Mobile dans [[roadmap]] + section bottom nav dans [[frontend/frontend-overview]].
 
 ---
 

@@ -119,4 +119,4 @@ Hash extraction session (Polinator or Ice-o-lator method).
 
 - [[api/stock-extractions]] — endpoints
 - [[database/equipment]] — Bocal, Press, RosinBag, IceOBag models
-- [[database/graines]] — Variete model
+- [[database/database-graines]] — Variete model

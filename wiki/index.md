@@ -8,6 +8,12 @@ Content catalog for the GrowManager development wiki. Read this first when start
 
 ---
 
+## 🌿 Vue métier
+
+- [[domains/metier-index]] — navigation par fonctionnalité (cultures, graines, recettes, capteurs, stock, photos...) plutôt que par couche technique
+
+---
+
 ## Meta
 
 - [[overview]] — Project summary, stack, Docker containers, ports, launch commands
@@ -28,34 +34,34 @@ Content catalog for the GrowManager development wiki. Read this first when start
 
 - [[database/schema-overview]] — All tables grouped by domain with one-liners and cross-links
 - [[database/culture]] — Culture, Plant, ActionCalendrier, M2M association tables
-- [[database/graines]] — Breeder, Variete, Graine, PackGraine, Fournisseur, Catalogue
+- [[database/database-graines]] — Breeder, Variete, Graine, PackGraine, Fournisseur, Catalogue
 - [[database/stock]] — Stock, Recolte, RosinExtraction, HashExtraction
-- [[database/recipes]] — All 6 recipe types (TCO, LSO, Réamendement, Arrosage, Fermentation, Engrais) + ProduitEngrais
+- [[database/database-recipes]] — All 6 recipe types (TCO, LSO, Réamendement, Arrosage, Fermentation, Engrais) + ProduitEngrais
 - [[database/equipment]] — Box, Lampe, Pot, Irrigation, Ventilation, Bocal, Press, RosinBag, IceOBag, Materiel, Marque, ParametreListeValeur
 - [[database/sensors]] — GoveeDevice, TemperatureLog, VPD calculation
 - [[database/spaces]] — EspaceCulture, EspaceMateriel
-- [[database/living-soil]] — SuiviSolVivant + all sub-tracking tables (Réamendement, Arrosage, TCO, Fermentation, Culture)
-- [[database/planning]] — PlanCulture, PlanCultureVariete, PreparationSubstrat, HistoriqueCulture, HistoriquePlant
+- [[database/database-living-soil]] — SuiviSolVivant + all sub-tracking tables (Réamendement, Arrosage, TCO, Fermentation, Culture)
+- [[database/database-planning]] — PlanCulture, PlanCultureVariete, PreparationSubstrat, HistoriqueCulture, HistoriquePlant
 
 ---
 
 ## API
 
-- [[api/overview]] — All 23 routers listed with prefixes
+- [[api/api-overview]] — All 23 routers listed with prefixes
 - [[api/cultures]] — Culture CRUD, plant management, action calendar
-- [[api/graines]] — Breeders, varietes, fournisseurs, packs, individual seeds, catalogue
+- [[api/api-graines]] — Breeders, varietes, fournisseurs, packs, individual seeds, catalogue
 - [[api/stock-extractions]] — Stock, rosin extractions, hash extractions, dashboard stats
-- [[api/recipes]] — All recipe types CRUD + fertilizer product management
-- [[api/living-soil]] — SuiviSolVivant + all sub-event endpoints
+- [[api/api-recipes]] — All recipe types CRUD + fertilizer product management
+- [[api/api-living-soil]] — SuiviSolVivant + all sub-event endpoints
 - [[api/calendrier]] — Calendrier global : events par mois, cultures-actives, export plage de dates
 - [[api/infrastructure]] — Govee sensors, growing spaces, materiel, parametres, import/export
-- [[api/planning]] — Plan culture, substrate preparation, historical cultures
+- [[api/api-planning]] — Plan culture, substrate preparation, historical cultures
 
 ---
 
 ## Frontend
 
-- [[frontend/overview]] — Full route table (23 routes), component hierarchy, Layout structure
+- [[frontend/frontend-overview]] — Full route table (23 routes), component hierarchy, Layout structure
 - [[frontend/pages]] — All 24 pages with route, purpose, and key components
 - [[frontend/conventions]] — React Query patterns, Tailwind brand color, hook rules, Axios client
 

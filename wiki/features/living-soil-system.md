@@ -27,7 +27,7 @@ Five recipe types are used in living soil management:
 | TCO | `RecetteTCO` | Aerated compost tea / nutrient tea |
 | Fermentation | `RecetteFermentation` | AACT, compost tea, lactofermentation, bokashi, JADAM JLF |
 
-All recipes use header + `*Ligne` line items with `ProduitEngrais` references. → [[database/recipes]]
+All recipes use header + `*Ligne` line items with `ProduitEngrais` references. → [[database/database-recipes]]
 
 ## Substrate Preparation (PreparationSubstrat)
 
@@ -90,8 +90,8 @@ Displays:
 
 ## See Also
 
-- [[database/living-soil]] — SuiviSolVivant + sub-tables models
-- [[database/recipes]] — all recipe models
-- [[api/living-soil]] — suivi-sol-vivant endpoints
-- [[api/recipes]] — recipe CRUD endpoints
-- [[api/planning]] — PreparationSubstrat endpoint
+- [[database/database-living-soil]] — SuiviSolVivant + sub-tables models
+- [[database/database-recipes]] — all recipe models
+- [[api/api-living-soil]] — suivi-sol-vivant endpoints
+- [[api/api-recipes]] — recipe CRUD endpoints
+- [[api/api-planning]] — PreparationSubstrat endpoint

@@ -76,4 +76,4 @@ Le test de connexion utilise `GET <url>/health` — proxifié partout depuis le 
 ## See Also
 
 - [[roadmap]] — plan Phase Mobile A/B
-- [[frontend/overview]] — bottom nav mobile, conventions responsive
+- [[frontend/frontend-overview]] — bottom nav mobile, conventions responsive

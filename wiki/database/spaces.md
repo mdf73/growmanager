@@ -59,4 +59,4 @@ Used in `ImportExportModal` component on the Espaces page.
 - [[api/infrastructure]] — espaces endpoints
 - [[database/sensors]] — GoveeDevice linked to spaces
 - [[database/equipment]] — Materiel (what gets assigned to spaces)
-- [[database/planning]] — PlanCulture references EspaceCulture
+- [[database/database-planning]] — PlanCulture references EspaceCulture

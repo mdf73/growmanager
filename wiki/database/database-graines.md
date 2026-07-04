@@ -98,6 +98,6 @@ Supplier / seed shop.
 
 ## See Also
 
-- [[api/graines]] — endpoints
+- [[api/api-graines]] — endpoints
 - [[database/culture]] — Culture/Plant models
-- [[database/planning]] — PlanCultureVariete references PackGraine
+- [[database/database-planning]] — PlanCultureVariete references PackGraine

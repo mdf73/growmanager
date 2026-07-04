@@ -59,6 +59,6 @@ Router: `suivi_sol_vivant.py` | Prefix: `/api/suivi-sol-vivant`
 
 ## See Also
 
-- [[database/living-soil]] — models
-- [[api/recipes]] — recipes that can be applied to soil
+- [[database/database-living-soil]] — models
+- [[api/api-recipes]] — recipes that can be applied to soil
 - [[features/living-soil-system]] — full workflow

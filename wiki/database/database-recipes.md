@@ -83,7 +83,7 @@ Header:
 
 Line items (`RecetteLSOLigne`): id_recette_lso, id_produit, quantite, unite, note_ligne, ordre
 
-Used by: [[database/living-soil]] SuiviSolVivant, Plant.id_recette_sol, PreparationSubstrat
+Used by: [[database/database-living-soil]] SuiviSolVivant, Plant.id_recette_sol, PreparationSubstrat
 
 ---
 
@@ -158,6 +158,6 @@ Line items (`RecetteEngraisLigne`): id_recette, id_produit, dosage, unite, ordre
 
 ## See Also
 
-- [[api/recipes]] — CRUD endpoints for all recipe types
-- [[database/living-soil]] — SuiviSolVivant uses RecetteLSO, RecetteReamendement, etc.
+- [[api/api-recipes]] — CRUD endpoints for all recipe types
+- [[database/database-living-soil]] — SuiviSolVivant uses RecetteLSO, RecetteReamendement, etc.
 - [[features/living-soil-system]] — how recipes are applied

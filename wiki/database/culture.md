@@ -113,5 +113,5 @@ Voir aussi → [[features/photos]]
 - [[api/cultures]] — CRUD + plant + action endpoints
 - [[features/culture-lifecycle]] — status flow
 - [[features/plant-lifecycle]] — plant status flow
-- [[database/graines]] — Graine model
+- [[database/database-graines]] — Graine model
 - [[database/equipment]] — Box, Lampe, Pot etc.

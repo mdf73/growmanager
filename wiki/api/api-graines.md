@@ -86,4 +86,4 @@ Used by: Graines page search, PlanCulture variety picker.
 
 ## See Also
 
-- [[database/graines]] — models
+- [[database/database-graines]] — models

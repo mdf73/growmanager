@@ -114,6 +114,6 @@ Pattern à utiliser (ne pas muter le tableau original) :
 
 ## See Also
 
-- [[frontend/overview]] — routing and component structure
+- [[frontend/frontend-overview]] — routing and component structure
 - [[frontend/pages]] — all pages
 - [[architecture/patterns]] — React Query invalidation pattern

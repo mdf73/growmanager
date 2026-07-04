@@ -86,5 +86,5 @@ Standard CRUD.
 
 ## See Also
 
-- [[database/recipes]] — models
-- [[api/living-soil]] — how recipes are applied to soil pots
+- [[database/database-recipes]] — models
+- [[api/api-living-soil]] — how recipes are applied to soil pots
