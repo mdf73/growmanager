@@ -290,7 +290,7 @@ export default function Layout({ children }: LayoutProps) {
   const isBottomNavActive = bottomNavItems.some(i => i.path === location.pathname)
 
   return (
-    <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="flex h-screen-safe bg-gray-50 dark:bg-gray-900">
 
       {/* ── Sidebar Desktop ── */}
       <aside className="hidden lg:flex lg:flex-col w-64 bg-grow-600 text-white">
@@ -384,7 +384,7 @@ export default function Layout({ children }: LayoutProps) {
 
         {/* Page Content */}
         <main className="flex-1 overflow-auto">
-          <div className="p-4 pb-24 lg:p-8 lg:pb-8 max-w-7xl mx-auto">
+          <div className="p-4 pb-[calc(6rem+env(safe-area-inset-bottom))] lg:p-8 lg:pb-8 max-w-7xl mx-auto">
             {children}
           </div>
         </main>

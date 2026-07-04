@@ -2,6 +2,15 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Hauteur réelle du viewport mobile ──────────────────────────────────────
+   100vh dépasse la zone visible sur mobile (barre URL Chrome, barre de gestes,
+   webview Android) → le bas du contenu passe sous la bottom nav.
+   100dvh = hauteur dynamique réelle (fallback 100vh pour vieux navigateurs). */
+.h-screen-safe {
+  height: 100vh;
+  height: 100dvh;
+}
+
 /* ── Dark mode — classes utilitaires réutilisables ────────────────────────── */
 @layer components {
   /* Carte standard */

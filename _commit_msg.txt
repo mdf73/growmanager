@@ -1,5 +1,5 @@
-fix(mobile): /health non proxifié — test de connexion serveur échouait
+fix(mobile): contenu caché derrière la bottom nav (bug 100vh mobile)
 
-- vite.config.ts : proxy /health → backend (dev :5173)
-- nginx.conf (dev :80) : location /health → backend
-- frontend/Dockerfile.prod : la config nginx prod ne proxifiait RIEN (ni /api ni /uploads ni /health, contrairement au commentaire du compose) — ajout des 3 proxies + client_max_body_size 20M
+- index.css : classe .h-screen-safe (100vh fallback + 100dvh = hauteur visible réelle sur mobile)
+- Layout.tsx : racine h-screen → h-screen-safe + padding bas du contenu mobile avec env(safe-area-inset-bottom)
+- Desktop inchangé (100dvh = 100vh sur PC)
