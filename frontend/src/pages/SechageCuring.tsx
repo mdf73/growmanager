@@ -885,7 +885,7 @@ function OuvertureEnMasseModal({
               className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 text-sm font-medium">
               {loading
                 ? 'Ouverture…'
-                : `🫙 Ouvrir ${selected.size} bocal${selected.size > 1 ? 'x' : ''} · ${dureeMin} min`}
+                : `🫙 Ouvrir ${selected.size} ${selected.size > 1 ? 'bocaux' : 'bocal'} · ${dureeMin} min`}
             </button>
           </div>
         </form>

@@ -1,20 +1,6 @@
-feat(rosin): âge de la plante lors de l'extraction
+Fix: coquille "bocalx" -> "bocaux" (pluriel)
 
-Affiche dans la fiche d'une extraction Rosin l'âge figé de la plante au
-moment de l'extraction = date d'extraction − date de fin de curing
-(valeur qui ne change pas dans le temps), placé juste avant les Notes.
+- Dashboard.tsx: badge alerte stock
+- SechageCuring.tsx: bouton "Ouvrir X bocaux"
 
-Backend (extractions.py):
-- helpers _age_source_for_stock() + _build_ages_sources()
-- chaîne: id_stock_source/sources[] -> Stock.id_plant -> Plant ->
-  dernière PlantCuring clôturée (date_fin_curing desc)
-- une entrée par source (ids dédoublonnés)
-- schéma: nouveau AgeSource + champ RosinExtractionRead.ages_sources
-
-Frontend:
-- section « Âge lors de l'extraction » dans ExtractionDetailModal.tsx
-- format "21 jours" / "84 jours (~3 mois)" au-delà de 45 j
-- AgeSource + champ dans api/stock.ts (exclu des payloads create/update)
-- fallbacks: plante source non liée / fin de curing non renseignée
-
-Aucune migration DB. Wiki mis à jour (api/stock-extractions, database/stock, log).
+Pluralisation naive `bocal${n>1?'x':''}` remplacee par ternaire complet.

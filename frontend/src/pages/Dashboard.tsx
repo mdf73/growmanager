@@ -267,7 +267,7 @@ function ModuleStock({ stats, onClick }: { stats: DashboardFullStats; onClick: (
         {hasAlert && (
           <span className="flex items-center gap-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400
                            text-xs font-bold px-2 py-0.5 rounded-full border border-red-200 dark:border-red-700">
-            ⚠ {nbBocauxBas > 0 ? `${nbBocauxBas} bocal${nbBocauxBas > 1 ? 'x' : ''}` : 'Stock bas'}
+            ⚠ {nbBocauxBas > 0 ? `${nbBocauxBas} ${nbBocauxBas > 1 ? 'bocaux' : 'bocal'}` : 'Stock bas'}
           </span>
         )}
       </div>

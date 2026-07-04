@@ -6,6 +6,20 @@ Format: `## [YYYY-MM-DD] <operation> | <description>`
 
 ---
 
+## [2026-07-04] Bugfix | Coquille "bocalx" → "bocaux" (pluriel)
+
+**Bug corrigé :** Le badge d'alerte stock du Dashboard et le bouton de confirmation d'ouverture bocaux dans SechageCuring affichaient "2 bocalx" au lieu de "2 bocaux".
+
+**Cause :** Pluralisation naïve `bocal${n > 1 ? 'x' : ''}` — ajoute un "x" à "bocal" au lieu du vrai pluriel français "bocaux" (pluriel irrégulier).
+
+**Fix :** Remplacé par un ternaire complet sur le mot entier : `${n > 1 ? 'bocaux' : 'bocal'}`.
+
+**Fichiers modifiés :**
+- `frontend/src/pages/Dashboard.tsx` (l.270) — badge alerte stock
+- `frontend/src/pages/SechageCuring.tsx` (l.888) — bouton "Ouvrir X bocaux"
+
+---
+
 ## [2026-06-24] Feature | Âge de la plante lors de l'extraction Rosin
 
 ### Besoin
