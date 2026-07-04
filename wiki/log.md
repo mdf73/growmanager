@@ -6,6 +6,20 @@ Format: `## [YYYY-MM-DD] <operation> | <description>`
 
 ---
 
+## [2026-07-04] Feature | Sprint Mobile A3 — URL serveur configurable + PWA (validé)
+
+**URL serveur configurable**
+- `api/client.ts` — nouvelles fonctions exportées : `getServerUrl()` / `setServerUrl()` (clé localStorage `gm_server_url`), `apiBaseURL()` (vide → `/api` inchangé ; renseignée → `<url>/api`), `serverFileURL(path)` (pour `/uploads/...` en distant), `testServerConnection(url)` (GET `<url>/health`, timeout 5s).
+- `Parametrage.tsx` — section "Serveur (app mobile)" dans l'onglet Général : input URL + bouton Tester + Enregistrer (reload auto pour recharger le client Axios).
+
+**PWA**
+- `frontend/public/manifest.webmanifest` — standalone, portrait, theme `#2d6a4f`.
+- Icônes générées depuis `IconSeul.png` : `pwa-192.png`, `pwa-512.png`, `pwa-512-maskable.png` (fond brand, logo 62%).
+- `index.html` — `<link rel="manifest">`, apple-touch-icon → pwa-192, viewport `viewport-fit=cover`.
+- ⚠ Limite connue : install PWA "standalone" Chrome Android exige HTTPS ; en `http://IP` locale = raccourci simple. L'APK Capacitor (A4) n'a pas cette contrainte.
+
+---
+
 ## [2026-07-04] Feature | Sprint Mobile A2 batch 2 — pages restantes responsive (validé)
 
 Audit des 24 pages restantes : la plupart déjà conformes (headers `flex-col lg:flex-row` ou `flex-wrap`, tables `overflow-auto`, grilles avec breakpoints). Corrections :

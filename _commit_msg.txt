@@ -1,7 +1,6 @@
-feat(mobile): Sprint A2 batch 2 — pages restantes responsive
+feat(mobile): Sprint A3 — URL serveur configurable + PWA installable
 
-- Croisement : header flex-wrap + table croisements scrollable horizontalement
-- SuiviConstantes : header flex-wrap (boutons Import CSV / Lire maintenant)
-- Consommation : header flex-wrap (bouton Nouvelle session)
-- Audit complet des 24 pages restantes : Graines, Extractions et les autres déjà conformes
-- Sprint A2 validé — wiki roadmap + log à jour
+- api/client.ts : baseURL dynamique via localStorage (gm_server_url), helpers getServerUrl/setServerUrl/apiBaseURL/serverFileURL/testServerConnection — comportement web inchangé par défaut
+- Parametrage (onglet Général) : section "Serveur (app mobile)" avec test de connexion /health et reload auto
+- PWA : manifest.webmanifest + icônes 192/512/maskable générées depuis IconSeul.png + viewport-fit=cover
+- Wiki : roadmap A3 validé + log
