@@ -1,12 +1,1 @@
-feat(mobile): Sprint A4 — app Android Capacitor + build APK CI
-
-- capacitor.config.ts : appId com.growmanager.app, androidScheme http + cleartext (serveurs locaux/Tailscale)
-- package.json : @capacitor/core+cli+android ^7 (devDeps), retrait vite-plugin-pwa (config obsolète en collision avec le manifest statique A3), lockfile régénéré
-- vite.config.ts : retrait du plugin VitePWA (référençait une icône inexistante)
-- ServerSetup.tsx : écran premier lancement app native (saisie URL serveur + test /health)
-- App.tsx : gate isNativeApp() && !getServerUrl() → ServerSetup
-- photos.ts + calendarPdfExport.ts : URLs /uploads via serverFileURL (fonctionne en distant)
-- assets/ : icon.png + splash.png générés depuis IconSeul.png (pour @capacitor/assets)
-- .github/workflows/android-apk.yml : build APK debug (manuel ou tag vX.Y.Z), artifact + release
-- .gitignore : frontend/android/, *.apk
-- wiki : features/mobile-app.md (architecture, build, doc Tailscale) + index
+ci(android): Node 20 → 22 (Node 20 déprécié sur les runners GitHub)
