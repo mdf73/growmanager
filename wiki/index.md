@@ -32,14 +32,14 @@ Content catalog for the GrowManager development wiki. Read this first when start
 
 ## Database
 
-- [[database/schema-overview]] — All tables grouped by domain with one-liners and cross-links
-- [[database/culture]] — Culture, Plant, ActionCalendrier, M2M association tables
+- [[database/database-overview]] — All tables grouped by domain with one-liners and cross-links
+- [[database/database-culture]] — Culture, Plant, ActionCalendrier, M2M association tables
 - [[database/database-graines]] — Breeder, Variete, Graine, PackGraine, Fournisseur, Catalogue
-- [[database/stock]] — Stock, Recolte, RosinExtraction, HashExtraction
+- [[database/database-stock]] — Stock, Recolte, RosinExtraction, HashExtraction
 - [[database/database-recipes]] — All 6 recipe types (TCO, LSO, Réamendement, Arrosage, Fermentation, Engrais) + ProduitEngrais
-- [[database/equipment]] — Box, Lampe, Pot, Irrigation, Ventilation, Bocal, Press, RosinBag, IceOBag, Materiel, Marque, ParametreListeValeur
-- [[database/sensors]] — GoveeDevice, TemperatureLog, VPD calculation
-- [[database/spaces]] — EspaceCulture, EspaceMateriel
+- [[database/database-equipment]] — Box, Lampe, Pot, Irrigation, Ventilation, Bocal, Press, RosinBag, IceOBag, Materiel, Marque, ParametreListeValeur
+- [[database/database-sensors]] — GoveeDevice, TemperatureLog, VPD calculation
+- [[database/database-spaces]] — EspaceCulture, EspaceMateriel
 - [[database/database-living-soil]] — SuiviSolVivant + all sub-tracking tables (Réamendement, Arrosage, TCO, Fermentation, Culture)
 - [[database/database-planning]] — PlanCulture, PlanCultureVariete, PreparationSubstrat, HistoriqueCulture, HistoriquePlant
 
@@ -48,13 +48,13 @@ Content catalog for the GrowManager development wiki. Read this first when start
 ## API
 
 - [[api/api-overview]] — All 23 routers listed with prefixes
-- [[api/cultures]] — Culture CRUD, plant management, action calendar
+- [[api/api-cultures]] — Culture CRUD, plant management, action calendar
 - [[api/api-graines]] — Breeders, varietes, fournisseurs, packs, individual seeds, catalogue
-- [[api/stock-extractions]] — Stock, rosin extractions, hash extractions, dashboard stats
+- [[api/api-stock-extractions]] — Stock, rosin extractions, hash extractions, dashboard stats
 - [[api/api-recipes]] — All recipe types CRUD + fertilizer product management
 - [[api/api-living-soil]] — SuiviSolVivant + all sub-event endpoints
-- [[api/calendrier]] — Calendrier global : events par mois, cultures-actives, export plage de dates
-- [[api/infrastructure]] — Govee sensors, growing spaces, materiel, parametres, import/export
+- [[api/api-calendrier]] — Calendrier global : events par mois, cultures-actives, export plage de dates
+- [[api/api-infrastructure]] — Govee sensors, growing spaces, materiel, parametres, import/export
 - [[api/api-planning]] — Plan culture, substrate preparation, historical cultures
 
 ---

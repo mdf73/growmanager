@@ -16,8 +16,8 @@ Suivi température, humidité et VPD via les capteurs Govee.
 ## Détails techniques
 
 - [[features/sensor-integration]] — setup Govee H5179, polling, calcul VPD, saisies manuelles
-- [[database/sensors]] — GoveeDevice, TemperatureLog, calcul VPD
-- Endpoints capteurs regroupés dans le router `capteurs.py` — voir [[api/infrastructure]]
+- [[database/database-sensors]] — GoveeDevice, TemperatureLog, calcul VPD
+- Endpoints capteurs regroupés dans le router `capteurs.py` — voir [[api/api-infrastructure]]
 
 ## Voir aussi
 

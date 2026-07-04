@@ -58,4 +58,4 @@ At startup, `seed_parametres()` populates `ParametreListeValeur` with dropdown o
 
 - [[overview]] — quick reference
 - [[architecture/patterns]] — migration and enrichment patterns
-- [[database/schema-overview]] — all DB tables
+- [[database/database-overview]] — all DB tables

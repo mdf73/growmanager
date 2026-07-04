@@ -181,4 +181,4 @@ Legacy: `GET /dashboard` → `DashboardStats` (older format, kept for compatibil
 
 ## See Also
 
-- [[database/stock]] — Stock, RosinExtraction, HashExtraction models
+- [[database/database-stock]] — Stock, RosinExtraction, HashExtraction models

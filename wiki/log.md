@@ -6,6 +6,19 @@ Format: `## [YYYY-MM-DD] <operation> | <description>`
 
 ---
 
+## [2026-07-04] Maintenance | Wiki — harmonisation des préfixes de couche (database-/api-) — validé
+
+Suite du fix graph view : certains fichiers de `database/` et `api/` portaient le préfixe de couche, d'autres non — nommage incohérent et graphe ambigu (`culture` vs `cultures` vs `metier-cultures`).
+
+**Fix — 10 renommages pour que chaque note porte sa couche dans son nom** :
+- `database/culture.md` → `database-culture.md`, `equipment.md` → `database-equipment.md`, `sensors.md` → `database-sensors.md`, `spaces.md` → `database-spaces.md`, `stock.md` → `database-stock.md`
+- `database/schema-overview.md` → `database-overview.md` (symétrie avec `api-overview` / `frontend-overview`)
+- `api/cultures.md` → `api-cultures.md`, `calendrier.md` → `api-calendrier.md`, `infrastructure.md` → `api-infrastructure.md`, `stock-extractions.md` → `api-stock-extractions.md`
+
+Tous les `[[wikilinks]]` mis à jour, vérification : aucun lien cassé, chaque lien pointe vers un fichier existant. Convention désormais : `database-*`, `api-*`, `metier-*` ; les features restent sans préfixe (noms déjà uniques).
+
+---
+
 ## [2026-07-04] Feature | Wiki — vue métier "Vue métier" (wiki/domains/) — validé
 
 Ajout d'une navigation par domaine fonctionnel (cultures, graines, recettes/sol vivant, stock/extractions, équipement/espaces, capteurs, photos, mobile) en complément du wiki technique (api/database/frontend), pour une lecture plus "parlante" côté humain.
@@ -580,14 +593,4 @@ Explored entire GrowManager codebase (backend + frontend + docs) and bootstrappe
 Merge de la **PR #4** (contributeur externe Boblespam) : fix du calcul des coûts LSO, réamendements et arrosages dans `suivi_sol_vivant.py` — normalisation des unités (mL/L/g/Kg) avant le ratio `prix_achat / volume_conditionnement`, et prise en compte de `volume_eau_l` pour les arrosages. Audit complet ensuite : le même bug existait ailleurs.
 
 ### Bugfixes (suite de l'audit)
-- **`cultures.py` — 3 calculs de coût engrais** (`_compute_culture_cost` ~l.480, détail coût par recette dans `/compare` ~l.1053, coût d'un arrosage individuel ~l.2422) : le prix était divisé par `volume_conditionnement` sans tenir compte de `unite_volume` → coûts surévalués ×1000 pour les produits conditionnés en L ou Kg (ex. flacon 1 L à 30 € compté 30 €/mL au lieu de 0,03 €/mL)
-- **Déductions de stock** : `quantite_stock` était décrémenté d'une quantité en mL/g sans conversion vers `unite_quantite` du produit (faux ×1000 si stock saisi en L ou Kg). Corrigé dans `cultures.py` (arrosage_engrais l.844, preparation_tco l.867) et `suivi_sol_vivant.py` (`add_arrosage`)
-
-### Implémentation
-- Helpers partagés par fichier : `_UNIT_FACTORS` (mL/L/cL/g/Kg), `_to_small_unit()` (normalise vers mL ou g, gère les unités composées 'mL/L' → 'mL'), `_prix_par_petite_unite()` (cultures.py), `_deduire_stock()` (conversion bidirectionnelle : quantité ligne → petite unité → réécriture dans l'unité du stock)
-- Même logique que `culture_helpers.py` (déjà correct) et que le `toBase()`/`norm()` du frontend (déjà correct partout)
-- Exception volontaire : liste manuelle legacy (`cultures.py` l.869) — quantité saisie sans unité, supposée dans l'unité du stock
-
-### Files modified
-- `backend/app/routers/cultures.py` — helpers unités + 3 fix coûts + 2 fix déductions stock
-- `backend/app/routers/suivi_sol_vivant.py` — `_deduire_stock()` + fix déduction dans `add_arrosage` (en plus de la PR #4 mergée)
+- **`cultures.py` — 3 calculs de coût engrais** (`_compute_culture_cost` ~l.480, détail coût par recette dans `/compare` ~l.1053, coût d'un arrosage individuel ~l.2422) : le prix était divisé par `volume

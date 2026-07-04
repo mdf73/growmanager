@@ -175,7 +175,7 @@ Router: `import_export.py` | Prefix: `/api`
 
 ## See Also
 
-- [[database/sensors]] — GoveeDevice, TemperatureLog models
-- [[database/spaces]] — EspaceCulture, EspaceMateriel models
-- [[database/equipment]] — Materiel model
+- [[database/database-sensors]] — GoveeDevice, TemperatureLog models
+- [[database/database-spaces]] — EspaceCulture, EspaceMateriel models
+- [[database/database-equipment]] — Materiel model
 - [[features/sensor-integration]] — Govee setup workflow

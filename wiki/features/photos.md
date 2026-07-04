@@ -66,5 +66,5 @@ Quand l'action `photo` est sélectionnée dans l'`ActionModal`, la cible (`targe
 
 ## Voir aussi
 
-- [[database/culture]] — modèle Photo, ActionCalendrier
-- [[api/cultures]] — endpoint cultures et plants
+- [[database/database-culture]] — modèle Photo, ActionCalendrier
+- [[api/api-cultures]] — endpoint cultures et plants

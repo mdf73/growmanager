@@ -100,6 +100,6 @@ Côté frontend (`PhotoGallery.tsx`) : date picker initialisé à aujourd'hui, m
 
 ## See Also
 
-- [[database/culture]] — Culture, Plant, ActionCalendrier models
+- [[database/database-culture]] — Culture, Plant, ActionCalendrier models
 - [[features/culture-lifecycle]] — status transitions
 - [[features/plant-lifecycle]] — plant status flow

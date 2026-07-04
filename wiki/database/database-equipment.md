@@ -136,6 +136,6 @@ Managed via `Parametrage` page and `/api/parametres/{liste_nom}` endpoints.
 
 ## See Also
 
-- [[api/infrastructure]] — materiel + parametres endpoints
-- [[database/spaces]] — EspaceMateriel (equipment assigned to spaces)
-- [[database/stock]] — Bocal, Press, RosinBag used in extraction records
+- [[api/api-infrastructure]] — materiel + parametres endpoints
+- [[database/database-spaces]] — EspaceMateriel (equipment assigned to spaces)
+- [[database/database-stock]] — Bocal, Press, RosinBag used in extraction records

@@ -88,7 +88,7 @@ Rosin press session record.
 
 Yield % = `quantite_extraite / quantite_utilisee * 100`
 
-**Enrichi serveur** (`RosinExtractionRead.ages_sources`) : âge figé de la plante au moment de l'extraction = `date_rosinextraction − PlantCuring.date_fin_curing`, via `id_stock_source`/`sources[]` → `Stock.id_plant` → `Plant` → dernière session de curing clôturée. Une entrée par source. Voir [[api/stock-extractions]].
+**Enrichi serveur** (`RosinExtractionRead.ages_sources`) : âge figé de la plante au moment de l'extraction = `date_rosinextraction − PlantCuring.date_fin_curing`, via `id_stock_source`/`sources[]` → `Stock.id_plant` → `Plant` → dernière session de curing clôturée. Une entrée par source. Voir [[api/api-stock-extractions]].
 
 ---
 
@@ -117,6 +117,6 @@ Hash extraction session (Polinator or Ice-o-lator method).
 
 ## See Also
 
-- [[api/stock-extractions]] — endpoints
-- [[database/equipment]] — Bocal, Press, RosinBag, IceOBag models
+- [[api/api-stock-extractions]] — endpoints
+- [[database/database-equipment]] — Bocal, Press, RosinBag, IceOBag models
 - [[database/database-graines]] — Variete model

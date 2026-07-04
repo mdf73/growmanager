@@ -128,5 +128,5 @@ Calibrated for a 120×120cm space:
 
 - [[architecture/stack]] — tech stack
 - [[architecture/decisions]] — why specific choices were made
-- [[database/schema-overview]] — all tables
+- [[database/database-overview]] — all tables
 - [[features/culture-lifecycle]] — culture status flow

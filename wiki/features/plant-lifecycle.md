@@ -139,6 +139,6 @@ For whole-culture harvest (`global_culture = true`):
 
 ## See Also
 
-- [[database/culture]] — Plant + ActionCalendrier models
+- [[database/database-culture]] — Plant + ActionCalendrier models
 - [[features/culture-lifecycle]] — parent culture status flow
-- [[api/cultures]] — plant CRUD endpoints
+- [[api/api-cultures]] — plant CRUD endpoints

@@ -71,6 +71,6 @@ Where T is temperature in °C and RH is relative humidity %.
 
 ## See Also
 
-- [[api/infrastructure]] — capteur CRUD + Govee polling endpoints
-- [[database/spaces]] — EspaceCulture (sensors assigned to spaces)
+- [[api/api-infrastructure]] — capteur CRUD + Govee polling endpoints
+- [[database/database-spaces]] — EspaceCulture (sensors assigned to spaces)
 - [[features/sensor-integration]] — full sensor setup and workflow

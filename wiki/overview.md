@@ -120,6 +120,6 @@ Migrations: no Alembic — startup `run_migrations()` in `main.py` runs `ALTER T
 
 - [[architecture/stack]] — detailed architecture breakdown
 - [[architecture/patterns]] — key development patterns
-- [[database/schema-overview]] — all DB tables
+- [[database/database-overview]] — all DB tables
 - [[frontend/frontend-overview]] — page routing and component structure
 - [[roadmap]] — pending features and TODOs

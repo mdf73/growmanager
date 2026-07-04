@@ -57,10 +57,10 @@ sources: [main.py]
 
 ## Detailed Documentation
 
-- [[api/cultures]] — culture, plant, action endpoints
+- [[api/api-cultures]] — culture, plant, action endpoints
 - [[api/api-graines]] — seeds, packs, catalogue
-- [[api/stock-extractions]] — stock + rosin + hash
+- [[api/api-stock-extractions]] — stock + rosin + hash
 - [[api/api-recipes]] — all recipe types
 - [[api/api-living-soil]] — suivi-sol-vivant
-- [[api/infrastructure]] — sensors, espaces, materiel, parametres, fournisseurs
+- [[api/api-infrastructure]] — sensors, espaces, materiel, parametres, fournisseurs
 - [[api/api-planning]] — plan-culture, preparation-substrat, historique

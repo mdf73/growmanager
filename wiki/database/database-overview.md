@@ -30,7 +30,7 @@ All models defined in `backend/app/models/all_models.py`.
 | `ActionCalendrier` | Calendar event/action for a plant or culture |
 | M2M: `CultureGraine`, `CultureEngrais`, `CultureLampe`, `CulturePot`, `CultureIrrigation`, `CultureVentilation` | Equipment/seed assignments per culture |
 
-→ [[database/culture]]
+→ [[database/database-culture]]
 
 ### Stock & Extractions
 | Table | Description |
@@ -40,7 +40,7 @@ All models defined in `backend/app/models/all_models.py`.
 | `RosinExtraction` | Rosin press session |
 | `HashExtraction` | Hash extraction (Polinator / Ice-o-lator) |
 
-→ [[database/stock]]
+→ [[database/database-stock]]
 
 ### Recipes
 | Table | Description |
@@ -78,7 +78,7 @@ All models defined in `backend/app/models/all_models.py`.
 | `Vaporisateur` | Vaporizer (type chauffe, temp min/max, avec eau, S/N) |
 | `VapoConsommable` | Consumable/accessory for a vaporizer (bol, terps ball — matière, diamètre) |
 
-→ [[database/equipment]]
+→ [[database/database-equipment]]
 
 ### Sensors
 | Table | Description |
@@ -86,7 +86,7 @@ All models defined in `backend/app/models/all_models.py`.
 | `GoveeDevice` | Registered Govee smart sensor |
 | `TemperatureLog` | Temperature/humidity/VPD reading |
 
-→ [[database/sensors]]
+→ [[database/database-sensors]]
 
 ### Growing Spaces
 | Table | Description |
@@ -94,7 +94,7 @@ All models defined in `backend/app/models/all_models.py`.
 | `EspaceCulture` | Physical grow space (tent, room) |
 | `EspaceMateriel` | Equipment assigned to a space |
 
-→ [[database/spaces]]
+→ [[database/database-spaces]]
 
 ### Living Soil Tracking
 | Table | Description |

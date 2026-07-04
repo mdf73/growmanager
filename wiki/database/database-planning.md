@@ -113,5 +113,5 @@ Archived plant record within a historical culture.
 
 - [[api/api-planning]] — plan-culture + preparation-substrat endpoints
 - [[database/database-graines]] — PackGraine (referenced in PlanCultureVariete)
-- [[database/spaces]] — EspaceCulture (target space for plans)
+- [[database/database-spaces]] — EspaceCulture (target space for plans)
 - [[features/culture-lifecycle]] — how cultures get archived

@@ -15,8 +15,8 @@ Le produit fini : stock de fleurs/hash/rosin, et les sessions d'extraction.
 
 ## Détails techniques
 
-- [[api/stock-extractions]] — stock, extractions rosin + hash, stats dashboard
-- [[database/stock]] — modèles Stock, Recolte, RosinExtraction, HashExtraction
+- [[api/api-stock-extractions]] — stock, extractions rosin + hash, stats dashboard
+- [[database/database-stock]] — modèles Stock, Recolte, RosinExtraction, HashExtraction
 
 ## Voir aussi
 

@@ -99,5 +99,5 @@ Supplier / seed shop.
 ## See Also
 
 - [[api/api-graines]] — endpoints
-- [[database/culture]] — Culture/Plant models
+- [[database/database-culture]] — Culture/Plant models
 - [[database/database-planning]] — PlanCultureVariete references PackGraine

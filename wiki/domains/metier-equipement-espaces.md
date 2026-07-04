@@ -15,9 +15,9 @@ Le matériel physique (box, lampes, pots, ventilation...) et les espaces de cult
 
 ## Détails techniques
 
-- [[api/infrastructure]] — espaces, matériel, paramètres, fournisseurs, import/export
-- [[database/equipment]] — Box, Lampe, Pot, Irrigation, Ventilation, Bocal, Press, RosinBag, IceOBag, Materiel, Marque, ParametreListeValeur
-- [[database/spaces]] — EspaceCulture, EspaceMateriel
+- [[api/api-infrastructure]] — espaces, matériel, paramètres, fournisseurs, import/export
+- [[database/database-equipment]] — Box, Lampe, Pot, Irrigation, Ventilation, Bocal, Press, RosinBag, IceOBag, Materiel, Marque, ParametreListeValeur
+- [[database/database-spaces]] — EspaceCulture, EspaceMateriel
 
 ## Voir aussi
 

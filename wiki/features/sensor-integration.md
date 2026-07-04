@@ -207,6 +207,6 @@ Appelle `PUT /cultures/{id}` (endpoint existant). Recalcule la date de récolte 
 
 ## See Also
 
-- [[database/sensors]] — GoveeDevice, TemperatureLog models
-- [[api/infrastructure]] — sensor CRUD + polling endpoints
-- [[database/spaces]] — EspaceCulture (sensors assigned to spaces)
+- [[database/database-sensors]] — GoveeDevice, TemperatureLog models
+- [[api/api-infrastructure]] — sensor CRUD + polling endpoints
+- [[database/database-spaces]] — EspaceCulture (sensors assigned to spaces)

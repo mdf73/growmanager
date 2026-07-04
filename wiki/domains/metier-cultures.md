@@ -22,12 +22,12 @@ Tout ce qui concerne la conduite d'une culture, du plan de départ jusqu'à la r
 
 - [[features/plant-lifecycle]] — statuts plante : germination → veg → floraison → séchage → curing → prête/récolte/abandonnée
 - [[features/culture-lifecycle]] — statuts culture : active → séchage_curing → terminée
-- [[api/cultures]] — endpoints cultures, plantes, actions
+- [[api/api-cultures]] — endpoints cultures, plantes, actions
 - [[api/api-planning]] — plan-culture, préparation-substrat, historique
-- [[api/calendrier]] — calendrier global, export
-- [[database/culture]] — modèles Culture, Plant, ActionCalendrier
+- [[api/api-calendrier]] — calendrier global, export
+- [[database/database-culture]] — modèles Culture, Plant, ActionCalendrier
 - [[database/database-planning]] — PlanCulture, PlanCultureVariete, PreparationSubstrat, HistoriqueCulture/Plant
-- [[database/spaces]] — EspaceCulture
+- [[database/database-spaces]] — EspaceCulture
 
 ## Voir aussi
 
