@@ -6,6 +6,12 @@ Format: `## [YYYY-MM-DD] <operation> | <description>`
 
 ---
 
+## [2026-07-05] Bugfix | CI — package-lock.json désynchronisé après ajout @capacitor-community/sqlite
+
+Le commit B0-B2 ajoutait la dépendance dans package.json sans régénérer le lockfile (npm install échouait sur le montage sandbox) → `npm ci` en erreur dans docker-publish (Dockerfile.prod) et android-apk. Fix : lockfile régénéré (`npm install --package-lock-only`, +273 lignes), `npm ci` vérifié en local.
+
+---
+
 ## [2026-07-05] Feature | Sprint B2 — cœur culture en mode standalone — validé
 
 Portage de cultures.py (2910 lignes) + plan_culture.py en handlers TS locaux :

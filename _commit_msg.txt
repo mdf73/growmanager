@@ -1,11 +1,5 @@
-feat(mobile): sprints B0-B2 — mode standalone : fondations, référentiels, cœur culture
+fix(ci): régénère package-lock.json avec @capacitor-community/sqlite
 
-B0 : ModeSetup (choix Autonome/Serveur), gm_mode, SQLite embarqué (78 tables générées), adapter Axios local
-B1 : handlers référentiels (breeders, fournisseurs, varietes, graines/packs/catalogue, materiel, espaces, engrais, app-settings, parametres) + seeds
-B2 : cœur culture — cultures (CRUD, règles métier, archivage HistoriqueCulture), plants (transfert, clonage), actions + tous effets de bord (floraison→prévisions, fin_curing→Stock auto, déduction engrais/TCO), coûts complets, calendrier, stats, plan-culture
-
-- router.ts : params :id numériques (fix /cultures/pots vs :id)
-- vérifs : tsc, vite build, 48 requêtes SQL smoke-testées sur schéma réel
-- wiki : roadmap B0-B2 ✅ + log
-
-Reste (501) : post-récolte (B3), recettes (B4), transverses (B5), photos/PDF/CSV (B6)
+Le lockfile n'avait pas été mis à jour avec la nouvelle dépendance (sprints B0-B2)
+→ npm ci échouait dans le build Docker frontend et le workflow android-apk.
+Vérifié : npm ci passe avec le nouveau couple package.json / package-lock.json.
