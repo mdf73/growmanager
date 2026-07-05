@@ -28,19 +28,13 @@ import ClassementVarietes from './pages/ClassementVarietes'
 import Consommation from './pages/Consommation'
 import CalendrierGlobal from './pages/CalendrierGlobal'
 import ComparaisonCultures from './pages/ComparaisonCultures'
-import ServerSetup from './components/ServerSetup'
-import { getServerUrl } from './api/client'
-
-/** True si l'app tourne dans le runtime natif Capacitor (APK Android). */
-function isNativeApp(): boolean {
-  const cap = (window as unknown as { Capacitor?: { isNativePlatform?: () => boolean } }).Capacitor
-  return !!cap?.isNativePlatform?.()
-}
+import ModeSetup from './components/ModeSetup'
+import { getAppMode, isNativeApp } from './api/client'
 
 function App() {
-  // App mobile sans serveur configuré → écran de connexion au serveur
-  if (isNativeApp() && !getServerUrl()) {
-    return <ServerSetup />
+  // App mobile sans mode choisi → écran de choix (autonome ou serveur)
+  if (isNativeApp() && !getAppMode()) {
+    return <ModeSetup />
   }
 
   return (

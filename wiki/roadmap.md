@@ -42,9 +42,9 @@ sprint1_completed: 2026-05-10
 
 | Sprint | Contenu | État |
 |--------|---------|------|
-| B0 | Fondations : écran choix de mode (1er lancement + Paramétrage) · plugin SQLite + schéma DB (portage modèles SQLAlchemy → DDL) · adapter Axios → backend local · `/health` local | ⬜ |
-| B1 | Référentiels : varietes, breeders, fournisseurs, graines, espaces, engrais, materiel, app_settings, parametres | ⬜ |
-| B2 | Cœur culture : cultures, plants, arrosages, actions, plan_culture, photos (Filesystem) | ⬜ |
+| B0 | Fondations : écran choix de mode (1er lancement + Paramétrage) · plugin SQLite + schéma DB (portage modèles SQLAlchemy → DDL) · adapter Axios → backend local · `/health` local | ✅ validé 2026-07-05 — ModeSetup.tsx (remplace ServerSetup) · gm_mode + rétro-compat · src/local/ (schema 78 tables générées, db, router, adapter) · 501 sur routes non portées |
+| B1 | Référentiels : varietes, breeders, fournisseurs, graines, espaces, engrais, materiel, app_settings, parametres | ✅ validé 2026-07-05 — handlers src/local/handlers/ (referentiels, parametres, espaces, engrais, materiel, graines) · seeds auto (AppSettings + ~35 listes) · fix axios global → adapter aussi sur axios.defaults (passthrough URLs absolues) · smoke test SQL sur schéma réel |
+| B2 | Cœur culture : cultures, plants, arrosages, actions, plan_culture | ✅ validé 2026-07-05 — handlers cultures + cultures-helpers + plan-culture · effets d'actions complets (floraison→prévisions récolte, fin_curing→Stock auto, déduction engrais/TCO) · coûts complets (élec dimmer/phase, engrais, graines) · archivage HistoriqueCulture · photos reportées en fin de phase (Filesystem + URLs images) |
 | B3 | Post-récolte : sechage, curing, stock, stock_alert_seuils, extractions, vaporisateur | ⬜ |
 | B4 | Recettes & sol : 6 recette_*, preparation_substrat, suivi_sol_vivant, open_field, croisement, notation_variete | ⬜ |
 | B5 | Transverses : dashboard, calendrier, search, comparaison, consommation, historique_culture, import/export | ⬜ |

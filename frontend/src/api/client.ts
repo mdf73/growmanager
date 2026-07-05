@@ -1,9 +1,46 @@
 import axios from 'axios'
+import { localAdapter } from '../local/adapter'
 
 // ── URL serveur configurable (PWA / app mobile Capacitor) ────────────────────
 // Vide (défaut) = même origine que le frontend → '/api' (web classique, rien ne change).
 // Renseignée = app mobile pointant vers un serveur distant → '<url>/api'.
 const SERVER_URL_KEY = 'gm_server_url'
+
+// ── Mode de fonctionnement (app mobile) ──────────────────────────────────────
+// 'server'     = l'app parle à un serveur GrowManager local/distant (Phase A).
+// 'standalone' = données 100% locales sur l'appareil, SQLite embarqué (Phase B).
+// null         = pas encore choisi → écran ModeSetup au premier lancement natif.
+const MODE_KEY = 'gm_mode'
+
+export type AppMode = 'server' | 'standalone'
+
+/** True si l'app tourne dans le runtime natif Capacitor (APK Android). */
+export function isNativeApp(): boolean {
+  const cap = (window as unknown as { Capacitor?: { isNativePlatform?: () => boolean } }).Capacitor
+  return !!cap?.isNativePlatform?.()
+}
+
+/** Mode courant, ou null si pas encore choisi. Rétro-compat Phase A : URL serveur déjà configurée → 'server'. */
+export function getAppMode(): AppMode | null {
+  try {
+    const m = localStorage.getItem(MODE_KEY)
+    if (m === 'server' || m === 'standalone') return m
+    return getServerUrl() ? 'server' : null
+  } catch {
+    return null
+  }
+}
+
+/** Enregistre le mode (null → efface, réaffiche ModeSetup au prochain lancement). Recharger l'app ensuite. */
+export function setAppMode(mode: AppMode | null) {
+  if (mode) localStorage.setItem(MODE_KEY, mode)
+  else localStorage.removeItem(MODE_KEY)
+}
+
+/** True si l'app fonctionne en mode autonome (backend local SQLite). */
+export function isStandalone(): boolean {
+  return getAppMode() === 'standalone'
+}
 
 /** URL du serveur configurée (sans slash final), ou '' si même origine. */
 export function getServerUrl(): string {
@@ -51,7 +88,16 @@ const client = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  // Mode autonome : les requêtes sont servies par le backend local (SQLite), pas par le réseau.
+  ...(isStandalone() ? { adapter: localAdapter } : {}),
 })
+
+// Certains fichiers src/api/ utilisent l'axios global ('/api/...') au lieu de ce client :
+// en standalone, on branche aussi l'adapter local sur axios.defaults (les URLs absolues
+// http(s):// passent quand même par le vrai réseau — voir adapter.ts).
+if (isStandalone()) {
+  axios.defaults.adapter = localAdapter
+}
 
 // Intercepteur pour les erreurs
 client.interceptors.response.use(

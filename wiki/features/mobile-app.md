@@ -12,7 +12,7 @@ App Android = le frontend React empaqueté dans un APK via **Capacitor**, qui pa
 
 - **Aucun code dupliqué** : même frontend que le web, breakpoints Tailwind pour le mobile.
 - **Backend inchangé** : l'app appelle `<url-serveur>/api` (config A3, clé localStorage `gm_server_url`).
-- **Premier lancement** : `App.tsx` détecte le runtime natif (`window.Capacitor.isNativePlatform()`) → si aucune URL configurée, affiche `ServerSetup.tsx` (saisie URL + test `/health` + reload).
+- **Premier lancement** : `App.tsx` détecte le runtime natif (`isNativeApp()` de client.ts) → si aucun mode choisi (`gm_mode`), affiche `ModeSetup.tsx` : choix **Autonome** (SQLite local, Phase B) ou **Serveur** (saisie URL + test `/health` + reload). Rétro-compat : URL déjà configurée → mode serveur.
 - **Fichiers statiques** : `photoUrl()` (photos.ts) et l'export PDF calendrier passent par `serverFileURL()` / `getServerUrl()` pour pointer vers le serveur distant.
 
 ## Config Capacitor (`frontend/capacitor.config.ts`)

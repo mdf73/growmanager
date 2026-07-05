@@ -1,7 +1,11 @@
-docs(roadmap): plan Phase B mode standalone dual-mode (validé 2026-07-05)
+feat(mobile): sprints B0-B2 — mode standalone : fondations, référentiels, cœur culture
 
-- Clarification : Phase B s'ajoute au mode serveur, ne le remplace pas (2 modes : Standalone SQLite local ou Serveur local/distant)
-- Choix du mode au 1er lancement + modifiable dans Paramétrage
-- Modes indépendants, pas de sync (import/export JSON en passerelle manuelle)
-- Architecture : backend local TS derrière adapter Axios, contrat src/api/*.ts inchangé
-- Découpage en 7 sprints B0-B6 avec limites connues (capteurs, PDF)
+B0 : ModeSetup (choix Autonome/Serveur), gm_mode, SQLite embarqué (78 tables générées), adapter Axios local
+B1 : handlers référentiels (breeders, fournisseurs, varietes, graines/packs/catalogue, materiel, espaces, engrais, app-settings, parametres) + seeds
+B2 : cœur culture — cultures (CRUD, règles métier, archivage HistoriqueCulture), plants (transfert, clonage), actions + tous effets de bord (floraison→prévisions, fin_curing→Stock auto, déduction engrais/TCO), coûts complets, calendrier, stats, plan-culture
+
+- router.ts : params :id numériques (fix /cultures/pots vs :id)
+- vérifs : tsc, vite build, 48 requêtes SQL smoke-testées sur schéma réel
+- wiki : roadmap B0-B2 ✅ + log
+
+Reste (501) : post-récolte (B3), recettes (B4), transverses (B5), photos/PDF/CSV (B6)

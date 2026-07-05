@@ -6,6 +6,41 @@ Format: `## [YYYY-MM-DD] <operation> | <description>`
 
 ---
 
+## [2026-07-05] Feature | Sprint B2 — cœur culture en mode standalone — validé
+
+Portage de cultures.py (2910 lignes) + plan_culture.py en handlers TS locaux :
+- `cultures-helpers.ts` : enrichissements (culture/plant/action), conversion d'unités, coûts complets (électricité 18h/12h + intensité dimmer par lampe + prix kWh AppSettings, engrais recette×volume, graines, €/g), date récolte estimée, clôture auto, archivage HistoriqueCulture/HistoriquePlant, effets d'actions (germination, croissance, floraison + prévisions recolte_prevue, 12/12, récolte, curing, fin_curing → création Stock enrichie avec traçabilité, déduction stock engrais/TCO, rempotage).
+- `cultures.ts` : CRUD cultures (règles 1 culture active/espace + conflits pots 409), plants (CRUD, transfert, clonage multi, enraciner, clone-rate), actions (globale éclatée/ciblée/space_only), calendrier par mois, coûts, stats, utils (pots, transfer-targets, espaces-clone, recettes-sol, dernier-tco).
+- `plan-culture.ts` : plans + variétés + catalogue filtré + calcul nb pots.
+- `router.ts` : params :id* ne matchent que des chiffres (évite /cultures/pots avalé par /cultures/:id).
+- Vérifs : tsc + build + 33 requêtes SQL testées sur schéma réel.
+- Reportés : photos (Filesystem), exports PDF/CSV, compare (B5), sechage/curing/stock-info (B3).
+
+---
+
+## [2026-07-05] Feature | Sprint B1 — référentiels en mode standalone — validé
+
+Portage des routers référentiels en handlers TS locaux (`src/local/handlers/`) :
+- referentiels.ts (breeders, fournisseurs, variétés avec 409 + FK NULL), graines.ts (packs, packs/complet, ajustement graines, toggle, catalogue), materiel.ts (CRUD, filtre disponibles, age_jours, caracteristiques JSON), espaces.ts (CRUD + équipements + materiel-en-use), engrais.ts (CRUD + achats/recharger/vider-stock), parametres.ts (app-settings + listes).
+- `seeds.ts` : AppSettings + ~35 listes déroulantes insérées à la création de la base (miroir backend).
+- `helpers.ts` : one/count/insert/updateById/boolify/jsonify/ageJours.
+- Fix important : materiel/appSettings/parametres/historiqueCulture/photos utilisent l'axios global → adapter local aussi sur `axios.defaults` en standalone, avec passthrough réseau pour URLs absolues (test connexion serveur OK).
+- Vérifs : tsc + vite build + 15 requêtes SQL testées sur base SQLite créée du schéma.
+- Reste en 501 : cultures, dashboard, post-récolte, recettes, transverses, CSV, bocal-timeline.
+
+---
+
+## [2026-07-05] Feature | Sprint B0 — fondations mode standalone — validé
+
+Fondations du mode autonome (Phase B) :
+- `ModeSetup.tsx` remplace `ServerSetup.tsx` : choix Autonome/Serveur au 1er lancement natif (rétro-compat : URL serveur existante → mode serveur).
+- `client.ts` : clé `gm_mode`, `getAppMode`/`setAppMode`/`isStandalone`/`isNativeApp`, adapter local branché sur Axios en standalone.
+- `src/local/` : `schema.ts` (78 tables générées depuis les modèles SQLAlchemy, dialecte SQLite), `db.ts` (@capacitor-community/sqlite, migrations PRAGMA user_version), `router.ts` (routes + LocalHttpError), `adapter.ts` (Axios → dispatch local, 501 si route non portée). `/health` local.
+- Paramétrage → Général : section "Mode de fonctionnement" (boutons Autonome/Serveur, natif uniquement).
+- Vérification : tsc + build Vite OK (via copie /tmp, sync sandbox en retard).
+
+---
+
 ## [2026-07-05] Roadmap | Phase B mode standalone — plan dual-mode validé
 
 Clarification et découpage de la Phase B dans [[roadmap]] :
