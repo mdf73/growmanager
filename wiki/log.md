@@ -6,6 +6,16 @@ Format: `## [YYYY-MM-DD] <operation> | <description>`
 
 ---
 
+## [2026-07-05] Roadmap | Phase B mode standalone — plan dual-mode validé
+
+Clarification et découpage de la Phase B dans [[roadmap]] :
+- **Dual-mode** : la Phase B s'ajoute au mode serveur (2 choix au 1er lancement : Standalone SQLite local ou Serveur local/distant, modifiable dans Paramétrage).
+- **Modes indépendants** : pas de sync, import/export JSON en passerelle manuelle.
+- **Architecture** : backend local TypeScript derrière adapter Axios, contrat `src/api/*.ts` inchangé, backend Python non touché.
+- Découpage en 7 sprints B0–B6 (fondations → référentiels → cœur culture → post-récolte → recettes/sol → transverses → limitations/polish).
+
+---
+
 ## [2026-07-04] Maintenance | Wiki — harmonisation des préfixes de couche (database-/api-) — validé
 
 Suite du fix graph view : certains fichiers de `database/` et `api/` portaient le préfixe de couche, d'autres non — nommage incohérent et graphe ambigu (`culture` vs `cultures` vs `metier-cultures`).

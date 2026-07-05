@@ -1,6 +1,7 @@
-wiki: harmonisation prefixes de couche (database-/api-)
+docs(roadmap): plan Phase B mode standalone dual-mode (validé 2026-07-05)
 
-10 renommages pour un graph view Obsidian lisible :
-- database/: culture, equipment, sensors, spaces, stock -> prefixe database- ; schema-overview -> database-overview
-- api/: cultures, calendrier, infrastructure, stock-extractions -> prefixe api-
-Tous les wikilinks mis a jour, aucun lien casse. Entree ajoutee dans wiki/log.md.
+- Clarification : Phase B s'ajoute au mode serveur, ne le remplace pas (2 modes : Standalone SQLite local ou Serveur local/distant)
+- Choix du mode au 1er lancement + modifiable dans Paramétrage
+- Modes indépendants, pas de sync (import/export JSON en passerelle manuelle)
+- Architecture : backend local TS derrière adapter Axios, contrat src/api/*.ts inchangé
+- Découpage en 7 sprints B0-B6 avec limites connues (capteurs, PDF)

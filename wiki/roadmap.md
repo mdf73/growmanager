@@ -1,6 +1,6 @@
 ---
 type: roadmap
-updated: 2026-06-03
+updated: 2026-07-05
 sources: [Documentation/claude.md, Documentation/Instructions de reprises v1.txt, Documentation/GrowManager_Specifications_v4.docx]
 sprint1_completed: 2026-05-10
 ---
@@ -26,11 +26,34 @@ sprint1_completed: 2026-05-10
 
 **Audit A1 (2026-07-04)** : Layout mobile déjà en place (header, sidebar hamburger) · 12 pages avec tables dont 6 sans scroll horizontal · peu de breakpoints dans les pages · client Axios `baseURL: '/api'` en dur (à rendre configurable en A3).
 
-### Phase B (backlog, après A4)
-- Réécriture des 29 routers FastAPI en TypeScript local (SQLite via plugin Capacitor)
-- Les 28 fichiers `src/api/` définissent le contrat à réimplémenter
-- Limite connue : intégration capteurs Govee inopérante en mode autonome
-- Distribution Play Store possible (aucune donnée embarquée dans l'app)
+### Phase B — Mode standalone (plan validé 2026-07-05, non démarré)
+
+**Principe clé — dual-mode** : la Phase B **s'ajoute** au mode serveur, elle ne le remplace pas. L'app Android propose 2 modes :
+1. **Standalone** : données 100% locales sur le téléphone (SQLite embarqué), aucun serveur requis.
+2. **Serveur** : connexion à un serveur GrowManager local/distant (comportement Phase A actuel, inchangé).
+
+**Décisions (2026-07-05)** :
+- Choix du mode au **premier lancement** (écran remplaçant `ServerSetup.tsx`) + **modifiable dans Paramétrage → Général**.
+- **Modes indépendants** : pas de sync entre base locale et serveur. Base vide au passage en standalone. L'import/export JSON existant sert de passerelle manuelle si besoin.
+- Architecture : les ~35 fichiers `src/api/*.ts` restent le contrat. Un **backend local TypeScript** réimplémente les routes REST derrière un adapter Axios — zéro changement dans les pages. SQLite via `@capacitor-community/sqlite`, photos via `@capacitor/filesystem`.
+- Backend Python et mode web/desktop **non touchés**.
+
+**Sprints Phase B** :
+
+| Sprint | Contenu | État |
+|--------|---------|------|
+| B0 | Fondations : écran choix de mode (1er lancement + Paramétrage) · plugin SQLite + schéma DB (portage modèles SQLAlchemy → DDL) · adapter Axios → backend local · `/health` local | ⬜ |
+| B1 | Référentiels : varietes, breeders, fournisseurs, graines, espaces, engrais, materiel, app_settings, parametres | ⬜ |
+| B2 | Cœur culture : cultures, plants, arrosages, actions, plan_culture, photos (Filesystem) | ⬜ |
+| B3 | Post-récolte : sechage, curing, stock, stock_alert_seuils, extractions, vaporisateur | ⬜ |
+| B4 | Recettes & sol : 6 recette_*, preparation_substrat, suivi_sol_vivant, open_field, croisement, notation_variete | ⬜ |
+| B5 | Transverses : dashboard, calendrier, search, comparaison, consommation, historique_culture, import/export | ⬜ |
+| B6 | Limitations & polish : capteurs (Govee/esphome) masqués en standalone · exports PDF (jsPDF ou désactivés v1) · QR labels · doc + APK | ⬜ |
+
+**Limites connues du mode standalone** :
+- Capteurs Govee/esphome inopérants (nécessitent le serveur) — UI masquée en standalone.
+- Exports PDF (étiquettes, fiche culture) générés côté backend Python → à réimplémenter en JS (jsPDF) ou désactivés en v1 standalone.
+- Distribution Play Store possible (aucune donnée embarquée dans l'app).
 
 ---
 
