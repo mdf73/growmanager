@@ -6,6 +6,17 @@ Format: `## [YYYY-MM-DD] <operation> | <description>`
 
 ---
 
+## [2026-07-06] Feature | Sprint B3 — post-récolte en mode standalone — validé
+
+Portage sechage.py, curing.py, stock.py, stock_alert_seuils.py, extractions.py, vaporisateur.py + routes cultures liées :
+- `sechage-curing.ts` : sessions séchage/curing CRUD + plantes (statuts auto, lifecycle culture), WPFF complet (stock + action + archivage), cultures/sechage/plants enrichi, éligibles, plants-by-variete, stock-info, bocal-timeline.
+- `stock.ts` : CRUD enrichi, bocaux-disponibles, sortie, auto-clôture, origine (traçabilité complète), StockAlertSeuil CRUD + check + seed Fleur.
+- `extractions.ts` : rosin (multi-sources, déduction, stock Rosin lié id_stock_produit, synchro édition delta, ages_sources) + hash (Polinator/Ice-o-lator, stocks par maillage, stats).
+- `vaporisateur.ts` : CRUD + consommables + session (déduction stock) + stocks-vapo + marques/modeles.
+- Vérifs : tsc + build + 30 requêtes SQL sur schéma réel. Reste : B4 recettes, B5 transverses, B6 photos/PDF/CSV.
+
+---
+
 ## [2026-07-05] Bugfix | CI — package-lock.json désynchronisé après ajout @capacitor-community/sqlite
 
 Le commit B0-B2 ajoutait la dépendance dans package.json sans régénérer le lockfile (npm install échouait sur le montage sandbox) → `npm ci` en erreur dans docker-publish (Dockerfile.prod) et android-apk. Fix : lockfile régénéré (`npm install --package-lock-only`, +273 lignes), `npm ci` vérifié en local.

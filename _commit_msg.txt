@@ -1,5 +1,9 @@
-fix(ci): régénère package-lock.json avec @capacitor-community/sqlite
+feat(mobile): sprint B3 — mode standalone : post-récolte
 
-Le lockfile n'avait pas été mis à jour avec la nouvelle dépendance (sprints B0-B2)
-→ npm ci échouait dans le build Docker frontend et le workflow android-apk.
-Vérifié : npm ci passe avec le nouveau couple package.json / package-lock.json.
+- sechage-curing.ts : sessions séchage/curing + plantes, WPFF, cultures/sechage/plants, éligibles, plants-by-variete, stock-info, bocal-timeline
+- stock.ts : CRUD enrichi, bocaux-disponibles, sortie, origine (traçabilité), alertes seuils + check + seed Fleur
+- extractions.ts : rosin + hash multi-sources, déduction stocks, stocks produits, stats
+- vaporisateur.ts : CRUD + consommables + sessions (déduction stock)
+- seeds.ts : seuil alerte Fleur par défaut
+- vérifs : tsc, vite build, 30 requêtes SQL smoke-testées
+- wiki : roadmap B3 ✅ + log

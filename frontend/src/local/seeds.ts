@@ -47,8 +47,21 @@ const LISTE_DEFAULTS: Record<string, string[]> = {
   types_sol_preparation: ['Sol vivant (LSO)', 'Coco seul', 'Terre seule', 'Coco + Terre'],
 }
 
-/** Insère les valeurs par défaut (AppSettings + listes paramétrables) si absentes. */
+// Miroir de backend/app/routers/stock_alert_seuils.py (SEUILS_DEFAULTS)
+const SEUILS_DEFAULTS = [
+  { type_stock: 'Fleur', seuil_bocal_g: 10.0, seuil_bocal_pct: 10.0, seuil_total_g: 100.0, actif: 1 },
+]
+
+/** Insère les valeurs par défaut (AppSettings + listes paramétrables + seuils stock) si absentes. */
 export async function seedDefaults(conn: SQLiteDBConnection): Promise<void> {
+  for (const s of SEUILS_DEFAULTS) {
+    const r = await conn.query('SELECT type_stock FROM "StockAlertSeuil" WHERE type_stock = ?', [s.type_stock])
+    if (!r.values?.length) {
+      await conn.run(
+        'INSERT INTO "StockAlertSeuil" (type_stock, seuil_bocal_g, seuil_bocal_pct, seuil_total_g, actif) VALUES (?,?,?,?,?)',
+        [s.type_stock, s.seuil_bocal_g, s.seuil_bocal_pct, s.seuil_total_g, s.actif])
+    }
+  }
   for (const s of SETTINGS_DEFAULTS) {
     const r = await conn.query('SELECT id FROM "AppSettings" WHERE cle = ?', [s.cle])
     if (!r.values?.length) {
