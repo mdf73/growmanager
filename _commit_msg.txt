@@ -1,8 +1,3 @@
-feat(mobile): build AAB signé pour Google Play (Test interne)
+fix(ci): workflow Android invalide — secrets interdit dans if:
 
-- .github/workflows/android-apk.yml : nouvelles étapes conditionnelles (actives si le secret GROWMANAGER_KEYSTORE_BASE64 existe) — décodage keystore, injection signingConfigs.release dans android/app/build.gradle, gradlew bundleRelease, artifact growmanager-aab + attaché à la release GitHub si tag. Le build debug APK existant n'est pas modifié.
-- wiki/features/mobile-app.md : section "Distribution Google Play" (secrets requis, plan Temps 1 Test interne / Temps 2 Production)
-- wiki/roadmap.md : item Distribution Google Play (Temps 1 en cours, Temps 2 bloqué sur test fermé 12 testeurs/14j)
-- wiki/log.md : entrée détaillant la décision et le reste à faire côté Play Console
-
-Reste à faire (Pik, manuel) : ajouter les 4 secrets GitHub (GROWMANAGER_KEYSTORE_BASE64, GROWMANAGER_KEYSTORE_PASSWORD, GROWMANAGER_KEY_ALIAS, GROWMANAGER_KEY_PASSWORD), créer le compte Play Console, uploader le premier AAB manuellement.
+GitHub Actions rejette le contexte `secrets` dans les conditions if: ("Unrecognized named-value: 'secrets'"), même au niveau step. Remplacé par une variable d'env de job (HAS_PLAY_KEYSTORE, dérivée du secret) et les 6 conditions if: utilisent désormais env.HAS_PLAY_KEYSTORE == 'true'. YAML validé localement.

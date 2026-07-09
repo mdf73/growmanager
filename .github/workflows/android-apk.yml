@@ -14,6 +14,12 @@ jobs:
     permissions:
       contents: write
 
+    env:
+      # secrets.* est interdit dans les conditions if: (erreur "Unrecognized
+      # named-value: 'secrets'") — on le convertit en variable d'env au
+      # niveau du job, utilisable elle dans if: env.HAS_PLAY_KEYSTORE == 'true'
+      HAS_PLAY_KEYSTORE: ${{ secrets.GROWMANAGER_KEYSTORE_BASE64 != '' }}
+
     defaults:
       run:
         working-directory: frontend
@@ -83,13 +89,13 @@ jobs:
       # ==========================================================
 
       - name: Decode keystore
-        if: ${{ secrets.GROWMANAGER_KEYSTORE_BASE64 != '' }}
+        if: env.HAS_PLAY_KEYSTORE == 'true'
         run: echo "$KEYSTORE_BASE64" | base64 -d > android/app/growmanager-upload.keystore
         env:
           KEYSTORE_BASE64: ${{ secrets.GROWMANAGER_KEYSTORE_BASE64 }}
 
       - name: Configure Gradle signing
-        if: ${{ secrets.GROWMANAGER_KEYSTORE_BASE64 != '' }}
+        if: env.HAS_PLAY_KEYSTORE == 'true'
         run: |
           python3 - <<'PY'
           path = "android/app/build.gradle"
@@ -117,7 +123,7 @@ jobs:
           KEYSTORE_BASE64: ${{ secrets.GROWMANAGER_KEYSTORE_BASE64 }}
 
       - name: Build release AAB (signé, pour Google Play)
-        if: ${{ secrets.GROWMANAGER_KEYSTORE_BASE64 != '' }}
+        if: env.HAS_PLAY_KEYSTORE == 'true'
         run: |
           cd android
           chmod +x gradlew
@@ -128,14 +134,14 @@ jobs:
           GROWMANAGER_KEY_PASSWORD: ${{ secrets.GROWMANAGER_KEY_PASSWORD }}
 
       - name: Rename AAB
-        if: ${{ secrets.GROWMANAGER_KEYSTORE_BASE64 != '' }}
+        if: env.HAS_PLAY_KEYSTORE == 'true'
         run: |
           VERSION=$(node -p "require('./package.json').version")
           cp android/app/build/outputs/bundle/release/app-release.aab "growmanager-v${VERSION}.aab"
           echo "AAB_NAME=growmanager-v${VERSION}.aab" >> "$GITHUB_ENV"
 
       - name: Upload AAB artifact
-        if: ${{ secrets.GROWMANAGER_KEYSTORE_BASE64 != '' }}
+        if: env.HAS_PLAY_KEYSTORE == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: growmanager-aab
@@ -143,7 +149,7 @@ jobs:
           retention-days: 30
 
       - name: Attach AAB to release (tags only)
-        if: ${{ secrets.GROWMANAGER_KEYSTORE_BASE64 != '' && startsWith(github.ref, 'refs/tags/') }}
+        if: env.HAS_PLAY_KEYSTORE == 'true' && startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
           files: frontend/${{ env.AAB_NAME }}
