@@ -138,6 +138,8 @@ Le numéro de version (`frontend/package.json`, `frontend/package-lock.json`, `b
 
 **Historique :** la v1 de ce script était en Node.js (`version-bump.js`, exécuté via `node`). Sur la machine de Pik, `node` n'est pas dans le PATH de la fenêtre `cmd.exe` ouverte par double-clic sur `push.bat` (tout le build Node se fait côté CI, jamais en local) — le script s'auto-désactivait silencieusement à chaque push, donc la version ne bumpait jamais. Réécrit en PowerShell (2026-07-09) : natif sur Windows, aucune dépendance à installer. `version-bump.js` laissé en place comme stub obsolète (commentaire seul, plus appelé).
 
+**Bug critique corrigé le jour même :** la v1 du script PowerShell utilisait `Get-Content`/`Set-Content`, qui sur Windows PowerShell 5.1 lisent en ANSI par défaut (pas UTF-8) et ajoutent un BOM à l'écriture — résultat : accents corrompus (mojibake) dans `main.py`/`CHANGELOG.md`, BOM cassant le JSON de `package.json`/`package-lock.json`, et même une troncature (accolade finale perdue). `npm install`/`npm run build` cassés en local et en CI. Fix : le script n'utilise plus que `[System.IO.File]::ReadAllText/WriteAllText` avec un `UTF8Encoding($false)` explicite (jamais de BOM), plus un garde-fou qui annule l'écriture si le fichier semble tronqué après remplacement. Détail complet : [[log]] entrée du 2026-07-09.
+
 Si PowerShell renvoie une erreur, `push.bat` avertit et continue le commit sans bump (non-bloquant).
 
 `bump-version.bat` reste disponible pour un bump manuel exceptionnel (ex: forcer un major hors convention), mais n'est plus utilisé en flux normal.

@@ -1,4 +1,4 @@
-﻿"""Application FastAPI pour GrowManager"""
+"""Application FastAPI pour GrowManager"""
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -7,14 +7,14 @@ from app.database import Base, engine
 from app.routers import breeders, varietes, graines, cultures, stock, extractions, dashboard, fournisseurs, import_export, historique_culture, materiel, parametre, engrais, recette_engrais, recette_tco, recette_lso, recette_reamendement, recette_arrosage, recette_fermentation, suivi_sol_vivant, espaces, capteurs, plan_culture, preparation_substrat, notation_variete, vaporisateur, sechage, curing, croisement, app_settings, consommation, photos, stock_alert_seuils, search, calendrier, esphome, open_field
 from app.services.govee_poller import start_poller
 
-# CrÃ©ation de l'application FastAPI
+# Création de l'application FastAPI
 app = FastAPI(
     title="GrowManager API",
     description="API pour la gestion de cultures de cannabis",
-    version="3.4.1",
+    version="3.4.2",
 )
 
-# Configuration CORS pour le dÃ©veloppement
+# Configuration CORS pour le développement
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -23,7 +23,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# CrÃ©ation des tables
+# Création des tables
 Base.metadata.create_all(bind=engine)
 
 # Migration: ajout des nouvelles colonnes si elles n'existent pas
@@ -44,29 +44,29 @@ def run_migrations():
         ("RosinExtraction",  "presse_3_poids",    "ALTER TABLE RosinExtraction ADD COLUMN presse_3_poids DECIMAL(10,2)"),
         ("RosinExtraction",  "presse_4_poids",    "ALTER TABLE RosinExtraction ADD COLUMN presse_4_poids DECIMAL(10,2)"),
         ("RosinExtraction",  "id_stock_produit",  "ALTER TABLE RosinExtraction ADD COLUMN id_stock_produit INT"),
-        # HistoriqueCulture â€” colonnes ajoutÃ©es progressivement
+        # HistoriqueCulture — colonnes ajoutées progressivement
         ("HistoriqueCulture", "notes",    "ALTER TABLE HistoriqueCulture ADD COLUMN notes TEXT"),
         ("HistoriqueCulture", "substrat", "ALTER TABLE HistoriqueCulture ADD COLUMN substrat VARCHAR(100)"),
         ("HistoriqueCulture", "nom",      "ALTER TABLE HistoriqueCulture ADD COLUMN nom VARCHAR(200)"),
         ("HistoriquePlant", "date_debut_plant", "ALTER TABLE HistoriquePlant ADD COLUMN date_debut_plant DATE"),
         ("HistoriquePlant", "date_fin_plant",   "ALTER TABLE HistoriquePlant ADD COLUMN date_fin_plant DATE"),
         ("Materiel", "date_sortie_stock", "ALTER TABLE Materiel ADD COLUMN date_sortie_stock DATE"),
-        # HashExtraction â€” extension pour Polinator / Ice-o-lator
+        # HashExtraction — extension pour Polinator / Ice-o-lator
         ("HashExtraction", "id_stock_source",  "ALTER TABLE HashExtraction ADD COLUMN id_stock_source INT"),
         ("HashExtraction", "type_extraction",  "ALTER TABLE HashExtraction ADD COLUMN type_extraction VARCHAR(20)"),
         ("HashExtraction", "duree_polinator",  "ALTER TABLE HashExtraction ADD COLUMN duree_polinator INT"),
         ("HashExtraction", "passages",         "ALTER TABLE HashExtraction ADD COLUMN passages JSON"),
         ("HashExtraction", "sacs",             "ALTER TABLE HashExtraction ADD COLUMN sacs JSON"),
-        # Stock â€” spÃ©cifications Hash et Rosin
+        # Stock — spécifications Hash et Rosin
         ("Stock", "maillage",    "ALTER TABLE Stock ADD COLUMN maillage VARCHAR(20)"),
         ("Stock", "type_hash",   "ALTER TABLE Stock ADD COLUMN type_hash VARCHAR(50)"),
         ("Stock", "type_rosin",  "ALTER TABLE Stock ADD COLUMN type_rosin VARCHAR(50)"),
-        # ProduitEngrais â€” table complÃ¨te crÃ©Ã©e via SQLAlchemy
-        # Espaces de culture â€” id_espace sur Culture et HistoriqueCulture
+        # ProduitEngrais — table complète créée via SQLAlchemy
+        # Espaces de culture — id_espace sur Culture et HistoriqueCulture
         ("Culture",          "id_espace",              "ALTER TABLE Culture ADD COLUMN id_espace INT REFERENCES EspaceCulture(id_espace)"),
         ("HistoriqueCulture","id_espace",              "ALTER TABLE HistoriqueCulture ADD COLUMN id_espace INT REFERENCES EspaceCulture(id_espace)"),
         ("EspaceCulture",    "id_materiel_principal",  "ALTER TABLE EspaceCulture ADD COLUMN id_materiel_principal INT REFERENCES Materiel(id_materiel)"),
-        # Culture V2 â€” champs suivi de culture
+        # Culture V2 — champs suivi de culture
         ("Culture", "nom",                  "ALTER TABLE Culture ADD COLUMN nom VARCHAR(200)"),
         ("Culture", "date_debut",           "ALTER TABLE Culture ADD COLUMN date_debut DATE"),
         ("Culture", "statut",               "ALTER TABLE Culture ADD COLUMN statut VARCHAR(50) DEFAULT 'active'"),
@@ -74,54 +74,54 @@ def run_migrations():
         ("Culture", "date_recolte_estimee", "ALTER TABLE Culture ADD COLUMN date_recolte_estimee DATE"),
         ("Culture", "type_eclairage",       "ALTER TABLE Culture ADD COLUMN type_eclairage VARCHAR(50)"),
         ("Culture", "but_culture",          "ALTER TABLE Culture ADD COLUMN but_culture VARCHAR(100)"),
-        # Plant â€” substrat / pot / recette sol
+        # Plant — substrat / pot / recette sol
         ("Plant",   "substrat",             "ALTER TABLE Plant ADD COLUMN substrat VARCHAR(100)"),
         ("Plant",   "id_recette_sol",       "ALTER TABLE Plant ADD COLUMN id_recette_sol INT REFERENCES RecetteLSO(id_recette_lso)"),
         ("Plant",   "id_pot",               "ALTER TABLE Plant ADD COLUMN id_pot INT REFERENCES Pot(id_pot)"),
         ("Plant",   "volume_pot_l",         "ALTER TABLE Plant ADD COLUMN volume_pot_l DECIMAL(6,2)"),
-        # ActionCalendrier â€” paramÃ¨tres JSON
+        # ActionCalendrier — paramètres JSON
         ("ActionCalendrier", "parametres",  "ALTER TABLE ActionCalendrier ADD COLUMN parametres JSON"),
-        # RecetteTCO â€” durÃ©e d'oxygÃ©nation
+        # RecetteTCO — durée d'oxygénation
         ("RecetteTCO", "duree_oxygenation_h", "ALTER TABLE RecetteTCO ADD COLUMN duree_oxygenation_h INT"),
-        # TemperatureLog â€” extension Govee (vpd, id_device, id_culture nullable)
+        # TemperatureLog — extension Govee (vpd, id_device, id_culture nullable)
         ("TemperatureLog", "vpd",       "ALTER TABLE TemperatureLog ADD COLUMN vpd FLOAT"),
         ("TemperatureLog", "id_device", "ALTER TABLE TemperatureLog ADD COLUMN id_device INT REFERENCES GoveeDevice(id_device)"),
-        # Stock â€” sortie de stock + bocal Materiel + substrat
+        # Stock — sortie de stock + bocal Materiel + substrat
         ("Stock", "date_fin_stock",    "ALTER TABLE Stock ADD COLUMN date_fin_stock DATE NULL"),
         ("Stock", "id_materiel_bocal", "ALTER TABLE Stock ADD COLUMN id_materiel_bocal INT NULL REFERENCES Materiel(id_materiel)"),
         ("Stock", "substrat_type",     "ALTER TABLE Stock ADD COLUMN substrat_type VARCHAR(200) NULL"),
-        # SessionCuring â€” espace de culture optionnel + bocal inventaire
+        # SessionCuring — espace de culture optionnel + bocal inventaire
         ("SessionCuring", "id_espace",         "ALTER TABLE SessionCuring ADD COLUMN id_espace INT NULL REFERENCES EspaceCulture(id_espace)"),
         ("SessionCuring", "id_materiel_bocal", "ALTER TABLE SessionCuring ADD COLUMN id_materiel_bocal INT NULL REFERENCES Materiel(id_materiel)"),
-        # Vaporisateurs â€” site_achat ajoutÃ© aprÃ¨s crÃ©ation initiale
+        # Vaporisateurs — site_achat ajouté après création initiale
         ("Vaporisateur", "site_achat", "ALTER TABLE Vaporisateur ADD COLUMN site_achat VARCHAR(200)"),
-        # Feature 1 â€” CoÃ»ts culture
+        # Feature 1 — Coûts culture
         ("HistoriqueCulture", "cout_engrais",     "ALTER TABLE HistoriqueCulture ADD COLUMN cout_engrais DECIMAL(10,2) NULL"),
         ("HistoriqueCulture", "cout_electricite", "ALTER TABLE HistoriqueCulture ADD COLUMN cout_electricite DECIMAL(10,2) NULL"),
         ("HistoriqueCulture", "cout_graines",     "ALTER TABLE HistoriqueCulture ADD COLUMN cout_graines DECIMAL(10,2) NULL"),
         ("HistoriqueCulture", "cout_total",       "ALTER TABLE HistoriqueCulture ADD COLUMN cout_total DECIMAL(10,2) NULL"),
         ("HistoriqueCulture", "cout_par_gramme",  "ALTER TABLE HistoriqueCulture ADD COLUMN cout_par_gramme DECIMAL(10,4) NULL"),
-        # Feature 5 â€” SessionConsommation crÃ©Ã©e via create_all
-        # V4-A â€” pH & EC par arrosage
+        # Feature 5 — SessionConsommation créée via create_all
+        # V4-A — pH & EC par arrosage
         ("ActionCalendrier", "ph_entrant",  "ALTER TABLE ActionCalendrier ADD COLUMN ph_entrant DECIMAL(4,2) NULL"),
         ("ActionCalendrier", "ph_sortant",  "ALTER TABLE ActionCalendrier ADD COLUMN ph_sortant DECIMAL(4,2) NULL"),
         ("ActionCalendrier", "ec_entrant",  "ALTER TABLE ActionCalendrier ADD COLUMN ec_entrant DECIMAL(4,2) NULL"),
         ("ActionCalendrier", "ec_sortant",  "ALTER TABLE ActionCalendrier ADD COLUMN ec_sortant DECIMAL(4,2) NULL"),
-        # V4-C â€” Timer de flush
+        # V4-C — Timer de flush
         ("Culture", "date_debut_flush", "ALTER TABLE Culture ADD COLUMN date_debut_flush DATE NULL"),
-        # V4-F â€” TraÃ§abilitÃ© stock â†’ plante
+        # V4-F — Traçabilité stock → plante
         ("Stock", "id_plant", "ALTER TABLE Stock ADD COLUMN id_plant INT NULL REFERENCES Plant(id_plant)"),
-        # Maillage Polinator â€” sÃ©lection dynamique depuis paramÃ©trage
+        # Maillage Polinator — sélection dynamique depuis paramétrage
         ("HashExtraction", "maillage_polinator", "ALTER TABLE HashExtraction ADD COLUMN maillage_polinator VARCHAR(20) NULL"),
-        # Clonage â€” suivi bouture
+        # Clonage — suivi bouture
         ("Plant", "id_plant_mere",    "ALTER TABLE Plant ADD COLUMN id_plant_mere INT NULL REFERENCES Plant(id_plant) ON DELETE SET NULL"),
         ("Plant", "date_prelevement", "ALTER TABLE Plant ADD COLUMN date_prelevement DATE NULL"),
         ("Plant", "date_enracinement","ALTER TABLE Plant ADD COLUMN date_enracinement DATE NULL"),
         ("Plant", "statut_clone",     "ALTER TABLE Plant ADD COLUMN statut_clone VARCHAR(20) NULL"),
-        # Croisement Open Field â€” tables crÃ©Ã©es via create_all (ProjetOpenField, PlanteMereOpenField, PlantePereOpenField)
+        # Croisement Open Field — tables créées via create_all (ProjetOpenField, PlanteMereOpenField, PlantePereOpenField)
         ("PlanteMereOpenField", "id_peres", "ALTER TABLE PlanteMereOpenField ADD COLUMN id_peres JSON NULL"),
     ]
-    # CrÃ©er les tables manquantes (ProduitEngrais, TemperatureLog, etc.)
+    # Créer les tables manquantes (ProduitEngrais, TemperatureLog, etc.)
     Base.metadata.create_all(bind=engine)
     with engine.connect() as conn:
         for table, column, alter_sql in migrations:
@@ -132,7 +132,7 @@ def run_migrations():
             ), {"table": table, "column": column})
             if result.scalar() == 0:
                 conn.execute(text(alter_sql))
-        # Migration spÃ©ciale : renommer qualite_rincage â†’ soif dans NotationVariete
+        # Migration spéciale : renommer qualite_rincage → soif dans NotationVariete
         try:
             result = conn.execute(text(
                 "SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS "
@@ -145,7 +145,7 @@ def run_migrations():
                 ))
         except Exception:
             pass
-        # Migration spÃ©ciale : agrandir NotationVariete.terpene_dominant si dÃ©jÃ  crÃ©Ã© en VARCHAR(100)
+        # Migration spéciale : agrandir NotationVariete.terpene_dominant si déjà créé en VARCHAR(100)
         try:
             result = conn.execute(text(
                 "SELECT CHARACTER_MAXIMUM_LENGTH FROM INFORMATION_SCHEMA.COLUMNS "
@@ -159,7 +159,7 @@ def run_migrations():
                 ))
         except Exception:
             pass
-        # Migration spÃ©ciale : convertir ActionCalendrier.type_action ENUM â†’ VARCHAR(100)
+        # Migration spéciale : convertir ActionCalendrier.type_action ENUM → VARCHAR(100)
         try:
             result = conn.execute(text(
                 "SELECT DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS "
@@ -173,7 +173,7 @@ def run_migrations():
                 ))
         except Exception:
             pass
-        # Migration spÃ©ciale : rendre TemperatureLog.id_culture nullable (capteurs sans culture active)
+        # Migration spéciale : rendre TemperatureLog.id_culture nullable (capteurs sans culture active)
         try:
             result = conn.execute(text(
                 "SELECT IS_NULLABLE FROM INFORMATION_SCHEMA.COLUMNS "
@@ -188,7 +188,7 @@ def run_migrations():
         except Exception:
             pass
         # Migration : convertir les tables critiques en InnoDB pour appliquer les FK
-        # Sans InnoDB, les contraintes FK sont ignorÃ©es â†’ graines orphelines possibles
+        # Sans InnoDB, les contraintes FK sont ignorées → graines orphelines possibles
         innodb_tables = ["Breeder", "Variete", "PackGraine", "Graine", "Croisement", "Pollen"]
         for tbl in innodb_tables:
             try:
@@ -212,8 +212,8 @@ def run_migrations():
         except Exception:
             pass
 
-        # Migration : corriger les packs avec trop de graines (doublons dus Ã  la rÃ©utilisation d'ID)
-        # Pour chaque pack, ne conserver que les nbr_graines plus rÃ©centes (id_graine le plus Ã©levÃ©)
+        # Migration : corriger les packs avec trop de graines (doublons dus à la réutilisation d'ID)
+        # Pour chaque pack, ne conserver que les nbr_graines plus récentes (id_graine le plus élevé)
         try:
             result = conn.execute(text(
                 "SELECT p.id_packgraine, p.nbr_graines, COUNT(g.id_graine) as cnt "
@@ -252,7 +252,7 @@ def run_migrations():
 
 run_migrations()
 
-# Seeding des valeurs par dÃ©faut des listes paramÃ©trables + app settings
+# Seeding des valeurs par défaut des listes paramétrables + app settings
 from app.database import SessionLocal as _SessionLocal
 def seed_parametres():
     db = _SessionLocal()
@@ -304,12 +304,12 @@ app.include_router(search.router)
 app.include_router(calendrier.router)
 app.include_router(esphome.router)
 
-# Fichiers statiques â€” photos uploadÃ©es
+# Fichiers statiques — photos uploadées
 import os
 os.makedirs("/app/uploads/photos/thumbs", exist_ok=True)
 app.mount("/uploads", StaticFiles(directory="/app/uploads"), name="uploads")
 
-# DÃ©marrage du poller Govee (si APScheduler installÃ©)
+# Démarrage du poller Govee (si APScheduler installé)
 start_poller(app)
 
 
@@ -318,14 +318,14 @@ def read_root():
     """Endpoint racine"""
     return {
         "message": "Bienvenue sur l'API GrowManager",
-        "version": "3.4.1",
+        "version": "3.4.2",
         "docs": "/docs",
     }
 
 
 @app.get("/health")
 def health_check():
-    """VÃ©rification de la santÃ© de l'API"""
+    """Vérification de la santé de l'API"""
     return {"status": "ok"}
 
 

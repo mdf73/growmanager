@@ -6,6 +6,25 @@ Format: `## [YYYY-MM-DD] <operation> | <description>`
 
 ---
 
+## [2026-07-09] Fix critique | version-bump.ps1 corrompait les fichiers (mojibake + BOM + troncature)
+
+Le premier run réel de `version-bump.ps1` (commit `c2f36eb`) a corrompu `frontend/package.json`, `frontend/package-lock.json`, `backend/app/main.py` et `CHANGELOG.md` — cassant `npm install`/`npm run build` en local et en CI (`docker-compose up --build` en échec chez Pik, run Docker Publish en échec sur GitHub).
+
+**3 problèmes cumulés, causés par `Get-Content`/`Set-Content` sans encodage explicite (comportement par défaut de Windows PowerShell 5.1 = ANSI, pas UTF-8) :**
+1. **Mojibake** : tous les caractères accentués de `main.py` et `CHANGELOG.md` corrompus (`é` → `Ã©` etc.)
+2. **BOM UTF-8** ajouté en tête des 4 fichiers (`Set-Content -Encoding UTF8` ajoute un BOM sur PS 5.1) → `npm error EJSONPARSE` (JSON.parse rejette le BOM)
+3. **Troncature** : `frontend/package.json` a perdu son accolade fermante finale après le passage du script (fichier invalide)
+
+**Réparation :**
+- Les 4 fichiers restaurés depuis le dernier commit propre (`9002496`, avant le premier run du script) + version 3.4.1 réappliquée proprement
+- `version-bump.ps1` réécrit : n'utilise plus jamais `Get-Content`/`Set-Content`, uniquement `[System.IO.File]::ReadAllText/WriteAllText` avec un encodage UTF8 sans BOM explicite (`New-Object System.Text.UTF8Encoding($false)`) — stable sur PS 5.1 et 7+
+- Garde-fou ajouté : si le fichier après remplacement est significativement plus court qu'avant (signe de troncature), le script annule et n'écrit rien
+- Testé en local (PowerShell 7 sandbox) avec du contenu accentué réaliste + un vrai `package-lock.json` de 4484 lignes avant redéploiement
+
+**Leçon :** un script qui touche des fichiers texte doit toujours spécifier l'encodage explicitement à la lecture ET à l'écriture — ne jamais faire confiance aux valeurs par défaut de la plateforme (PowerShell 5.1 vs 7 se comportent différemment, `Get-Content` par défaut n'est pas UTF-8 sur Windows). Voir aussi [[architecture/patterns]] section 10.
+
+---
+
 ## [2026-07-09] Fix | Bump automatique — 2 bugs de mise en service corrigés
 
 Les deux premiers push après la mise en place du bump auto (v3.4.0) n'ont pas bumpé la version — deux causes distinctes, corrigées le même jour :

@@ -1,9 +1,17 @@
-fix(ci): bump de version silencieusement ignore (Node absent du PATH)
+fix: repare la corruption d'encodage causee par version-bump.ps1
 
-- version-bump.js dependait de node/npm dans le PATH de cmd.exe. Sur cette machine, node n'est pas accessible depuis une fenetre cmd ouverte par double-clic (tout le build Node se fait en CI, jamais en local) - le script s'auto-desactivait a chaque push sans que la version bump jamais.
-- Reecrit en PowerShell (version-bump.ps1) : natif Windows, zero dependance externe. Meme logique (feat->minor, fix/chore->patch, feat!/BREAKING->major), teste en local (patch/minor/major + cas sans _commit_msg.txt).
-- push.bat appelle desormais powershell -File version-bump.ps1 au lieu de node version-bump.js
-- version-bump.js laisse en place comme stub obsolete (commentaire, plus appele)
-- wiki/architecture/patterns.md + wiki/log.md mis a jour avec l'historique des 2 bugs (celui-ci + le fix secrets/if: du commit precedent)
+Le premier run reel du bump PowerShell (commit c2f36eb) a corrompu package.json, package-lock.json, backend/app/main.py et CHANGELOG.md :
+- Get-Content sans -Encoding lit en ANSI sur Windows PowerShell 5.1 (pas UTF-8) -> tous les accents transformes en mojibake (e -> A c opyright etc) dans main.py et CHANGELOG.md
+- Set-Content -Encoding UTF8 ajoute un BOM -> npm error EJSONPARSE sur package.json/package-lock.json
+- package.json a perdu son accolade fermante finale (fichier JSON invalide)
 
-Ce commit (prefixe fix:) devrait bumper 3.4.0 -> 3.4.1 s'il s'agit bien du premier bump automatique reussi.
+Consequence : npm install/npm run build casses en local (docker-compose up --build) et en CI (Docker Publish, run 29021245439).
+
+Reparation :
+- Les 4 fichiers restaures depuis le dernier commit propre (9002496) + version 3.4.1 reappliquee proprement (accents et structure JSON intacts)
+- version-bump.ps1 reecrit : n'utilise plus Get-Content/Set-Content, uniquement [System.IO.File]::ReadAllText/WriteAllText avec UTF8Encoding($false) explicite (jamais de BOM)
+- Garde-fou ajoute : si un fichier semble tronque apres remplacement (longueur anormalement plus courte), le script annule et n'ecrit rien au lieu de livrer un fichier casse
+- Teste en local avec du contenu accentue realiste + un vrai package-lock.json de 4484 lignes avant redeploiement
+- CHANGELOG.md [3.4.1] documente le fix, wiki/log.md + architecture/patterns.md section 10 mis a jour
+
+Merci d'avoir remonte le message d'erreur npm complet, ca a ete decisif pour identifier la vraie cause (BOM + mojibake + troncature, pas juste un BOM comme je le pensais au depart).
