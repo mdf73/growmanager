@@ -6,6 +6,17 @@ Format: `## [YYYY-MM-DD] <operation> | <description>`
 
 ---
 
+## [2026-07-09] Fix | Bump automatique — 2 bugs de mise en service corrigés
+
+Les deux premiers push après la mise en place du bump auto (v3.4.0) n'ont pas bumpé la version — deux causes distinctes, corrigées le même jour :
+
+1. **CI cassée** : le workflow `android-apk.yml` (ajout de l'AAB signé Play Store) utilisait `if: secrets.X != ''` sur 6 steps — GitHub Actions interdit le contexte `secrets` dans les conditions `if:` ("Unrecognized named-value: 'secrets'"), même au niveau step. Fix : variable d'env de job `HAS_PLAY_KEYSTORE` dérivée du secret, steps testent `env.HAS_PLAY_KEYSTORE == 'true'`.
+2. **Bump silencieusement ignoré** : `version-bump.js` (Node.js) ne trouvait pas `node` dans le PATH de la fenêtre `cmd.exe` ouverte par double-clic sur `push.bat` — tout le build Node du projet se fait côté CI, jamais en local sur la machine de Pik. Le script affichait bien un avertissement ("Node.js introuvable — bump ignoré") mais restait invisible tant que Pik n'a pas partagé le contenu de la fenêtre. Fix : réécriture complète en PowerShell (`version-bump.ps1`), natif Windows, zéro dépendance externe. Testé en local (patch/minor/major + cas sans `_commit_msg.txt`) avant livraison.
+
+**Leçon :** pour un script appelé depuis un `.bat` à double-clic, ne jamais supposer qu'un outil de dev (Node, Python...) est dans le PATH de cette fenêtre précise — vérifier ou rester en PowerShell/`.bat` pur.
+
+---
+
 ## [2026-07-09] Feature | Distribution Google Play — Temps 1 (Test interne)
 
 **Décision (Pik) :** objectif final = app installable/mise à jour depuis le Play Store (fini le DL manuel GitHub). Mais palier 1 = juste supprimer l'alerte "app inconnue" à l'install, via Test interne Play Console.

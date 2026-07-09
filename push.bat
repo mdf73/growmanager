@@ -14,14 +14,9 @@ git restore --staged .
 
 echo.
 echo === Montee de version automatique ===
-where node >nul 2>nul
+powershell -NoProfile -ExecutionPolicy Bypass -File "version-bump.ps1"
 if errorlevel 1 (
-    echo Node.js introuvable dans le PATH — bump de version ignore.
-) else (
-    node version-bump.js
-    if errorlevel 1 (
-        echo ERREUR lors du bump de version. Le commit continue quand meme.
-    )
+    echo ERREUR lors du bump de version. Le commit continue quand meme.
 )
 
 echo.

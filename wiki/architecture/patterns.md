@@ -1,7 +1,7 @@
 ---
 type: architecture
 updated: 2026-07-09
-sources: [main.py, routers/cultures.py, Documentation/claude.md, push.bat, version-bump.js]
+sources: [main.py, routers/cultures.py, Documentation/claude.md, push.bat, version-bump.ps1]
 ---
 
 # Architecture — Key Patterns
@@ -128,15 +128,17 @@ Calibrated for a 120×120cm space:
 
 Le numéro de version (`frontend/package.json`, `frontend/package-lock.json`, `backend/app/main.py`) est **bumpé automatiquement à chaque push**, plus besoin d'y penser manuellement.
 
-`push.bat` appelle `version-bump.js` (racine du repo) juste avant `git add -A` :
+`push.bat` appelle `version-bump.ps1` (racine du repo, **PowerShell**) juste avant `git add -A` :
 
 1. Lit la première ligne de `_commit_msg.txt` (convention déjà en usage : `feat:`, `fix:`, `chore:`, `refactor:`...)
 2. Déduit le type de bump : `feat:` → **minor**, `feat!:`/`BREAKING CHANGE` → **major**, tout le reste → **patch**
-3. Bump `frontend/package.json` + `package-lock.json` via `npm version` (sans tag git)
+3. Bump `frontend/package.json` + `package-lock.json` par remplacement texte (regex, pas de reformattage du fichier)
 4. Synchronise les 2 occurrences de version dans `backend/app/main.py`
 5. Transforme la section `## [Unreleased]` de `CHANGELOG.md` en `## [X.Y.Z] — YYYY-MM-DD` et recrée une section Unreleased vide au-dessus
 
-Si Node.js n'est pas dans le PATH, `push.bat` avertit et continue le commit sans bump (non-bloquant).
+**Historique :** la v1 de ce script était en Node.js (`version-bump.js`, exécuté via `node`). Sur la machine de Pik, `node` n'est pas dans le PATH de la fenêtre `cmd.exe` ouverte par double-clic sur `push.bat` (tout le build Node se fait côté CI, jamais en local) — le script s'auto-désactivait silencieusement à chaque push, donc la version ne bumpait jamais. Réécrit en PowerShell (2026-07-09) : natif sur Windows, aucune dépendance à installer. `version-bump.js` laissé en place comme stub obsolète (commentaire seul, plus appelé).
+
+Si PowerShell renvoie une erreur, `push.bat` avertit et continue le commit sans bump (non-bloquant).
 
 `bump-version.bat` reste disponible pour un bump manuel exceptionnel (ex: forcer un major hors convention), mais n'est plus utilisé en flux normal.
 

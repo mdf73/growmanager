@@ -1,3 +1,9 @@
-fix(ci): workflow Android invalide — secrets interdit dans if:
+fix(ci): bump de version silencieusement ignore (Node absent du PATH)
 
-GitHub Actions rejette le contexte `secrets` dans les conditions if: ("Unrecognized named-value: 'secrets'"), même au niveau step. Remplacé par une variable d'env de job (HAS_PLAY_KEYSTORE, dérivée du secret) et les 6 conditions if: utilisent désormais env.HAS_PLAY_KEYSTORE == 'true'. YAML validé localement.
+- version-bump.js dependait de node/npm dans le PATH de cmd.exe. Sur cette machine, node n'est pas accessible depuis une fenetre cmd ouverte par double-clic (tout le build Node se fait en CI, jamais en local) - le script s'auto-desactivait a chaque push sans que la version bump jamais.
+- Reecrit en PowerShell (version-bump.ps1) : natif Windows, zero dependance externe. Meme logique (feat->minor, fix/chore->patch, feat!/BREAKING->major), teste en local (patch/minor/major + cas sans _commit_msg.txt).
+- push.bat appelle desormais powershell -File version-bump.ps1 au lieu de node version-bump.js
+- version-bump.js laisse en place comme stub obsolete (commentaire, plus appele)
+- wiki/architecture/patterns.md + wiki/log.md mis a jour avec l'historique des 2 bugs (celui-ci + le fix secrets/if: du commit precedent)
+
+Ce commit (prefixe fix:) devrait bumper 3.4.0 -> 3.4.1 s'il s'agit bien du premier bump automatique reussi.
