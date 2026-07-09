@@ -1,7 +1,14 @@
-feat(mobile): sprint B5 — mode standalone : transverses
+feat(mobile): sprints B5+B6 — mode standalone : transverses + finitions (Phase B complète)
 
-- dashboard.ts : stats 6 modules, arrosage-boxes, burping-reminders, ipm-warnings, legacy
-- transverses.ts : calendrier global + export, recherche globale, cultures/compare complet, historique cultures + prix-graine
-- consommation.ts : sessions CRUD + stats (périodes, par type/vapo, projection stock)
-- vérifs : tsc, vite build, 25 requêtes SQL smoke-testées
-- wiki : roadmap B5 ✅ + log
+B5 :
+- dashboard.ts : stats 6 modules, arrosage-boxes, burping-reminders, ipm-warnings
+- transverses.ts : calendrier global + export, recherche, cultures/compare, historique cultures + prix-graine
+- consommation.ts : sessions CRUD + stats/projection
+
+B6 :
+- photos en standalone : @capacitor/filesystem, photos-fs.ts (Directory.Data/photos), handler upload FormData/liste/suppression, photoUrl via convertFileSrc (sans compression/thumbnail v1)
+- capteurs masqués en standalone : module Dashboard, nav Constantes (T°/VPD), onglets Paramétrage Capteurs + Sauvegarde
+- package.json + lockfile : @capacitor/filesystem ^7 (npm ci vérifié)
+- wiki : features/mobile-standalone.md (doc complète), mobile-app.md, index.md, roadmap, log
+
+Phase B fonctionnellement complète — restent en 501 : exports PDF/CSV, imports CSV, capteurs.

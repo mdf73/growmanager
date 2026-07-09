@@ -69,7 +69,7 @@ Le test de connexion utilise `GET <url>/health` — proxifié partout depuis le 
 
 ## Limites connues (v1)
 
-- L'app nécessite le serveur joignable (pas de mode hors-ligne) — c'est la Phase B qui apportera le mode 100% autonome.
+- En mode Serveur, l'app nécessite le serveur joignable — le mode 100% autonome est disponible via la Phase B (voir [[mobile-standalone]]).
 - APK debug non publié sur le Play Store (distribution directe).
 - La PWA web reste disponible en parallèle (voir [[log]] A3) mais l'APK est la voie principale.
 

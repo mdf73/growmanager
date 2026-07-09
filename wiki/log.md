@@ -6,6 +6,16 @@ Format: `## [YYYY-MM-DD] <operation> | <description>`
 
 ---
 
+## [2026-07-06] Feature | Sprint B6 — finitions mode standalone — validé — Phase B complète
+
+- Photos en standalone : dep `@capacitor/filesystem` (lockfile régénéré, npm ci vérifié), `local/photos-fs.ts` (stockage Directory.Data/photos, localPhotoUrl via convertFileSrc, init au boot), `handlers/photos.ts` (upload FormData + liste filtrée + suppression fichier+DB). v1 : pas de compression ni thumbnail (thumbnail_path = filepath).
+- Capteurs masqués en autonome : module Dashboard, nav "Constantes (T°/VPD)" (filterForStandalone dans Layout), onglets Paramétrage "Capteurs" et "Sauvegarde et restaurations".
+- Doc : [[features/mobile-standalone]] créée (architecture src/local/, dual-mode, couverture, limites v1), liens dans mobile-app + index.
+- Restent en 501 : exports PDF (fiche culture, étiquettes QR, calendrier), exports/imports CSV.
+- **Phase B (B0→B6) terminée** — reste le test APK réel (Actions → Build Android APK).
+
+---
+
 ## [2026-07-06] Feature | Sprint B5 — transverses en mode standalone — validé
 
 Portage dashboard.py, calendrier.py, search.py, consommation.py, historique_culture.py + cultures/compare :
