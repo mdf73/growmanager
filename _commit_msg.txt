@@ -1,14 +1,12 @@
-feat(mobile): sprints B5+B6 — mode standalone : transverses + finitions (Phase B complète)
+chore(versioning): rattrapage v3.3.0→3.4.0 + bump automatique via push.bat
 
-B5 :
-- dashboard.ts : stats 6 modules, arrosage-boxes, burping-reminders, ipm-warnings
-- transverses.ts : calendrier global + export, recherche, cultures/compare, historique cultures + prix-graine
-- consommation.ts : sessions CRUD + stats/projection
+- frontend/package.json + package-lock.json + backend/app/main.py bumpés à 3.4.0 (backend était resté à 3.1.0)
+- CHANGELOG.md : entrée [3.4.0] regroupant les 63 commits livrés depuis le 15/05/2026 (mobile Phase A+B, capteurs ESPHome, VPD foliaire, multi-clones, croisement open field, fixes coûts/dark mode/CI...)
+- wiki/roadmap.md : Phase B (sprints B0-B6) marquée terminée
+- wiki/log.md : entrée expliquant le rattrapage et la cause (bump manuel oublié)
+- wiki/architecture/patterns.md : nouvelle section 10 documentant le versioning automatique
+- Nouveau version-bump.js (racine) : lit le préfixe conventional commit de _commit_msg.txt (feat→minor, fix/chore/refactor→patch, feat!/BREAKING→major), bump package.json+lockfile+main.py, transforme [Unreleased] du CHANGELOG en version datée
+- push.bat : appelle version-bump.js avant chaque commit (non-bloquant si Node absent)
+- bump-version.bat : conservé pour override manuel exceptionnel, note ajoutée
 
-B6 :
-- photos en standalone : @capacitor/filesystem, photos-fs.ts (Directory.Data/photos), handler upload FormData/liste/suppression, photoUrl via convertFileSrc (sans compression/thumbnail v1)
-- capteurs masqués en standalone : module Dashboard, nav Constantes (T°/VPD), onglets Paramétrage Capteurs + Sauvegarde
-- package.json + lockfile : @capacitor/filesystem ^7 (npm ci vérifié)
-- wiki : features/mobile-standalone.md (doc complète), mobile-app.md, index.md, roadmap, log
-
-Phase B fonctionnellement complète — restent en 501 : exports PDF/CSV, imports CSV, capteurs.
+À partir de maintenant, le bump de version ne dépend plus d'un rappel manuel — il est automatique à chaque push.

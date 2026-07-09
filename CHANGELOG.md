@@ -17,6 +17,50 @@ Versioning : [Semantic Versioning](https://semver.org/lang/fr/) — `MAJOR.MINOR
 
 ---
 
+## [3.4.0] — 2026-07-09
+
+Rattrapage de version : 63 commits livrés entre le 15/05/2026 (v3.3.0) et aujourd'hui sans que la version n'ait été incrémentée (oubli du protocole de bump à chaque validation). Ce tag regroupe l'ensemble de ces livraisons. À partir de cette version, le bump est **automatisé** (voir `push.bat` / `version-bump.js`) : il ne dépend plus d'un rappel manuel.
+
+### Ajouté
+
+#### Mobile — App Android (Phase A + Phase B complètes)
+- Phase A : bottom nav mobile, pages responsive (28 pages), PWA installable, URL serveur configurable, app Android Capacitor + build APK via CI
+- Phase B : mode standalone 100% local (SQLite embarqué, backend TS derrière un adapter Axios) — sprints B0 à B6 : fondations, référentiels, cœur culture, post-récolte, recettes & sol vivant, transverses et finitions
+
+#### Fonctionnalités
+- Intégration capteurs ESPHome (poussés en complément de Govee)
+- Courbes capteurs T°/Hum/VPD dans les calendriers jour par jour + export PDF
+- VPD foliaire configurable + édition des dates de culture
+- Multi-clones : prélèvement de N boutures en une fois
+- Croisement open field complet
+- Rosin : âge de la plante à l'extraction, édition d'extraction, maillage obligatoire
+- Maillages Polinator paramétrables
+- PDF culture : journal jour-par-jour avec photos
+- Calendrier : photo lightbox, navigation, algo closest-action, 3 encarts détail
+- Galerie photos : sélecteur de plante
+- Culture : regroupement des plantes actives par variété
+- Traçabilité : amélioration du BocalTimelineDrawer (séchage + curing)
+- Tri alphabétique de toutes les listes déroulantes dynamiques
+- Stock : substrat_type, marques d'engrais, bocal auto-remontés depuis curing
+- UI : logo + label "Pik" dans la sidebar
+- Images Docker de production (multi-stage) + publication GHCR par tag
+
+### Corrigé
+
+- Coût engrais culture 1000x trop élevé (conversion d'unités L→mL)
+- Normalisation des unités (mL/L/g/Kg) dans les coûts LSO, réamendements, arrosages et déductions de stock
+- Dark mode : fonds pastels et textes colorés sur plusieurs pages (Parametrage, ClassementVarietes, hover accordéons)
+- Stock : masquage des plantes en curing terminées dans l'onglet "En curing" ; filtrage engrais_type par plante
+- Numéro de graine = rang dans le paquet (au lieu de l'id global)
+- Matériel : correction du prix par lot + nommage sans doublon + création de lot sur toutes les catégories
+- CalendrierGlobal : heure 02:00 due au parsing UTC de date_action ; erreur `[object Object]` sur arrosage/engrais
+- Mobile : `/health` non proxifié (test de connexion serveur en échec) ; contenu caché derrière la bottom nav (bug 100vh)
+- CI : Node 20 → 22 sur les runners Android ; régénération package-lock.json (sqlite plugin, Node 24)
+- Migration manquante `Stock.substrat_type` ; credentials MySQL manquants dans les 3 docker-compose
+- Coquille "bocalx" → "bocaux"
+
+---
+
 ## [1.0.0] — 2026-05-07
 
 Première version stable. Audit complet et correction de tous les bugs latents avant release.

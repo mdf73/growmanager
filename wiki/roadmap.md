@@ -26,7 +26,14 @@ sprint1_completed: 2026-05-10
 
 **Audit A1 (2026-07-04)** : Layout mobile déjà en place (header, sidebar hamburger) · 12 pages avec tables dont 6 sans scroll horizontal · peu de breakpoints dans les pages · client Axios `baseURL: '/api'` en dur (à rendre configurable en A3).
 
-### Phase B — Mode standalone (plan validé 2026-07-05, non démarré)
+### Phase B — Mode standalone (plan validé 2026-07-05) — ✅ Phase B complète
+
+| Sprint | Contenu | État |
+|--------|---------|------|
+| B0-B2 | Fondations, référentiels, cœur culture (backend TS + SQLite embarqué) | ✅ |
+| B3 | Post-récolte standalone | ✅ |
+| B4 | Recettes & sol vivant standalone | ✅ |
+| B5+B6 | Transverses + finitions (Phase B complète) | ✅ |
 
 **Principe clé — dual-mode** : la Phase B **s'ajoute** au mode serveur, elle ne le remplace pas. L'app Android propose 2 modes :
 1. **Standalone** : données 100% locales sur le téléphone (SQLite embarqué), aucun serveur requis.

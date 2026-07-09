@@ -6,6 +6,27 @@ Format: `## [YYYY-MM-DD] <operation> | <description>`
 
 ---
 
+## [2026-07-09] Fix process | Rattrapage version 3.3.0 → 3.4.0 + automatisation du bump
+
+**Constat (Pik) :** énormément de modifs livrées depuis v3.3.0 (63 commits, 15/05 → 09/07/2026 : Phase mobile A+B complètes, capteurs ESPHome, VPD foliaire, multi-clones, croisement open field, fixes coûts/dark mode/CI...) sans que la version n'ait jamais été incrémentée, alors que c'était demandé.
+
+**Cause :** le protocole "bumper la version à chaque validation" reposait sur un rappel manuel (moi, Claude) à chaque session — il a été oublié sur plusieurs sessions consécutives. Aucun mécanisme ne le garantissait.
+
+**Rattrapage :**
+- `frontend/package.json` + `package-lock.json` : 3.3.0 → 3.4.0
+- `backend/app/main.py` : 3.1.0 → 3.4.0 (était encore plus en retard, jamais resynchronisé depuis mai)
+- `CHANGELOG.md` : entrée `[3.4.0]` regroupant les 63 commits (voir fichier)
+- `roadmap.md` : Phase B (sprints B0-B6) marquée terminée (le doc disait encore "non démarré")
+
+**Automatisation (pour que ça ne se reproduise plus) :**
+- Nouveau `version-bump.js` (racine du repo) + appel depuis `push.bat` avant chaque commit
+- Détecte le type de bump depuis le préfixe conventional commit de `_commit_msg.txt` (`feat:`→minor, `fix:`/`chore:`/...→patch, `feat!:`/BREAKING→major)
+- Bump `package.json`+lockfile+`main.py` et transforme `[Unreleased]` du CHANGELOG en version datée, automatiquement, à chaque push
+- Détails : [[architecture/patterns]] section 10
+- `bump-version.bat` conservé pour override manuel exceptionnel uniquement
+
+---
+
 ## [2026-07-06] Feature | Sprint B6 — finitions mode standalone — validé — Phase B complète
 
 - Photos en standalone : dep `@capacitor/filesystem` (lockfile régénéré, npm ci vérifié), `local/photos-fs.ts` (stockage Directory.Data/photos, localPhotoUrl via convertFileSrc, init au boot), `handlers/photos.ts` (upload FormData + liste filtrée + suppression fichier+DB). v1 : pas de compression ni thumbnail (thumbnail_path = filepath).

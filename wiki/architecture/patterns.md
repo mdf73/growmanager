@@ -1,7 +1,7 @@
 ---
 type: architecture
-updated: 2026-04-09
-sources: [main.py, routers/cultures.py, Documentation/claude.md]
+updated: 2026-07-09
+sources: [main.py, routers/cultures.py, Documentation/claude.md, push.bat, version-bump.js]
 ---
 
 # Architecture — Key Patterns
@@ -123,6 +123,24 @@ nb_pots = round(surface_m2 * 20.8 * volume_l ** -0.59)
 
 Calibrated for a 120×120cm space:
 - 1L → 30 pots, 5.5L → 14, 11L → 12, 16L → 9, 35L → 4, 50L → 3
+
+## 10. Versioning — Bump Automatique (depuis v3.4.0)
+
+Le numéro de version (`frontend/package.json`, `frontend/package-lock.json`, `backend/app/main.py`) est **bumpé automatiquement à chaque push**, plus besoin d'y penser manuellement.
+
+`push.bat` appelle `version-bump.js` (racine du repo) juste avant `git add -A` :
+
+1. Lit la première ligne de `_commit_msg.txt` (convention déjà en usage : `feat:`, `fix:`, `chore:`, `refactor:`...)
+2. Déduit le type de bump : `feat:` → **minor**, `feat!:`/`BREAKING CHANGE` → **major**, tout le reste → **patch**
+3. Bump `frontend/package.json` + `package-lock.json` via `npm version` (sans tag git)
+4. Synchronise les 2 occurrences de version dans `backend/app/main.py`
+5. Transforme la section `## [Unreleased]` de `CHANGELOG.md` en `## [X.Y.Z] — YYYY-MM-DD` et recrée une section Unreleased vide au-dessus
+
+Si Node.js n'est pas dans le PATH, `push.bat` avertit et continue le commit sans bump (non-bloquant).
+
+`bump-version.bat` reste disponible pour un bump manuel exceptionnel (ex: forcer un major hors convention), mais n'est plus utilisé en flux normal.
+
+**Rule:** le contenu du CHANGELOG (section Ajouté/Corrigé sous `[Unreleased]`) doit être rempli au fil de l'eau à chaque feature validée — le script ne fait que dater/numéroter la section, il n'invente pas son contenu.
 
 ## See Also
 
