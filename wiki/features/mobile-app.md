@@ -1,6 +1,6 @@
 ---
 type: feature
-updated: 2026-07-04
+updated: 2026-07-09
 sources: [frontend/capacitor.config.ts, .github/workflows/android-apk.yml, frontend/src/components/ServerSetup.tsx, frontend/src/api/client.ts]
 ---
 
@@ -33,9 +33,30 @@ Workflow `.github/workflows/android-apk.yml` :
 - Déclencheurs : manuel (workflow_dispatch) ou tag `vX.Y.Z` (comme docker-publish).
 - Étapes : `npm ci` → `npm run build` → `npx cap add android` → `npx @capacitor/assets generate --android` (icônes/splash depuis `frontend/assets/icon.png` + `splash.png`, générées depuis `IconSeul.png`) → `gradlew assembleDebug`.
 - Sortie : artifact `growmanager-apk` (30 j) + APK attaché à la release GitHub si tag.
-- APK **debug** (signature debug) : suffisant pour un usage perso, installation via "sources inconnues". Une signature release pourra être ajoutée plus tard (keystore + secrets GitHub).
+- APK **debug** (signature debug) : installation via "sources inconnues", flaggé "app inconnue" par Android — c'est le flux historique, distribution directe hors Play Store.
 
 **Récupérer l'APK** : GitHub → Actions → Build Android APK → run → Artifacts, ou la release du tag.
+
+## Distribution Google Play (depuis v3.4.0)
+
+Le workflow build en plus un **AAB signé** (`bundleRelease`), destiné à Google Play, si le secret `GROWMANAGER_KEYSTORE_BASE64` est configuré. Étapes ajoutées (conditionnelles, `if: secrets.GROWMANAGER_KEYSTORE_BASE64 != ''`) après `npx cap sync android` : décodage du keystore → injection d'un `signingConfigs.release` dans `android/app/build.gradle` (script Python, cherche `buildTypes {` et `release {\n  minifyEnabled false`) → `gradlew bundleRelease` → artifact `growmanager-aab` + attaché à la release GitHub si tag.
+
+**Secrets GitHub requis** (Settings → Secrets and variables → Actions → repository secrets) :
+
+| Secret | Contenu |
+|---|---|
+| `GROWMANAGER_KEYSTORE_BASE64` | keystore RSA 2048 (upload key) encodé en base64 |
+| `GROWMANAGER_KEYSTORE_PASSWORD` | mot de passe du keystore |
+| `GROWMANAGER_KEY_ALIAS` | alias de la clé (`growmanager-upload`) |
+| `GROWMANAGER_KEY_PASSWORD` | mot de passe de la clé |
+
+Keystore généré une seule fois via `keytool -genkeypair` (RSA 2048, validité 10 000 j) et conservé par Pik hors du repo (jamais commité). Avec **Play App Signing** activé côté Play Console, Google conserve la vraie clé de signature de l'app — la perte de l'upload key est rattrapable via une demande de reset (formulaire de support Play Console), pas fatale.
+
+**Plan en 2 temps (décision 2026-07-09) :**
+- **Temps 1 (en cours)** : app publiée en **Test interne** Play Console (jusqu'à 100 testeurs par email, lien privé, pas de fiche publique, exempté du formulaire "Sécurité des données"). But : l'app devient signée par Google → plus d'alerte "app inconnue" à l'installation pour les testeurs.
+- **Temps 2 (plus tard)** : passage en **Production** publique pour permettre les mises à jour poussées depuis le Play Store (fini le téléchargement manuel via GitHub). Nécessite en plus du Test interne : un **Test fermé** avec 12 testeurs actifs pendant 14 jours consécutifs (le Test interne ne compte pas pour ce palier — spécifique aux comptes développeur perso créés après nov. 2023), + fiche store complète (icône, captures, description, politique de confidentialité, classification par âge, formulaire "Sécurité des données" cette fois obligatoire).
+
+Étapes manuelles côté Pik (hors repo, dans Play Console) : création du compte développeur (25$, vérification d'identité), création de l'app (`com.growmanager.app`), premier upload manuel de l'AAB pour activer Play App Signing, ajout des testeurs, partage du lien d'opt-in.
 
 ## Accès distant — Tailscale (recommandé)
 
@@ -70,8 +91,8 @@ Le test de connexion utilise `GET <url>/health` — proxifié partout depuis le 
 ## Limites connues (v1)
 
 - En mode Serveur, l'app nécessite le serveur joignable — le mode 100% autonome est disponible via la Phase B (voir [[mobile-standalone]]).
-- APK debug non publié sur le Play Store (distribution directe).
-- La PWA web reste disponible en parallèle (voir [[log]] A3) mais l'APK est la voie principale.
+- Distribution Play Store en cours (Test interne, voir section dédiée ci-dessus) — pas encore en Production publique.
+- La PWA web reste disponible en parallèle (voir [[log]] A3) mais l'APK/AAB est la voie principale.
 
 ## See Also
 

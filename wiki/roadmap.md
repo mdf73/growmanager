@@ -1,6 +1,6 @@
 ---
 type: roadmap
-updated: 2026-07-05
+updated: 2026-07-09
 sources: [Documentation/claude.md, Documentation/Instructions de reprises v1.txt, Documentation/GrowManager_Specifications_v4.docx]
 sprint1_completed: 2026-05-10
 ---
@@ -25,6 +25,12 @@ sprint1_completed: 2026-05-10
 | A4 | Capacitor init + APK Android + icône/splash + doc Tailscale accès distant | ✅ validé 2026-07-04 — **Phase A complète** (voir [[features/mobile-app]]) |
 
 **Audit A1 (2026-07-04)** : Layout mobile déjà en place (header, sidebar hamburger) · 12 pages avec tables dont 6 sans scroll horizontal · peu de breakpoints dans les pages · client Axios `baseURL: '/api'` en dur (à rendre configurable en A3).
+
+### Distribution Google Play (décidé 2026-07-09, en cours)
+
+**Temps 1 (en cours)** : Test interne Play Console — supprime l'alerte "app inconnue" à l'install (jusqu'à 100 testeurs, pas de fiche publique). Scaffolding CI + keystore prêts côté repo (voir [[features/mobile-app]]), reste à faire côté Pik : compte développeur Play Console + création app + premier upload manuel + activation Play App Signing.
+
+**Temps 2 (plus tard)** : passage en Production publique → mises à jour poussées depuis le Play Store, fini le téléchargement manuel GitHub. Bloqué sur : Test fermé 12 testeurs / 14 jours consécutifs (palier obligatoire, distinct du Test interne) + fiche store complète (icône, captures, description, politique de confidentialité, classification par âge, formulaire sécurité des données).
 
 ### Phase B — Mode standalone (plan validé 2026-07-05) — ✅ Phase B complète
 

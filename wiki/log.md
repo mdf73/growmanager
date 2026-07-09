@@ -6,6 +6,22 @@ Format: `## [YYYY-MM-DD] <operation> | <description>`
 
 ---
 
+## [2026-07-09] Feature | Distribution Google Play — Temps 1 (Test interne)
+
+**Décision (Pik) :** objectif final = app installable/mise à jour depuis le Play Store (fini le DL manuel GitHub). Mais palier 1 = juste supprimer l'alerte "app inconnue" à l'install, via Test interne Play Console.
+
+**Fait côté repo :**
+- Keystore de release généré (`growmanager-upload.keystore`, RSA 2048, alias `growmanager-upload`, validité 10 000 j) — remis à Pik hors repo, jamais commité
+- `.github/workflows/android-apk.yml` : nouvelles étapes conditionnelles (`if: secrets.GROWMANAGER_KEYSTORE_BASE64 != ''`) — décodage keystore, injection `signingConfigs.release` dans `android/app/build.gradle` (patch Python), `gradlew bundleRelease`, upload artifact `growmanager-aab` + attaché à la release GitHub si tag. Le build debug APK existant n'est pas touché.
+- 4 secrets GitHub Actions à créer par Pik : `GROWMANAGER_KEYSTORE_BASE64`, `GROWMANAGER_KEYSTORE_PASSWORD`, `GROWMANAGER_KEY_ALIAS`, `GROWMANAGER_KEY_PASSWORD`
+- Doc complète : [[features/mobile-app]] section "Distribution Google Play", plan Temps 1/2 dans [[roadmap]]
+
+**Reste à faire (Pik, manuel, hors repo) :** compte développeur Play Console (25$, vérif identité) → créer l'app `com.growmanager.app` → onglet Tests → Test interne → premier upload manuel de l'AAB (déclenche Play App Signing) → ajouter les testeurs par email → partager le lien d'opt-in.
+
+**Temps 2 (production publique)** noté dans [[roadmap]] mais pas démarré : nécessite un palier Test fermé (12 testeurs / 14 jours, distinct du Test interne) + fiche store complète.
+
+---
+
 ## [2026-07-09] Fix process | Rattrapage version 3.3.0 → 3.4.0 + automatisation du bump
 
 **Constat (Pik) :** énormément de modifs livrées depuis v3.3.0 (63 commits, 15/05 → 09/07/2026 : Phase mobile A+B complètes, capteurs ESPHome, VPD foliaire, multi-clones, croisement open field, fixes coûts/dark mode/CI...) sans que la version n'ait jamais été incrémentée, alors que c'était demandé.

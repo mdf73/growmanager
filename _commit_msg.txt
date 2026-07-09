@@ -1,12 +1,8 @@
-chore(versioning): rattrapage v3.3.0→3.4.0 + bump automatique via push.bat
+feat(mobile): build AAB signé pour Google Play (Test interne)
 
-- frontend/package.json + package-lock.json + backend/app/main.py bumpés à 3.4.0 (backend était resté à 3.1.0)
-- CHANGELOG.md : entrée [3.4.0] regroupant les 63 commits livrés depuis le 15/05/2026 (mobile Phase A+B, capteurs ESPHome, VPD foliaire, multi-clones, croisement open field, fixes coûts/dark mode/CI...)
-- wiki/roadmap.md : Phase B (sprints B0-B6) marquée terminée
-- wiki/log.md : entrée expliquant le rattrapage et la cause (bump manuel oublié)
-- wiki/architecture/patterns.md : nouvelle section 10 documentant le versioning automatique
-- Nouveau version-bump.js (racine) : lit le préfixe conventional commit de _commit_msg.txt (feat→minor, fix/chore/refactor→patch, feat!/BREAKING→major), bump package.json+lockfile+main.py, transforme [Unreleased] du CHANGELOG en version datée
-- push.bat : appelle version-bump.js avant chaque commit (non-bloquant si Node absent)
-- bump-version.bat : conservé pour override manuel exceptionnel, note ajoutée
+- .github/workflows/android-apk.yml : nouvelles étapes conditionnelles (actives si le secret GROWMANAGER_KEYSTORE_BASE64 existe) — décodage keystore, injection signingConfigs.release dans android/app/build.gradle, gradlew bundleRelease, artifact growmanager-aab + attaché à la release GitHub si tag. Le build debug APK existant n'est pas modifié.
+- wiki/features/mobile-app.md : section "Distribution Google Play" (secrets requis, plan Temps 1 Test interne / Temps 2 Production)
+- wiki/roadmap.md : item Distribution Google Play (Temps 1 en cours, Temps 2 bloqué sur test fermé 12 testeurs/14j)
+- wiki/log.md : entrée détaillant la décision et le reste à faire côté Play Console
 
-À partir de maintenant, le bump de version ne dépend plus d'un rappel manuel — il est automatique à chaque push.
+Reste à faire (Pik, manuel) : ajouter les 4 secrets GitHub (GROWMANAGER_KEYSTORE_BASE64, GROWMANAGER_KEYSTORE_PASSWORD, GROWMANAGER_KEY_ALIAS, GROWMANAGER_KEY_PASSWORD), créer le compte Play Console, uploader le premier AAB manuellement.
