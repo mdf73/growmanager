@@ -2377,10 +2377,12 @@ type TabId = 'general' | 'backup' | 'capteurs' | 'alertes'
 export default function ParametragePage() {
   const [activeTab, setActiveTab] = useState<TabId>('general')
 
+  // Mode autonome : capteurs (serveur requis) et sauvegarde CSV (non portée) masqués
+  const standalone = getAppMode() === 'standalone'
   const tabs: { id: TabId; label: string }[] = [
     { id: 'general',  label: 'Général' },
-    { id: 'backup',   label: 'Sauvegarde et restaurations' },
-    { id: 'capteurs', label: 'Capteurs' },
+    ...(!standalone ? [{ id: 'backup' as TabId, label: 'Sauvegarde et restaurations' }] : []),
+    ...(!standalone ? [{ id: 'capteurs' as TabId, label: 'Capteurs' }] : []),
     { id: 'alertes',  label: '⚠ Alertes Stock' },
   ]
 

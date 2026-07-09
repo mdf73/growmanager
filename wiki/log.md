@@ -6,6 +6,16 @@ Format: `## [YYYY-MM-DD] <operation> | <description>`
 
 ---
 
+## [2026-07-06] Feature | Sprint B5 — transverses en mode standalone — validé
+
+Portage dashboard.py, calendrier.py, search.py, consommation.py, historique_culture.py + cultures/compare :
+- `dashboard.ts` : stats complètes (6 modules), arrosage-boxes (+flush), burping-reminders (fréquences 1/3/7/14j), ipm-warnings (délai récolte, alerte rouge), legacy /dashboard. Capteurs Govee → null.
+- `transverses.ts` : calendrier global (mois + export plage + cultures-actives), recherche globale (5 catégories), cultures/compare complet (durées, rendements, coûts, LSO vs marques engrais, détail coût/recette, hauteurs, arrosages cumulés), historique cultures CRUD + plants + prix-graine.
+- `consommation.ts` : sessions CRUD + stats (périodes, par type/vapo, moyenne 7j, projection stock).
+- Vérifs : tsc + build + 25 requêtes SQL sur schéma réel. import/export CSV → B6.
+
+---
+
 ## [2026-07-06] Feature | Sprint B4 — recettes & sol vivant en mode standalone — validé
 
 Portage des 6 routers recette_* + preparation_substrat, suivi_sol_vivant, croisement, open_field, notation_variete :

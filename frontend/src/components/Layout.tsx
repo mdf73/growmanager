@@ -11,6 +11,7 @@ import {
 import GlobalSearch from './GlobalSearch'
 import clsx from 'clsx'
 import { useDarkMode } from '../hooks/useDarkMode'
+import { isStandalone } from '../api/client'
 
 interface LayoutProps {
   children: ReactNode
@@ -100,6 +101,25 @@ const navItems: NavItem[] = [
   { path: '/statistiques',      label: 'Statistiques',        icon: BarChart2 },
   { path: '/parametrage',       label: 'Paramétrage',         icon: Settings },
 ]
+
+// ── Mode autonome : pages nécessitant le serveur (capteurs) masquées ──────────
+const STANDALONE_HIDDEN_PATHS = new Set(['/suivi-constantes'])
+
+function filterForStandalone(items: NavItem[]): NavItem[] {
+  if (!isStandalone()) return items
+  const keepLeaf = (l: LeafItem) => !STANDALONE_HIDDEN_PATHS.has(l.path)
+  const filterSubs = (subs: SubItem[]): SubItem[] =>
+    subs
+      .filter(s => (isSubGroup(s) ? true : keepLeaf(s)))
+      .map(s => (isSubGroup(s) ? { ...s, children: s.children.filter(keepLeaf) } : s))
+  return items.map(it =>
+    'children' in it && it.children
+      ? ({ ...it, children: filterSubs(it.children as SubItem[]) } as NavItem)
+      : it
+  )
+}
+
+const visibleNavItems = filterForStandalone(navItems)
 
 // ── Chemins pour la détection "active" des groupes ───────────────────────────
 const culturePaths     = ['/culture', '/plan-culture', '/preparation-substrat', '/sechage-curing', '/suivi-constantes', '/croisement', '/historique-cultures', '/calendrier', '/comparaison-cultures']
@@ -250,7 +270,7 @@ export default function Layout({ children }: LayoutProps) {
   }, [])
 
   const renderNav = (closeSidebar?: () => void) =>
-    navItems.map((item, i) => {
+    visibleNavItems.map((item, i) => {
       if ('children' in item && item.children) {
         return (
           <NavGroup

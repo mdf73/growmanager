@@ -97,6 +97,10 @@ const client = axios.create({
 // http(s):// passent quand même par le vrai réseau — voir adapter.ts).
 if (isStandalone()) {
   axios.defaults.adapter = localAdapter
+  // Prépare le dossier photos local + met en cache l'URI de base pour photoUrl()
+  if (isNativeApp()) {
+    import('../local/photos-fs').then(m => m.initPhotosDir()).catch(() => undefined)
+  }
 }
 
 // Intercepteur pour les erreurs
