@@ -1,9 +1,9 @@
-feat(mobile): sprint B3 — mode standalone : post-récolte
+feat(mobile): sprint B4 — mode standalone : recettes & sol vivant
 
-- sechage-curing.ts : sessions séchage/curing + plantes, WPFF, cultures/sechage/plants, éligibles, plants-by-variete, stock-info, bocal-timeline
-- stock.ts : CRUD enrichi, bocaux-disponibles, sortie, origine (traçabilité), alertes seuils + check + seed Fleur
-- extractions.ts : rosin + hash multi-sources, déduction stocks, stocks produits, stats
-- vaporisateur.ts : CRUD + consommables + sessions (déduction stock)
-- seeds.ts : seuil alerte Fleur par défaut
-- vérifs : tsc, vite build, 30 requêtes SQL smoke-testées
-- wiki : roadmap B3 ✅ + log
+- recettes.ts : factory générique pour les 6 types de recettes (CRUD + lignes produits)
+- sol-vivant.ts : préparation substrat + suivi pots (coûts estimés, 5 collections, déduction stock arrosage)
+- croisement.ts : pollen (péremption auto, décrément) + croisements + finalisation récolte (variété/pack/graines)
+- open-field.ts : projets/mères/pères + récolte mère (variété OF + pack + graines)
+- notation.ts : scores /30 /70 /100 + extraction-stats par variété
+- vérifs : tsc, vite build, 27 requêtes SQL smoke-testées
+- wiki : roadmap B4 ✅ + log

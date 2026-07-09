@@ -6,6 +6,18 @@ Format: `## [YYYY-MM-DD] <operation> | <description>`
 
 ---
 
+## [2026-07-06] Feature | Sprint B4 — recettes & sol vivant en mode standalone — validé
+
+Portage des 6 routers recette_* + preparation_substrat, suivi_sol_vivant, croisement, open_field, notation_variete :
+- `recettes.ts` : factory générique (engrais/TCO/LSO/réamendement/arrosage/fermentation) — CRUD + lignes produits enrichies, remplacement des lignes en update. Export/import CSV → 501.
+- `sol-vivant.ts` : préparation substrat (JSON pots/résultat) + suivi pots avec coûts estimés (normalisation unités) et 5 collections d'événements ; déduction stock engrais sur ajout d'arrosage.
+- `croisement.ts` : pollen (péremption auto, décrément stock, blocage si utilisé) + croisements + finalisation récolte (variété résultante, breeder, pack maison, graines).
+- `open-field.ts` : projets/mères/pères + récolte mère (variété OF + pack + graines, statut projet auto).
+- `notation.ts` : scores calculés + tri note finale + extraction-stats par variété.
+- Vérifs : tsc + build + 27 requêtes SQL sur schéma réel.
+
+---
+
 ## [2026-07-06] Feature | Sprint B3 — post-récolte en mode standalone — validé
 
 Portage sechage.py, curing.py, stock.py, stock_alert_seuils.py, extractions.py, vaporisateur.py + routes cultures liées :
