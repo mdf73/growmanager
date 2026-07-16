@@ -1,17 +1,8 @@
-fix: repare la corruption d'encodage causee par version-bump.ps1
+Amélioration : page Stock — âge/durée en affichage calendaire précis
 
-Le premier run reel du bump PowerShell (commit c2f36eb) a corrompu package.json, package-lock.json, backend/app/main.py et CHANGELOG.md :
-- Get-Content sans -Encoding lit en ANSI sur Windows PowerShell 5.1 (pas UTF-8) -> tous les accents transformes en mojibake (e -> A c opyright etc) dans main.py et CHANGELOG.md
-- Set-Content -Encoding UTF8 ajoute un BOM -> npm error EJSONPARSE sur package.json/package-lock.json
-- package.json a perdu son accolade fermante finale (fichier JSON invalide)
-
-Consequence : npm install/npm run build casses en local (docker-compose up --build) et en CI (Docker Publish, run 29021245439).
-
-Reparation :
-- Les 4 fichiers restaures depuis le dernier commit propre (9002496) + version 3.4.1 reappliquee proprement (accents et structure JSON intacts)
-- version-bump.ps1 reecrit : n'utilise plus Get-Content/Set-Content, uniquement [System.IO.File]::ReadAllText/WriteAllText avec UTF8Encoding($false) explicite (jamais de BOM)
-- Garde-fou ajoute : si un fichier semble tronque apres remplacement (longueur anormalement plus courte), le script annule et n'ecrit rien au lieu de livrer un fichier casse
-- Teste en local avec du contenu accentue realiste + un vrai package-lock.json de 4484 lignes avant redeploiement
-- CHANGELOG.md [3.4.1] documente le fix, wiki/log.md + architecture/patterns.md section 10 mis a jour
-
-Merci d'avoir remonte le message d'erreur npm complet, ca a ete decisif pour identifier la vraie cause (BOM + mojibake + troncature, pas juste un BOM comme je le pensais au depart).
+- Stock.tsx : nouvelle fonction preciseDiffLabel (diff années/mois/jours
+  avec emprunt calendaire) remplaçant les arrondis 30j/365j
+- ageLabel et durationLabel affichent désormais "1 mois et 3 jours",
+  "1 an, 3 mois et 2 jours", "< 1 jour", etc.
+- Gestion fins de mois et années bissextiles, dates invalides/futures → "—"
+- Wiki : frontend/pages.md (section Stock) + log.md

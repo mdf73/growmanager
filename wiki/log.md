@@ -6,6 +6,18 @@ Format: `## [YYYY-MM-DD] <operation> | <description>`
 
 ---
 
+## [2026-07-16] Amélioration | Page Stock — Âge / Durée en affichage calendaire précis
+
+**Demande (Pik) :** la colonne Âge / Durée arrondissait grossièrement (46 jours → "1 mois", 365 jours → "1 an"). Afficher précisément : "1 mois et 3 jours", "1 an, 3 mois et 2 jours".
+
+**Fait :** `frontend/src/pages/Stock.tsx` — nouvelle fonction `preciseDiffLabel(startMs, endMs)` : diff calendaire années/mois/jours avec emprunt en boucle sur les mois précédents (gère fins de mois : 31/01 → 01/03 = "29 jours", et années bissextiles). `ageLabel()` et `durationLabel()` réécrites dessus. Cas particuliers : "< 1 jour" si même jour, "—" si date invalide ou future. Testé (8 cas) + tsc OK.
+
+**Note debug :** la modif ne s'affichait pas après `docker compose restart` — simple cache navigateur, résolu par Ctrl+F5 (Vite dev + volume mount fonctionnaient normalement).
+
+Validé 2026-07-16.
+
+---
+
 ## [2026-07-09] Fix critique | version-bump.ps1 corrompait les fichiers (mojibake + BOM + troncature)
 
 Le premier run réel de `version-bump.ps1` (commit `c2f36eb`) a corrompu `frontend/package.json`, `frontend/package-lock.json`, `backend/app/main.py` et `CHANGELOG.md` — cassant `npm install`/`npm run build` en local et en CI (`docker-compose up --build` en échec chez Pik, run Docker Publish en échec sur GitHub).

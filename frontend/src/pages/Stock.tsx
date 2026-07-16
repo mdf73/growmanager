@@ -28,24 +28,48 @@ function SortIcon({ col, current, dir }: { col: string; current: string | null; 
 }
 
 // ── Age / duree ───────────────────────────────────────────────────────────────
+// Calcul calendaire précis : années, mois et jours entre deux dates
+function preciseDiffLabel(startMs: number, endMs: number): string {
+  const start = new Date(startMs)
+  const end = new Date(endMs)
+  let years = end.getFullYear() - start.getFullYear()
+  let months = end.getMonth() - start.getMonth()
+  let days = end.getDate() - start.getDate()
+  // Emprunt sur les mois précédents tant que les jours sont négatifs
+  let em = end.getMonth()
+  let ey = end.getFullYear()
+  while (days < 0) {
+    em -= 1
+    if (em < 0) { em = 11; ey -= 1 }
+    days += new Date(ey, em + 1, 0).getDate()
+    months -= 1
+  }
+  if (months < 0) {
+    years -= 1
+    months += 12
+  }
+  const parts: string[] = []
+  if (years > 0) parts.push(`${years} an${years > 1 ? 's' : ''}`)
+  if (months > 0) parts.push(`${months} mois`)
+  if (days > 0) parts.push(`${days} jour${days > 1 ? 's' : ''}`)
+  if (parts.length === 0) return '< 1 jour'
+  if (parts.length === 1) return parts[0]
+  return `${parts.slice(0, -1).join(', ')} et ${parts[parts.length - 1]}`
+}
+
 function ageLabel(dateStr?: string): string {
   if (!dateStr) return '—'
-  const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 86_400_000)
-  if (diff < 0) return '—'
-  if (diff < 30) return `${diff} j`
-  if (diff < 365) { const m = Math.floor(diff / 30); return `${m} mois` }
-  const y = Math.floor(diff / 365)
-  return `${y} an${y > 1 ? 's' : ''}`
+  const startMs = new Date(dateStr).getTime()
+  if (isNaN(startMs) || startMs > Date.now()) return '—'
+  return preciseDiffLabel(startMs, Date.now())
 }
 
 function durationLabel(start?: string, end?: string): string {
   if (!start || !end) return '—'
-  const diff = Math.floor((new Date(end).getTime() - new Date(start).getTime()) / 86_400_000)
-  if (diff <= 0) return '< 1 j'
-  if (diff < 30) return `${diff} j`
-  if (diff < 365) { const m = Math.floor(diff / 30); return `${m} mois` }
-  const y = Math.floor(diff / 365)
-  return `${y} an${y > 1 ? 's' : ''}`
+  const startMs = new Date(start).getTime()
+  const endMs = new Date(end).getTime()
+  if (isNaN(startMs) || isNaN(endMs) || endMs < startMs) return '—'
+  return preciseDiffLabel(startMs, endMs)
 }
 
 // ── Badges type ──────────────────────────────────────────────────────────────
@@ -754,8 +778,8 @@ export default function StockPage() {
                   }`}
                 >
                   <TypeBadge type={type} />
-                  <p className="text-xl font-bold text-gray-800 dark:text-gray-100 mt-2">{stats.byType[type].toFixed(1)} g</p>
-                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+                  <p className={`text-xl font-bold mt-2 ${typeFilter === type ? 'text-gray-800' : 'text-gray-800 dark:text-gray-100'}`}>{stats.byType[type].toFixed(1)} g</p>
+                  <p className={`text-xs mt-0.5 ${typeFilter === type ? 'text-gray-500' : 'text-gray-400 dark:text-gray-500'}`}>
                     {stocks.filter(s => (s.type_stock || 'Autre') === type && !s.date_fin_stock).length} actif{stocks.filter(s => (s.type_stock || 'Autre') === type && !s.date_fin_stock).length > 1 ? 's' : ''}
                   </p>
                 </button>

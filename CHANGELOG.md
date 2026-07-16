@@ -17,6 +17,12 @@ Versioning : [Semantic Versioning](https://semver.org/lang/fr/) — `MAJOR.MINOR
 
 ---
 
+## [3.4.3] - 2026-07-16
+
+*(prochaines modifications en cours)*
+
+---
+
 ## [3.4.2] - 2026-07-09
 
 *(prochaines modifications en cours)*
