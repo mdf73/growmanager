@@ -1,8 +1,9 @@
-Amélioration : page Stock — âge/durée en affichage calendaire précis
+fix(stock): texte lisible sur carte de type sélectionnée en dark mode
 
-- Stock.tsx : nouvelle fonction preciseDiffLabel (diff années/mois/jours
-  avec emprunt calendaire) remplaçant les arrondis 30j/365j
-- ageLabel et durationLabel affichent désormais "1 mois et 3 jours",
-  "1 an, 3 mois et 2 jours", "< 1 jour", etc.
-- Gestion fins de mois et années bissextiles, dates invalides/futures → "—"
-- Wiki : frontend/pages.md (section Stock) + log.md
+En mode nuit, les cartes de filtre par type (Fleur/Hash/Rosin...) sélectionnées
+passaient sur fond clair mais gardaient le texte blanc (variantes dark:) → illisible.
+Le poids et le compteur "x actifs" passent en texte foncé quand la carte est
+sélectionnée, sur les grilles Stock et Extractions.
+
+- frontend/src/pages/Stock.tsx : classes texte conditionnelles selon sélection
+- wiki/log.md : entrée du fix

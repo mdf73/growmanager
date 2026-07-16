@@ -879,8 +879,8 @@ export default function StockPage() {
                   }`}
                 >
                   <TypeBadge type={type} />
-                  <p className="text-xl font-bold text-gray-800 dark:text-gray-100 mt-2">{stats.byTypeExt[type].toFixed(1)} g</p>
-                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+                  <p className={`text-xl font-bold mt-2 ${extTypeFilter === type ? 'text-gray-800' : 'text-gray-800 dark:text-gray-100'}`}>{stats.byTypeExt[type].toFixed(1)} g</p>
+                  <p className={`text-xs mt-0.5 ${extTypeFilter === type ? 'text-gray-500' : 'text-gray-400 dark:text-gray-500'}`}>
                     {stocks.filter(s => s.type_stock === type && !s.date_fin_stock).length} actif{stocks.filter(s => s.type_stock === type && !s.date_fin_stock).length > 1 ? 's' : ''}
                   </p>
                 </button>

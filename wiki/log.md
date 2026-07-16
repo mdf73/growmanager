@@ -6,6 +6,16 @@ Format: `## [YYYY-MM-DD] <operation> | <description>`
 
 ---
 
+## [2026-07-16] Fix | Page Stock — texte illisible sur carte de type sélectionnée en mode nuit
+
+**Demande (Pik) :** en dark mode, les cartes de filtre par type (Fleur / Hash / Rosin...) sélectionnées passaient sur fond clair (`bg-grow-50` / `bg-cyan-50`) mais le texte gardait ses variantes dark (blanc) → illisible.
+
+**Fait :** `frontend/src/pages/Stock.tsx` — les classes texte du poids et du compteur "x actifs" deviennent conditionnelles : si la carte est sélectionnée, texte foncé (`text-gray-800` / `text-gray-500`) sans variante dark ; sinon comportement inchangé. Appliqué aux deux grilles (onglet Stock et onglet Extractions). tsc OK.
+
+Validé 2026-07-16.
+
+---
+
 ## [2026-07-16] Amélioration | Page Stock — Âge / Durée en affichage calendaire précis
 
 **Demande (Pik) :** la colonne Âge / Durée arrondissait grossièrement (46 jours → "1 mois", 365 jours → "1 an"). Afficher précisément : "1 mois et 3 jours", "1 an, 3 mois et 2 jours".
