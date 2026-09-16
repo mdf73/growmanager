@@ -1,15 +1,15 @@
-fix(frontend): axe Y invisible sur les courbes "Constantes du jour" (SensorDayChart)
+feat: ajoute un serveur MCP pour GrowManager
 
-Le composant SensorDayChart utilisait une marge gauche negative
-(margin.left: -12) combinee a une largeur d'axe Y trop etroite
-(width={30}). Les libelles de tick (ex. "23.5C") debordaient dans
-la zone negative du SVG, qui rogne tout contenu hors de son viewport,
-ne laissant visibles que les caracteres d'unite en fin de libelle
-("C", "%", "Pa" au lieu de "kPa"). Les donnees etaient correctes,
-seul l'affichage de l'axe etait casse.
-
-Fix : alignement sur les valeurs deja utilisees dans SuiviConstantes.tsx
-- margin.left: -12 -> 0
-- width axe Y: 30 -> 38
-
-Wiki mis a jour : wiki/features/sensor-integration.md, wiki/log.md
+- Nouveau dossier mcp-server/ : genere automatiquement un outil MCP par
+  endpoint de l'API GrowManager (a partir de /openapi.json), sans rien a
+  maintenir a la main.
+- Mode local (Windows, stdio) : lecture seule, pour Claude Desktop / Claude
+  Code sur le meme poste.
+- Mode reseau (serveur Linux, HTTP "Streamable HTTP") : lecture + ecriture,
+  authentifie par jeton porteur (GROWMANAGER_MCP_TOKEN), annotations MCP
+  destructiveHint/readOnlyHint fideles a la methode HTTP.
+- Nouveau service Docker mcp-server dans docker-compose.yml (dev) et
+  docker-compose.prod.yml (prod, image GHCR).
+- CI : construction et publication de l'image
+  ghcr.io/mdf73/growmanager-mcp-server dans docker-publish.yml.
+- update.sh met aussi a jour le service mcp-server sur le serveur de prod.
