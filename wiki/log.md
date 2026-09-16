@@ -6,6 +6,21 @@ Format: `## [YYYY-MM-DD] <operation> | <description>`
 
 ---
 
+## [2026-09-16] Fix | Axe Y invisible sur les courbes "Constantes du jour" (SensorDayChart)
+
+**Contexte :** Pik signale que le panneau "Constantes du jour" de Suivi de culture (`CalendrierCulture`) affiche des courbes plates sans valeurs d'axes, alors que la page Constantes (T°/VPD) (`SuiviConstantes.tsx`) fonctionne normalement pour les mêmes données.
+
+**Cause :** dans `SensorDayChart.tsx`, l'axe Y utilisait une marge gauche négative (`margin.left: -12`) combinée à une largeur d'axe insuffisante (`width={30}`). Les libellés de tick (ex. "23.5°C") débordaient dans la zone négative du SVG, qui rogne tout contenu hors de son viewport — seuls les caractères d'unité en fin de libellé restaient visibles ("°C", "%", "Pa" au lieu de "kPa"). Les données elles-mêmes étaient correctes ; seul l'affichage de l'axe était cassé.
+
+**Fix :** alignement sur les valeurs qui fonctionnent déjà dans `SuiviConstantes.tsx` — `margin.left: -12 → 0`, `width` de l'axe Y `30 → 38`.
+
+**Files modified:**
+- `frontend/src/components/SensorDayChart.tsx`
+
+Validé par Pik.
+
+---
+
 ## [2026-09-13] Feature | Intégration Tapo H100 — PR externe #5 mergée + déployée en prod
 
 **Contexte :** PR #5 (`Devilouned/feat/tapo-h100-local`) — intégration de capteurs Tapo T310/T315 via hub H100 local, en parallèle de la PR #6 (historique des emplacements de culture, déjà mergée le 2026-09-12).

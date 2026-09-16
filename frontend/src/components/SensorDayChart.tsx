@@ -185,7 +185,7 @@ export default function SensorDayChart({ date, idEspace }: Props) {
           <div key={metricKey}>
             <p className="text-[11px] text-gray-500 dark:text-gray-400 mb-1 font-medium">{label}</p>
             <ResponsiveContainer width="100%" height={singleMode ? 72 : 80}>
-              <LineChart data={chartData} margin={{ top: 2, right: 4, bottom: 0, left: -12 }}>
+              <LineChart data={chartData} margin={{ top: 2, right: 4, bottom: 0, left: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
                 <XAxis
                   dataKey="hour"
@@ -199,7 +199,7 @@ export default function SensorDayChart({ date, idEspace }: Props) {
                   tick={{ fontSize: 9, fill: '#9ca3af' }}
                   tickLine={false}
                   axisLine={false}
-                  width={30}
+                  width={38}
                   tickFormatter={v => `${v}${unit.trim()}`}
                 />
                 <Tooltip

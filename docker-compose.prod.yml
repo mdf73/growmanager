@@ -6,13 +6,18 @@
 #   docker compose -f docker-compose.prod.yml up -d
 #
 # Variables d'environnement requises (dans un fichier .env ou en export) :
-#   GROWMANAGER_VERSION   Tag de l'image (ex: v1.0.0, latest)
-#   MYSQL_ROOT_PASSWORD   Mot de passe root MySQL
-#   MYSQL_PASSWORD        Mot de passe utilisateur MySQL
-#   SECRET_KEY            Clé secrète FastAPI
-#   GROWMANAGER_URL       URL publique de l'application (ex: http://192.168.1.10:420)
-#   GM_DATA_ROOT          Répertoire de données persistantes (ex: /mnt/user/appdata/growmanager)
-#   APP_PORT              Port public de l'application (défaut: 80)
+#   GROWMANAGER_VERSION      Tag de l'image (ex: v1.0.0, latest)
+#   MYSQL_ROOT_PASSWORD      Mot de passe root MySQL
+#   MYSQL_PASSWORD           Mot de passe utilisateur MySQL
+#   SECRET_KEY               Clé secrète FastAPI
+#   GROWMANAGER_URL          URL publique de l'application (ex: http://192.168.1.10:420)
+#   GM_DATA_ROOT             Répertoire de données persistantes (ex: /mnt/user/appdata/growmanager)
+#   APP_PORT                 Port public de l'application (défaut: 80)
+#   GROWMANAGER_MCP_TOKEN    Jeton porteur exigé pour se connecter au serveur MCP (obligatoire,
+#                            sans valeur par défaut — générer avec `openssl rand -base64 32`)
+#   GROWMANAGER_MCP_READONLY "true" pour rester en lecture seule, "false" pour lecture + écriture
+#                            (défaut: false — le serveur MCP est installé pour l'écriture)
+#   MCP_PORT                 Port réseau local du serveur MCP (défaut: 8100)
 # ─────────────────────────────────────────────────────────────────────────────
 version: "3.8"
 
@@ -65,6 +70,20 @@ services:
       - backend
     ports:
       - "${APP_PORT:-80}:80"
+
+  mcp-server:
+    image: ghcr.io/mdf73/growmanager-mcp-server:${GROWMANAGER_VERSION:-latest}
+    container_name: growmanager-mcp-server
+    restart: unless-stopped
+    environment:
+      GROWMANAGER_API_URL:      http://backend:8000
+      GROWMANAGER_MCP_TOKEN:    ${GROWMANAGER_MCP_TOKEN:?"Définis GROWMANAGER_MCP_TOKEN dans .env (openssl rand -base64 32)"}
+      GROWMANAGER_MCP_READONLY: ${GROWMANAGER_MCP_READONLY:-false}
+      TZ:                       ${TZ:-Europe/Paris}
+    depends_on:
+      - backend
+    ports:
+      - "${MCP_PORT:-8100}:8100"
 
 volumes:
   mysql_data:

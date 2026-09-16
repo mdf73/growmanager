@@ -60,5 +60,17 @@ services:
       - frontend
       - backend
 
+  mcp-server:
+    build: ./mcp-server
+    restart: unless-stopped
+    environment:
+      - GROWMANAGER_API_URL=http://backend:8000
+      - GROWMANAGER_MCP_TOKEN=${GROWMANAGER_MCP_TOKEN:-dev-token-change-me}
+      - GROWMANAGER_MCP_READONLY=${GROWMANAGER_MCP_READONLY:-false}
+    depends_on:
+      - backend
+    ports:
+      - "8100:8100"
+
 volumes:
   mysql_data:

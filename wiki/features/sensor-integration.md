@@ -84,6 +84,9 @@ Composant réutilisable `frontend/src/components/SensorDayChart.tsx` qui affiche
 **API appelée :** `GET /api/temperature-logs?date_debut=YYYY-MM-DDT00:00:00&date_fin=YYYY-MM-DDT23:59:59[&id_espace=X]`
 — retourne les données brutes (fenêtre ≤ 48h → pas d'agrégation horaire)
 
+**Fix (2026-09-16) — axe Y invisible ("Constantes du jour" dans Suivi de culture) :**
+L'axe Y utilisait une marge gauche négative (`margin.left: -12`) combinée à une largeur d'axe trop étroite (`width={30}`). Les libellés de tick (ex. "23.5°C") débordaient dans la zone négative du SVG, qui rogne tout contenu hors de son viewport — seuls les caractères d'unité en fin de libellé restaient visibles ("°C", "%", "Pa" au lieu de "kPa"). Les données étaient correctes, seul l'affichage de l'axe était cassé. Corrigé en alignant sur les valeurs déjà utilisées dans `SuiviConstantes.tsx` : `margin.left: -12 → 0`, `width` de l'axe Y `30 → 38`.
+
 ## Gmail Import (Alternative)
 
 `POST /api/capteurs/govee/sync` — imports historical data from Gmail if Govee was sending email reports.

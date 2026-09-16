@@ -1,7 +1,15 @@
-chore(wiki): documente l'intégration Tapo H100 (PR #5) et le bug de migration race condition
+fix(frontend): axe Y invisible sur les courbes "Constantes du jour" (SensorDayChart)
 
-- wiki/roadmap.md : section Tapo H100 marquée ✅ (mergé + déployé 2026-09-13)
-- wiki/log.md : entrée détaillant la revue PR #5, le conflit de SCHEMA_VERSION avec PR #6, l'incident de résolution GitHub et le déploiement
-- wiki/bugs/tapoconfig-migration-race.md : nouveau — race condition multi-workers sur create_all() découverte au déploiement
-- wiki/architecture/patterns.md : note sur le piège multi-workers ajoutée section 1
-- CHANGELOG.md : entrée Ajouté sous [Unreleased] pour l'intégration Tapo
+Le composant SensorDayChart utilisait une marge gauche negative
+(margin.left: -12) combinee a une largeur d'axe Y trop etroite
+(width={30}). Les libelles de tick (ex. "23.5C") debordaient dans
+la zone negative du SVG, qui rogne tout contenu hors de son viewport,
+ne laissant visibles que les caracteres d'unite en fin de libelle
+("C", "%", "Pa" au lieu de "kPa"). Les donnees etaient correctes,
+seul l'affichage de l'axe etait casse.
+
+Fix : alignement sur les valeurs deja utilisees dans SuiviConstantes.tsx
+- margin.left: -12 -> 0
+- width axe Y: 30 -> 38
+
+Wiki mis a jour : wiki/features/sensor-integration.md, wiki/log.md
