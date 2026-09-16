@@ -289,11 +289,15 @@ def build_endpoints(openapi_spec: dict[str, Any]) -> list[EndpointSpec]:
                     body_schema, body_defs = _resolve_body_schema(json_content["schema"], components_schemas)
 
             tool_name = _tool_name_from_route(method, path)
-            base_name = tool_name
-            suffix = 2
-            while tool_name in seen_names:
-                tool_name = f"{base_name}_{suffix}"[:64]
-                suffix += 1
+            if tool_name in seen_names:
+                base_name = tool_name
+                suffix = 2
+                candidate = tool_name
+                while candidate in seen_names:
+                    suffix_str = f"_{suffix}"
+                    candidate = f"{base_name[: 64 - len(suffix_str)]}{suffix_str}"
+                    suffix += 1
+                tool_name = candidate
             seen_names.add(tool_name)
 
             endpoint = EndpointSpec(

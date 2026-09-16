@@ -1,15 +1,15 @@
-feat: ajoute un serveur MCP pour GrowManager
+fix: corrige une boucle infinie dans la generation des noms d'outils MCP
 
-- Nouveau dossier mcp-server/ : genere automatiquement un outil MCP par
-  endpoint de l'API GrowManager (a partir de /openapi.json), sans rien a
-  maintenir a la main.
-- Mode local (Windows, stdio) : lecture seule, pour Claude Desktop / Claude
-  Code sur le meme poste.
-- Mode reseau (serveur Linux, HTTP "Streamable HTTP") : lecture + ecriture,
-  authentifie par jeton porteur (GROWMANAGER_MCP_TOKEN), annotations MCP
-  destructiveHint/readOnlyHint fideles a la methode HTTP.
-- Nouveau service Docker mcp-server dans docker-compose.yml (dev) et
-  docker-compose.prod.yml (prod, image GHCR).
-- CI : construction et publication de l'image
-  ghcr.io/mdf73/growmanager-mcp-server dans docker-publish.yml.
-- update.sh met aussi a jour le service mcp-server sur le serveur de prod.
+- build_endpoints() (mcp-server/server.py) tournait indefiniment (100%
+  CPU) des que deux endpoints produisaient un nom d'outil deja tronque
+  a 64 caracteres : le suffixe de desambiguisation ("_2", "_3", ...)
+  etait ajoute PUIS le resultat retronque a 64 caracteres, ce qui
+  annulait le suffixe et redonnait exactement le meme nom a chaque
+  iteration.
+- Corrige en reservant la place du suffixe avant de tronquer le nom de
+  base, garantissant que chaque tentative produit un nom different.
+- Reproduit et verifie avec le vrai schema OpenAPI de production (215
+  routes, 228 schemas) : generation en 14 ms, 322 outils, tous uniques,
+  aucun ne depasse 64 caracteres.
+- Suite de tests existante (lecture seule, lecture+ecriture, client
+  stdio reel, transport HTTP authentifie) rejouee sans regression.
