@@ -17,6 +17,13 @@ Versioning : [Semantic Versioning](https://semver.org/lang/fr/) — `MAJOR.MINOR
 
 ---
 
+## [3.5.2] - 2026-09-16
+
+### Corrigé
+- Arrosages illisibles en mode nuit dans le panneau "Suivi de culture" (carte sans variante `dark:` sur fond/bordure, texte clair sur fond clair)
+
+---
+
 ## [3.5.1] - 2026-09-16
 
 *(prochaines modifications en cours)*

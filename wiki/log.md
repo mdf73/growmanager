@@ -6,6 +6,21 @@ Format: `## [YYYY-MM-DD] <operation> | <description>`
 
 ---
 
+## [2026-09-16] Fix | Arrosages illisibles en mode nuit dans Suivi de culture (CalendrierCulture)
+
+**Contexte :** Pik signale que dans le panneau du jour sélectionné de Suivi de culture, les arrosages groupés s'affichent en texte quasi invisible en mode nuit ("écriture blanche sur fond blanc").
+
+**Cause :** dans `CalendrierCulture.tsx`, la carte des arrosages groupés (`bg-blue-50 border border-blue-100`) n'avait pas de variante `dark:` sur son fond ni sa bordure, alors que son texte interne (`dark:text-gray-100`, `dark:text-gray-300`) était bien prévu pour un fond sombre. En mode nuit, le fond restait clair pendant que le texte passait en teintes claires, rendant les lignes "pH cible", "Recette" et "Produits" illisibles.
+
+**Fix :** ajout de `dark:bg-blue-900/20` et `dark:border-blue-800` sur la carte, ainsi que `dark:text-blue-300` sur la ligne "🪴 ... par plante" (qui n'avait pas non plus de variante nuit).
+
+**Files modified:**
+- `frontend/src/components/culture/CalendrierCulture.tsx`
+
+Validé par Pik.
+
+---
+
 ## [2026-09-16] Fix | Axe Y invisible sur les courbes "Constantes du jour" (SensorDayChart)
 
 **Contexte :** Pik signale que le panneau "Constantes du jour" de Suivi de culture (`CalendrierCulture`) affiche des courbes plates sans valeurs d'axes, alors que la page Constantes (T°/VPD) (`SuiviConstantes.tsx`) fonctionne normalement pour les mêmes données.

@@ -406,7 +406,7 @@ export default function CalendrierCulture({ cultureId, idEspace, emplacements, p
 
                 {/* ── Arrosages regroupés ─────────────────────────────── */}
                 {wateringGroups.map((group, gi) => (
-                  <div key={gi} className="flex items-start gap-2 p-3 bg-blue-50 rounded-lg border border-blue-100 group">
+                  <div key={gi} className="flex items-start gap-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-100 dark:border-blue-800 group">
                     <span className={`w-2.5 h-2.5 rounded-full ${WATERING_COLORS[group.type_action] ?? 'bg-blue-400'} mt-1 flex-shrink-0`} />
                     <div className="flex-1 min-w-0 space-y-0.5">
                       {/* Titre */}
@@ -428,7 +428,7 @@ export default function CalendrierCulture({ cultureId, idEspace, emplacements, p
 
                       {/* Volume par plante */}
                       {group.volParPlante ? (
-                        <p className="text-xs text-blue-700 font-medium">
+                        <p className="text-xs text-blue-700 dark:text-blue-300 font-medium">
                           🪴 {formatVolume(group.volParPlante)} par plante
                         </p>
                       ) : null}

@@ -1,15 +1,11 @@
-fix: corrige une boucle infinie dans la generation des noms d'outils MCP
+fix: corriger l'affichage illisible des arrosages en mode nuit (Suivi de culture)
 
-- build_endpoints() (mcp-server/server.py) tournait indefiniment (100%
-  CPU) des que deux endpoints produisaient un nom d'outil deja tronque
-  a 64 caracteres : le suffixe de desambiguisation ("_2", "_3", ...)
-  etait ajoute PUIS le resultat retronque a 64 caracteres, ce qui
-  annulait le suffixe et redonnait exactement le meme nom a chaque
-  iteration.
-- Corrige en reservant la place du suffixe avant de tronquer le nom de
-  base, garantissant que chaque tentative produit un nom different.
-- Reproduit et verifie avec le vrai schema OpenAPI de production (215
-  routes, 228 schemas) : generation en 14 ms, 322 outils, tous uniques,
-  aucun ne depasse 64 caracteres.
-- Suite de tests existante (lecture seule, lecture+ecriture, client
-  stdio reel, transport HTTP authentifie) rejouee sans regression.
+La carte des arrosages groupés dans CalendrierCulture.tsx (bg-blue-50
+border-blue-100) n'avait pas de variante dark: sur son fond ni sa
+bordure, alors que son texte interne était déjà prévu pour un fond
+sombre (dark:text-gray-100/300). En mode nuit le fond restait clair
+et le texte passait en teintes claires, rendant les lignes pH cible,
+Recette et Produits illisibles.
+
+Ajout de dark:bg-blue-900/20 et dark:border-blue-800 sur la carte, et
+dark:text-blue-300 sur la ligne volume par plante.
