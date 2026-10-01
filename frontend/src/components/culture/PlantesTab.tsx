@@ -168,7 +168,11 @@ export default function PlantesTab({ cultureId, plants }: Props) {
 
       {/* Header with add button */}
       <div className="flex items-center justify-between">
-        <span className="text-sm text-gray-500 dark:text-gray-400">{plants.length} plante{plants.length > 1 ? 's' : ''}</span>
+        <span className="text-sm text-gray-500 dark:text-gray-400">
+          {terminees.length > 0
+            ? `${actives.length} active${actives.length > 1 ? 's' : ''} · ${terminees.length} terminée${terminees.length > 1 ? 's' : ''}`
+            : `${plants.length} plante${plants.length > 1 ? 's' : ''}`}
+        </span>
         <button
           onClick={() => { setShowSeedPicker(v => !v); setSearchQuery('') }}
           className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs transition-colors ${

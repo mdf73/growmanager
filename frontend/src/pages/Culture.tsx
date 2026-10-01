@@ -464,15 +464,17 @@ function CultureDetail({ cultureId, onBack }: { cultureId: number; onBack: () =>
 
   const tabs = [
     { key: 'calendrier' as const, label: 'Calendrier', icon: Calendar },
-    { key: 'plantes' as const,    label: `Plantes (${culture.plants.length})`, icon: Leaf },
+    { key: 'plantes' as const,    label: culture.nb_plantes_actives !== culture.plants.length
+      ? `Plantes (${culture.nb_plantes_actives}/${culture.plants.length})`
+      : `Plantes (${culture.plants.length})`, icon: Leaf },
     { key: 'stats' as const,      label: 'Stats', icon: BarChart2 },
     { key: 'photos' as const,     label: photosCount > 0 ? `Photos (${photosCount})` : 'Photos', icon: Camera },
   ]
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-start gap-3">
+      {/* Header — sur mobile, les boutons d'action passent sous le titre */}
+      <div className="flex flex-wrap lg:flex-nowrap items-start gap-3">
         <button onClick={onBack}
           className="mt-1 p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors text-gray-500 dark:text-gray-400 dark:text-gray-500">
           <ArrowLeft size={20} />
@@ -556,7 +558,7 @@ function CultureDetail({ cultureId, onBack }: { cultureId: number; onBack: () =>
             </div>
           )}
         </div>
-        <div className="flex items-center gap-2 flex-shrink-0">
+        <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto lg:flex-shrink-0 pl-10 lg:pl-0">
           {culture.statut === 'active' && culture.phase === 'floraison' && (
             culture.date_debut_flush ? (
               <button

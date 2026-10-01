@@ -14,6 +14,7 @@ App Android = le frontend React empaqueté dans un APK via **Capacitor**, qui pa
 - **Backend inchangé** : l'app appelle `<url-serveur>/api` (config A3, clé localStorage `gm_server_url`).
 - **Premier lancement** : `App.tsx` détecte le runtime natif (`isNativeApp()` de client.ts) → si aucun mode choisi (`gm_mode`), affiche `ModeSetup.tsx` : choix **Autonome** (SQLite local, Phase B) ou **Serveur** (saisie URL + test `/health` + reload). Rétro-compat : URL déjà configurée → mode serveur.
 - **Fichiers statiques** : `photoUrl()` (photos.ts) et l'export PDF calendrier passent par `serverFileURL()` / `getServerUrl()` pour pointer vers le serveur distant.
+- **Axios global** : certains fichiers `src/api/` (photos upload, appSettings, historiqueCulture, materiel, parametres) appellent l'axios global avec `/api/...` relatif. Un intercepteur dans `client.ts` les préfixe par l'URL serveur en mode serveur (sinon ils partaient vers `http://localhost` dans l'APK). Ne pas retirer cet intercepteur.
 
 ## Config Capacitor (`frontend/capacitor.config.ts`)
 

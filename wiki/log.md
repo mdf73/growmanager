@@ -6,6 +6,30 @@ Format: `## [YYYY-MM-DD] <operation> | <description>`
 
 ---
 
+## [2026-10-01] Fix | App Android : upload photo inopérant + en-tête culture superposé sur mobile
+
+**Contexte :** Pik signale sur l'APK Android (mode serveur) deux problèmes sur la page d'une culture : (1) le titre et les boutons Dates / Changer d'espace / PDF se superposent ; (2) l'ajout de photo ne fait rien après sélection.
+
+**Cause photos :** `photosAPI.upload` utilise l'axios global avec l'URL relative `/api/photos/upload`. Dans l'APK, cette URL est résolue contre l'origine de l'app (`http://localhost`) et non contre le serveur configuré (`gm_server_url`). Le `try/finally` de `PhotoGallery.handleFiles` n'avait pas de `catch` : l'échec était silencieux. Même défaut latent dans `appSettings.ts`, `historiqueCulture.ts`, `materiel.ts`, `parametres.ts`.
+
+**Fix photos :**
+- `client.ts` : intercepteur de requête sur l'axios global (hors mode standalone) qui préfixe les URLs `/api/...` et `/uploads/...` par `getServerUrl()` quand une URL serveur est configurée. Sans URL serveur (web classique), rien ne change.
+- `PhotoGallery.tsx` : `catch` avec message d'erreur affiché sous la zone d'upload (detail serveur, 413, code HTTP, erreur réseau) ; reset de `input.value` pour pouvoir resélectionner la même photo.
+- Note : on garde l'axios global pour l'upload (pas `client`), car `client` force `Content-Type: application/json` et axios 1.x convertirait alors le FormData en JSON.
+
+**Cause en-tête :** le bloc de boutons était sur la même ligne flex que le titre avec `flex-shrink-0`, écrasant la colonne titre sur petit écran.
+
+**Fix en-tête :** conteneur `flex-wrap lg:flex-nowrap`, bloc boutons `w-full lg:w-auto flex-wrap pl-10 lg:pl-0` : sous le titre sur mobile/tablette, inchangé sur desktop.
+
+**Files modified:**
+- `frontend/src/api/client.ts`
+- `frontend/src/components/culture/PhotoGallery.tsx`
+- `frontend/src/pages/Culture.tsx`
+
+Nécessite un rebuild de l'APK (workflow GitHub Actions). Validé par Pik.
+
+---
+
 ## [2026-09-16] Fix | Arrosages illisibles en mode nuit dans Suivi de culture (CalendrierCulture)
 
 **Contexte :** Pik signale que dans le panneau du jour sélectionné de Suivi de culture, les arrosages groupés s'affichent en texte quasi invisible en mode nuit ("écriture blanche sur fond blanc").

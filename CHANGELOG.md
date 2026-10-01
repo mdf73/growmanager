@@ -17,6 +17,15 @@ Versioning : [Semantic Versioning](https://semver.org/lang/fr/) — `MAJOR.MINOR
 
 ---
 
+## [3.5.3] - 2026-10-01
+
+### Corrigé
+- App Android (mode serveur) : l'ajout de photos dans une culture ne faisait rien. Les appels `axios` globaux en URL relative (`/api/...`, `/uploads/...`) pointaient vers l'app elle-même au lieu du serveur distant ; ils sont désormais préfixés par l'URL serveur (corrige aussi historique des cultures, matériel, paramètres, réglages app)
+- Galerie photos : les erreurs d'upload sont affichées (413, erreur serveur, réseau) au lieu d'être ignorées ; la même photo peut être resélectionnée après un échec
+- Page culture sur mobile : les boutons Dates / Changer d'espace / PDF / Clôturer passent sous le titre au lieu de se superposer à lui
+
+---
+
 ## [3.5.2] - 2026-09-16
 
 ### Corrigé

@@ -170,7 +170,11 @@ function UploadZone({
         accept="image/*"
         multiple
         className="hidden"
-        onChange={e => e.target.files && onFiles(e.target.files)}
+        onChange={e => {
+          if (e.target.files && e.target.files.length) onFiles(e.target.files)
+          // Reset pour pouvoir re-sélectionner la même photo après un échec
+          e.target.value = ''
+        }}
       />
       {uploading ? (
         <Loader2 size={28} className="animate-spin text-grow-500" />
@@ -191,6 +195,7 @@ export default function PhotoGallery({ idCulture, idPlant, plants = [] }: PhotoG
   const [lightboxIdx, setLightboxIdx]   = useState<number | null>(null)
   const [noteInput,   setNoteInput]     = useState('')
   const [uploading,   setUploading]     = useState(false)
+  const [uploadError, setUploadError]   = useState<string | null>(null)
   const todayStr = () => new Date().toISOString().slice(0, 10)
   const [dateInput,   setDateInput]     = useState<string>(todayStr())
   // Sélection de plante pour l'upload — 'global' = photo de toute la culture
@@ -200,8 +205,14 @@ export default function PhotoGallery({ idCulture, idPlant, plants = [] }: PhotoG
 
   // En mode plante unique (vue détail plante), pas de sélecteur
   const isSinglePlant = idPlant !== undefined
-  // Toutes les plantes triées par ordre alphabétique
-  const sortedPlants = [...plants].sort((a, b) => a.nom_affichage.localeCompare(b.nom_affichage, 'fr'))
+  // Plantes triées par ordre alphabétique, pour le sélecteur d'upload :
+  // les plantes abandonnées / mortes sont exclues, les récoltées sont regroupées à part
+  const STATUTS_TERMINES = ['sechage', 'recolte', 'curing', 'prete', 'wpff']
+  const sortedPlants = [...plants]
+    .filter(p => p.statut !== 'abandonne')
+    .sort((a, b) => a.nom_affichage.localeCompare(b.nom_affichage, 'fr'))
+  const uploadPlantsActives  = sortedPlants.filter(p => !STATUTS_TERMINES.includes(p.statut || ''))
+  const uploadPlantsRecoltees = sortedPlants.filter(p => STATUTS_TERMINES.includes(p.statut || ''))
 
   const queryKey = ['photos', idCulture, idPlant]
 
@@ -232,6 +243,7 @@ export default function PhotoGallery({ idCulture, idPlant, plants = [] }: PhotoG
   // ── Upload ───────────────────────────────────────────────────────────────
   const handleFiles = async (files: FileList) => {
     setUploading(true)
+    setUploadError(null)
     try {
       // Résolution de la cible de l'upload
       const resolvedPlantId = (!isSinglePlant && uploadTarget !== 'global')
@@ -250,6 +262,16 @@ export default function PhotoGallery({ idCulture, idPlant, plants = [] }: PhotoG
       setNoteInput('')
       qc.invalidateQueries({ queryKey })
       qc.invalidateQueries({ queryKey: ['photos-count', idCulture] })
+    } catch (err: unknown) {
+      const e = err as { response?: { status?: number; data?: { detail?: unknown } }; message?: string }
+      const detail = e.response?.data?.detail
+      const msg = typeof detail === 'string' ? detail
+        : e.response?.status === 413 ? 'Photo trop volumineuse pour le serveur'
+        : e.response?.status ? `Erreur serveur (${e.response.status})`
+        : (e.message || 'Erreur réseau')
+      setUploadError(`Échec de l'upload : ${msg}`)
+      // Rafraîchit quand même : une partie des photos a pu passer
+      qc.invalidateQueries({ queryKey })
     } finally {
       setUploading(false)
     }
@@ -309,11 +331,20 @@ export default function PhotoGallery({ idCulture, idPlant, plants = [] }: PhotoG
                 className="border border-gray-200 dark:border-gray-700 rounded-lg px-2 py-2 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
               >
                 <option value="global">🌿 Toute la culture</option>
-                {sortedPlants.map(p => (
+                {uploadPlantsActives.map(p => (
                   <option key={p.id_plant} value={p.id_plant}>
                     🌱 {p.nom_affichage}
                   </option>
                 ))}
+                {uploadPlantsRecoltees.length > 0 && (
+                  <optgroup label="Récoltées">
+                    {uploadPlantsRecoltees.map(p => (
+                      <option key={p.id_plant} value={p.id_plant}>
+                        ✂️ {p.nom_affichage}
+                      </option>
+                    ))}
+                  </optgroup>
+                )}
               </select>
             </div>
           )}
@@ -338,6 +369,12 @@ export default function PhotoGallery({ idCulture, idPlant, plants = [] }: PhotoG
         )}
 
         <UploadZone onFiles={handleFiles} uploading={uploading} />
+        {uploadError && (
+          <div className="flex items-start gap-2 text-sm text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg px-3 py-2">
+            <span className="flex-1">{uploadError}</span>
+            <button onClick={() => setUploadError(null)} className="text-red-400 hover:text-red-600"><X size={14} /></button>
+          </div>
+        )}
       </div>
 
       {/* ── Filtres de la galerie ──────────────────────────────────────────── */}

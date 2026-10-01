@@ -1,11 +1,5 @@
-fix: corriger l'affichage illisible des arrosages en mode nuit (Suivi de culture)
+fix: upload photo inoperant dans l'app Android et en-tete culture superpose sur mobile
 
-La carte des arrosages groupés dans CalendrierCulture.tsx (bg-blue-50
-border-blue-100) n'avait pas de variante dark: sur son fond ni sa
-bordure, alors que son texte interne était déjà prévu pour un fond
-sombre (dark:text-gray-100/300). En mode nuit le fond restait clair
-et le texte passait en teintes claires, rendant les lignes pH cible,
-Recette et Produits illisibles.
-
-Ajout de dark:bg-blue-900/20 et dark:border-blue-800 sur la carte, et
-dark:text-blue-300 sur la ligne volume par plante.
+- client.ts : intercepteur axios global qui prefixe /api et /uploads par l'URL serveur (app mobile en mode serveur)
+- PhotoGallery : affichage des erreurs d'upload, reset de l'input fichier
+- Culture.tsx : boutons d'action sous le titre sur mobile/tablette

@@ -103,6 +103,20 @@ if (isStandalone()) {
   }
 }
 
+// Mode serveur distant (app mobile) : plusieurs fichiers src/api/ appellent l'axios global
+// avec une URL relative ('/api/...'). Dans l'APK, ces URLs pointent vers l'app elle-même
+// (http://localhost) et non vers le serveur → on les préfixe avec l'URL serveur configurée.
+if (!isStandalone()) {
+  axios.interceptors.request.use((config) => {
+    const s = getServerUrl()
+    const url = config.url ?? ''
+    if (s && !config.baseURL && (url.startsWith('/api/') || url === '/api' || url.startsWith('/uploads/'))) {
+      config.url = `${s}${url}`
+    }
+    return config
+  })
+}
+
 // Intercepteur pour les erreurs
 client.interceptors.response.use(
   (response) => response,
