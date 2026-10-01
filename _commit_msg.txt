@@ -1,5 +1,5 @@
-fix: upload photo inoperant dans l'app Android et en-tete culture superpose sur mobile
+fix: plantes mortes exclues de l'upload photo + compteurs actives/total sur la page culture
 
-- client.ts : intercepteur axios global qui prefixe /api et /uploads par l'URL serveur (app mobile en mode serveur)
-- PhotoGallery : affichage des erreurs d'upload, reset de l'input fichier
-- Culture.tsx : boutons d'action sous le titre sur mobile/tablette
+- PhotoGallery : sélecteur "Associer à" sans les plantes abandonnées, récoltées regroupées à part
+- Culture : onglet "Plantes (actives/total)"
+- PlantesTab : en-tête "X actives · Y terminées"

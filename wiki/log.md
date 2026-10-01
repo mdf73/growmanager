@@ -6,6 +6,26 @@ Format: `## [YYYY-MM-DD] <operation> | <description>`
 
 ---
 
+## [2026-10-01] Fix | Plantes mortes encore proposées dans l'upload photo + compteurs Plantes
+
+**Contexte :** Pik signale que l'ajout de photos propose les 12 plantes de la culture alors que 4 sont mortes (passées en décès via le calendrier, compteur « Plantes actives 8/12 » correct).
+
+**Diagnostic :** le statut est bon en base. L'action `deces_plante` fait `set_statut(pid, "abandonne")` : il n'existe pas de statut « morte » distinct, `abandonne` en tient lieu. Le défaut était purement d'affichage : `PhotoGallery` triait toutes les plantes sans filtre, et le label de l'onglet / l'en-tête PlantesTab utilisaient `plants.length`.
+
+**Fix :**
+- `PhotoGallery.tsx` : le sélecteur « Associer à » exclut `abandonne` ; plantes actives en tête, plantes `sechage/recolte/curing/prete/wpff` dans un `<optgroup>` « Récoltées » (photos de têtes au séchage). Les filtres de la galerie gardent toutes les plantes ayant des photos (historique conservé).
+- `Culture.tsx` : label d'onglet `Plantes (nb_plantes_actives/total)` quand les deux diffèrent.
+- `PlantesTab.tsx` : en-tête « X actives · Y terminées » (mêmes listes `actives` / `terminees` que le reste de l'onglet).
+
+**Files modified:**
+- `frontend/src/components/culture/PhotoGallery.tsx`
+- `frontend/src/pages/Culture.tsx`
+- `frontend/src/components/culture/PlantesTab.tsx`
+
+Validé par Pik.
+
+---
+
 ## [2026-10-01] Fix | App Android : upload photo inopérant + en-tête culture superposé sur mobile
 
 **Contexte :** Pik signale sur l'APK Android (mode serveur) deux problèmes sur la page d'une culture : (1) le titre et les boutons Dates / Changer d'espace / PDF se superposent ; (2) l'ajout de photo ne fait rien après sélection.

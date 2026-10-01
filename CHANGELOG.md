@@ -17,6 +17,14 @@ Versioning : [Semantic Versioning](https://semver.org/lang/fr/) — `MAJOR.MINOR
 
 ---
 
+## [3.5.4] - 2026-10-01
+
+### Corrigé
+- Photos d'une culture : le sélecteur « Associer à » ne propose plus les plantes mortes (statut `abandonne`, via l'action « Décès plante ») ; les plantes récoltées sont regroupées à part sous « Récoltées »
+- Page culture : l'onglet affiche « Plantes (actives/total) » dès qu'une plante n'est plus active, et l'en-tête de l'onglet Plantes affiche « X actives · Y terminées » au lieu du total brut
+
+---
+
 ## [3.5.3] - 2026-10-01
 
 ### Corrigé
