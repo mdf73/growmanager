@@ -1,227 +1,179 @@
 import { useState, useMemo } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Plus, Trophy, Download, X, Leaf, Wind, FlaskConical, Pencil, Trash2, ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-react'
-import { notationVarieteAPI, NotationRead, NotationCreate, NotationUpdate, ExtractionStatsMap } from '../api/notationVariete'
+import { Plus, Trophy, Download, X, FlaskConical, Pencil, Trash2, ChevronUp, ChevronDown, ChevronsUpDown, Star, Sprout } from 'lucide-react'
+import {
+  notationVarieteAPI, NotationCreate, NotationUpdate, ClassementRow, RendementBucket,
+} from '../api/notationVariete'
 import { varieteAPI, Variete } from '../api/varietes'
 import { breederAPI, Breeder } from '../api/breeders'
 import { planCultureAPI, CatalogueItem } from '../api/planCulture'
 import TerpeneMultiSelect, { TerpeneBadges, parseTerpenes } from '../components/TerpeneMultiSelect'
 
+// ── Constantes ────────────────────────────────────────────────────────────────
+
+type NoteKey = 'note_gout' | 'note_odeur' | 'note_texture' | 'note_extraction'
+
+const NOTES: { key: NoteKey; label: string; icon: string }[] = [
+  { key: 'note_gout',       label: 'Goût',                  icon: '👅' },
+  { key: 'note_odeur',      label: 'Odeur',                 icon: '👃' },
+  { key: 'note_texture',    label: 'Texture',               icon: '✋' },
+  { key: 'note_extraction', label: "Facilité d'extraction", icon: '🍯' },
+]
+
+const fmt = (v: number | null | undefined, d = 1) =>
+  v == null ? '' : v.toLocaleString('fr-FR', { minimumFractionDigits: d, maximumFractionDigits: d })
+
 // ── Tri ───────────────────────────────────────────────────────────────────────
-type SortColClassement = 'culture' | 'conso' | 'score'
-type SortDirC = 'asc' | 'desc'
 
-function SortIconC({ col, current, dir }: { col: SortColClassement; current: SortColClassement; dir: SortDirC }) {
-  if (current !== col) return <ChevronsUpDown size={11} className="ml-1 text-gray-400 inline" />
+type SortCol = 'note' | 'rendement' | 'rosin' | 'hash' | 'germination' | 'nom'
+type SortDir = 'asc' | 'desc'
+
+function sortValue(r: ClassementRow, col: SortCol): number | string | null {
+  switch (col) {
+    case 'note':        return r.note_moyenne
+    case 'rendement':   return r.rendement_moyen_g
+    case 'rosin':       return r.rosin?.rendement_pct ?? null
+    case 'hash':        return r.hash?.rendement_pct ?? null
+    case 'germination': return r.germination?.taux_pct ?? null
+    case 'nom':         return r.nom_variete.toLowerCase()
+  }
+}
+
+function SortIcon({ col, current, dir }: { col: SortCol; current: SortCol; dir: SortDir }) {
+  if (current !== col) return <ChevronsUpDown size={11} className="ml-0.5 text-gray-400 inline" />
   return dir === 'asc'
-    ? <ChevronUp size={11} className="ml-1 text-grow-400 inline" />
-    : <ChevronDown size={11} className="ml-1 text-grow-400 inline" />
+    ? <ChevronUp size={11} className="ml-0.5 text-grow-400 inline" />
+    : <ChevronDown size={11} className="ml-0.5 text-grow-400 inline" />
 }
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
+// ── Étoiles ───────────────────────────────────────────────────────────────────
 
-function clamp(v: number | null | undefined, max: number): number {
-  if (v == null) return 0
-  return Math.min(Math.max(0, v), max)
-}
-
-function scoreColor(pct: number): string {
-  if (pct >= 80) return 'text-emerald-600 dark:text-emerald-400 font-bold'
-  if (pct >= 65) return 'text-green-600 dark:text-green-400 font-semibold'
-  if (pct >= 50) return 'text-yellow-600 dark:text-yellow-400 font-semibold'
-  if (pct >= 35) return 'text-orange-500'
-  return 'text-red-500'
-}
-
-function barColor(pct: number): string {
-  if (pct >= 80) return 'bg-emerald-500'
-  if (pct >= 65) return 'bg-green-400'
-  if (pct >= 50) return 'bg-yellow-400'
-  if (pct >= 35) return 'bg-orange-400'
-  return 'bg-red-400'
-}
-
-function ScoreBar({ value, max }: { value: number | null | undefined; max: number }) {
-  const pct = max > 0 ? (clamp(value, max) / max) * 100 : 0
+function Stars({ value, size = 14 }: { value: number | null | undefined; size?: number }) {
+  const v = value ?? 0
   return (
-    <div className="flex items-center gap-2">
-      <div className="flex-1 bg-gray-200 rounded-full h-2 overflow-hidden">
-        <div
-          className={`h-2 rounded-full transition-all ${barColor(pct)}`}
-          style={{ width: `${pct}%` }}
-        />
-      </div>
-      <span className={`text-sm w-16 text-right ${scoreColor(pct)}`}>
-        {clamp(value, max).toFixed(1)} / {max}
+    <span className="inline-flex items-center gap-0.5" aria-label={value == null ? 'Non noté' : `${fmt(value)} sur 5`}>
+      {[1, 2, 3, 4, 5].map(i => {
+        const fill = Math.max(0, Math.min(1, v - (i - 1)))
+        return (
+          <span key={i} className="relative inline-block" style={{ width: size, height: size }}>
+            <Star size={size} className="absolute inset-0 text-gray-300 dark:text-gray-600" />
+            <span className="absolute inset-0 overflow-hidden" style={{ width: `${fill * 100}%` }}>
+              <Star size={size} className="text-yellow-400 fill-yellow-400" />
+            </span>
+          </span>
+        )
+      })}
+    </span>
+  )
+}
+
+function StarInput({ value, onChange }: { value: number | null | undefined; onChange: (v: number | null) => void }) {
+  const [hover, setHover] = useState<number | null>(null)
+  const shown = hover ?? value ?? 0
+  return (
+    <div className="flex items-center gap-1" onMouseLeave={() => setHover(null)}>
+      {[1, 2, 3, 4, 5].map(i => (
+        <button
+          key={i}
+          type="button"
+          onMouseEnter={() => setHover(i)}
+          onClick={() => onChange(value === i ? null : i)}
+          className="p-0.5"
+          title={value === i ? 'Cliquer à nouveau pour effacer' : `${i} / 5`}
+        >
+          <Star size={26} className={i <= shown ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300 dark:text-gray-600'} />
+        </button>
+      ))}
+      <span className="ml-2 text-sm text-gray-500 dark:text-gray-400 w-12">
+        {value == null ? 'Non noté' : `${value} / 5`}
       </span>
     </div>
   )
 }
 
-// ── Composant slider de note ──────────────────────────────────────────────────
+// ── Puces de stats ────────────────────────────────────────────────────────────
 
-function NoteSlider({
-  label,
-  max,
-  value,
-  onChange,
-  hint,
-}: {
-  label: string
-  max: number
-  value: number | null | undefined
-  onChange: (v: number) => void
-  hint?: string
-}) {
+function BucketChip({ b }: { b: RendementBucket }) {
+  const cls = b.type === 'hydro'
+    ? 'bg-sky-100 dark:bg-sky-900/30 text-sky-800 dark:text-sky-300'
+    : b.type === 'inconnu'
+    ? 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
+    : 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300'
   return (
-    <div className="space-y-1">
-      <div className="flex items-center justify-between">
-        <label className="text-sm font-medium text-gray-700 dark:text-gray-200">{label}</label>
-        <span className="text-sm font-bold text-grow-600">
-          {(value ?? 0).toFixed(1)} / {max}
-        </span>
-      </div>
-      {hint && <p className="text-xs text-gray-400 dark:text-gray-500">{hint}</p>}
-      <input
-        type="range"
-        min={0}
-        max={max}
-        step={0.5}
-        value={value ?? 0}
-        onChange={e => onChange(parseFloat(e.target.value))}
-        className="w-full accent-grow-600"
-      />
-      <div className="flex justify-between text-xs text-gray-400 dark:text-gray-500">
-        <span>0</span>
-        <span>{max / 2}</span>
-        <span>{max}</span>
-      </div>
-    </div>
+    <span
+      className={`inline-flex items-baseline gap-1 text-xs px-2 py-0.5 rounded-full whitespace-nowrap ${cls}`}
+      title={`${b.nb_pieds} pied${b.nb_pieds > 1 ? 's' : ''} · min ${fmt(b.min_g, 0)} g · max ${fmt(b.max_g, 0)} g · total ${fmt(b.total_g, 0)} g`}
+    >
+      <span className="font-medium">{b.label}</span>
+      <span className="font-bold">{fmt(b.moyenne_g, 0)} g</span>
+      <span className="opacity-70">×{b.nb_pieds}</span>
+    </span>
   )
+}
+
+const Dash = () => <span className="text-gray-300 dark:text-gray-600">–</span>
+
+function Pct({ v, cls }: { v: number | null | undefined; cls: string }) {
+  if (v == null) return <Dash />
+  return <span className={`text-sm font-semibold ${cls}`}>{fmt(v)} %</span>
 }
 
 // ── Modal formulaire (ajout / édition) ───────────────────────────────────────
 
-const EMPTY_FORM: Partial<NotationCreate> = {
-  nom_variete: '',
-  breeder: '',
-  date_notation: new Date().toISOString().split('T')[0],
-  vigueur_sante: 0,
-  productivite_structure: 0,
-  soif: 0,
-  apparence_structure: 0,
-  profil_aromatique: 0,
-  saveur_qualite: 0,
-  effet_puissance: 0,
-  taux_thc: undefined,
-  taux_cbd: undefined,
-  terpene_dominant: '',
-  commentaire_labo: '',
-  notes_generales: '',
-}
+type FormState = Partial<NotationCreate>
 
-type FormState = typeof EMPTY_FORM
+const today = () => new Date().toISOString().split('T')[0]
 
 interface NotationFormModalProps {
-  initial?: NotationRead | null
+  initial: FormState
+  isEdit: boolean
   onClose: () => void
   onSave: (data: FormState) => Promise<void>
   saving: boolean
-  varietes: Variete[]
+  varieteNames: string[]
   breeders: Breeder[]
   catalogue: CatalogueItem[]
 }
 
-function NotationFormModal({ initial, onClose, onSave, saving, varietes, breeders, catalogue }: NotationFormModalProps) {
-  const [form, setForm] = useState<FormState>(
-    initial
-      ? {
-          nom_variete: initial.nom_variete,
-          breeder: initial.breeder ?? '',
-          date_notation: initial.date_notation ?? new Date().toISOString().split('T')[0],
-          vigueur_sante: initial.vigueur_sante ?? 0,
-          productivite_structure: initial.productivite_structure ?? 0,
-          soif: initial.soif ?? 0,
-          apparence_structure: initial.apparence_structure ?? 0,
-          profil_aromatique: initial.profil_aromatique ?? 0,
-          saveur_qualite: initial.saveur_qualite ?? 0,
-          effet_puissance: initial.effet_puissance ?? 0,
-          taux_thc: initial.taux_thc ?? undefined,
-          taux_cbd: initial.taux_cbd ?? undefined,
-          terpene_dominant: initial.terpene_dominant ?? '',
-          commentaire_labo: initial.commentaire_labo ?? '',
-          notes_generales: initial.notes_generales ?? '',
-        }
-      : { ...EMPTY_FORM }
-  )
+function NotationFormModal({ initial, isEdit, onClose, onSave, saving, varieteNames, breeders, catalogue }: NotationFormModalProps) {
+  const [form, setForm] = useState<FormState>(initial)
+  const [formError, setFormError] = useState<string | null>(null)
+  const set = (key: keyof FormState, v: unknown) => setForm(f => ({ ...f, [key]: v }))
 
-  const set = (key: keyof FormState, v: unknown) =>
-    setForm(f => ({ ...f, [key]: v }))
-
-  // Map nom_variete → nom_breeder depuis le catalogue (graines connues)
-  const varieteToBreeders = new Map<string, string>()
-  catalogue.forEach(c => {
-    if (c.nom_variete && c.nom_breeder) {
-      varieteToBreeders.set(c.nom_variete, c.nom_breeder)
-    }
-  })
-
-  // Sélection variété → auto-fill breeder
-  const handleVarieteChange = (nom: string) => {
-    set('nom_variete', nom)
-    const autoBreeder = varieteToBreeders.get(nom)
-    if (autoBreeder) set('breeder', autoBreeder)
-  }
-
-  // Variétés connues triées + valeur courante si absente de la liste (données existantes)
-  const sortedVarietes = [...varietes].sort((a, b) => a.nom_variete.localeCompare(b.nom_variete))
-  const knownVarieteNames = new Set(sortedVarietes.map(v => v.nom_variete))
-  const hasUnknownVariete = !!form.nom_variete && !knownVarieteNames.has(form.nom_variete as string)
+  const varieteToBreeder = useMemo(() => {
+    const m = new Map<string, string>()
+    catalogue.forEach(c => { if (c.nom_variete && c.nom_breeder) m.set(c.nom_variete, c.nom_breeder) })
+    return m
+  }, [catalogue])
 
   const sortedBreeders = [...breeders].sort((a, b) => a.nom_breeder.localeCompare(b.nom_breeder))
-  const knownBreederNames = new Set(sortedBreeders.map(b => b.nom_breeder))
-  const hasUnknownBreeder = !!form.breeder && !knownBreederNames.has(form.breeder as string)
-
-  const totalCulture =
-    (form.vigueur_sante ?? 0) +
-    (form.productivite_structure ?? 0) +
-    (form.soif ?? 0)
-
-  const totalConso =
-    (form.apparence_structure ?? 0) +
-    (form.profil_aromatique ?? 0) +
-    (form.saveur_qualite ?? 0) +
-    (form.effet_puissance ?? 0)
-
-  const notaFinale = totalCulture + totalConso
-
-  const [formError, setFormError] = useState<string | null>(null)
+  const hasUnknownBreeder = !!form.breeder && !sortedBreeders.some(b => b.nom_breeder === form.breeder)
+  const hasUnknownVariete = !!form.nom_variete && !varieteNames.includes(form.nom_variete)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setFormError(null)
-    // Validation manuelle (évite les tooltips natifs perdus dans un modal scrollable)
-    if (!form.nom_variete || (form.nom_variete as string).trim() === '') {
+    if (!form.nom_variete || form.nom_variete.trim() === '') {
       setFormError('Veuillez choisir une variété.')
       return
     }
     try {
       await onSave(form)
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Erreur lors de l\'enregistrement.'
-      setFormError(msg)
+      setFormError(err instanceof Error ? err.message : "Erreur lors de l'enregistrement.")
     }
   }
 
+  const input = 'w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-grow-500 bg-white dark:bg-gray-800'
+
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-start justify-center p-4 overflow-y-auto">
-      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-2xl my-4">
-        {/* Header */}
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-xl my-4">
         <div className="flex items-center justify-between p-6 border-b">
           <div className="flex items-center gap-3">
             <Trophy size={22} className="text-yellow-500" />
             <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">
-              {initial ? 'Modifier la notation' : 'Nouvelle notation'}
+              {isEdit ? 'Modifier la notation' : 'Noter une variété'}
             </h2>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
@@ -230,260 +182,115 @@ function NotationFormModal({ initial, onClose, onSave, saving, varietes, breeder
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
-          {/* Infos de base */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-
-            {/* Variété */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                 Variété <span className="text-red-500">*</span>
               </label>
               <select
-                value={hasUnknownVariete ? '__custom__' : (form.nom_variete ?? '')}
+                value={form.nom_variete ?? ''}
+                disabled={isEdit}
                 onChange={e => {
                   setFormError(null)
-                  if (e.target.value === '__custom__') {
-                    set('nom_variete', form.nom_variete ?? '')
-                  } else {
-                    handleVarieteChange(e.target.value)
-                  }
+                  set('nom_variete', e.target.value)
+                  const b = varieteToBreeder.get(e.target.value)
+                  if (b && !form.breeder) set('breeder', b)
                 }}
-                className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-grow-500 bg-white dark:bg-gray-800 ${
-                  formError && !form.nom_variete ? 'border-red-400 ring-1 ring-red-400' : ''
-                }`}
+                className={`${input} disabled:opacity-70 ${formError && !form.nom_variete ? 'border-red-400 ring-1 ring-red-400' : ''}`}
               >
                 <option value="">— Choisir une variété —</option>
-                {sortedVarietes.map(v => (
-                  <option key={v.id_variete} value={v.nom_variete}>
-                    {v.nom_variete}
-                  </option>
-                ))}
-                {hasUnknownVariete && (
-                  <option value="__custom__">{form.nom_variete as string} (valeur existante)</option>
-                )}
+                {varieteNames.map(n => <option key={n} value={n}>{n}</option>)}
+                {hasUnknownVariete && <option value={form.nom_variete}>{form.nom_variete}</option>}
               </select>
+              {!isEdit && (
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                  Si la variété est déjà notée, sa notation est mise à jour.
+                </p>
+              )}
             </div>
 
-            {/* Breeder */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Breeder</label>
               <select
-                value={hasUnknownBreeder ? '__custom__' : (form.breeder ?? '')}
-                onChange={e => {
-                  if (e.target.value === '__custom__') {
-                    set('breeder', form.breeder ?? '')
-                  } else {
-                    set('breeder', e.target.value)
-                  }
-                }}
-                className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-grow-500 bg-white dark:bg-gray-800"
+                value={form.breeder ?? ''}
+                onChange={e => set('breeder', e.target.value)}
+                className={input}
               >
                 <option value="">— Choisir un breeder —</option>
-                {sortedBreeders.map(b => (
-                  <option key={b.id_breeder} value={b.nom_breeder}>
-                    {b.nom_breeder}
-                  </option>
-                ))}
-                {hasUnknownBreeder && (
-                  <option value="__custom__">{form.breeder as string} (valeur existante)</option>
-                )}
+                {sortedBreeders.map(b => <option key={b.id_breeder} value={b.nom_breeder}>{b.nom_breeder}</option>)}
+                {hasUnknownBreeder && <option value={form.breeder ?? ''}>{form.breeder}</option>}
               </select>
             </div>
 
-            {/* Date */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Date de notation</label>
-              <input
-                type="date"
-                value={form.date_notation ?? ''}
-                onChange={e => set('date_notation', e.target.value)}
-                className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-grow-500"
-              />
+              <input type="date" value={form.date_notation ?? ''} onChange={e => set('date_notation', e.target.value)} className={input} />
             </div>
           </div>
 
-          {/* ── Partie A : Culture ── */}
-          <div className="bg-green-50 dark:bg-green-900/20 rounded-xl p-5 space-y-5">
-            <div className="flex items-center gap-2">
-              <Leaf size={18} className="text-green-600 dark:text-green-400" />
-              <h3 className="font-semibold text-green-800 dark:text-green-300">Partie A — Culture</h3>
-              <span className="ml-auto text-sm font-bold text-green-700 dark:text-green-300">
-                {totalCulture.toFixed(1)} / 30
-              </span>
-            </div>
-            <NoteSlider
-              label="🌿 Vigueur & Santé"
-              max={10}
-              value={form.vigueur_sante}
-              onChange={v => set('vigueur_sante', v)}
-              hint="Résistance aux maladies/nuisibles et stabilité génétique"
-            />
-            <NoteSlider
-              label="📊 Productivité & Structure"
-              max={10}
-              value={form.productivite_structure}
-              onChange={v => set('productivite_structure', v)}
-              hint="Rendement final et facilité de manucure (ratio feuilles/fleurs)"
-            />
-            <NoteSlider
-              label="💧 Soif"
-              max={10}
-              value={form.soif}
-              onChange={v => set('soif', v)}
-              hint="Besoin en eau : peu gourmande en arrosage = meilleure tournure (10 = très sobre)"
-            />
+          {/* Notes étoiles */}
+          <div className="bg-yellow-50 dark:bg-yellow-900/10 rounded-xl p-5 space-y-4">
+            <h3 className="font-semibold text-yellow-800 dark:text-yellow-300 flex items-center gap-2">
+              <Star size={18} className="text-yellow-500 fill-yellow-500" /> Notes
+            </h3>
+            {NOTES.map(n => (
+              <div key={n.key} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-200">{n.icon} {n.label}</span>
+                <StarInput value={form[n.key] as number | null | undefined} onChange={v => set(n.key, v)} />
+              </div>
+            ))}
           </div>
 
-          {/* ── Partie B : Consommation ── */}
-          <div className="bg-purple-50 dark:bg-purple-900/20 rounded-xl p-5 space-y-5">
-            <div className="flex items-center gap-2">
-              <Wind size={18} className="text-purple-600 dark:text-purple-400" />
-              <h3 className="font-semibold text-purple-800 dark:text-purple-300">Partie B — Consommation</h3>
-              <span className="ml-auto text-sm font-bold text-purple-700 dark:text-purple-300">
-                {totalConso.toFixed(1)} / 70
-              </span>
-            </div>
-            <NoteSlider
-              label="✨ Apparence & Structure"
-              max={15}
-              value={form.apparence_structure}
-              onChange={v => set('apparence_structure', v)}
-              hint="Densité, trichomes préservés, éclat des pistils et couleurs"
-            />
-            <NoteSlider
-              label="👃 Profil Aromatique & Terpènes"
-              max={15}
-              value={form.profil_aromatique}
-              onChange={v => set('profil_aromatique', v)}
-              hint="Intensité à l'ouverture du bocal et complexité des notes (gaz, terre, fruits)"
-            />
-            <NoteSlider
-              label="💨 Saveur & Qualité de Fumée"
-              max={20}
-              value={form.saveur_qualite}
-              onChange={v => set('saveur_qualite', v)}
-              hint="Fidélité goût/odeur, douceur (absence d'irritation) et persistance en bouche"
-            />
-            <NoteSlider
-              label="🌀 Effet & Puissance"
-              max={20}
-              value={form.effet_puissance}
-              onChange={v => set('effet_puissance', v)}
-              hint="Force brute, clarté de la montée, adéquation Sativa/Indica, durée et effet entourage"
-            />
-          </div>
-
-          {/* ── Score synthèse ── */}
-          <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4 flex items-center justify-between">
-            <span className="text-sm text-gray-600 dark:text-gray-300">Note finale estimée</span>
-            <span
-              className={`text-2xl font-black ${
-                notaFinale >= 80
-                  ? 'text-emerald-600 dark:text-emerald-400'
-                  : notaFinale >= 65
-                  ? 'text-green-600 dark:text-green-400'
-                  : notaFinale >= 50
-                  ? 'text-yellow-600 dark:text-yellow-400'
-                  : notaFinale >= 35
-                  ? 'text-orange-500'
-                  : 'text-red-500'
-              }`}
-            >
-              {notaFinale.toFixed(1)} / 100
-            </span>
-          </div>
-
-          {/* ── Données labo (optionnel) ── */}
+          {/* Données labo */}
           <details className="border rounded-xl">
             <summary className="flex items-center gap-2 cursor-pointer px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-200 select-none">
               <FlaskConical size={16} className="text-blue-500" />
-              Données Labo (optionnel — informatif, n'impacte pas la note)
+              Données labo (optionnel, informatif)
             </summary>
             <div className="p-4 space-y-3">
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">THC %</label>
-                  <input
-                    type="number"
-                    step="0.1"
-                    min="0"
-                    max="100"
-                    value={form.taux_thc ?? ''}
-                    onChange={e => set('taux_thc', e.target.value ? parseFloat(e.target.value) : undefined)}
-                    className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-grow-500"
-                    placeholder="Ex: 22.5"
-                  />
+                  <input type="number" step="0.1" min="0" max="100" value={form.taux_thc ?? ''}
+                    onChange={e => set('taux_thc', e.target.value ? parseFloat(e.target.value) : null)} className={input} />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">CBD %</label>
-                  <input
-                    type="number"
-                    step="0.1"
-                    min="0"
-                    max="100"
-                    value={form.taux_cbd ?? ''}
-                    onChange={e => set('taux_cbd', e.target.value ? parseFloat(e.target.value) : undefined)}
-                    className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-grow-500"
-                    placeholder="Ex: 1.0"
-                  />
+                  <input type="number" step="0.1" min="0" max="100" value={form.taux_cbd ?? ''}
+                    onChange={e => set('taux_cbd', e.target.value ? parseFloat(e.target.value) : null)} className={input} />
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-2">
-                  Terpènes <span className="text-gray-400 dark:text-gray-500 font-normal">(sélectionner un ou plusieurs)</span>
-                </label>
-                <TerpeneMultiSelect
-                  value={form.terpene_dominant ?? ''}
-                  onChange={v => set('terpene_dominant', v)}
-                />
+                <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-2">Terpènes</label>
+                <TerpeneMultiSelect value={form.terpene_dominant ?? ''} onChange={v => set('terpene_dominant', v)} />
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Commentaire labo</label>
-                <input
-                  type="text"
-                  value={form.commentaire_labo ?? ''}
-                  onChange={e => set('commentaire_labo', e.target.value)}
-                  className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-grow-500"
-                  placeholder="Ex: Pesticides-free, testée propre…"
-                />
+                <input type="text" value={form.commentaire_labo ?? ''} onChange={e => set('commentaire_labo', e.target.value)} className={input} />
               </div>
             </div>
           </details>
 
-          {/* Notes générales */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Notes générales</label>
-            <textarea
-              value={form.notes_generales ?? ''}
-              onChange={e => set('notes_generales', e.target.value)}
-              rows={3}
-              className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-grow-500 resize-none"
-              placeholder="Observations libres, comparaison avec d'autres variétés…"
-            />
+            <textarea value={form.notes_generales ?? ''} onChange={e => set('notes_generales', e.target.value)} rows={3}
+              className={`${input} resize-none`} placeholder="Observations libres…" />
           </div>
 
-          {/* Boutons */}
           {formError && (
             <div className="flex items-center gap-2 bg-red-50 dark:bg-red-900/20 border border-red-200 text-red-700 dark:text-red-300 rounded-lg px-4 py-3 text-sm">
-              <span className="text-red-500">⚠</span>
-              {formError}
+              <span className="text-red-500">⚠</span>{formError}
             </div>
           )}
 
           <div className="flex justify-end gap-3 pt-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 border rounded-lg text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/40"
-            >
+            <button type="button" onClick={onClose}
+              className="px-4 py-2 border rounded-lg text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/40">
               Annuler
             </button>
-            <button
-              type="submit"
-              disabled={saving}
-              className="px-5 py-2 bg-grow-600 text-white rounded-lg text-sm font-medium hover:bg-grow-700 disabled:opacity-50"
-            >
-              {saving ? 'Enregistrement…' : initial ? 'Mettre à jour' : 'Enregistrer'}
+            <button type="submit" disabled={saving}
+              className="px-5 py-2 bg-grow-600 text-white rounded-lg text-sm font-medium hover:bg-grow-700 disabled:opacity-50">
+              {saving ? 'Enregistrement…' : 'Enregistrer'}
             </button>
           </div>
         </form>
@@ -492,212 +299,157 @@ function NotationFormModal({ initial, onClose, onSave, saving, varietes, breeder
   )
 }
 
-// ── Modal détail ──────────────────────────────────────────────────────────────
+// ── Modal détail d'une variété ────────────────────────────────────────────────
 
-function DetailModal({
-  notation,
-  onClose,
-  onEdit,
-  onDelete,
-  extractionStat,
-}: {
-  notation: NotationRead
+function DetailModal({ row, rank, onClose, onRate, onDeleteNotation }: {
+  row: ClassementRow
+  rank: number
   onClose: () => void
-  onEdit: () => void
-  onDelete: () => void
-  extractionStat?: { avg_rosin_pct: number | null; nb_rosin: number; avg_hash_pct: number | null; nb_hash: number }
+  onRate: () => void
+  onDeleteNotation: () => void
 }) {
-  const tc = notation.total_culture ?? 0
-  const tco = notation.total_consommation ?? 0
-  const nf = notation.note_finale ?? 0
-  const pct = nf
-
+  const n = row.notation
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-start justify-center p-4 overflow-y-auto">
       <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-lg my-4">
-        {/* Header */}
-        <div
-          className={`rounded-t-2xl p-6 text-white ${
-            pct >= 80
-              ? 'bg-emerald-600'
-              : pct >= 65
-              ? 'bg-green-600'
-              : pct >= 50
-              ? 'bg-yellow-500'
-              : pct >= 35
-              ? 'bg-orange-500'
-              : 'bg-red-500'
-          }`}
-        >
-          <div className="flex items-start justify-between">
-            <div>
-              <h2 className="text-2xl font-black">{notation.nom_variete}</h2>
-              {notation.breeder && (
-                <p className="text-white/80 text-sm mt-0.5">{notation.breeder}</p>
-              )}
-              {notation.date_notation && (
-                <p className="text-white/70 text-xs mt-1">
-                  Noté le {new Date(notation.date_notation).toLocaleDateString('fr-FR')}
-                </p>
-              )}
+        <div className="rounded-t-2xl p-6 bg-grow-600 text-white">
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0">
+              <p className="text-white/70 text-xs font-medium">#{rank} du classement</p>
+              <h2 className="text-2xl font-black truncate">{row.nom_variete}</h2>
+              {row.breeder && <p className="text-white/80 text-sm mt-0.5">{row.breeder}</p>}
             </div>
-            <div className="text-right">
-              <div className="text-4xl font-black">{nf.toFixed(1)}</div>
-              <div className="text-white/80 text-sm">/ 100</div>
+            <div className="text-right shrink-0">
+              {row.note_moyenne != null ? (
+                <>
+                  <div className="text-4xl font-black">{fmt(row.note_moyenne)}</div>
+                  <div className="text-white/80 text-sm">/ 5</div>
+                </>
+              ) : (
+                <div className="text-sm text-white/80 mt-2">Pas encore notée</div>
+              )}
             </div>
           </div>
         </div>
 
         <div className="p-6 space-y-5">
-          {/* Récap scores */}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="bg-green-50 dark:bg-green-900/20 rounded-xl p-3 text-center">
-              <div className="text-xs text-green-600 dark:text-green-400 font-medium mb-0.5">🌿 Culture</div>
-              <div className="text-xl font-black text-green-700 dark:text-green-300">{tc.toFixed(1)}</div>
-              <div className="text-xs text-green-500">/ 30</div>
-            </div>
-            <div className="bg-purple-50 dark:bg-purple-900/20 rounded-xl p-3 text-center">
-              <div className="text-xs text-purple-600 dark:text-purple-400 font-medium mb-0.5">💨 Consommation</div>
-              <div className="text-xl font-black text-purple-700 dark:text-purple-300">{tco.toFixed(1)}</div>
-              <div className="text-xs text-purple-500">/ 70</div>
-            </div>
-          </div>
+          {/* Rendement culture */}
+          <section>
+            <h4 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">🌿 Rendement culture (poids sec par pied)</h4>
+            {row.rendement_culture.length === 0 ? (
+              <p className="text-sm text-gray-400 dark:text-gray-500">Aucune récolte enregistrée.</p>
+            ) : (
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-xs text-gray-500 dark:text-gray-400 border-b">
+                    <th className="text-left py-1.5 font-medium">Contenant</th>
+                    <th className="text-right py-1.5 font-medium">Pieds</th>
+                    <th className="text-right py-1.5 font-medium">Moyenne</th>
+                    <th className="text-right py-1.5 font-medium">Min / max</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {row.rendement_culture.map(b => (
+                    <tr key={`${b.type}-${b.volume_l}`} className="border-b last:border-0">
+                      <td className="py-1.5 font-medium text-gray-800 dark:text-gray-100">{b.label}</td>
+                      <td className="py-1.5 text-right tabular-nums">{b.nb_pieds}</td>
+                      <td className="py-1.5 text-right tabular-nums font-bold text-green-700 dark:text-green-300">{fmt(b.moyenne_g)} g</td>
+                      <td className="py-1.5 text-right tabular-nums text-gray-500 dark:text-gray-400">{fmt(b.min_g, 0)} / {fmt(b.max_g, 0)} g</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </section>
 
-          {/* Stats extraction */}
-          {extractionStat && (extractionStat.avg_rosin_pct != null || extractionStat.avg_hash_pct != null) && (
-            <div className="grid grid-cols-2 gap-3">
-              {extractionStat.avg_rosin_pct != null && (
-                <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 rounded-xl p-3 text-center">
-                  <div className="text-xs text-amber-600 dark:text-amber-400 font-medium mb-0.5">🍯 Rosin moy.</div>
-                  <div className="text-xl font-black text-amber-700 dark:text-amber-300">
-                    {extractionStat.avg_rosin_pct.toFixed(1)}
-                    <span className="text-sm font-normal text-amber-500">%</span>
-                  </div>
-                  <div className="text-xs text-amber-400">{extractionStat.nb_rosin} extraction{extractionStat.nb_rosin > 1 ? 's' : ''}</div>
-                </div>
-              )}
-              {extractionStat.avg_hash_pct != null && (
-                <div className="bg-stone-50 dark:bg-stone-900/20 border border-stone-200 rounded-xl p-3 text-center">
-                  <div className="text-xs text-stone-600 dark:text-stone-400 font-medium mb-0.5">🍫 Hash moy.</div>
-                  <div className="text-xl font-black text-stone-700 dark:text-stone-300">
-                    {extractionStat.avg_hash_pct.toFixed(1)}
-                    <span className="text-sm font-normal text-stone-500">%</span>
-                  </div>
-                  <div className="text-xs text-stone-400">{extractionStat.nb_hash} extraction{extractionStat.nb_hash > 1 ? 's' : ''}</div>
-                </div>
-              )}
+          {/* Extractions + germination */}
+          <section className="grid grid-cols-3 gap-3">
+            {[
+              { t: '🍯 Rosin', s: row.rosin, cls: 'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300' },
+              { t: '🍫 Hash', s: row.hash, cls: 'bg-stone-100 dark:bg-stone-800/40 text-stone-700 dark:text-stone-300' },
+            ].map(({ t, s, cls }) => (
+              <div key={t} className={`rounded-xl p-3 text-center ${cls}`}>
+                <div className="text-xs font-medium mb-0.5">{t}</div>
+                {s ? (
+                  <>
+                    <div className="text-xl font-black">{fmt(s.rendement_pct)} %</div>
+                    <div className="text-[11px] opacity-80">{fmt(s.total_extrait_g)} g / {fmt(s.total_utilise_g, 0)} g</div>
+                    <div className="text-[11px] opacity-70">{s.nb} extraction{s.nb > 1 ? 's' : ''}</div>
+                  </>
+                ) : <div className="text-sm opacity-60 mt-1">Aucune</div>}
+              </div>
+            ))}
+            <div className="rounded-xl p-3 text-center bg-lime-50 dark:bg-lime-900/20 text-lime-800 dark:text-lime-300">
+              <div className="text-xs font-medium mb-0.5">🌱 Germination</div>
+              {row.germination ? (
+                <>
+                  <div className="text-xl font-black">{fmt(row.germination.taux_pct, 0)} %</div>
+                  <div className="text-[11px] opacity-80">{row.germination.germees} / {row.germination.semees} graines</div>
+                  {row.germination.mortes > 0 && <div className="text-[11px] opacity-70">{row.germination.mortes} morte{row.germination.mortes > 1 ? 's' : ''}</div>}
+                </>
+              ) : <div className="text-sm opacity-60 mt-1">Pas de semis</div>}
             </div>
-          )}
-
-          {/* Partie A — Culture */}
-          <div>
-            <h4 className="text-sm font-semibold text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase tracking-wide mb-3">
-              🌿 Partie A — Culture (/30)
-            </h4>
-            <div className="space-y-2">
-              <div>
-                <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 mb-1">Vigueur & Santé</p>
-                <ScoreBar value={notation.vigueur_sante} max={10} />
-              </div>
-              <div>
-                <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 mb-1">Productivité & Structure</p>
-                <ScoreBar value={notation.productivite_structure} max={10} />
-              </div>
-              <div>
-                <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 mb-1">💧 Soif (sobriété en arrosage)</p>
-                <ScoreBar value={notation.soif} max={10} />
-              </div>
-            </div>
-          </div>
-
-          {/* Partie B — Consommation */}
-          <div>
-            <h4 className="text-sm font-semibold text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase tracking-wide mb-3">
-              💨 Partie B — Consommation (/70)
-            </h4>
-            <div className="space-y-2">
-              <div>
-                <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 mb-1">Apparence & Structure (/15)</p>
-                <ScoreBar value={notation.apparence_structure} max={15} />
-              </div>
-              <div>
-                <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 mb-1">Profil Aromatique & Terpènes (/15)</p>
-                <ScoreBar value={notation.profil_aromatique} max={15} />
-              </div>
-              <div>
-                <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 mb-1">Saveur & Qualité de Fumée (/20)</p>
-                <ScoreBar value={notation.saveur_qualite} max={20} />
-              </div>
-              <div>
-                <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 mb-1">Effet & Puissance (/20)</p>
-                <ScoreBar value={notation.effet_puissance} max={20} />
-              </div>
-            </div>
-          </div>
-
-          {/* Données labo */}
-          {(notation.taux_thc || notation.taux_cbd || notation.terpene_dominant || notation.commentaire_labo) && (
-            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 space-y-2">
-              <h4 className="text-sm font-semibold text-blue-700 dark:text-blue-300 mb-2 flex items-center gap-1.5">
-                <FlaskConical size={14} /> Données Labo
-              </h4>
-              {(notation.taux_thc || notation.taux_cbd) && (
-                <div className="flex items-center gap-4">
-                  {notation.taux_thc && (
-                    <span className="text-sm text-gray-700 dark:text-gray-200">
-                      <span className="font-medium">THC :</span> {notation.taux_thc}%
-                    </span>
-                  )}
-                  {notation.taux_cbd && (
-                    <span className="text-sm text-gray-700 dark:text-gray-200">
-                      <span className="font-medium">CBD :</span> {notation.taux_cbd}%
-                    </span>
-                  )}
-                </div>
-              )}
-              {notation.terpene_dominant && parseTerpenes(notation.terpene_dominant).length > 0 && (
-                <div>
-                  <p className="text-xs font-medium text-gray-500 dark:text-gray-400 dark:text-gray-500 mb-1.5">
-                    Terpène{parseTerpenes(notation.terpene_dominant).length > 1 ? 's' : ''} :
-                  </p>
-                  <TerpeneBadges csv={notation.terpene_dominant} />
-                </div>
-              )}
-              {notation.commentaire_labo && (
-                <p className="text-sm text-gray-600 dark:text-gray-300 italic">{notation.commentaire_labo}</p>
-              )}
-            </div>
-          )}
+          </section>
 
           {/* Notes */}
-          {notation.notes_generales && (
-            <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4">
-              <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase tracking-wide mb-1">Notes</h4>
-              <p className="text-sm text-gray-700 dark:text-gray-200 whitespace-pre-line">{notation.notes_generales}</p>
-            </div>
+          <section>
+            <h4 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">⭐ Notes</h4>
+            {n ? (
+              <div className="space-y-1.5">
+                {NOTES.map(x => (
+                  <div key={x.key} className="flex items-center justify-between">
+                    <span className="text-sm text-gray-700 dark:text-gray-200">{x.icon} {x.label}</span>
+                    {n[x.key] != null ? <Stars value={n[x.key]} size={16} /> : <span className="text-xs text-gray-400">Non noté</span>}
+                  </div>
+                ))}
+                {n.date_notation && (
+                  <p className="text-xs text-gray-400 dark:text-gray-500 pt-1">Notée le {new Date(n.date_notation).toLocaleDateString('fr-FR')}</p>
+                )}
+              </div>
+            ) : (
+              <p className="text-sm text-gray-400 dark:text-gray-500">Cette variété n'a pas encore de notes.</p>
+            )}
+          </section>
+
+          {n && (n.taux_thc || n.taux_cbd || n.terpene_dominant || n.commentaire_labo) && (
+            <section className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 space-y-2">
+              <h4 className="text-sm font-semibold text-blue-700 dark:text-blue-300 flex items-center gap-1.5">
+                <FlaskConical size={14} /> Données labo
+              </h4>
+              {(n.taux_thc || n.taux_cbd) && (
+                <p className="text-sm text-gray-700 dark:text-gray-200">
+                  {n.taux_thc ? <>THC {n.taux_thc} %</> : null}{n.taux_thc && n.taux_cbd ? ' · ' : ''}{n.taux_cbd ? <>CBD {n.taux_cbd} %</> : null}
+                </p>
+              )}
+              {n.terpene_dominant && parseTerpenes(n.terpene_dominant).length > 0 && <TerpeneBadges csv={n.terpene_dominant} />}
+              {n.commentaire_labo && <p className="text-sm text-gray-600 dark:text-gray-300 italic">{n.commentaire_labo}</p>}
+            </section>
           )}
 
-          {/* Actions */}
+          {n?.notes_generales && (
+            <section className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4">
+              <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Notes générales</h4>
+              <p className="text-sm text-gray-700 dark:text-gray-200 whitespace-pre-line">{n.notes_generales}</p>
+            </section>
+          )}
+
           <div className="flex items-center justify-between pt-2 border-t">
-            <button
-              onClick={onClose}
-              className="px-4 py-2 border rounded-lg text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/40"
-            >
+            <button onClick={onClose}
+              className="px-4 py-2 border rounded-lg text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/40">
               Fermer
             </button>
             <div className="flex gap-2">
-              <button
-                onClick={onEdit}
-                className="flex items-center gap-1.5 px-3 py-2 border border-grow-600 text-grow-600 rounded-lg text-sm hover:bg-grow-50"
-              >
-                <Pencil size={14} /> Modifier
+              <button onClick={onRate}
+                className="flex items-center gap-1.5 px-3 py-2 border border-grow-600 text-grow-600 rounded-lg text-sm hover:bg-grow-50 dark:hover:bg-grow-900/20">
+                {n ? <><Pencil size={14} /> Modifier les notes</> : <><Star size={14} /> Noter</>}
               </button>
-              <button
-                onClick={onDelete}
-                className="flex items-center gap-1.5 px-3 py-2 border border-red-500 text-red-500 rounded-lg text-sm hover:bg-red-50"
-              >
-                <Trash2 size={14} /> Supprimer
-              </button>
+              {n && (
+                <button onClick={onDeleteNotation}
+                  className="flex items-center gap-1.5 px-3 py-2 border border-red-500 text-red-500 rounded-lg text-sm hover:bg-red-50 dark:hover:bg-red-900/20"
+                  title="Supprime les notes (les stats calculées restent)">
+                  <Trash2 size={14} />
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -712,117 +464,121 @@ function RankBadge({ rank }: { rank: number }) {
   if (rank === 1) return <span className="text-xl">🥇</span>
   if (rank === 2) return <span className="text-xl">🥈</span>
   if (rank === 3) return <span className="text-xl">🥉</span>
-  return <span className="text-sm font-bold text-gray-500 dark:text-gray-400 dark:text-gray-500 w-7 text-center">{rank}</span>
+  return <span className="text-sm font-bold text-gray-500 dark:text-gray-400 w-7 text-center">{rank}</span>
 }
 
 // ── Page principale ───────────────────────────────────────────────────────────
 
+const GRID = 'sm:grid-cols-[44px_minmax(140px,1.2fr)_minmax(180px,1.6fr)_84px_84px_96px_120px]'
+
 export default function ClassementVarietes() {
   const qc = useQueryClient()
-  const [showForm, setShowForm] = useState(false)
-  const [editTarget, setEditTarget] = useState<NotationRead | null>(null)
-  const [detailTarget, setDetailTarget] = useState<NotationRead | null>(null)
+  const [formInitial, setFormInitial] = useState<{ data: FormState; editId: number | null } | null>(null)
+  const [detailKey, setDetailKey] = useState<string | null>(null)
   const [search, setSearch] = useState('')
-  const [sortCol, setSortCol] = useState<SortColClassement>('score')
-  const [sortDir, setSortDir] = useState<SortDirC>('desc')
+  const [sortCol, setSortCol] = useState<SortCol>('note')
+  const [sortDir, setSortDir] = useState<SortDir>('desc')
 
-  const handleSort = (col: SortColClassement) => {
-    if (sortCol === col) setSortDir(d => d === 'asc' ? 'desc' : 'asc')
-    else { setSortCol(col); setSortDir('desc') }
+  const handleSort = (col: SortCol) => {
+    if (sortCol === col) setSortDir(d => (d === 'asc' ? 'desc' : 'asc'))
+    else { setSortCol(col); setSortDir(col === 'nom' ? 'asc' : 'desc') }
   }
 
-  const { data: notations = [], isLoading } = useQuery({
-    queryKey: ['notations'],
-    queryFn: notationVarieteAPI.list,
+  const { data: rows = [], isLoading } = useQuery({
+    queryKey: ['notations-classement'],
+    queryFn: notationVarieteAPI.getClassement,
   })
-
-  const { data: varietes = [] } = useQuery({
+  const { data: varietes = [] } = useQuery<Variete[]>({
     queryKey: ['varietes'],
     queryFn: () => varieteAPI.getAll().then(r => r.data),
   })
-
-  const { data: breeders = [] } = useQuery({
+  const { data: breeders = [] } = useQuery<Breeder[]>({
     queryKey: ['breeders'],
     queryFn: () => breederAPI.getAll().then(r => r.data),
   })
-
-  const { data: catalogue = [] } = useQuery({
+  const { data: catalogue = [] } = useQuery<CatalogueItem[]>({
     queryKey: ['plan-culture-catalogue-all'],
     queryFn: () => planCultureAPI.getCatalogue({ stock_seulement: false }).then(r => r.data),
   })
 
-  const { data: extractionStats = {} as ExtractionStatsMap } = useQuery({
-    queryKey: ['notations-extraction-stats'],
-    queryFn: notationVarieteAPI.getExtractionStats,
-  })
+  const invalidate = () => {
+    qc.invalidateQueries({ queryKey: ['notations-classement'] })
+    qc.invalidateQueries({ queryKey: ['notations'] })
+  }
 
   const createMutation = useMutation({
     mutationFn: notationVarieteAPI.create,
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['notations'] })
-      setShowForm(false)
-    },
+    onSuccess: () => { invalidate(); setFormInitial(null) },
   })
-
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: number; data: NotationUpdate }) =>
-      notationVarieteAPI.update(id, data),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['notations'] })
-      setEditTarget(null)
-      setDetailTarget(null)
-    },
+    mutationFn: ({ id, data }: { id: number; data: NotationUpdate }) => notationVarieteAPI.update(id, data),
+    onSuccess: () => { invalidate(); setFormInitial(null) },
   })
-
   const deleteMutation = useMutation({
     mutationFn: notationVarieteAPI.delete,
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['notations'] })
-      setDetailTarget(null)
-    },
+    onSuccess: invalidate,
   })
 
-  const handleSave = async (data: Partial<NotationCreate>) => {
-    if (editTarget) {
-      await updateMutation.mutateAsync({ id: editTarget.id_notation, data })
-    } else {
-      await createMutation.mutateAsync(data as NotationCreate)
-    }
-  }
+  const varieteNames = useMemo(() => {
+    const s = new Set<string>(varietes.map(v => v.nom_variete))
+    rows.forEach(r => s.add(r.nom_variete))
+    return [...s].sort((a, b) => a.localeCompare(b, 'fr'))
+  }, [varietes, rows])
 
-  const handleDelete = (id: number) => {
-    if (window.confirm('Supprimer cette notation ? Cette action est irréversible.')) {
-      deleteMutation.mutate(id)
-    }
-  }
-
-  const filtered = useMemo(() => {
-    const base = notations.filter(
-      n =>
-        n.nom_variete.toLowerCase().includes(search.toLowerCase()) ||
-        (n.breeder ?? '').toLowerCase().includes(search.toLowerCase())
-    )
+  const sorted = useMemo(() => {
+    const q = search.toLowerCase()
+    const base = rows.filter(r =>
+      r.nom_variete.toLowerCase().includes(q) || (r.breeder ?? '').toLowerCase().includes(q))
     return [...base].sort((a, b) => {
-      let av: string | number, bv: string | number
-      switch (sortCol) {
-        case 'culture': av = a.total_culture ?? 0;        bv = b.total_culture ?? 0;        break
-        case 'conso':   av = a.total_consommation ?? 0;   bv = b.total_consommation ?? 0;   break
-        case 'score':   av = a.note_finale ?? 0;          bv = b.note_finale ?? 0;          break
-        default:        return 0
-      }
+      const av = sortValue(a, sortCol), bv = sortValue(b, sortCol)
+      if (av == null && bv == null) return a.nom_variete.localeCompare(b.nom_variete, 'fr')
+      if (av == null) return 1          // valeurs absentes toujours en bas
+      if (bv == null) return -1
       if (av < bv) return sortDir === 'asc' ? -1 : 1
       if (av > bv) return sortDir === 'asc' ? 1 : -1
-      return 0
+      return (b.rendement_moyen_g ?? 0) - (a.rendement_moyen_g ?? 0)
     })
-  }, [notations, search, sortCol, sortDir])
+  }, [rows, search, sortCol, sortDir])
 
-  // Rang fixe basé sur le score global desc — indépendant du tri actif
-  const scoreRankMap = useMemo(() => {
-    const sorted = [...notations].sort((a, b) => (b.note_finale ?? 0) - (a.note_finale ?? 0))
-    const map = new Map<number, number>()
-    sorted.forEach((n, i) => map.set(n.id_notation, i + 1))
-    return map
-  }, [notations])
+  const rankOf = useMemo(() => new Map(sorted.map((r, i) => [r.key, i + 1])), [sorted])
+  const detailRow = detailKey ? rows.find(r => r.key === detailKey) ?? null : null
+
+  const openRate = (row?: ClassementRow) => {
+    const n = row?.notation
+    if (n) {
+      setFormInitial({ editId: n.id_notation, data: { ...n } })
+    } else {
+      setFormInitial({
+        editId: null,
+        data: { nom_variete: row?.nom_variete ?? '', breeder: row?.breeder ?? '', date_notation: today() },
+      })
+    }
+    setDetailKey(null)
+  }
+
+  const handleSave = async (data: FormState) => {
+    const payload: NotationUpdate = {
+      nom_variete: data.nom_variete, breeder: data.breeder || null, date_notation: data.date_notation || null,
+      note_gout: data.note_gout ?? null, note_odeur: data.note_odeur ?? null,
+      note_texture: data.note_texture ?? null, note_extraction: data.note_extraction ?? null,
+      taux_thc: data.taux_thc ?? null, taux_cbd: data.taux_cbd ?? null,
+      terpene_dominant: data.terpene_dominant || null, commentaire_labo: data.commentaire_labo || null,
+      notes_generales: data.notes_generales || null,
+    }
+    if (formInitial?.editId) await updateMutation.mutateAsync({ id: formInitial.editId, data: payload })
+    else await createMutation.mutateAsync(payload as NotationCreate)
+  }
+
+  const handleDeleteNotation = (row: ClassementRow) => {
+    if (!row.notation) return
+    if (window.confirm(`Supprimer les notes de ${row.nom_variete} ? Les rendements et la germination restent calculés.`)) {
+      deleteMutation.mutate(row.notation.id_notation)
+      setDetailKey(null)
+    }
+  }
+
+  const nbNotees = rows.filter(r => r.notation).length
+  const th = 'cursor-pointer select-none hover:text-gray-700 dark:hover:text-gray-200 flex items-center justify-center'
 
   return (
     <div className="space-y-6">
@@ -833,179 +589,123 @@ export default function ClassementVarietes() {
             <Trophy size={24} className="text-yellow-500" />
             Classement des variétés
           </h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500 mt-1">
-            {notations.length} variété{notations.length !== 1 ? 's' : ''} notée{notations.length !== 1 ? 's' : ''} · Score sur 100 pts (Culture /30 + Consommation /70)
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+            {rows.length} variété{rows.length !== 1 ? 's' : ''} · {nbNotees} notée{nbNotees !== 1 ? 's' : ''} · rendements, extractions et germination calculés automatiquement
           </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
-          <button
-            onClick={notationVarieteAPI.exportCsv}
-            className="flex items-center gap-1.5 px-3 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-700/40"
-          >
+          <button onClick={notationVarieteAPI.exportCsv}
+            className="flex items-center gap-1.5 px-3 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-700/40">
             <Download size={15} /> Export CSV
           </button>
-          <button
-            onClick={() => { setEditTarget(null); setShowForm(true) }}
-            className="flex items-center gap-1.5 px-4 py-2 bg-grow-600 text-white rounded-lg text-sm font-medium hover:bg-grow-700"
-          >
-            <Plus size={16} /> Ajouter une notation
+          <button onClick={() => openRate()}
+            className="flex items-center gap-1.5 px-4 py-2 bg-grow-600 text-white rounded-lg text-sm font-medium hover:bg-grow-700">
+            <Plus size={16} /> Noter une variété
           </button>
         </div>
       </div>
 
-      {/* Recherche */}
-      {notations.length > 0 && (
-        <input
-          type="text"
-          placeholder="Rechercher par variété ou breeder…"
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          className="w-full sm:w-80 border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-grow-500"
-        />
+      {rows.length > 0 && (
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+          <input type="text" placeholder="Rechercher par variété ou breeder…" value={search} onChange={e => setSearch(e.target.value)}
+            className="w-full sm:w-80 border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-grow-500" />
+          {/* Tri mobile */}
+          <select value={sortCol} onChange={e => { setSortCol(e.target.value as SortCol); setSortDir(e.target.value === 'nom' ? 'asc' : 'desc') }}
+            className="sm:hidden border rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-800">
+            <option value="note">Trier : notes</option>
+            <option value="rendement">Trier : rendement / pied</option>
+            <option value="rosin">Trier : rosin %</option>
+            <option value="hash">Trier : hash %</option>
+            <option value="germination">Trier : germination</option>
+            <option value="nom">Trier : nom</option>
+          </select>
+        </div>
       )}
 
-      {/* Tableau de classement */}
       {isLoading ? (
         <div className="text-center py-20 text-gray-400 dark:text-gray-500">Chargement…</div>
-      ) : filtered.length === 0 ? (
+      ) : sorted.length === 0 ? (
         <div className="text-center py-20">
-          <Trophy size={40} className="mx-auto text-gray-300 mb-3" />
-          <p className="text-gray-500 dark:text-gray-400 dark:text-gray-500 font-medium">Aucune notation encore enregistrée</p>
-          <p className="text-gray-400 dark:text-gray-500 text-sm mt-1">Cliquez sur "Ajouter une notation" pour commencer le classement</p>
+          <Sprout size={40} className="mx-auto text-gray-300 mb-3" />
+          <p className="text-gray-500 dark:text-gray-400 font-medium">Aucune variété à classer</p>
+          <p className="text-gray-400 dark:text-gray-500 text-sm mt-1">Les variétés apparaissent dès qu'une plante est semée, récoltée ou extraite.</p>
         </div>
       ) : (
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border overflow-hidden">
-          {/* En-tête tableau */}
-          <div className="hidden sm:grid sm:grid-cols-[56px_1fr_120px_120px_120px] gap-3 px-5 py-3 bg-gray-50 dark:bg-gray-700/50 border-b text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+          <div className={`hidden sm:grid ${GRID} gap-3 px-5 py-3 bg-gray-50 dark:bg-gray-700/50 border-b text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide`}>
             <div className="text-center">#</div>
-            <div>Variété</div>
-            <div
-              onClick={() => handleSort('culture')}
-              className="cursor-pointer select-none hover:text-gray-700 dark:hover:text-gray-200 text-center flex items-center justify-center gap-1"
-            >
-              🌿 Culture <SortIconC col="culture" current={sortCol} dir={sortDir} />
+            <div onClick={() => handleSort('nom')} className={`${th} !justify-start`}>Variété <SortIcon col="nom" current={sortCol} dir={sortDir} /></div>
+            <div onClick={() => handleSort('rendement')} className={`${th} !justify-start`} title="Moyenne par pied selon le pot (tri : moyenne tous contenants)">
+              🌿 Rendement / pied <SortIcon col="rendement" current={sortCol} dir={sortDir} />
             </div>
-            <div
-              onClick={() => handleSort('conso')}
-              className="cursor-pointer select-none hover:text-gray-700 dark:hover:text-gray-200 text-center flex items-center justify-center gap-1"
-            >
-              💨 Conso <SortIconC col="conso" current={sortCol} dir={sortDir} />
-            </div>
-            <div
-              onClick={() => handleSort('score')}
-              className="cursor-pointer select-none hover:text-gray-700 dark:hover:text-gray-200 text-center flex items-center justify-center gap-1"
-            >
-              Score <SortIconC col="score" current={sortCol} dir={sortDir} />
-            </div>
+            <div onClick={() => handleSort('rosin')} className={th}>🍯 Rosin <SortIcon col="rosin" current={sortCol} dir={sortDir} /></div>
+            <div onClick={() => handleSort('hash')} className={th}>🍫 Hash <SortIcon col="hash" current={sortCol} dir={sortDir} /></div>
+            <div onClick={() => handleSort('germination')} className={th} title="Graines germées / graines semées">🌱 Germin. <SortIcon col="germination" current={sortCol} dir={sortDir} /></div>
+            <div onClick={() => handleSort('note')} className={th}>⭐ Notes <SortIcon col="note" current={sortCol} dir={sortDir} /></div>
           </div>
 
           <div className="divide-y">
-            {filtered.map((n, i) => {
-              const nf = n.note_finale ?? 0
-              const pct = nf
-              const isTop = (scoreRankMap.get(n.id_notation) ?? 999) === 1
-              const exStat = extractionStats[n.nom_variete]
-
+            {sorted.map(r => {
+              const rank = rankOf.get(r.key) ?? 0
+              const g = r.germination
               return (
-                <button
-                  key={n.id_notation}
-                  onClick={() => setDetailTarget(n)}
-                  className={`w-full text-left transition-colors hover:bg-gray-50 dark:hover:bg-gray-700/40 ${
-                    isTop ? 'bg-yellow-50 dark:bg-yellow-900/20 hover:bg-yellow-100' : ''
-                  }`}
-                >
-                  {/* Mobile layout */}
-                  <div className="sm:hidden flex items-center gap-3 px-4 py-3">
-                    <RankBadge rank={scoreRankMap.get(n.id_notation) ?? i + 1} />
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-gray-800 dark:text-gray-100 truncate">{n.nom_variete}</p>
-                      <div className="flex flex-wrap items-center gap-1 mt-0.5">
-                        {n.breeder && (
-                          <span className="text-xs text-gray-400 dark:text-gray-500">{n.breeder}</span>
-                        )}
-                        {exStat?.avg_rosin_pct != null && (
-                          <span className="text-xs bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 px-1 py-0.5 rounded-full">
-                            🍯 {exStat.avg_rosin_pct.toFixed(1)}%
-                          </span>
-                        )}
-                        {exStat?.avg_hash_pct != null && (
-                          <span className="text-xs bg-stone-100 dark:bg-stone-900/30 text-stone-700 dark:text-stone-300 px-1 py-0.5 rounded-full">
-                            🍫 {exStat.avg_hash_pct.toFixed(1)}%
+                <button key={r.key} onClick={() => setDetailKey(r.key)}
+                  className={`w-full text-left transition-colors hover:bg-gray-50 dark:hover:bg-gray-700/40 ${rank === 1 ? 'bg-yellow-50 dark:bg-yellow-900/20' : ''}`}>
+                  {/* Mobile */}
+                  <div className="sm:hidden flex items-start gap-3 px-4 py-3">
+                    <div className="pt-0.5"><RankBadge rank={rank} /></div>
+                    <div className="flex-1 min-w-0 space-y-1">
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="font-semibold text-gray-800 dark:text-gray-100 truncate">{r.nom_variete}</p>
+                        {r.note_moyenne != null && (
+                          <span className="flex items-center gap-1 shrink-0 text-sm font-bold text-yellow-600 dark:text-yellow-400">
+                            <Star size={14} className="fill-yellow-400 text-yellow-400" />{fmt(r.note_moyenne)}
                           </span>
                         )}
                       </div>
-                    </div>
-                    <div className="text-right">
-                      <span className={`text-lg font-black ${scoreColor(pct)}`}>
-                        {nf.toFixed(1)}
-                      </span>
-                      <span className="text-xs text-gray-400 dark:text-gray-500"> /100</span>
+                      {r.rendement_culture.length > 0 && (
+                        <div className="flex flex-wrap gap-1">{r.rendement_culture.map(b => <BucketChip key={`${b.type}-${b.volume_l}`} b={b} />)}</div>
+                      )}
+                      <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-gray-500 dark:text-gray-400">
+                        {r.rosin && <span>🍯 {fmt(r.rosin.rendement_pct)} %</span>}
+                        {r.hash && <span>🍫 {fmt(r.hash.rendement_pct)} %</span>}
+                        {g && <span>🌱 {g.germees}/{g.semees}</span>}
+                      </div>
                     </div>
                   </div>
 
-                  {/* Desktop layout */}
-                  <div className="hidden sm:grid sm:grid-cols-[56px_1fr_120px_120px_120px] gap-3 items-center px-5 py-4">
-                    <div className="flex justify-center">
-                      <RankBadge rank={scoreRankMap.get(n.id_notation) ?? i + 1} />
-                    </div>
-
+                  {/* Desktop */}
+                  <div className={`hidden sm:grid ${GRID} gap-3 items-center px-5 py-3`}>
+                    <div className="flex justify-center"><RankBadge rank={rank} /></div>
                     <div className="min-w-0">
-                      <p className="font-semibold text-gray-800 dark:text-gray-100 truncate">{n.nom_variete}</p>
-                      <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
-                        {n.breeder && (
-                          <span className="text-xs text-gray-400 dark:text-gray-500">{n.breeder}</span>
-                        )}
-                        {n.taux_thc && (
-                          <span className="text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded-full">
-                            THC {n.taux_thc}%
-                          </span>
-                        )}
-                        {exStat?.avg_rosin_pct != null && (
-                          <span className="text-xs bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 px-1.5 py-0.5 rounded-full font-medium">
-                            🍯 {exStat.avg_rosin_pct.toFixed(1)}%
-                          </span>
-                        )}
-                        {exStat?.avg_hash_pct != null && (
-                          <span className="text-xs bg-stone-100 dark:bg-stone-900/30 text-stone-700 dark:text-stone-300 px-1.5 py-0.5 rounded-full font-medium">
-                            🍫 {exStat.avg_hash_pct.toFixed(1)}%
-                          </span>
-                        )}
-                        {n.terpene_dominant && parseTerpenes(n.terpene_dominant).length > 0 && (
-                          <TerpeneBadges csv={n.terpene_dominant} />
-                        )}
-                      </div>
+                      <p className="font-semibold text-gray-800 dark:text-gray-100 truncate">{r.nom_variete}</p>
+                      {r.breeder && <p className="text-xs text-gray-400 dark:text-gray-500 truncate">{r.breeder}</p>}
                     </div>
-
+                    <div className="flex flex-wrap gap-1">
+                      {r.rendement_culture.length ? r.rendement_culture.map(b => <BucketChip key={`${b.type}-${b.volume_l}`} b={b} />) : <Dash />}
+                    </div>
+                    <div className="text-center"><Pct v={r.rosin?.rendement_pct} cls="text-amber-700 dark:text-amber-300" /></div>
+                    <div className="text-center"><Pct v={r.hash?.rendement_pct} cls="text-stone-700 dark:text-stone-300" /></div>
                     <div className="text-center">
-                      <span className="text-sm font-semibold text-green-700 dark:text-green-300">
-                        {(n.total_culture ?? 0).toFixed(1)}
-                        <span className="font-normal text-gray-400 dark:text-gray-500">/30</span>
-                      </span>
+                      {g ? (
+                        <span className="text-sm" title={`${g.germees} germée(s) sur ${g.semees} semée(s)`}>
+                          <span className={`font-semibold ${g.taux_pct >= 80 ? 'text-green-600 dark:text-green-400' : g.taux_pct >= 50 ? 'text-yellow-600 dark:text-yellow-400' : 'text-red-500'}`}>
+                            {fmt(g.taux_pct, 0)} %
+                          </span>
+                          <span className="block text-[11px] text-gray-400">{g.germees}/{g.semees}</span>
+                        </span>
+                      ) : <Dash />}
                     </div>
-
-                    <div className="text-center">
-                      <span className="text-sm font-semibold text-purple-700 dark:text-purple-300">
-                        {(n.total_consommation ?? 0).toFixed(1)}
-                        <span className="font-normal text-gray-400 dark:text-gray-500">/70</span>
-                      </span>
-                    </div>
-
-                    <div className="flex items-center justify-center">
-                      <div
-                        className={`px-3 py-1.5 rounded-xl text-sm font-black ${
-                          pct >= 80
-                            ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300'
-                            : pct >= 65
-                            ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
-                            : pct >= 50
-                            ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300'
-                            : pct >= 35
-                            ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300'
-                            : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
-                        }`}
-                      >
-                        {nf.toFixed(1)}
-                      </div>
+                    <div className="flex flex-col items-center">
+                      {r.note_moyenne != null ? (
+                        <>
+                          <Stars value={r.note_moyenne} />
+                          <span className="text-xs font-semibold text-gray-600 dark:text-gray-300 mt-0.5">{fmt(r.note_moyenne)} / 5</span>
+                        </>
+                      ) : (
+                        <span onClick={e => { e.stopPropagation(); openRate(r) }}
+                          className="text-xs text-grow-600 hover:underline">+ Noter</span>
+                      )}
                     </div>
                   </div>
                 </button>
@@ -1015,56 +715,38 @@ export default function ClassementVarietes() {
         </div>
       )}
 
-      {/* Légende */}
-      {filtered.length > 0 && (
-        <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">
-          <span className="font-medium">Légende :</span>
-          <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-full bg-emerald-500 inline-block"/> ≥ 80 — Excellente</span>
-          <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-full bg-green-400 inline-block"/> ≥ 65 — Très bonne</span>
-          <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-full bg-yellow-400 inline-block"/> ≥ 50 — Bonne</span>
-          <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-full bg-orange-400 inline-block"/> ≥ 35 — Passable</span>
-          <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-full bg-red-400 inline-block"/> &lt; 35 — À éviter</span>
+      {sorted.length > 0 && (
+        <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
+          <span className="font-medium">Rendement / pied :</span>
+          <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-full bg-green-200 dark:bg-green-800 inline-block" /> en pot (taille)</span>
+          <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-full bg-sky-200 dark:bg-sky-800 inline-block" /> hydro</span>
+          <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-full bg-gray-200 dark:bg-gray-600 inline-block" /> pot non renseigné</span>
+          <span>· ×N = nombre de pieds · Rosin et hash : total extrait / total utilisé</span>
         </div>
       )}
 
-      {/* Modal formulaire (nouveau) */}
-      {showForm && !editTarget && (
+      {formInitial && (
         <NotationFormModal
-          initial={null}
-          onClose={() => setShowForm(false)}
+          initial={formInitial.data}
+          isEdit={!!formInitial.editId}
+          onClose={() => setFormInitial(null)}
           onSave={handleSave}
-          saving={createMutation.isPending}
-          varietes={varietes}
+          saving={createMutation.isPending || updateMutation.isPending}
+          varieteNames={varieteNames}
           breeders={breeders}
           catalogue={catalogue}
         />
       )}
 
-      {/* Modal formulaire (édition) */}
-      {editTarget && (
-        <NotationFormModal
-          initial={editTarget}
-          onClose={() => setEditTarget(null)}
-          onSave={handleSave}
-          saving={updateMutation.isPending}
-          varietes={varietes}
-          breeders={breeders}
-          catalogue={catalogue}
-        />
-      )}
-
-      {/* Modal détail */}
-      {detailTarget && !editTarget && (
+      {detailRow && !formInitial && (
         <DetailModal
-          notation={detailTarget}
-          onClose={() => setDetailTarget(null)}
-          onEdit={() => {
-            setEditTarget(detailTarget)
-            setDetailTarget(null)
-          }}
-          onDelete={() => handleDelete(detailTarget.id_notation)}
-          extractionStat={extractionStats[detailTarget.nom_variete]}
+          row={detailRow}
+          rank={rankOf.get(detailRow.key) ?? 0}
+          onClose={() => setDetailKey(null)}
+          onRate={() => openRate(detailRow)}
+          onDeleteNotation={() => handleDeleteNotation(detailRow)}
         />
       )}
-    </div>  )
+    </div>
+  )
 }

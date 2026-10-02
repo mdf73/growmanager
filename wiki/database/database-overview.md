@@ -130,7 +130,7 @@ All models defined in `backend/app/models/all_models.py`.
 ### Variété Scoring
 | Table | Description |
 |---|---|
-| `NotationVariete` | Variety score: Culture /30 (vigueur, productivité, soif) + Conso /70 (apparence, arôme, saveur, effet) = note finale /100 |
+| `NotationVariete` | Notation manuelle d'une variété (une par variété) : `note_gout`, `note_odeur`, `note_texture`, `note_extraction` sur 5 étoiles + labo/notes. Les anciens critères /100 ont été supprimés le 2026-10-02. Rendements et germination sont calculés, pas stockés |
 
 ### Reference
 | Table | Description |

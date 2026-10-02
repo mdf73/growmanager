@@ -17,6 +17,20 @@ Versioning : [Semantic Versioning](https://semver.org/lang/fr/) — `MAJOR.MINOR
 
 ---
 
+## [3.6.0] - 2026-10-02
+
+### Ajouté
+- Classement des variétés entièrement refait : une ligne par variété produite, avec rendement par pied selon la taille du pot (hydro à part), rendement rosin et hash cumulés (total extrait / total utilisé), taux de germination des graines (germées / semées)
+- Notes sur 5 étoiles : goût, odeur, texture, facilité d'extraction ; tri par défaut sur leur moyenne, toutes les colonnes triables
+- Export CSV du classement complet (stats + notes)
+- L'action « Graine morte » passe la plante en abandonnée et la compte comme graine morte dans le taux de germination
+
+### Modifié
+- Les anciennes notations sur 100 (7 critères) sont supprimées ; les fiches existantes gardent breeder, données labo et notes générales
+- Les archives de cultures sont reliées à leur culture d'origine (`HistoriqueCulture.id_culture`) pour ne pas compter deux fois les récoltes
+
+---
+
 ## [3.5.4] - 2026-10-01
 
 ### Corrigé

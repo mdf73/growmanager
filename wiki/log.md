@@ -6,6 +6,34 @@ Format: `## [YYYY-MM-DD] <operation> | <description>`
 
 ---
 
+## [2026-10-02] Feature | Refonte complète du Classement des variétés
+
+**Demande de Pik :** un classement de toutes les variétés produites, avec remontée automatique des rendements de culture par pied selon la taille du pot (hydro compté à part), des rendements rosin et hash cumulés, du taux de germination des graines, plus 4 notes manuelles sur 5 étoiles (goût, odeur, texture, facilité d'extraction). Les anciennes notations /100 sont supprimées.
+
+**Décisions (validées par Pik) :**
+- Action « Graine morte » (`graine_morte`, déjà présente dans le calendrier) → plante `abandonne` + comptée graine morte dans la germination
+- Rosin et hash : total extrait / total utilisé, séparés
+- Hydro compté à part (NFT, billes d'argile, hydro…) ; anciennes cultures en terre de l'historique = pots de 15 L
+- Anciens critères /100 supprimés ; les fiches existantes sont gardées (breeder, labo, notes générales) avec des étoiles vides
+- Tri par défaut sur la moyenne des étoiles, toutes colonnes triables
+
+**Double comptage évité :** une culture clôturée existe à la fois dans `Plant` et dans `HistoriquePlant`. Ajout de `HistoriqueCulture.id_culture` (renseigné à l'archivage, backfill à la migration par date de début + nombre de plantes). Sur les données réelles : archives 27 → culture 2 et 26 → culture 3 rattachées.
+
+**Vérification :** calcul testé sur une copie SQLite des données du serveur (60 variétés), upsert/suppression/export CSV testés, `tsc` OK.
+
+**Files modified:**
+- `backend/app/models/all_models.py` (NotationVariete 4 notes, HistoriqueCulture.id_culture)
+- `backend/app/main.py` (migrations : colonnes note_*, DROP anciens critères, id_culture + backfill)
+- `backend/app/routers/notation_variete.py` (réécrit : `/utils/classement`, CRUD upsert, export CSV)
+- `backend/app/schemas/notation_variete.py`
+- `backend/app/routers/cultures.py`, `culture_helpers.py` (`graine_morte`, `id_culture` à l'archivage)
+- `frontend/src/api/notationVariete.ts`, `frontend/src/pages/ClassementVarietes.tsx` (réécrits)
+- `frontend/src/local/schema.ts`, `db.ts` (SCHEMA_VERSION 5), `handlers/notation.ts`, `handlers/cultures-helpers.ts` (mode autonome)
+
+Validé par Pik.
+
+---
+
 ## [2026-10-01] Fix | Plantes mortes encore proposées dans l'upload photo + compteurs Plantes
 
 **Contexte :** Pik signale que l'ajout de photos propose les 12 plantes de la culture alors que 4 sont mortes (passées en décès via le calendrier, compteur « Plantes actives 8/12 » correct).

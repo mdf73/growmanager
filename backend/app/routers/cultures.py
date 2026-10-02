@@ -314,6 +314,7 @@ def _maybe_archive_culture(culture: Culture, db: Session, force: bool = False) -
         substrat_auto = Counter(substrats).most_common(1)[0][0]
 
     historique = HistoriqueCulture(
+        id_culture=culture.id_culture,
         date_debut=culture.date_debut,
         date_fin=culture.date_fin or today,
         id_espace=culture.id_espace,
@@ -684,7 +685,9 @@ def _handle_action_effects(action: ActionCalendrier, culture: Culture, db: Sessi
     elif t == "passage_12_12":
         culture.date_passage_12_12 = action.date_action
         _compute_harvest_date(culture, db)
-    elif t == "deces_plante":
+    elif t in ("deces_plante", "graine_morte"):
+        # graine_morte : la graine n'a pas germé → plante abandonnée
+        # (comptée comme graine morte dans le taux de germination du classement variétés)
         set_statut(pid, "abandonne")
         _maybe_close_culture(culture, db)
 

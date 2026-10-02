@@ -79,6 +79,27 @@ async function migrate(conn: SQLiteDBConnection): Promise<void> {
             SELECT 1 FROM "CultureEmplacement" e WHERE e.id_culture = c.id_culture
           );`, false)
     }
+    if (current < 5 && current > 0) {
+      // Refonte classement variétés : notes sur 5 étoiles (les anciennes colonnes /100 restent, ignorées)
+      for (const col of ['note_gout', 'note_odeur', 'note_texture', 'note_extraction']) {
+        await conn.execute(`ALTER TABLE "NotationVariete" ADD COLUMN ${col} FLOAT;`, false)
+      }
+      // Rattachement des archives à leur culture d'origine (évite le double comptage des rendements)
+      await conn.execute('ALTER TABLE "HistoriqueCulture" ADD COLUMN id_culture INTEGER;', false)
+      await conn.execute(`UPDATE "HistoriqueCulture" SET id_culture = (
+          SELECT c.id_culture FROM "Culture" c
+          WHERE c.date_debut = "HistoriqueCulture".date_debut
+            AND (SELECT COUNT(*) FROM "Plant" p WHERE p.id_culture = c.id_culture AND p.statut <> 'abandonne')
+              = (SELECT COUNT(*) FROM "HistoriquePlant" hp WHERE hp.id_historique_culture = "HistoriqueCulture".id_historique_culture)
+        )
+        WHERE id_culture IS NULL
+          AND (SELECT COUNT(*) FROM "HistoriquePlant" hp WHERE hp.id_historique_culture = "HistoriqueCulture".id_historique_culture) > 0
+          AND (SELECT COUNT(*) FROM "Culture" c
+               WHERE c.date_debut = "HistoriqueCulture".date_debut
+                 AND (SELECT COUNT(*) FROM "Plant" p WHERE p.id_culture = c.id_culture AND p.statut <> 'abandonne')
+                   = (SELECT COUNT(*) FROM "HistoriquePlant" hp WHERE hp.id_historique_culture = "HistoriqueCulture".id_historique_culture)
+              ) = 1;`, false)
+    }
     await conn.execute(`PRAGMA user_version = ${SCHEMA_VERSION};`, false)
   }
   // Seeds (AppSettings + listes paramétrables) — idempotent, comme au démarrage du backend

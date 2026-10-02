@@ -82,9 +82,12 @@ Archived record of a completed past grow cycle (created via `POST /cultures/{id}
 | `engrais` | String (nullable) | Fertilizers used (denormalized) |
 | `substrat` | String (nullable) | |
 | `id_espace` | FK → EspaceCulture (nullable) | |
+| `id_culture` | Int (nullable) | Culture d'origine quand l'archive est créée automatiquement à la clôture (ajouté 2026-10-02). Sert au classement variétés à ne pas compter deux fois les plantes (Plant + HistoriquePlant). Backfill à la migration : même `date_debut` + même nombre de plantes non abandonnées, candidat unique |
 | `notes` | Text (nullable) | |
 
 **Relationship:** → many `HistoriquePlant`
+
+**Règle classement variétés :** une archive dont `id_culture` pointe vers une Culture encore présente est ignorée (les données détaillées de `Plant` font foi). Les archives saisies à la main sont comptées : substrat hydro (NFT, billes d'argile, hydro…) → bucket Hydro, autre substrat renseigné → pot de **15 L** (règle métier : toutes les anciennes cultures en terre étaient en 15 L).
 
 ---
 

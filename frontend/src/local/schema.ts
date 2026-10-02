@@ -1,7 +1,7 @@
 // ─── GÉNÉRÉ depuis backend/app/models/all_models.py (SQLAlchemy → dialecte SQLite) ───
 // Ne pas éditer à la main : régénérer si le schéma backend change (voir wiki features/mobile-standalone).
 
-export const SCHEMA_VERSION = 4
+export const SCHEMA_VERSION = 5
 
 export const SCHEMA_STATEMENTS: string[] = [
 `CREATE TABLE "AppSettings" (
@@ -52,13 +52,10 @@ export const SCHEMA_STATEMENTS: string[] = [
 	nom_variete VARCHAR(255) NOT NULL, 
 	breeder VARCHAR(255), 
 	date_notation DATE NOT NULL, 
-	vigueur_sante FLOAT, 
-	productivite_structure FLOAT, 
-	soif FLOAT, 
-	apparence_structure FLOAT, 
-	profil_aromatique FLOAT, 
-	saveur_qualite FLOAT, 
-	effet_puissance FLOAT, 
+	note_gout FLOAT, 
+	note_odeur FLOAT, 
+	note_texture FLOAT, 
+	note_extraction FLOAT, 
 	taux_thc FLOAT, 
 	taux_cbd FLOAT, 
 	terpene_dominant VARCHAR(500), 
@@ -624,6 +621,7 @@ export const SCHEMA_STATEMENTS: string[] = [
 	engrais VARCHAR(100), 
 	substrat VARCHAR(100), 
 	id_espace INTEGER, 
+	id_culture INTEGER, 
 	notes TEXT, 
 	cout_engrais DECIMAL(10, 2), 
 	cout_electricite DECIMAL(10, 2), 

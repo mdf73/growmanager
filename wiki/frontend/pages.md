@@ -217,11 +217,17 @@ Vue mensuelle globale de tous les events de toutes les cultures.
 - Ajouté dans le groupe "Culture" de la sidebar nav
 
 ### ClassementVarietes (`/classement-varietes`)
-Variety scoring and ranking system.
-- 2 dimensions : Culture /30 (vigueur/santé, productivité/structure, soif) + Consommation /70 (apparence, profil aromatique, saveur, effet)
-- Note finale /100, affichage couleur-codé
-- Terpene multi-select, liens avec stats d'extractions
-- Export CSV
+Classement de toutes les variétés produites. Refonte validée le 2026-10-02.
+- **Stats calculées automatiquement** (endpoint `GET /api/notations/utils/classement`, une ligne par variété) :
+  - Rendement culture par pied, **par taille de pot** (moyenne + nb de pieds, ex. « 11 L 60 g ×3 ») et **Hydro à part** ; « Pot non renseigné » si la plante n'a ni `volume_pot_l` ni pot Matériel
+  - Rosin et hash séparés, **cumulés** : total extrait / total utilisé (plus de moyenne des taux)
+  - Germination : graines germées / semées (%)
+- **Notes manuelles sur 5 étoiles** : goût, odeur, texture, facilité d'extraction ; moyenne = tri par défaut
+- Toutes les colonnes triables (notes, rendement moyen/pied, rosin, hash, germination, nom) ; rang = position dans le tri actif ; variétés sans valeur toujours en bas
+- Une notation par variété : « Noter » sur une variété déjà notée met à jour sa notation (upsert par nom). Supprimer une notation n'efface que les notes, les stats restent
+- Données labo (THC/CBD/terpènes/commentaire) et notes générales conservées, informatives
+- Modal détail : tableau rendement par contenant (pieds, moyenne, min/max), cartes rosin/hash/germination, notes
+- Export CSV du classement complet (stats + notes), séparateur `;`, décimales à virgule, BOM UTF-8 pour Excel
 
 ## See Also
 

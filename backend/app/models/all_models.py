@@ -691,6 +691,7 @@ class HistoriqueCulture(Base):
     engrais                = Column(String(100))   # liste fixe
     substrat               = Column(String(100))   # liste fixe — nouveau
     id_espace              = Column(Integer, ForeignKey("EspaceCulture.id_espace"), nullable=True)
+    id_culture             = Column(Integer, nullable=True)   # culture d'origine si archivée automatiquement (évite le double comptage des rendements)
     notes                  = Column(Text)
 
     # Coûts calculés à la clôture
@@ -1230,7 +1231,9 @@ class PreparationSubstrat(Base):
 # ============ Classement des variétés ============
 
 class NotationVariete(Base):
-    """Notation d'une variété selon deux grandes parties : Culture (/30) et Consommation (/70)."""
+    """Notation manuelle d'une variété : 4 notes sur 5 étoiles (une notation par variété).
+    Les rendements (culture, rosin, hash) et la germination sont calculés automatiquement
+    par l'endpoint /api/notations/utils/classement, ils ne sont pas stockés ici."""
     __tablename__ = "NotationVariete"
 
     id_notation        = Column(Integer,      primary_key=True, autoincrement=True)
@@ -1238,17 +1241,11 @@ class NotationVariete(Base):
     breeder            = Column(String(255),  nullable=True)
     date_notation      = Column(Date,         nullable=False, default=date.today)
 
-    # ── Partie A : Culture (/30) ─────────────────────────────────────────────
-    # Chaque note sur 10 (autorisées à 1 décimale près)
-    vigueur_sante         = Column(Float, nullable=True)   # /10 — résistance maladies + stabilité génétique
-    productivite_structure = Column(Float, nullable=True)  # /10 — rendement + ratio feuilles/fleurs
-    soif                  = Column(Float, nullable=True)   # /10 — besoin en eau : peu gourmand = meilleure tournure
-
-    # ── Partie B : Consommation (/70) ────────────────────────────────────────
-    apparence_structure   = Column(Float, nullable=True)   # /15 — densité, trichomes, couleurs
-    profil_aromatique     = Column(Float, nullable=True)   # /15 — intensité, complexité
-    saveur_qualite        = Column(Float, nullable=True)   # /20 — fidélité, douceur, persistance
-    effet_puissance       = Column(Float, nullable=True)   # /20 — force, qualité, entourage
+    # ── Notes manuelles sur 5 étoiles ────────────────────────────────────────
+    note_gout             = Column(Float, nullable=True)   # /5
+    note_odeur            = Column(Float, nullable=True)   # /5
+    note_texture          = Column(Float, nullable=True)   # /5
+    note_extraction       = Column(Float, nullable=True)   # /5 — facilité d'extraction
 
     # ── Données labo (informatif, n'impactent pas la note) ───────────────────
     taux_thc              = Column(Float,       nullable=True)   # %

@@ -11,7 +11,7 @@ from app.services.govee_poller import start_poller
 app = FastAPI(
     title="GrowManager API",
     description="API pour la gestion de cultures de cannabis",
-    version="3.5.4",
+    version="3.6.0",
 )
 
 # Configuration CORS pour le développement
@@ -28,6 +28,33 @@ Base.metadata.create_all(bind=engine)
 
 # Migration: ajout des nouvelles colonnes si elles n'existent pas
 # Utilise INFORMATION_SCHEMA car MySQL ne supporte pas ADD COLUMN IF NOT EXISTS
+def _backfill_historique_id_culture(conn):
+    """Rattache chaque archive HistoriqueCulture à sa culture d'origine.
+    Critère : même date de début et même nombre de plantes (plantes non abandonnées
+    côté Culture = lignes HistoriquePlant). Rattachement uniquement si le candidat est unique."""
+    hists = conn.execute(text(
+        "SELECT h.id_historique_culture, h.date_debut, COUNT(p.id_historique_plant) "
+        "FROM HistoriqueCulture h LEFT JOIN HistoriquePlant p "
+        "ON p.id_historique_culture = h.id_historique_culture "
+        "WHERE h.id_culture IS NULL GROUP BY h.id_historique_culture, h.date_debut"
+    )).fetchall()
+    cultures = conn.execute(text(
+        "SELECT c.id_culture, c.date_debut, "
+        "SUM(CASE WHEN p.statut <> 'abandonne' THEN 1 ELSE 0 END) "
+        "FROM Culture c JOIN Plant p ON p.id_culture = c.id_culture "
+        "GROUP BY c.id_culture, c.date_debut"
+    )).fetchall()
+    used = set()
+    for id_h, d_h, n_h in hists:
+        cands = [c for c in cultures
+                 if c[0] not in used and c[1] == d_h and int(c[2] or 0) == int(n_h or 0) and n_h]
+        if len(cands) == 1:
+            used.add(cands[0][0])
+            conn.execute(text(
+                "UPDATE HistoriqueCulture SET id_culture = :c WHERE id_historique_culture = :h"
+            ), {"c": cands[0][0], "h": id_h})
+
+
 def run_migrations():
     migrations = [
         ("Variete",          "lien_web",                 "ALTER TABLE Variete ADD COLUMN lien_web VARCHAR(500)"),
@@ -121,6 +148,11 @@ def run_migrations():
         ("Plant", "statut_clone",     "ALTER TABLE Plant ADD COLUMN statut_clone VARCHAR(20) NULL"),
         # Croisement Open Field — tables créées via create_all (ProjetOpenField, PlanteMereOpenField, PlantePereOpenField)
         ("PlanteMereOpenField", "id_peres", "ALTER TABLE PlanteMereOpenField ADD COLUMN id_peres JSON NULL"),
+        # Refonte classement variétés — notes sur 5 étoiles
+        ("NotationVariete", "note_gout",       "ALTER TABLE NotationVariete ADD COLUMN note_gout FLOAT NULL"),
+        ("NotationVariete", "note_odeur",      "ALTER TABLE NotationVariete ADD COLUMN note_odeur FLOAT NULL"),
+        ("NotationVariete", "note_texture",    "ALTER TABLE NotationVariete ADD COLUMN note_texture FLOAT NULL"),
+        ("NotationVariete", "note_extraction", "ALTER TABLE NotationVariete ADD COLUMN note_extraction FLOAT NULL"),
     ]
     # Créer les tables manquantes (ProduitEngrais, TemperatureLog, etc.)
     Base.metadata.create_all(bind=engine)
@@ -232,6 +264,34 @@ def run_migrations():
                     "DELETE FROM Graine WHERE id_packgraine = :pid "
                     "ORDER BY id_graine ASC LIMIT :n"
                 ), {"pid": pack_id, "n": a_supprimer})
+        except Exception:
+            pass
+
+        # Refonte classement variétés : suppression des anciens critères de notation (/100)
+        for old_col in ("vigueur_sante", "productivite_structure", "soif", "apparence_structure",
+                        "profil_aromatique", "saveur_qualite", "effet_puissance"):
+            try:
+                result = conn.execute(text(
+                    "SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS "
+                    "WHERE TABLE_SCHEMA = DATABASE() "
+                    "AND TABLE_NAME = 'NotationVariete' AND COLUMN_NAME = :col"
+                ), {"col": old_col})
+                if result.scalar() > 0:
+                    conn.execute(text(f"ALTER TABLE NotationVariete DROP COLUMN {old_col}"))
+            except Exception:
+                pass
+
+        # Refonte classement variétés : HistoriqueCulture.id_culture + rattachement des archives existantes
+        # (une archive auto doublonne les plantes de la culture d'origine → il faut pouvoir l'exclure)
+        try:
+            result = conn.execute(text(
+                "SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS "
+                "WHERE TABLE_SCHEMA = DATABASE() "
+                "AND TABLE_NAME = 'HistoriqueCulture' AND COLUMN_NAME = 'id_culture'"
+            ))
+            if result.scalar() == 0:
+                conn.execute(text("ALTER TABLE HistoriqueCulture ADD COLUMN id_culture INT NULL"))
+                _backfill_historique_id_culture(conn)
         except Exception:
             pass
 
@@ -349,7 +409,7 @@ def read_root():
     """Endpoint racine"""
     return {
         "message": "Bienvenue sur l'API GrowManager",
-        "version": "3.5.4",
+        "version": "3.6.0",
         "docs": "/docs",
     }
 

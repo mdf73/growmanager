@@ -280,6 +280,7 @@ export async function maybeArchiveCulture(culture: Row, force = false): Promise<
   }
 
   const idHistorique = await insert('HistoriqueCulture', {
+    id_culture: culture.id_culture,
     date_debut: culture.date_debut ?? null,
     date_fin: culture.date_fin ?? today,
     id_espace: culture.id_espace ?? null,
@@ -596,7 +597,8 @@ export async function handleActionEffects(action: Row, culture: Row): Promise<vo
     culture.date_passage_12_12 = action.date_action
     await computeHarvestDate(culture)
 
-  } else if (t === 'deces_plante') {
+  } else if (t === 'deces_plante' || t === 'graine_morte') {
+    // graine_morte : la graine n'a pas germé → plante abandonnée (comptée morte dans le taux de germination)
     await setStatut(pid, 'abandonne')
     await maybeCloseCulture(culture)
 

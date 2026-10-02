@@ -41,6 +41,10 @@ Status transitions are tracked as `ActionCalendrier` entries:
 | `passage_12_12` | Light flip (12h/12h) — triggers floraison |
 | `recolte` | floraison → sechage (sets `date_recolte`, `poids_recolte_g`) |
 | `fin_sechage` | sechage → curing |
+| `deces_plante` | → abandonne |
+| `graine_morte` | → abandonne ; la graine est comptée **morte** dans le taux de germination du classement variétés (ajouté 2026-10-02) |
+
+**Taux de germination (classement variétés)** — plantes `origine = graine` uniquement : *morte* = a une action `graine_morte` ; *germée* = `date_germination` renseignée ou statut ≥ veg ; le reste (germination en cours, abandon sans action `graine_morte`) n'est pas compté.
 
 ## Plant Creation
 

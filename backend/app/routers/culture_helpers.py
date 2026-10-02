@@ -104,6 +104,7 @@ def _maybe_archive_culture(culture: Culture, db: Session) -> None:
             engrais_auto = ", ".join(noms_engrais)
 
     historique = HistoriqueCulture(
+        id_culture=culture.id_culture,
         date_debut=culture.date_debut,
         date_fin=culture.date_fin or today,
         id_espace=culture.id_espace,

@@ -99,7 +99,7 @@ This preserves history for statistics.
 
 `ActionCalendrier.type_action` was originally an ENUM but was converted to `VARCHAR` via migration to allow arbitrary action types. Known action types include:
 
-`graine_germee`, `debut_croissance`, `debut_floraison`, `passage_12_12`, `arrosage_eau`, `arrosage_engrais`, `taille`, `defoliation`, `recolte`, `observations`, `traitement`
+`graine_germee`, `graine_morte`, `debut_croissance`, `debut_floraison`, `passage_12_12`, `arrosage_eau`, `arrosage_engrais`, `taille`, `defoliation`, `recolte`, `deces_plante`, `observations`, `traitement`
 
 The `global_culture` boolean flag marks whether an action applies to the whole culture vs. a single plant.
 

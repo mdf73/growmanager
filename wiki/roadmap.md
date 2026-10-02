@@ -59,7 +59,7 @@ sprint1_completed: 2026-05-10
 | B1 | Référentiels : varietes, breeders, fournisseurs, graines, espaces, engrais, materiel, app_settings, parametres | ✅ validé 2026-07-05 — handlers src/local/handlers/ (referentiels, parametres, espaces, engrais, materiel, graines) · seeds auto (AppSettings + ~35 listes) · fix axios global → adapter aussi sur axios.defaults (passthrough URLs absolues) · smoke test SQL sur schéma réel |
 | B2 | Cœur culture : cultures, plants, arrosages, actions, plan_culture | ✅ validé 2026-07-05 — handlers cultures + cultures-helpers + plan-culture · effets d'actions complets (floraison→prévisions récolte, fin_curing→Stock auto, déduction engrais/TCO) · coûts complets (élec dimmer/phase, engrais, graines) · archivage HistoriqueCulture · photos reportées en fin de phase (Filesystem + URLs images) |
 | B3 | Post-récolte : sechage, curing, stock, stock_alert_seuils, extractions, vaporisateur | ✅ validé 2026-07-05 — handlers sechage-curing (+ WPFF, eligible, sechage/plants, stock-info, bocal-timeline), stock (+ origine, bocaux-disponibles, sortie, alertes+seed Fleur), extractions rosin/hash (multi-sources, stocks produits, synchro édition), vaporisateurs (+ sessions déduction stock) |
-| B4 | Recettes & sol : 6 recette_*, preparation_substrat, suivi_sol_vivant, open_field, croisement, notation_variete | ✅ validé 2026-07-06 — recettes.ts (factory générique 6 types + lignes), sol-vivant.ts (préparation + suivi avec coûts estimés + déduction stock arrosage), croisement.ts (pollen péremption auto + récolte→variété/pack/graines), open-field.ts (récolte mère → variété OF + pack), notation.ts (scores + extraction-stats) |
+| B4 | Recettes & sol : 6 recette_*, preparation_substrat, suivi_sol_vivant, open_field, croisement, notation_variete | ✅ validé 2026-07-06 — recettes.ts (factory générique 6 types + lignes), sol-vivant.ts (préparation + suivi avec coûts estimés + déduction stock arrosage), croisement.ts (pollen péremption auto + récolte→variété/pack/graines), open-field.ts (récolte mère → variété OF + pack), notation.ts (classement + notations 5 étoiles, refonte 2026-10-02) |
 | B5 | Transverses : dashboard, calendrier, search, comparaison, consommation, historique_culture | ✅ validé 2026-07-06 — dashboard.ts (stats 6 modules, arrosage-boxes, burping, IPM), transverses.ts (calendrier global + export, search, cultures/compare complet, historique + prix-graine), consommation.ts (CRUD + stats/projection) · capteurs → null en standalone · import/export CSV → B6 |
 | B6 | Limitations & polish : capteurs masqués, photos, doc | ✅ validé 2026-07-06 — photos standalone (@capacitor/filesystem, photos-fs.ts, photoUrl convertFileSrc, sans compression/thumbnail v1) · capteurs masqués (Dashboard, nav Constantes, onglets Paramétrage Capteurs/Sauvegarde) · doc [[features/mobile-standalone]] · exports PDF/CSV et imports CSV restent en 501 — **Phase B complète**, test APK réel à faire |
 
@@ -191,6 +191,16 @@ Nouvelle catégorie `photo` (rose, 📷) dans `actionTypes.ts`. `ActionModal.tsx
 
 ---
 
+## Réalisé — Session 2026-10-02
+
+### Refonte Classement des variétés ✅ — validé 2026-10-02
+
+Voir [[frontend/pages]] (ClassementVarietes) et [[log]]. Pistes ouvertes :
+- Harmoniser les noms de variétés proches qui restent séparés (« Ivory Breath » / « Ivory Breath fem », « Lemon T » / « Lemon T S1 »)
+- Renseigner la taille de pot des 4 plantes de « Multivar x14 - 2026 » sans pot, et ajouter l'action « Graine morte » aux graines non germées de la culture en cours
+
+---
+
 ## Réalisé — Session 2026-06-03
 
 ### Croisement Open Field ✅ — validé 2026-06-03
@@ -279,7 +289,7 @@ Completed since Phase 1 (wiki update 2026-04-25):
 Completed since Phase 1 (wiki update 2026-04-24):
 - `/croisement` — Genetics/breeding fully implemented: Pollen stock + Croisement (F1/F2/BX/S1/IBL), pollen expiry auto-calc, graines harvest
 - `/recettes/schemas-engrais` — Nutrient schedule recipes fully implemented (RecetteEngrais + RecetteEngraisLigne par période)
-- `/classement-varietes` — Variété scoring system: 2 dimensions (Culture /30 + Consommation /70), note finale /100, export CSV
+- `/classement-varietes` — ✅ Refonte validée 2026-10-02 : stats auto (rendement/pied par pot + hydro, rosin, hash, germination) + notes 5 étoiles (goût, odeur, texture, extraction), export CSV
 - `/amendements` — Fertilizer/amendment product management (ProduitEngrais + AchatEngrais)
 - Séchage/Curing refactored — dedicated sessions model (SessionSechage, PlantSechage, SessionCuring, PlantCuring)
 - Vaporisateur inventory — `/api/vaporisateurs` (Vaporisateur + VapoConsommable, type chauffe, temp, consommables)

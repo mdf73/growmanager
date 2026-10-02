@@ -48,7 +48,7 @@ sources: [main.py]
 | `import_export.py` | `/api/import-export` | CSV batch import/export |
 | `sechage.py` | `/api/sechage` | Drying sessions (SessionSechage + PlantSechage) |
 | `curing.py` | `/api/curing` | Curing sessions (SessionCuring + PlantCuring) |
-| `notation_variete.py` | `/api/notations` | Variety scoring/ranking system |
+| `notation_variete.py` | `/api/notations` | Classement variétés : `GET /utils/classement` (stats calculées par variété), CRUD notations 5 étoiles (POST = upsert par nom), `GET /export/csv` |
 | `vaporisateur.py` | `/api/vaporisateurs` | Vaporizer inventory + consumables |
 | `croisement.py` | `/api/croisements` | Genetics crossing (Pollen + Croisement) |
 | `calendrier.py` | `/api/calendrier` | Global calendar view — all events all cultures |

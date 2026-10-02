@@ -56,8 +56,88 @@ jobs:
       - name: Sync Capacitor
         run: npx cap sync android
 
-      - name: Build debug APK
+      # ==========================================================
+      # Numéro de version Android dérivé de package.json
+      # 3.5.3 → versionName "3.5.3", versionCode 30503
+      # Android exige un versionCode croissant pour accepter une
+      # mise à jour (APK) ou un nouvel upload (Play Console).
+      # ==========================================================
+      - name: Set Android version from package.json
         run: |
+          python3 - <<'PY'
+          import json, re
+          version = json.load(open("package.json"))["version"]
+          major, minor, patch = (int(x) for x in version.split(".")[:3])
+          code = major * 10000 + minor * 100 + patch
+          path = "android/app/build.gradle"
+          content = open(path).read()
+          content, n1 = re.subn(r"versionCode\s+\d+", f"versionCode {code}", content, count=1)
+          content, n2 = re.subn(r'versionName\s+"[^"]*"', f'versionName "{version}"', content, count=1)
+          assert n1 == 1 and n2 == 1, "versionCode/versionName introuvables dans build.gradle"
+          open(path, "w").write(content)
+          print(f"versionName={version} versionCode={code}")
+          PY
+
+      # ==========================================================
+      # Signature avec la clé fixe GrowManager (keystore en secret)
+      # Même clé à chaque build → l'APK s'installe PAR-DESSUS la
+      # version précédente (données conservées), et sert aussi
+      # d'upload key pour Google Play (AAB).
+      # Sans secret : repli sur l'APK debug (clé aléatoire à chaque
+      # build → désinstallation obligatoire entre deux versions).
+      # Voir wiki/features/mobile-app.md.
+      # ==========================================================
+
+      - name: Decode keystore
+        if: env.HAS_PLAY_KEYSTORE == 'true'
+        run: echo "$KEYSTORE_BASE64" | base64 -d > android/app/growmanager-upload.keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.GROWMANAGER_KEYSTORE_BASE64 }}
+
+      - name: Configure Gradle signing
+        if: env.HAS_PLAY_KEYSTORE == 'true'
+        run: |
+          python3 - <<'PY'
+          import re
+          path = "android/app/build.gradle"
+          content = open(path).read()
+
+          signing_block = (
+              "    signingConfigs {\n"
+              "        release {\n"
+              "            storeFile file(\"growmanager-upload.keystore\")\n"
+              "            storePassword System.getenv(\"GROWMANAGER_KEYSTORE_PASSWORD\")\n"
+              "            keyAlias System.getenv(\"GROWMANAGER_KEY_ALIAS\")\n"
+              "            keyPassword System.getenv(\"GROWMANAGER_KEY_PASSWORD\")\n"
+              "        }\n"
+              "    }\n\n"
+          )
+          assert content.count("    buildTypes {") == 1, "bloc buildTypes introuvable"
+          content = content.replace("    buildTypes {", signing_block + "    buildTypes {", 1)
+          content, n = re.subn(
+              r"(buildTypes \{\s*release \{\n)",
+              r"\1            signingConfig signingConfigs.release\n",
+              content, count=1,
+          )
+          assert n == 1, "bloc release introuvable"
+          open(path, "w").write(content)
+          PY
+
+      - name: Build signed release APK + AAB
+        if: env.HAS_PLAY_KEYSTORE == 'true'
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleRelease bundleRelease
+        env:
+          GROWMANAGER_KEYSTORE_PASSWORD: ${{ secrets.GROWMANAGER_KEYSTORE_PASSWORD }}
+          GROWMANAGER_KEY_ALIAS: ${{ secrets.GROWMANAGER_KEY_ALIAS }}
+          GROWMANAGER_KEY_PASSWORD: ${{ secrets.GROWMANAGER_KEY_PASSWORD }}
+
+      - name: Build debug APK (repli sans keystore)
+        if: env.HAS_PLAY_KEYSTORE != 'true'
+        run: |
+          echo "::warning::Secret GROWMANAGER_KEYSTORE_BASE64 absent : APK debug, désinstallation nécessaire entre deux versions."
           cd android
           chmod +x gradlew
           ./gradlew assembleDebug
@@ -65,7 +145,12 @@ jobs:
       - name: Rename APK
         run: |
           VERSION=$(node -p "require('./package.json').version")
-          cp android/app/build/outputs/apk/debug/app-debug.apk "growmanager-v${VERSION}.apk"
+          if [ "$HAS_PLAY_KEYSTORE" = "true" ]; then
+            SRC=android/app/build/outputs/apk/release/app-release.apk
+          else
+            SRC=android/app/build/outputs/apk/debug/app-debug.apk
+          fi
+          cp "$SRC" "growmanager-v${VERSION}.apk"
           echo "APK_NAME=growmanager-v${VERSION}.apk" >> "$GITHUB_ENV"
 
       - name: Upload APK artifact
@@ -80,58 +165,6 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: frontend/${{ env.APK_NAME }}
-
-      # ==========================================================
-      # AAB signé pour Google Play (Test interne / Production)
-      # Ne s'exécute que si le secret GROWMANAGER_KEYSTORE_BASE64
-      # est configuré (Settings → Secrets and variables → Actions).
-      # Voir wiki/features/mobile-app.md pour la mise en place.
-      # ==========================================================
-
-      - name: Decode keystore
-        if: env.HAS_PLAY_KEYSTORE == 'true'
-        run: echo "$KEYSTORE_BASE64" | base64 -d > android/app/growmanager-upload.keystore
-        env:
-          KEYSTORE_BASE64: ${{ secrets.GROWMANAGER_KEYSTORE_BASE64 }}
-
-      - name: Configure Gradle signing
-        if: env.HAS_PLAY_KEYSTORE == 'true'
-        run: |
-          python3 - <<'PY'
-          path = "android/app/build.gradle"
-          content = open(path).read()
-
-          signing_block = (
-              "    signingConfigs {\n"
-              "        release {\n"
-              "            storeFile file(\"growmanager-upload.keystore\")\n"
-              "            storePassword System.getenv(\"GROWMANAGER_KEYSTORE_PASSWORD\")\n"
-              "            keyAlias System.getenv(\"GROWMANAGER_KEY_ALIAS\")\n"
-              "            keyPassword System.getenv(\"GROWMANAGER_KEY_PASSWORD\")\n"
-              "        }\n"
-              "    }\n\n"
-          )
-          content = content.replace("    buildTypes {", signing_block + "    buildTypes {", 1)
-          content = content.replace(
-              "release {\n            minifyEnabled false",
-              "release {\n            signingConfig signingConfigs.release\n            minifyEnabled false",
-              1,
-          )
-          open(path, "w").write(content)
-          PY
-        env:
-          KEYSTORE_BASE64: ${{ secrets.GROWMANAGER_KEYSTORE_BASE64 }}
-
-      - name: Build release AAB (signé, pour Google Play)
-        if: env.HAS_PLAY_KEYSTORE == 'true'
-        run: |
-          cd android
-          chmod +x gradlew
-          ./gradlew bundleRelease
-        env:
-          GROWMANAGER_KEYSTORE_PASSWORD: ${{ secrets.GROWMANAGER_KEYSTORE_PASSWORD }}
-          GROWMANAGER_KEY_ALIAS: ${{ secrets.GROWMANAGER_KEY_ALIAS }}
-          GROWMANAGER_KEY_PASSWORD: ${{ secrets.GROWMANAGER_KEY_PASSWORD }}
 
       - name: Rename AAB
         if: env.HAS_PLAY_KEYSTORE == 'true'

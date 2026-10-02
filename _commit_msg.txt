@@ -1,5 +1,11 @@
-fix: plantes mortes exclues de l'upload photo + compteurs actives/total sur la page culture
+feat: refonte du classement des variétés (rendements auto + notes 5 étoiles)
 
-- PhotoGallery : sélecteur "Associer à" sans les plantes abandonnées, récoltées regroupées à part
-- Culture : onglet "Plantes (actives/total)"
-- PlantesTab : en-tête "X actives · Y terminées"
+- Rendement par pied selon la taille du pot, hydro à part (historique terre = 15 L)
+- Rosin et hash cumulés (total extrait / total utilisé), taux de germination
+- Notes 5 étoiles : goût, odeur, texture, facilité d'extraction (anciens critères /100 supprimés)
+- Action "Graine morte" : plante abandonnée + comptée dans la germination
+- HistoriqueCulture.id_culture pour éviter le double comptage des récoltes
+- Export CSV complet, mode autonome mis à jour (schéma v5)
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_013LSZDT5PGN22LPPohSXeEi

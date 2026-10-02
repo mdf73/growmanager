@@ -16,7 +16,7 @@ Tout ce qui concerne la conduite d'une culture, du plan de départ jusqu'à la r
 - **Historique** — archive consultable des cultures terminées. Page `/historique-cultures`.
 - **Comparer des cultures côte à côte** — jusqu'à 3 cultures, tableau comparatif complet + graphiques hauteurs/arrosages cumulés. Page `/comparaison-cultures`.
 - **Calendrier global** — vue mensuelle tous events toutes cultures, export PDF jour par jour, photos et courbes capteurs intégrées. Page `/calendrier`.
-- **Classement des variétés** — notation culture (/30) + consommation (/70), export CSV. Page `/classement-varietes`.
+- **Classement des variétés** — rendement par pied selon la taille du pot (et hydro), rosin et hash cumulés, taux de germination, calculés automatiquement ; notes sur 5 étoiles (goût, odeur, texture, facilité d'extraction) ; export CSV. Page `/classement-varietes`.
 
 ## Détails techniques
 
