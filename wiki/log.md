@@ -54,6 +54,16 @@ Validé par Pik.
 
 ---
 
+## [2026-10-03] Fix | version-bump.ps1 corrompait des dépendances du package-lock.json (build Docker 3.6.1 KO)
+
+**Contexte :** après le push v3.6.1, les 2 workflows Docker échouent sur `npm ci` (frontend).
+
+**Cause / fix :** voir [[bugs/version-bump-lockfile-deps]] — remplacement global de l'ancienne version dans le lockfile → chokidar/readdirp passés en 3.6.1 (inexistant). Remplacement limité à 2 occurrences, lockfile restauré.
+
+**Files modified:** `version-bump.ps1`, `frontend/package-lock.json`, `wiki/bugs/version-bump-lockfile-deps.md`, `CHANGELOG.md`
+
+---
+
 ## [2026-10-03] CI | APK Android signé + versionCode automatique (mises à jour sans désinstaller)
 
 **Contexte :** Pik devait désinstaller/réinstaller l'app à chaque nouvelle version.

@@ -1,4 +1,4 @@
-chore: doc APK Android signe + versionCode auto, correction plan Google Play
+fix: version-bump modifiait des dependances du package-lock (npm ci KO en 3.6.1)
 
-- wiki mobile-app/roadmap/log : APK signe avec cle fixe, versionCode derive de package.json, Test interne suffisant pour les mises a jour via Play
-- CHANGELOG 3.6.0 : ligne CI Android
+- version-bump.ps1 : remplacement limite aux 2 occurrences de la version de l'app dans le lockfile
+- package-lock.json : chokidar et readdirp restaures en 3.6.0

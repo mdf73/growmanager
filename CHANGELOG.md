@@ -17,6 +17,13 @@ Versioning : [Semantic Versioning](https://semver.org/lang/fr/) — `MAJOR.MINOR
 
 ---
 
+## [3.6.2] - 2026-10-03
+
+### Corrigé
+- Build Docker du frontend en échec en 3.6.1 (`npm ci` : `readdirp@3.6.1` introuvable). `version-bump.ps1` remplaçait **tous** les `"version": "<ancienne>"` du `package-lock.json`, y compris des dépendances de même numéro (chokidar, readdirp). Remplacement limité aux 2 occurrences de l'app (racine du lockfile) et lockfile restauré
+
+---
+
 ## [3.6.1] - 2026-10-03
 
 *(prochaines modifications en cours)*

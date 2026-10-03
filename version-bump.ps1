@@ -91,7 +91,13 @@ $oldEscaped = [regex]::Escape($oldVersion)
 foreach ($f in @($pkgPath, $lockPath)) {
     if (Test-Path $f) {
         $before = Read-Utf8 $f
-        $after = [regex]::Replace($before, "`"version`":\s*`"$oldEscaped`"", "`"version`": `"$newVersion`"")
+        # Remplacement LIMITE aux occurrences de l'app : 1 dans package.json, 2 dans le
+        # lockfile (racine + packages[""]), toujours en tete de fichier. Un remplacement
+        # global modifiait aussi les dependances de meme version (bug 3.6.1 :
+        # chokidar/readdirp 3.6.0 -> 3.6.1 inexistant -> npm ci KO dans le build Docker).
+        $maxCount = if ($f -eq $lockPath) { 2 } else { 1 }
+        $re = [regex]::new("`"version`":\s*`"$oldEscaped`"")
+        $after = $re.Replace($before, "`"version`": `"$newVersion`"", $maxCount)
         if ($after.Length -lt ($before.Length - 50)) {
             Write-Host "[version-bump] ERREUR : $f semble tronque apres remplacement (avant=$($before.Length) apres=$($after.Length) car.) - fichier NON modifie."
             exit 1
