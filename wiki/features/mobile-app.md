@@ -32,9 +32,12 @@ Le dossier `frontend/android/` n'est **pas commité** (`.gitignore`) — génér
 
 Workflow `.github/workflows/android-apk.yml` :
 - Déclencheurs : manuel (workflow_dispatch) ou tag `vX.Y.Z` (comme docker-publish).
-- Étapes : `npm ci` → `npm run build` → `npx cap add android` → `npx @capacitor/assets generate --android` (icônes/splash depuis `frontend/assets/icon.png` + `splash.png`, générées depuis `IconSeul.png`) → `gradlew assembleDebug`.
+- Étapes : `npm ci` → `npm run build` → `npx cap add android` → `npx @capacitor/assets generate --android` (icônes/splash depuis `frontend/assets/icon.png` + `splash.png`, générées depuis `IconSeul.png`) → `npx cap sync android` → **versionCode/versionName** injectés depuis `package.json` (3.6.0 → `versionName "3.6.0"`, `versionCode 30600` = major×10000 + minor×100 + patch) → si keystore configuré : signature + `gradlew assembleRelease bundleRelease`, sinon repli `gradlew assembleDebug` (avertissement CI).
 - Sortie : artifact `growmanager-apk` (30 j) + APK attaché à la release GitHub si tag.
-- APK **debug** (signature debug) : installation via "sources inconnues", flaggé "app inconnue" par Android — c'est le flux historique, distribution directe hors Play Store.
+- **APK signé (depuis v3.6.0, si secrets keystore présents)** : signé avec l'upload key fixe → chaque nouvel APK s'installe **par-dessus** le précédent, données conservées. Le versionCode croissant est obligatoire pour qu'Android accepte la mise à jour.
+- **APK debug (repli sans secrets)** : clé debug aléatoire générée à chaque run CI → signature différente à chaque build → désinstallation obligatoire entre deux versions (perte des données standalone). C'était le comportement jusqu'à v3.5.x, cause des réinstallations systématiques.
+- ⚠ **Ne pas mélanger les canaux** : l'APK GitHub (signé upload key) et l'app installée depuis Google Play (re-signée par Google via Play App Signing) n'ont **pas la même signature** → impossible de mettre à jour l'un avec l'autre. Une fois passé sur Play, installer uniquement depuis Play.
+- `push.bat` ne crée pas de tag : lancer le build à la main (Actions → Build Android APK → Run workflow).
 
 **Récupérer l'APK** : GitHub → Actions → Build Android APK → run → Artifacts, ou la release du tag.
 
@@ -55,7 +58,8 @@ Keystore généré une seule fois via `keytool -genkeypair` (RSA 2048, validité
 
 **Plan en 2 temps (décision 2026-07-09) :**
 - **Temps 1 (en cours)** : app publiée en **Test interne** Play Console (jusqu'à 100 testeurs par email, lien privé, pas de fiche publique, exempté du formulaire "Sécurité des données"). But : l'app devient signée par Google → plus d'alerte "app inconnue" à l'installation pour les testeurs.
-- **Temps 2 (plus tard)** : passage en **Production** publique pour permettre les mises à jour poussées depuis le Play Store (fini le téléchargement manuel via GitHub). Nécessite en plus du Test interne : un **Test fermé** avec 12 testeurs actifs pendant 14 jours consécutifs (le Test interne ne compte pas pour ce palier — spécifique aux comptes développeur perso créés après nov. 2023), + fiche store complète (icône, captures, description, politique de confidentialité, classification par âge, formulaire "Sécurité des données" cette fois obligatoire).
+- **Correction 2026-10-03** : les testeurs du Test interne reçoivent eux aussi les mises à jour via le Play Store (comme une app normale). La Production n'est donc **pas** nécessaire pour avoir les mises à jour automatiques en usage perso — seulement pour une fiche publique.
+- **Temps 2 (optionnel)** : passage en **Production** publique (fiche visible par tous). Nécessite en plus du Test interne : un **Test fermé** avec 12 testeurs actifs pendant 14 jours consécutifs (le Test interne ne compte pas pour ce palier — spécifique aux comptes développeur perso créés après nov. 2023), + fiche store complète (icône, captures, description, politique de confidentialité, classification par âge, formulaire "Sécurité des données" cette fois obligatoire).
 
 Étapes manuelles côté Pik (hors repo, dans Play Console) : création du compte développeur (25$, vérification d'identité), création de l'app (`com.growmanager.app`), premier upload manuel de l'AAB pour activer Play App Signing, ajout des testeurs, partage du lien d'opt-in.
 

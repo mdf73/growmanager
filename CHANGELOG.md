@@ -17,6 +17,12 @@ Versioning : [Semantic Versioning](https://semver.org/lang/fr/) — `MAJOR.MINOR
 
 ---
 
+## [3.6.1] - 2026-10-03
+
+*(prochaines modifications en cours)*
+
+---
+
 ## [3.6.0] - 2026-10-02
 
 ### Ajouté
@@ -28,6 +34,7 @@ Versioning : [Semantic Versioning](https://semver.org/lang/fr/) — `MAJOR.MINOR
 ### Modifié
 - Les anciennes notations sur 100 (7 critères) sont supprimées ; les fiches existantes gardent breeder, données labo et notes générales
 - Les archives de cultures sont reliées à leur culture d'origine (`HistoriqueCulture.id_culture`) pour ne pas compter deux fois les récoltes
+- Build APK Android : APK signé avec la clé fixe (si secrets keystore configurés) et versionCode/versionName dérivés de `package.json` → mises à jour installables par-dessus sans désinstaller ; repli APK debug sinon
 
 ---
 

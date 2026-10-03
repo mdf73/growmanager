@@ -30,7 +30,9 @@ sprint1_completed: 2026-05-10
 
 **Temps 1 (en cours)** : Test interne Play Console — supprime l'alerte "app inconnue" à l'install (jusqu'à 100 testeurs, pas de fiche publique). Scaffolding CI + keystore prêts côté repo (voir [[features/mobile-app]]), reste à faire côté Pik : compte développeur Play Console + création app + premier upload manuel + activation Play App Signing.
 
-**Temps 2 (plus tard)** : passage en Production publique → mises à jour poussées depuis le Play Store, fini le téléchargement manuel GitHub. Bloqué sur : Test fermé 12 testeurs / 14 jours consécutifs (palier obligatoire, distinct du Test interne) + fiche store complète (icône, captures, description, politique de confidentialité, classification par âge, formulaire sécurité des données).
+**Prérequis fait (v3.6.0)** : APK signé avec clé fixe + versionCode auto depuis package.json → mises à jour par-dessus sans désinstaller (dès que les secrets keystore sont dans GitHub).
+
+**Temps 2 (optionnel)** : passage en Production publique (fiche publique). Les mises à jour automatiques via Play fonctionnent déjà en Test interne (correction 2026-10-03). Bloqué sur : Test fermé 12 testeurs / 14 jours consécutifs (palier obligatoire, distinct du Test interne) + fiche store complète (icône, captures, description, politique de confidentialité, classification par âge, formulaire sécurité des données).
 
 ### Phase B — Mode standalone (plan validé 2026-07-05) — ✅ Phase B complète
 

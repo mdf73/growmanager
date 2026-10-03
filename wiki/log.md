@@ -54,6 +54,25 @@ Validé par Pik.
 
 ---
 
+## [2026-10-03] CI | APK Android signé + versionCode automatique (mises à jour sans désinstaller)
+
+**Contexte :** Pik devait désinstaller/réinstaller l'app à chaque nouvelle version.
+
+**Cause :** APK debug construit sur un runner CI neuf → clé debug aléatoire à chaque build → signature différente → Android refuse la mise à jour. En plus `versionCode` restait à 1 (bloquant aussi pour un 2e upload AAB sur Play).
+
+**Fix (`.github/workflows/android-apk.yml`, livré dans le commit v3.6.0) :**
+- Étape « Set Android version from package.json » : `versionName` = version, `versionCode` = major×10000 + minor×100 + patch.
+- Si secrets keystore présents : signature `signingConfigs.release` puis `assembleRelease bundleRelease` → APK et AAB signés avec la même upload key. Sinon repli `assembleDebug` + `::warning::`.
+- Les scripts Python d'injection Gradle ont des `assert` → le build échoue franchement si le template Capacitor change.
+
+**Reste à faire (Pik) :** créer le keystore + 4 secrets `GROWMANAGER_*` (aucun configuré au 2026-10-03), lancer le workflow, une dernière désinstallation (passage debug → signé).
+
+**Correction doc :** le Test interne Play suffit pour les mises à jour automatiques via Play ; la Production n'est utile que pour une fiche publique. Ajout de l'avertissement « APK GitHub et version Play ont des signatures différentes ».
+
+**Files modified:** `.github/workflows/android-apk.yml`, `wiki/features/mobile-app.md`, `wiki/roadmap.md`, `CHANGELOG.md`
+
+---
+
 ## [2026-10-01] Fix | App Android : upload photo inopérant + en-tête culture superposé sur mobile
 
 **Contexte :** Pik signale sur l'APK Android (mode serveur) deux problèmes sur la page d'une culture : (1) le titre et les boutons Dates / Changer d'espace / PDF se superposent ; (2) l'ajout de photo ne fait rien après sélection.
