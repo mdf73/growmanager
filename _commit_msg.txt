@@ -1,1 +1,1 @@
-fix(android): targetSdk 36 requis par Google Play
+fix(android): l'app ne passe plus sous la barre d'etat (edge-to-edge)
