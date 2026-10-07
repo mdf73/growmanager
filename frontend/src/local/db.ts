@@ -43,7 +43,7 @@ async function migrate(conn: SQLiteDBConnection): Promise<void> {
   if (current < SCHEMA_VERSION) {
     if (current === 0) {
       // Premier lancement : création complète du schéma (78 tables)
-      await conn.execute(SCHEMA_STATEMENTS.join('\n'), false)
+      await conn.execute(SCHEMA_STATEMENTS.join(';\n') + ';', false)
     }
     if (current < 4 && current > 0) {
       await conn.execute('ALTER TABLE "GoveeDevice" ADD COLUMN source VARCHAR(20);', false)

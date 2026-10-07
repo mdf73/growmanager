@@ -1,1 +1,1 @@
-fix(android): l'app ne passe plus sous la barre d'etat (edge-to-edge)
+fix(mobile): creation du schema local en mode autonome (separateurs SQL manquants)
