@@ -35,6 +35,9 @@ vite.config.ts.timestamp-*
 frontend/android/
 frontend/icons/
 *.apk
+*.aab
+*.keystore
+*.jks
 
 # ========================
 # Docker / Database

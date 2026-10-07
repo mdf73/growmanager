@@ -1,4 +1,5 @@
-fix: version-bump modifiait des dependances du package-lock (npm ci KO en 3.6.1)
+fix(android): minSdkVersion 24 requis par Google Play
 
-- version-bump.ps1 : remplacement limite aux 2 occurrences de la version de l'app dans le lockfile
-- package-lock.json : chokidar et readdirp restaures en 3.6.0
+La protection automatique Play refuse les app bundles avec minSdk 23
+(valeur du template Capacitor). Le workflow remonte minSdk a 24 apres
+npx cap add android, et variables.gradle local est aligne.
