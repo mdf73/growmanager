@@ -50,6 +50,13 @@ jobs:
       - name: Add Android platform
         run: npx cap add android
 
+      # Google Play (protection automatique Play) exige minSdk >= 24.
+      # Le template Capacitor génère 23 : on le remonte après cap add.
+      - name: Set minSdkVersion 24 (exigence Google Play)
+        run: |
+          sed -i -E 's/minSdkVersion = [0-9]+/minSdkVersion = 24/' android/variables.gradle
+          grep -q 'minSdkVersion = 24' android/variables.gradle
+
       - name: Generate icons & splash screens
         run: npx @capacitor/assets generate --android
 
