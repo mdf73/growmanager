@@ -1,5 +1,1 @@
-fix(android): minSdkVersion 24 requis par Google Play
-
-La protection automatique Play refuse les app bundles avec minSdk 23
-(valeur du template Capacitor). Le workflow remonte minSdk a 24 apres
-npx cap add android, et variables.gradle local est aligne.
+fix(android): targetSdk 36 requis par Google Play

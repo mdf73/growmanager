@@ -56,6 +56,10 @@ jobs:
         run: |
           sed -i -E 's/minSdkVersion = [0-9]+/minSdkVersion = 24/' android/variables.gradle
           grep -q 'minSdkVersion = 24' android/variables.gradle
+          sed -i -E 's/compileSdkVersion = [0-9]+/compileSdkVersion = 36/' android/variables.gradle
+          sed -i -E 's/targetSdkVersion = [0-9]+/targetSdkVersion = 36/' android/variables.gradle
+          grep -q 'targetSdkVersion = 36' android/variables.gradle
+          printf '\nandroid.suppressUnsupportedCompileSdk=36\n' >> android/gradle.properties
 
       - name: Generate icons & splash screens
         run: npx @capacitor/assets generate --android
