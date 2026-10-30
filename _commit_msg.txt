@@ -1,9 +1,8 @@
-feat: categorie d'actions Training & Taille (SOG, SCROG, LST, HST...) avec intensite commune
+fix: PPFD/DLI prend en compte l'intensité du dimmer
 
-- Nouvelle categorie training : 11 nouvelles actions + defoliation, etetage, pincage et mise en place du filet deplaces
-- Echelle d'intensite Legere / Normale / Forte / Intense (lourde historique affichee Forte)
-- Parametres des actions affiches avec leurs libelles dans le detail du jour
-- Libelles des nouvelles actions dans calendrier global, PDF calendrier et rapport PDF
+Le calcul PPFD/DLI de l'onglet Stats utilisait la puissance brute de la
+lampe. Il applique maintenant le dernier réglage d'intensité enregistré
+(100 % par défaut) et affiche le détail dans la case Lampe.
 
 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
-Claude-Session: https://claude.ai/code/session_01DQFniUx4yNEaQJVZBh3uBF
+Claude-Session: https://claude.ai/code/session_01DQFniVh6bWPrnkmap8mVMN

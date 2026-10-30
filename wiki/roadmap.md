@@ -1,6 +1,6 @@
 ---
 type: roadmap
-updated: 2026-07-09
+updated: 2026-10-30
 sources: [Documentation/claude.md, Documentation/Instructions de reprises v1.txt, Documentation/GrowManager_Specifications_v4.docx]
 sprint1_completed: 2026-05-10
 ---
@@ -101,6 +101,21 @@ Motivation : recrutement des testeurs du test fermé Play bloqué par une app 10
 
 ---
 
+## Données standard pré-remplies (plan validé 2026-10-30, non lancé)
+
+Demande de Pik : les valeurs qu'il a saisies dans Paramétrage deviennent le standard livré à tout le monde, puis un catalogue de breeders. Plan complet et décisions : [[features/donnees-standard]]. ADR : ADR-011 dans [[architecture/decisions]].
+
+**Décisions** : inséré en base, livré par les mises à jour (APK Play et Docker), jamais d'écrasement, vérification par nom avant insertion. Standard complet à la première installation, ensuite **uniquement via le bouton « Compléter avec les valeurs standard »** (réajoute tout ce qui manque, y compris ce que l'utilisateur a supprimé). Pas de variétés. Fournisseurs des packs de graines basés sur la liste paramétrable (option A).
+
+| Sprint | Contenu | État |
+|--------|---------|------|
+| S1 | Chantier 1 : extraction des listes de la base de Pik, revue (retrait du perso), JSON unique partagé serveur + APK, seed de première installation, boutons « Compléter » (global + par liste), normalisation commune des noms, fournisseurs des packs sur la liste paramétrable | ⏳ à faire |
+| S2 | Chantier 2 : catalogue breeders (NL, ES, US, FR, DE, IT et autres grands noms, actifs et disparus), revue Pik, insertion par le même mécanisme | ⏳ à faire |
+
+À faire de préférence avant le sprint I2 du multilingue (seeds par langue).
+
+---
+
 ## V4 Backlog — Bilan & Plan d'action (review 2026-05-10)
 
 Source : `Documentation/GrowManager_Specifications_v4.docx` + `Documentation/growmanager_roadmap_v4_review.html`
@@ -121,7 +136,7 @@ Source : `Documentation/GrowManager_Specifications_v4.docx` + `Documentation/gro
 | J | Déduction stock engrais | ✅ DONE | Déjà implémenté dans cultures.py (lignes 455–489) — recette + liste manuelle |
 | K | Recherche globale | ✅ DONE | `GET /api/search` · `GlobalSearch.tsx` · Ctrl+K · validé 2026-05-13 |
 | L | Export PDF fiche culture | ✅ DONE | fpdf2 · `GET /api/cultures/{id}/export/pdf` · bouton 📄 PDF CultureDetail · fiche A4 : header, infos, plantes, actions, coûts, notes · validé 2026-05-14 |
-| M | PPFD / DLI | ✅ DONE | Widget StatsTab — PPFD + DLI + photopériode auto · cibles veg/floraison · alerte si surface manquante |
+| M | PPFD / DLI | ✅ DONE | Widget StatsTab — PPFD + DLI + photopériode auto · cibles veg/floraison · alerte si surface manquante · intensité dimmer prise en compte (fix 2026-10-30) |
 
 ### Plan d'action — sprints par ratio valeur/effort
 

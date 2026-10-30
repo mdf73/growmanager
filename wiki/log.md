@@ -6,6 +6,28 @@ Format: `## [YYYY-MM-DD] <operation> | <description>`
 
 ---
 
+## [2026-10-30] Fix | PPFD / DLI tient compte de l'intensité du dimmer
+
+Signalé par Pik : lampe à 30 % mais PPFD calculé sur les 550 W bruts (955 µmol/m²/s au lieu d'environ 286). `StatsTab.tsx` utilise maintenant `puissance_w × dernier puissance_apres / 100` (action `intensite_lampe` la plus récente par date, bornée 0 à 100, 100 % par défaut). Formules inchangées : PPFD = W effectifs × 2,5 µmol/J ÷ surface ; DLI = PPFD × heures × 0,0036. Case Lampe : W effectifs + « X % de N W · surface ». Aucune migration. Validé par Pik.
+
+### Files modified
+- `frontend/src/components/culture/StatsTab.tsx`
+- `CHANGELOG.md`, `wiki/roadmap.md`
+
+## [2026-10-30] Décision | Données standard : décisions de Pik
+
+Plan validé. Vérification par nom avant insertion (indispensable avec un bouton pressable plusieurs fois, environ une demi-journée d'effort en plus). Rien d'automatique à la mise à jour : standard complet à la première installation, puis bouton « Compléter avec les valeurs standard » qui réajoute tout ce qui manque. Pas de variétés. Fournisseurs des packs de graines sur la liste paramétrable (option A, find-or-create dans la table `Fournisseur`). ADR-011 validé. Voir [[features/donnees-standard]].
+
+### Files modified
+- `wiki/features/donnees-standard.md`, `wiki/roadmap.md`, `wiki/architecture/decisions.md`, `wiki/index.md`
+
+## [2026-10-30] Plan | Données standard pré-remplies (listes, breeders, variétés)
+
+Demande de Pik : faire de ses valeurs de Paramétrage le standard livré à tous (chantier 1), puis pré-remplir les breeders et éventuellement les variétés (chantier 2). Décision Pik : inséré en base pour tout le monde via les mises à jour Play et Docker, jamais d'écrasement des données existantes, doublons tolérés. Constat : le seed actuel ne touche que les listes vides et les valeurs par défaut sont dupliquées backend / autonome. Plan proposé : JSON unique partagé + seed versionné additif. Recommandation : breeders oui, variétés non en base (catalogue de suggestion possible). Rien n'est lancé. Voir [[features/donnees-standard]].
+
+### Files modified
+- `wiki/features/donnees-standard.md` (nouveau), `wiki/roadmap.md`, `wiki/architecture/decisions.md` (ADR-011 brouillon), `wiki/index.md`
+
 ## [2026-10-28] Feature | Catégorie d'actions « Training & Taille »
 
 Demande de Pik : toutes les techniques de training (SOG, SCROG...) avec une intensité comme pour la défoliation, dans une catégorie dédiée plutôt que dans Mesures & Soins (trop chargée). Nouvelle catégorie `training` (« Training & Taille », `bg-emerald-600`) avec 11 nouvelles actions + Défoliation, Étêtage, Pinçage et Mise en place du filet déplacés (le filet reste une action distincte de la mise en place SCROG : on peut poser un filet sans palisser). Échelle commune `INTENSITE_OPTIONS` (`legere`/`normale`/`forte`/`intense`), `lourde` historique affichée « Forte ». Nouveau helper `formatActionParams()` pour afficher les paramètres avec leurs libellés. Aucune migration (type_action VARCHAR, détails dans `parametres`). Clés `palissage` et `lollipopping` reprises du rapport PDF backend où elles existaient déjà. Validé par Pik.

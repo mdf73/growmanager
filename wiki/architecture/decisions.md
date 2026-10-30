@@ -116,4 +116,16 @@ sources: [Documentation/claude.md, Documentation/PHASE1_SUMMARY.txt]
 
 ---
 
+## ADR-011 : Données standard pré-remplies (2026-10-30)
+
+**Statut:** validé par Pik le 2026-10-30 (non implémenté). Plan : [[features/donnees-standard]].
+
+**Context:** Les valeurs par défaut des listes paramétrables sont dupliquées (backend `parametre.py` + `frontend/src/local/seeds.ts`) et ne sont insérées que dans les listes vides : une mise à jour n'apporte rien aux installations existantes. Pik veut livrer à tous ses valeurs comme standard, puis un catalogue de breeders.
+
+**Decision:** Standard décrit dans des JSON uniques partagés (serveur + APK). Inséré en entier à la première installation (indicateur `AppSettings.standard_initial_applique`), puis uniquement à la demande via un bouton « Compléter avec les valeurs standard » qui insère toutes les valeurs absentes. Uniquement des INSERT, jamais d'UPDATE ni de DELETE. Vérification avant insertion par nom normalisé (minuscules, sans accents, espaces rognés), doublon résiduel accepté. Pas de seed automatique à la mise à jour, pas de variétés.
+
+**Consequence:** Toute évolution du standard passe par le JSON. Une installation existante ne reçoit les nouveautés que si l'utilisateur presse le bouton. Les données standard deviennent des données utilisateur ordinaires une fois insérées, sauf valeurs verrouillées de l'ADR-009 (toujours ré-insérées au démarrage).
+
+---
+
 *Add new ADRs here as architectural decisions are made.*

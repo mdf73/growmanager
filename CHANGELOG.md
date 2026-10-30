@@ -17,6 +17,13 @@ Versioning : [Semantic Versioning](https://semver.org/lang/fr/) — `MAJOR.MINOR
 
 ---
 
+## [3.14.1] - 2026-10-30
+
+### Corrigé
+- **PPFD / DLI (onglet Stats d'une culture)** : le calcul prend désormais en compte l'intensité de la lampe. La puissance utilisée est la puissance de la lampe multipliée par le dernier réglage dimmer enregistré (100 % si aucun réglage). La case Lampe affiche le détail (« 165 W · 30 % de 550 W »).
+
+---
+
 ## [3.14.0] - 2026-10-28
 
 ### Ajouté

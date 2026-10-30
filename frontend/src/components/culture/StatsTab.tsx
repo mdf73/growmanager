@@ -86,7 +86,14 @@ export default function StatsTab({ cultureId, idEspace, phase }: Props) {
   const phEcData: PhEcPoint[] = stats.ph_ec ?? []
 
   // ── PPFD / DLI ───────────────────────────────────────────────────────────────
-  const ppfdPuissance  = cout?.puissance_w ?? null
+  const ppfdPuissanceMax = cout?.puissance_w ?? null
+  // Dernier réglage dimmer enregistré (le plus récent par date), 100 % par défaut
+  const dernierReglage = [...intensiteData]
+    .filter(i => i.puissance_apres != null && !isNaN(Number(i.puissance_apres)))
+    .sort((a, b) => String(a.date).localeCompare(String(b.date)))
+    .pop()
+  const ppfdIntensite  = dernierReglage ? Math.min(Math.max(Number(dernierReglage.puissance_apres), 0), 100) : 100
+  const ppfdPuissance  = ppfdPuissanceMax != null ? ppfdPuissanceMax * ppfdIntensite / 100 : null
   const ppfdSurface    = espace?.surface_m2 ?? null
   const ppfdHeures     = getPhotoPeriode(phase)
   const ppfdPhaseLabel = phase === 'floraison' ? 'Floraison' : phase === 'germination' ? 'Germination' : 'Végétation'
@@ -94,7 +101,7 @@ export default function StatsTab({ cultureId, idEspace, phase }: Props) {
   const dliVal         = ppfdVal ? calcDLI(ppfdVal, ppfdHeures) : null
   const ppfdTarget     = targetPPFD(phase)
   const dliTarget      = targetDLI(phase)
-  const ppfdMissingLamp    = !ppfdPuissance || ppfdPuissance === 0
+  const ppfdMissingLamp    = !ppfdPuissanceMax || ppfdPuissanceMax === 0
   const ppfdMissingSurface = !ppfdMissingLamp && (!ppfdSurface || ppfdSurface === 0)
 
   return (
@@ -201,8 +208,8 @@ export default function StatsTab({ cultureId, idEspace, phase }: Props) {
             </div>
             <div className="text-center">
               <p className="text-xs text-amber-500 dark:text-amber-400 mb-0.5">Lampe</p>
-              <p className="text-lg font-bold text-amber-700 dark:text-amber-300">{ppfdPuissance} W</p>
-              <p className="text-xs text-amber-500 dark:text-amber-400 mt-0.5">{ppfdSurface} m²</p>
+              <p className="text-lg font-bold text-amber-700 dark:text-amber-300">{Math.round(ppfdPuissance ?? 0)} W</p>
+              <p className="text-xs text-amber-500 dark:text-amber-400 mt-0.5">{ppfdIntensite} % de {ppfdPuissanceMax} W · {ppfdSurface} m²</p>
             </div>
           </div>
           <p className="text-xs text-amber-400 dark:text-amber-500 mt-2 text-right">

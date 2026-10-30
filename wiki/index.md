@@ -78,6 +78,7 @@ Content catalog for the GrowManager development wiki. Read this first when start
 - [[features/mobile-app]] — App Android Capacitor : config, build APK CI, écran premier lancement, accès distant Tailscale
 - [[features/mobile-standalone]] — Mode autonome (Phase B) : SQLite embarqué, backend local TS, dual-mode, sauvegarde .zip, limites
 - [[features/i18n]] : Multilingue FR/EN/DE/ES : étude, inventaire, architecture et plan par sprints (planifié, non lancé)
+- [[features/donnees-standard]] : Données standard pré-remplies (listes Paramétrage, breeders) : première installation + bouton « Compléter », sans écrasement (plan validé, non lancé)
 
 ---
 
