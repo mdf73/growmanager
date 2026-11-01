@@ -17,6 +17,14 @@ Versioning : [Semantic Versioning](https://semver.org/lang/fr/) — `MAJOR.MINOR
 
 ---
 
+## [3.14.2] - 2026-11-01
+
+### Corrigé
+- **Calendrier de suivi de culture** : chaque icône porte désormais un trait de la couleur de sa catégorie, ce qui rend la légende lisible. Les actions identiques d'un même jour sont regroupées (« 🥛 ×20 »). Catégorie Photo ajoutée à la légende. Cases vides de début et fin de mois correctement sombres en mode nuit.
+- **Récoltes prévues dans le calendrier** : la fenêtre de récolte s'affiche maintenant même sans « Début floraison » saisi sur chaque plante (repli sur la date de floraison ou de passage 12/12 de la culture, comme le bandeau). Affichage d'une ligne par variété au lieu d'une ligne par plante, encadré « Récoltes prévues » regroupé par variété avec un message explicite quand aucune floraison n'est encore saisie.
+
+---
+
 ## [3.14.1] - 2026-10-30
 
 ### Corrigé

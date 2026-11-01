@@ -1,8 +1,9 @@
-fix: PPFD/DLI prend en compte l'intensité du dimmer
+fix: calendrier culture - legende coherente, icones regroupees, recoltes prevues
 
-Le calcul PPFD/DLI de l'onglet Stats utilisait la puissance brute de la
-lampe. Il applique maintenant le dernier réglage d'intensité enregistré
-(100 % par défaut) et affiche le détail dans la case Lampe.
+- Trait de couleur de categorie sous chaque icone + regroupement par type (xN)
+- Fenetre de recolte prevue avec repli sur la floraison / 12-12 de la culture
+- Affichage par variete au lieu de par plante, encadre Recoltes prevues regroupe
+- Cases vides correctes en mode nuit
 
 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
-Claude-Session: https://claude.ai/code/session_01DQFniVh6bWPrnkmap8mVMN
+Claude-Session: https://claude.ai/code/session_01DQFniVNdLDRB3wRc66dRyz

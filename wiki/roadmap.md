@@ -101,18 +101,27 @@ Motivation : recrutement des testeurs du test fermé Play bloqué par une app 10
 
 ---
 
-## Données standard pré-remplies (plan validé 2026-10-30, non lancé)
+## Données standard pré-remplies (plan validé 2026-11-01, lancé)
 
 Demande de Pik : les valeurs qu'il a saisies dans Paramétrage deviennent le standard livré à tout le monde, puis un catalogue de breeders. Plan complet et décisions : [[features/donnees-standard]]. ADR : ADR-011 dans [[architecture/decisions]].
 
-**Décisions** : inséré en base, livré par les mises à jour (APK Play et Docker), jamais d'écrasement, vérification par nom avant insertion. Standard complet à la première installation, ensuite **uniquement via le bouton « Compléter avec les valeurs standard »** (réajoute tout ce qui manque, y compris ce que l'utilisateur a supprimé). Pas de variétés. Fournisseurs des packs de graines basés sur la liste paramétrable (option A).
+**Décisions** : inséré en base, livré par les mises à jour (APK Play et Docker), jamais d'écrasement, vérification par nom avant insertion. **Démarrage vide** (révisé 2026-11-01) : le standard se charge **uniquement via les boutons de Paramétrage** (global + par section), qui réajoutent tout ce qui manque, y compris ce que l'utilisateur a supprimé. Valeurs utilisées par le code toujours présentes sous cadenas (catégories de matériel de base + types de stock Fleur, Trim, WPFF, Hash, Rosin). Pas de variétés. Fournisseurs des packs de graines basés sur la liste paramétrable (option A).
 
 | Sprint | Contenu | État |
 |--------|---------|------|
-| S1 | Chantier 1 : extraction des listes de la base de Pik, revue (retrait du perso), JSON unique partagé serveur + APK, seed de première installation, boutons « Compléter » (global + par liste), normalisation commune des noms, fournisseurs des packs sur la liste paramétrable | ⏳ à faire |
+| S1 | Chantier 1 : extraction des listes de la base de Pik, revue (retrait du perso), JSON unique partagé serveur + APK, démarrage vide, verrouillage des 5 types de stock, boutons « Charger les valeurs standard » (global + par section), normalisation commune des noms, fournisseurs des packs sur la liste paramétrable | ⏳ à faire |
 | S2 | Chantier 2 : catalogue breeders (NL, ES, US, FR, DE, IT et autres grands noms, actifs et disparus), revue Pik, insertion par le même mécanisme | ⏳ à faire |
 
 À faire de préférence avant le sprint I2 du multilingue (seeds par langue).
+
+---
+
+## Calendrier de suivi de culture
+
+| # | Contenu | État |
+|---|---------|------|
+| C1 | Légende cohérente (trait de couleur de catégorie sous les icônes), icônes regroupées par type (`×N`), récoltes prévues avec repli sur floraison / 12-12 de la culture, affichage par variété | ✅ DONE 2026-11-01 |
+| C2 | Action `passage_12_12` gérée par le backend (`date_passage_12_12` + recalcul récolte) mais absente du catalogue `actionTypes.ts` : la « Durée d'éclairage 12/12 » ne déclenche rien. Option proposée : programme 12/12 → renseigne `date_passage_12_12` de la culture | 💡 à décider |
 
 ---
 

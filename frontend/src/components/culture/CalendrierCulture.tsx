@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react'
 import { ChevronLeft, ChevronRight, Plus, Droplets } from 'lucide-react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { actionAPI, Action, ActionCreate, Plant } from '../../api/cultures'
-import { ACTION_MAP, CATEGORY_COLORS, CATEGORY_LABELS, formatActionParams } from './actionTypes'
+import { ACTION_MAP, CATEGORY_COLORS, CATEGORY_LABELS, ActionCategory, formatActionParams } from './actionTypes'
 import ActionModal from './ActionModal'
 import ArrosageModal from './ArrosageModal'
 import SensorDayChart from '../SensorDayChart'
@@ -112,6 +112,47 @@ interface Props {
   idEspace?: number
   emplacements?: CultureEmplacement[]
   plants: Plant[]
+  /** Dates culture servant de repli quand la plante n'a pas sa propre date de début de floraison */
+  dateDebutFloraison?: string | null
+  datePassage1212?: string | null
+}
+
+// Plantes dont la récolte est déjà faite ou abandonnée : plus de fenêtre prévisionnelle
+const STATUTS_SANS_PREVISION = ['recolte', 'sechage', 'curing', 'prete', 'abandonne']
+
+const LEGEND_CATEGORIES: ActionCategory[] = ['germination', 'lampe', 'arrosage', 'stade', 'mesure', 'training', 'recolte', 'photo']
+
+interface HarvestRange {
+  plant: Plant
+  varName: string
+  dateMin: Date
+  dateMax: Date
+  /** true si la base vient de la culture (début flo / 12-12) et pas de la plante */
+  baseCulture: boolean
+}
+
+/** Fenêtre de récolte d'une plante : même règle que le backend
+ *  (date_debut_flo plante → date_debut_floraison culture → date_passage_12_12 culture) + durées de la variété. */
+function computeHarvestRange(plant: Plant, dateDebutFloraison?: string | null, datePassage1212?: string | null): HarvestRange | null {
+  if (STATUTS_SANS_PREVISION.includes(plant.statut || '')) return null
+  const minDays = plant.duree_flo_min ?? plant.duree_flo_max
+  const maxDays = plant.duree_flo_max ?? plant.duree_flo_min
+  if (!minDays || !maxDays) return null
+  const baseStr = plant.date_debut_flo || dateDebutFloraison || datePassage1212
+  if (!baseStr) return null
+  const base = new Date(baseStr.slice(0, 10) + 'T12:00:00')
+  const dateMin = new Date(base); dateMin.setDate(dateMin.getDate() + minDays)
+  const dateMax = new Date(base); dateMax.setDate(dateMax.getDate() + maxDays)
+  return {
+    plant,
+    varName: plant.nom_variete ?? plant.nom_affichage ?? `Plant #${plant.id_plant}`,
+    dateMin, dateMax,
+    baseCulture: !plant.date_debut_flo,
+  }
+}
+
+function localDateStr(d: Date) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
 
 const JOURS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim']
@@ -126,7 +167,7 @@ function dateStr(year: number, month: number, day: number) {
   return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
 }
 
-export default function CalendrierCulture({ cultureId, idEspace, emplacements, plants }: Props) {
+export default function CalendrierCulture({ cultureId, idEspace, emplacements, plants, dateDebutFloraison, datePassage1212 }: Props) {
   const today = new Date()
   const [year, setYear] = useState(today.getFullYear())
   const [month, setMonth] = useState(today.getMonth())    // 0-indexed
@@ -153,33 +194,28 @@ export default function CalendrierCulture({ cultureId, idEspace, emplacements, p
     return map
   }, [actions])
 
-  // Fenêtres de récolte prévues : pour chaque plante qui a date_debut_flo + durées (en jours)
-  // Map : dateStr → { entries: { plantName, varName }[] }
+  // Fenêtres de récolte prévues, une par plante active
+  const harvestRanges = useMemo(
+    () => plants.map(p => computeHarvestRange(p, dateDebutFloraison, datePassage1212)).filter((r): r is HarvestRange => r !== null),
+    [plants, dateDebutFloraison, datePassage1212],
+  )
+
+  // dateStr → variétés à récolter ce jour-là (regroupées par variété, avec les plantes concernées)
   const harvestWindowByDay = useMemo(() => {
-    const map: Record<string, { entries: { plantName: string; varName: string }[] }> = {}
-    for (const plant of plants) {
-      const base = plant.date_debut_flo
-      if (!base) continue
-      const minDays = plant.duree_flo_min ?? plant.duree_flo_max
-      const maxDays = plant.duree_flo_max ?? plant.duree_flo_min
-      if (!minDays || !maxDays) continue
-      const baseDate = new Date(base + 'T12:00:00')
-      const startDate = new Date(baseDate)
-      startDate.setDate(startDate.getDate() + minDays)
-      const endDate = new Date(baseDate)
-      endDate.setDate(endDate.getDate() + maxDays)
-      const varName = plant.nom_variete ?? plant.nom_affichage ?? `Plant #${plant.id_plant}`
-      // Remplir chaque jour de la fenêtre
-      const cursor = new Date(startDate)
-      while (cursor <= endDate) {
-        const ds = cursor.toISOString().slice(0, 10)
-        if (!map[ds]) map[ds] = { entries: [] }
-        map[ds].entries.push({ plantName: plant.nom_affichage ?? `Plant #${plant.id_plant}`, varName })
+    const map: Record<string, { varName: string; plantNames: string[] }[]> = {}
+    for (const r of harvestRanges) {
+      const cursor = new Date(r.dateMin)
+      while (cursor <= r.dateMax) {
+        const ds = localDateStr(cursor)
+        if (!map[ds]) map[ds] = []
+        let entry = map[ds].find(e => e.varName === r.varName)
+        if (!entry) { entry = { varName: r.varName, plantNames: [] }; map[ds].push(entry) }
+        entry.plantNames.push(r.plant.nom_affichage ?? `Plant #${r.plant.id_plant}`)
         cursor.setDate(cursor.getDate() + 1)
       }
     }
     return map
-  }, [plants])
+  }, [harvestRanges])
 
   const deleteAction = useMutation({
     mutationFn: (actionId: number) => actionAPI.delete(cultureId, actionId),
@@ -248,16 +284,16 @@ export default function CalendrierCulture({ cultureId, idEspace, emplacements, p
         </button>
       </div>
 
-      {/* Légende */}
+      {/* Légende : la couleur est reprise sous chaque icône dans les cases */}
       <div className="flex flex-wrap gap-3 text-xs">
-        {(['germination', 'lampe', 'arrosage', 'stade', 'mesure', 'training', 'recolte'] as const).map(cat => (
+        {LEGEND_CATEGORIES.map(cat => (
           <span key={cat} className="flex items-center gap-1 text-gray-600 dark:text-gray-300">
             <span className={`w-2.5 h-2.5 rounded-full ${CATEGORY_COLORS[cat]}`} />
             {CATEGORY_LABELS[cat]}
           </span>
         ))}
         <span className="flex items-center gap-1 text-gray-600 dark:text-gray-300">
-          <span className="opacity-40">⏳🌾</span>
+          <span>⏳</span>
           Récolte prévue
         </span>
       </div>
@@ -274,7 +310,7 @@ export default function CalendrierCulture({ cultureId, idEspace, emplacements, p
         {/* Cases */}
         <div className="grid grid-cols-7">
           {cells.map((day, idx) => {
-            if (!day) return <div key={idx} className="border-r border-b border-gray-100 dark:border-gray-700 min-h-[80px] bg-gray-50 dark:bg-gray-700/50/30" />
+            if (!day) return <div key={idx} className="border-r border-b border-gray-100 dark:border-gray-700 min-h-[80px] bg-gray-50 dark:bg-gray-900/40" />
             const ds = dateStr(year, month, day)
             const dayActions = actionsByDay[ds] || []
             const isToday = ds === todayStr
@@ -298,49 +334,59 @@ export default function CalendrierCulture({ cultureId, idEspace, emplacements, p
                   {day}
                 </div>
 
-                {/* Icône de fenêtre de récolte prévue (client-side range) */}
+                {/* Fenêtre de récolte prévue : une ligne par variété */}
                 {harvestWindow && !hasRealHarvest && (
-                  <div className="opacity-50">
-                    {harvestWindow.entries.map((e, i) => (
-                      <div key={i} className="flex items-center gap-0.5 leading-tight"
-                        title={`Récolte prévue — ${e.plantName}`}>
-                        <span className="text-[10px]">⏳🌾</span>
-                        <span className="text-[9px] text-amber-700 font-medium truncate max-w-[48px]">{e.varName}</span>
+                  <div className="mb-0.5">
+                    {harvestWindow.slice(0, 3).map(e => (
+                      <div key={e.varName}
+                        className="flex items-center gap-0.5 leading-tight rounded bg-amber-100/80 dark:bg-amber-900/40 px-0.5 mb-0.5"
+                        title={`Récolte prévue — ${e.varName} : ${e.plantNames.join(', ')}`}>
+                        <span className="text-[10px]">⏳</span>
+                        <span className="text-[9px] text-amber-800 dark:text-amber-300 font-semibold truncate">
+                          {e.varName}{e.plantNames.length > 1 ? ` ×${e.plantNames.length}` : ''}
+                        </span>
                       </div>
                     ))}
+                    {harvestWindow.length > 3 && (
+                      <span className="text-[9px] text-amber-700 dark:text-amber-400">+{harvestWindow.length - 3} variété(s)</span>
+                    )}
                   </div>
                 )}
 
-                {/* Actions du jour */}
-                <div className="flex flex-wrap gap-0.5">
-                  {dayActions.slice(0, 8).map(action => {
-                    const def = ACTION_MAP[action.type_action]
-                    const isPrevue = action.type_action === 'recolte_prevue'
-                    const params = (action.parametres ?? {}) as Record<string, string>
-                    const varName = params.nom_variete ?? action.nom_plant ?? ''
-                    const titlePrevue = `Récolte prévue${varName ? ` — ${varName}` : ''}${params.date_min ? ` · du ${params.date_min}` : ''}${params.date_max ? ` au ${params.date_max}` : ''}`
-                    return isPrevue ? (
-                      <div key={action.id_action}
-                        className="flex items-center gap-0.5 opacity-60 leading-tight w-full"
-                        title={titlePrevue}>
-                        <span className="text-[10px]">⏳🌾</span>
-                        {varName && (
-                          <span className="text-[9px] text-amber-700 font-semibold truncate max-w-[48px]">{varName}</span>
-                        )}
-                      </div>
-                    ) : (
-                      <span
-                        key={action.id_action}
-                        title={`${def?.label || action.type_action}${action.nom_plant ? ` (${action.nom_plant})` : ''}${action.global_culture ? ' — espace' : ''}`}
-                        className="text-[11px] leading-none flex-shrink-0"
-                      >
-                        {def?.icon ?? '•'}
-                      </span>
-                    )
-                  })}
-                  {dayActions.length > 8 && (
-                    <span className="text-[10px] text-gray-400 dark:text-gray-500">+{dayActions.length - 8}</span>
-                  )}
+                {/* Actions du jour, regroupées par type : icône + compteur + trait de couleur de la catégorie */}
+                <div className="flex flex-wrap gap-1">
+                  {(() => {
+                    const groups: { type: string; actions: Action[] }[] = []
+                    for (const a of dayActions) {
+                      // Les récoltes prévues sont déjà affichées par la fenêtre ci-dessus
+                      if (a.type_action === 'recolte_prevue' && harvestWindow) continue
+                      const g = groups.find(x => x.type === a.type_action)
+                      if (g) g.actions.push(a)
+                      else groups.push({ type: a.type_action, actions: [a] })
+                    }
+                    return groups.slice(0, 6).map(g => {
+                      const def = ACTION_MAP[g.type]
+                      const isPrevue = g.type === 'recolte_prevue'
+                      const color = isPrevue ? 'bg-amber-400' : def ? CATEGORY_COLORS[def.category] : 'bg-gray-400'
+                      const label = isPrevue ? 'Récolte prévue' : (def?.label || g.type)
+                      const cibles = g.actions.map(a => a.global_culture ? 'espace' : a.nom_plant).filter(Boolean)
+                      return (
+                        <span key={g.type}
+                          title={`${label}${g.actions.length > 1 ? ` ×${g.actions.length}` : ''}${cibles.length ? ` (${[...new Set(cibles)].join(', ')})` : ''}`}
+                          className="relative flex items-center gap-0.5 pb-1 leading-none flex-shrink-0">
+                          <span className="text-[12px]">{isPrevue ? '⏳' : (def?.icon ?? '•')}</span>
+                          {g.actions.length > 1 && (
+                            <span className="text-[9px] font-semibold text-gray-500 dark:text-gray-400">×{g.actions.length}</span>
+                          )}
+                          <span className={`absolute left-0 right-0 bottom-0 h-[3px] rounded-full ${color}`} />
+                        </span>
+                      )
+                    })
+                  })()}
+                  {(() => {
+                    const nbTypes = new Set(dayActions.filter(a => !(a.type_action === 'recolte_prevue' && harvestWindow)).map(a => a.type_action)).size
+                    return nbTypes > 6 ? <span className="text-[10px] text-gray-400 dark:text-gray-500">+{nbTypes - 6}</span> : null
+                  })()}
                 </div>
 
                 {/* Boutons si jour sélectionné */}
@@ -517,64 +563,73 @@ export default function CalendrierCulture({ cultureId, idEspace, emplacements, p
         </div>
       )}
 
-      {/* ── Récoltes prévues (résumé par plante) ───────────────────────── */}
+      {/* ── Récoltes prévues (résumé par variété) ───────────────────────── */}
       {(() => {
-        const plantsWithFlo = plants.filter(p =>
-          p.date_debut_flo && (p.duree_flo_min || p.duree_flo_max) &&
-          !['recolte', 'sechage', 'curing', 'prete', 'abandonne'].includes(p.statut || '')
-        )
-        if (plantsWithFlo.length === 0) return null
+        const actives = plants.filter(p => !STATUTS_SANS_PREVISION.includes(p.statut || ''))
+        if (actives.length === 0) return null
+        const sansDuree = actives.filter(p => !p.duree_flo_min && !p.duree_flo_max)
+        const fmt = (d: Date) => d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
+        const today2 = new Date(); today2.setHours(12, 0, 0, 0)
+
+        // Regroupement par variété + même fenêtre
+        const byVar = new Map<string, { r: HarvestRange; plants: string[] }>()
+        for (const r of harvestRanges) {
+          const key = `${r.varName}|${localDateStr(r.dateMin)}|${localDateStr(r.dateMax)}`
+          const e = byVar.get(key)
+          const nom = r.plant.nom_affichage ?? `Plant #${r.plant.id_plant}`
+          if (e) e.plants.push(nom); else byVar.set(key, { r, plants: [nom] })
+        }
+        const rows = [...byVar.values()].sort((a, b) => a.r.dateMin.getTime() - b.r.dateMin.getTime())
+        const baseCulture = harvestRanges.some(r => r.baseCulture)
+
         return (
-          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
-            <h4 className="text-sm font-semibold text-amber-800 mb-3 flex items-center gap-2">
-              <span>⏳🌾</span> Récoltes prévues
+          <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
+            <h4 className="text-sm font-semibold text-amber-800 dark:text-amber-300 mb-3 flex items-center gap-2">
+              <span>⏳</span> Récoltes prévues
             </h4>
-            <div className="space-y-2">
-              {plantsWithFlo.map(plant => {
-                const base = new Date(plant.date_debut_flo! + 'T12:00:00')
-                const minD = plant.duree_flo_min ?? plant.duree_flo_max!
-                const maxD = plant.duree_flo_max ?? plant.duree_flo_min!
-                const dateMin = new Date(base)
-                dateMin.setDate(dateMin.getDate() + minD)
-                const dateMax = new Date(base)
-                dateMax.setDate(dateMax.getDate() + maxD)
-                const fmt = (d: Date) => d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
-                const today2 = new Date()
-                today2.setHours(12, 0, 0, 0)
-                const daysUntilMin = Math.round((dateMin.getTime() - today2.getTime()) / (1000*60*60*24))
-                const daysUntilMax = Math.round((dateMax.getTime() - today2.getTime()) / (1000*60*60*24))
-                const isPast = daysUntilMax < 0
-                const isNow = daysUntilMin <= 0 && daysUntilMax >= 0
-                return (
-                  <div key={plant.id_plant} className="flex items-center justify-between gap-2">
-                    <div>
-                      <span className="text-sm text-amber-900 font-semibold">
-                        {plant.nom_variete ?? plant.nom_affichage}
-                      </span>
-                      {plant.nom_variete && plant.nom_variete !== plant.nom_affichage && (
-                        <span className="text-xs text-amber-700 ml-1.5">({plant.nom_affichage})</span>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-2 text-xs">
-                      <span className="text-amber-700">
-                        {fmt(dateMin)} → {fmt(dateMax)}
-                      </span>
-                      {isNow && (
-                        <span className="px-2 py-0.5 bg-amber-400 text-white rounded-full font-semibold animate-pulse">
-                          Maintenant !
+            {rows.length === 0 ? (
+              <p className="text-xs text-amber-800 dark:text-amber-300">
+                Pas encore de date : la fenêtre de récolte se calcule à partir du début de floraison.
+                Saisis l'action « Début floraison » (🌸) sur les plantes concernées pour la voir apparaître dans le calendrier.
+              </p>
+            ) : (
+              <div className="space-y-2">
+                {rows.map(({ r, plants: noms }) => {
+                  const daysUntilMin = Math.round((r.dateMin.getTime() - today2.getTime()) / 86400000)
+                  const daysUntilMax = Math.round((r.dateMax.getTime() - today2.getTime()) / 86400000)
+                  const isPast = daysUntilMax < 0
+                  const isNow = daysUntilMin <= 0 && daysUntilMax >= 0
+                  return (
+                    <div key={`${r.varName}-${r.dateMin.getTime()}`} className="flex items-center justify-between gap-2">
+                      <div className="min-w-0">
+                        <span className="text-sm text-amber-900 dark:text-amber-200 font-semibold">{r.varName}</span>
+                        <span className="text-xs text-amber-700 dark:text-amber-400 ml-1.5">
+                          ({noms.length > 1 ? `${noms.length} plantes` : noms[0]})
                         </span>
-                      )}
-                      {!isPast && !isNow && (
-                        <span className="text-amber-600">dans {daysUntilMin}j</span>
-                      )}
-                      {isPast && (
-                        <span className="text-red-500 font-medium">En retard</span>
-                      )}
+                      </div>
+                      <div className="flex items-center gap-2 text-xs flex-shrink-0">
+                        <span className="text-amber-700 dark:text-amber-400">{fmt(r.dateMin)} → {fmt(r.dateMax)}</span>
+                        {isNow && (
+                          <span className="px-2 py-0.5 bg-amber-400 text-white rounded-full font-semibold animate-pulse">Maintenant !</span>
+                        )}
+                        {!isPast && !isNow && <span className="text-amber-600 dark:text-amber-400">dans {daysUntilMin}j</span>}
+                        {isPast && <span className="text-red-500 font-medium">En retard</span>}
+                      </div>
                     </div>
-                  </div>
-                )
-              })}
-            </div>
+                  )
+                })}
+              </div>
+            )}
+            {baseCulture && rows.length > 0 && (
+              <p className="text-[11px] text-amber-700 dark:text-amber-400 mt-2 italic">
+                Certaines plantes n'ont pas leur propre « Début floraison » : la date de floraison (ou de passage 12/12) de la culture est utilisée.
+              </p>
+            )}
+            {sansDuree.length > 0 && (
+              <p className="text-[11px] text-amber-700 dark:text-amber-400 mt-2 italic">
+                Sans durée de floraison connue (variété non renseignée ou clone) : {sansDuree.map(p => p.nom_affichage ?? `#${p.id_plant}`).join(', ')}.
+              </p>
+            )}
           </div>
         )
       })()}

@@ -792,6 +792,8 @@ function CultureDetail({ cultureId, onBack }: { cultureId: number; onBack: () =>
             idEspace={culture.id_espace}
             emplacements={culture.emplacements}
             plants={culture.plants}
+            dateDebutFloraison={culture.date_debut_floraison}
+            datePassage1212={culture.date_passage_12_12}
           />
         )}
         {activeTab === 'plantes' && (

@@ -1,7 +1,7 @@
 ---
 type: feature
 status: planifié (plan validé 2026-10-30, non lancé)
-updated: 2026-10-30
+updated: 2026-11-01
 sources: [backend/app/routers/parametre.py, backend/app/db_init.py, frontend/src/local/seeds.ts, frontend/src/local/db.ts, frontend/src/pages/Parametrage.tsx, backend/app/models/all_models.py]
 ---
 
@@ -13,15 +13,16 @@ sources: [backend/app/routers/parametre.py, backend/app/db_init.py, frontend/src
 
 ---
 
-## 1. Décisions de Pik (2026-10-30)
+## 1. Décisions de Pik (2026-10-30, révisées 2026-11-01)
 
-1. Les données standard sont **réellement insérées en base**, pour tout le monde, et livrées **par les mises à jour de l'app** (APK Play en mode autonome, image Docker en mode serveur).
-2. **Rien n'est jamais écrasé** : aucune donnée saisie par l'utilisateur (valeur de liste, breeder, quelle qu'elle soit) n'est modifiée ni supprimée.
-3. **Vérification avant insertion** : une valeur dont le nom existe déjà (insensible casse, accents, espaces) n'est pas réinsérée. Obligatoire puisque le bouton peut être pressé plusieurs fois. Un doublon résiduel (variante d'orthographe) reste acceptable.
-4. **Rien d'automatique à la mise à jour** : le standard complet est inséré à la **première installation** uniquement ; ensuite, seul le **bouton « Compléter avec les valeurs standard »** de Paramétrage ajoute des valeurs.
-5. **Le bouton réajoute toutes les valeurs standard absentes**, y compris celles que l'utilisateur avait supprimées. Aucun suivi des suppressions.
+1. Les données standard sont **réellement insérées en base**, pour tout le monde, et livrées **par les mises à jour de l'app** (APK Play en mode autonome, image Docker en mode serveur) : le JSON du standard est embarqué dans chaque version.
+2. **Rien n'est jamais écrasé** : aucune donnée saisie par l'utilisateur n'est modifiée ni supprimée.
+3. **Démarrage vide** (révision 2026-11-01) : à l'installation, aucune liste de Paramétrage n'est remplie. Seules exceptions : les **valeurs utilisées par le code**, sous cadenas (ADR-009), toujours présentes : catégories de matériel de base (déjà le cas) et **types de stock `Fleur`, `Trim`, `WPFF`, `Hash`, `Rosin`** (nouveau verrouillage). Les réglages techniques invisibles (AppSettings, seuils d'alerte stock, emplacements de culture) restent créés automatiquement.
+4. **Bouton global + bouton par catégorie** dans Paramétrage pour charger le standard. Ils réajoutent toutes les valeurs standard absentes, y compris celles que l'utilisateur avait supprimées. Aucun suivi des suppressions, rien d'automatique à la mise à jour.
+5. **Vérification avant insertion** : une valeur dont le nom existe déjà (insensible casse, accents, espaces) n'est pas réinsérée. Bouton idempotent. Un doublon résiduel (variante d'orthographe) reste acceptable.
 6. **Variétés : rien.** Le chantier 2 se limite aux breeders.
-7. **Fournisseurs des packs de graines : option A.** La liste déroulante du pack lit la liste paramétrable `fournisseurs` ; au choix d'un nom, la ligne de la table `Fournisseur` est retrouvée ou créée en coulisse (FK `PackGraine.id_fournisseur` conservée, stats, prix-graine et CSV inchangés).
+7. **Fournisseurs des packs de graines : option A.** La liste déroulante du pack lit la liste paramétrable `fournisseurs` ; au choix d'un nom, la ligne de la table `Fournisseur` est retrouvée ou créée en coulisse (FK `PackGraine.id_fournisseur` conservée). Reprise unique des noms existants de la table `Fournisseur` vers la liste.
+8. Message « Liste vide : chargez les valeurs standard dans Paramétrage » sous les listes vides : proposé, non retenu pour l'instant.
 
 ## 2. État actuel (constat code 2026-10-30)
 
@@ -32,17 +33,16 @@ sources: [backend/app/routers/parametre.py, backend/app/db_init.py, frontend/src
 - `marques` est vide par défaut. Il existe aussi des tables `Marque` et `Fournisseur` (le pack de graines utilise la table `Fournisseur`, le matériel et les engrais utilisent la liste `fournisseurs` / `marques`). À clarifier lors du chantier 1 : quelle source pré-remplir pour les fournisseurs de graines.
 - Breeders : table `Breeder` (nom, origine, information). Variétés : table `Variete` **sans lien direct vers un breeder** (le lien passe par `Graine`). Un contrôle de doublons breeders / variétés existe depuis le 2026-10-11.
 
-## 3. Mécanisme commun : première installation + bouton
+## 3. Mécanisme commun : boutons dans Paramétrage
 
 Principe valable pour les deux chantiers et les deux modes (serveur et autonome).
 
-- **Une seule source** : fichiers JSON partagés (ex. `shared/seeds/parametres.json`, `shared/seeds/breeders.json`) lus par le backend Python ET embarqués dans l'APK (import JSON côté `seeds.ts`). Fin de la double maintenance.
-- **Première installation** : à la création de la base, tout le standard est inséré. Un indicateur `AppSettings.standard_initial_applique` évite de le refaire. Remplace la règle actuelle « liste vide = on la remplit à chaque démarrage » (aujourd'hui, une liste vidée par l'utilisateur se re-remplit au redémarrage).
-- **Valeurs verrouillées** (ADR-009) : toujours ré-insérées au démarrage si absentes, inchangé.
-- **Bouton « Compléter avec les valeurs standard »** dans Paramétrage : un bouton global en haut de page et un bouton par liste ; pour les breeders, un bouton sur la page Breeders (ou dans Paramétrage). Il insère toutes les valeurs standard absentes. Idempotent : le presser plusieurs fois ne crée rien de plus. Retour à l'utilisateur : « N valeurs ajoutées ».
-- **Jamais d'UPDATE ni de DELETE** sur les données existantes, uniquement des INSERT.
-- **Comparaison des noms** : fonction de normalisation commune (minuscules, sans accents, espaces rognés), en Python et en TS. Côté serveur, l'index unique MySQL des listes fait déjà ce travail ; côté autonome, le contrôle actuel de `local/handlers/parametres.ts` compare au caractère près et doit être aligné (fix à faire au passage). Pour les breeders, aucun index : comparaison via la normalisation, noms existants chargés une fois en mémoire.
-- **Livraison** : une mise à jour de l'app apporte le nouveau JSON ; l'utilisateur appuie sur le bouton pour en profiter.
+- **Une seule source** : fichiers JSON partagés (ex. `shared/seeds/parametres.json`, `shared/seeds/breeders.json`) lus par le backend Python ET embarqués dans l'APK. Fin de la double maintenance `LISTE_DEFAULTS` (`parametre.py` + `local/seeds.ts`).
+- **Démarrage** : suppression du remplissage automatique des listes (règle actuelle « liste vide = remplie à chaque démarrage »). Restent automatiques : valeurs verrouillées (ADR-009, étendu aux 5 types de stock) et réglages techniques.
+- **Boutons « Charger les valeurs standard »** : un global en haut de Paramétrage, un par section (catégorie) de Paramétrage ; pour les breeders, un bouton dédié. Insère toutes les valeurs standard absentes, idempotent, retour « N valeurs ajoutées ».
+- **Jamais d'UPDATE ni de DELETE**, uniquement des INSERT.
+- **Comparaison des noms** : normalisation commune (minuscules, sans accents, espaces rognés), en Python et en TS. Côté serveur, l'index unique MySQL des listes fait déjà ce travail ; côté autonome, le contrôle de `local/handlers/parametres.ts` compare au caractère près et doit être aligné. Pour les breeders, comparaison via la normalisation.
+- **Installations existantes** : rien ne change, leurs valeurs restent.
 
 ## 4. Chantier 1 : listes de Paramétrage
 
@@ -71,8 +71,8 @@ Périmètre demandé par Pik : toutes les listes de la page Paramétrage reprenn
 | C1.1 | **Extraction** des valeurs de la base de prod de Pik : `SELECT liste_nom, valeur, ordre FROM ParametreListeValeur ORDER BY liste_nom, ordre;` (ou export JSON existant) |
 | C1.2 | **Revue avec Pik** : retirer ce qui est purement personnel (ex. noms complets de ses lampes dans `lampes_hc`, formats de ses tentes, puissances précises) ou le généraliser. Décider pour `lampes_stock` (non affichée dans Paramétrage). |
 | C1.3 | Création de `shared/seeds/parametres.json` (version 1 = standard actuel du code + valeurs de Pik), suppression des deux copies `LISTE_DEFAULTS`. `LISTES_VERROUILLEES` reste dans le code (ADR-009). |
-| C1.4 | Seed de première installation + endpoint « compléter » (global et par liste) côté backend Python et côté backend local TS, normalisation commune, alignement du contrôle de doublon autonome. Tests : base neuve, base existante partielle, valeur supprimée puis bouton, doublon casse/accents, bouton pressé deux fois. |
-| C1.5 | Boutons « Compléter avec les valeurs standard » dans Paramétrage (global + par liste) avec compteur de valeurs ajoutées. |
+| C1.4 | Retrait du remplissage automatique des listes, verrouillage des 5 types de stock, endpoint « charger le standard » (global et par section) côté backend Python et côté backend local TS, normalisation commune, alignement du contrôle de doublon autonome. Tests : base neuve vide (hors verrouillées), base existante partielle, valeur supprimée puis bouton, doublon casse/accents, bouton pressé deux fois. |
+| C1.5 | Boutons « Charger les valeurs standard » dans Paramétrage (global + par section) avec compteur de valeurs ajoutées. |
 | C1.5b | Fournisseurs des packs (option A) : `NouveauPackModal` lit la liste `fournisseurs`, find-or-create dans la table `Fournisseur` (serveur + autonome) ; reprise unique des noms existants de la table `Fournisseur` vers la liste. |
 | C1.6 | Livraison : nouvelle version APK + image Docker. Test par Pik sur une installation existante (rien d'écrasé, bouton qui ajoute les nouveautés) et sur une installation neuve. |
 
@@ -83,7 +83,7 @@ Périmètre demandé par Pik : toutes les listes de la page Paramétrage reprenn
 - Catalogue large des breeders connus : Pays-Bas, Espagne, États-Unis, France, Allemagne, Italie, plus les grands noms d'autres pays (Canada, Royaume-Uni, Suisse...). Ordre de grandeur visé : 200 à 400.
 - Champs remplis : `nom_breeder`, `origine_breeder` = pays, `information_breeder` = courte description (ville, spécialité, actif ou disparu).
 - Les breeders disparus sont gardés : leurs génétiques circulent toujours.
-- Étapes : constitution de la liste par recherche (sites des breeders, Seedfinder, banques de graines), revue par Pik, `shared/seeds/breeders.json`, insertion via le même mécanisme (première installation + bouton, vérification par nom normalisé).
+- Étapes : constitution de la liste par recherche (sites des breeders, Seedfinder, banques de graines), revue par Pik, `shared/seeds/breeders.json`, insertion via le même mécanisme (bouton, vérification par nom normalisé).
 
 ### 2b. Variétés : écarté (décision Pik 2026-10-30)
 
@@ -92,9 +92,9 @@ Pas de variétés pré-remplies. Raisons : même nom chez plusieurs breeders alo
 ## 6. Liens avec les autres chantiers
 
 - **Multilingue** ([[features/i18n]], sprint I2) : le JSON du standard devra exister par langue pour les valeurs libres (`parametres.fr.json`, `parametres.en.json`...) ; la langue choisie au premier lancement détermine le fichier utilisé. Les noms de breeders ne se traduisent pas. Faire le chantier 1 avant I2 simplifie I2.
-- **Mode autonome** ([[features/mobile-standalone]]) : le seed initial s'exécute à la création de la base ; une mise à jour Play livre le nouveau JSON, le bouton l'applique.
+- **Mode autonome** ([[features/mobile-standalone]]) : une mise à jour Play livre le nouveau JSON, le bouton l'applique.
 - **Valeurs verrouillées** : ADR-009 inchangé.
 
 ## 7. Points tranchés
 
-Tous tranchés par Pik le 2026-10-30, voir section 1. Écartés : seed versionné automatique à chaque mise à jour (remplacé par le bouton), insertion sans vérification (créerait des doublons à chaque appui sur le bouton), pré-remplissage des variétés, option B fournisseurs (FK remplacée par du texte, trop lourde).
+Tous tranchés par Pik le 2026-10-30, voir section 1. Écartés : seed versionné automatique à chaque mise à jour, standard complet à la première installation (révision 2026-11-01 : démarrage vide + boutons), insertion sans vérification (créerait des doublons à chaque appui sur le bouton), pré-remplissage des variétés, option B fournisseurs (FK remplacée par du texte, trop lourde).

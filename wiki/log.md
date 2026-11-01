@@ -6,6 +6,29 @@ Format: `## [YYYY-MM-DD] <operation> | <description>`
 
 ---
 
+## [2026-11-01] Fix | Calendrier de suivi de culture : légende, regroupement des icônes, récoltes prévues
+
+Signalé par Pik : la légende (pastilles de couleur) ne correspondait à rien dans les cases (emojis seuls), et l'icône « Récolte prévue » n'apparaissait jamais sur les dates de récolte attendues.
+
+**Causes :**
+- Les cases n'affichaient aucune couleur de catégorie : la légende n'avait pas d'équivalent visuel.
+- La fenêtre de récolte côté calendrier n'utilisait que `plant.date_debut_flo` (rempli uniquement par l'action « Début floraison » sur la plante), alors que le backend (`_compute_harvest_date`, bandeau culture) se rabat sur `culture.date_debut_floraison` puis `culture.date_passage_12_12`.
+- Affichage prévu pour une seule plante : une ligne par plante dans chaque case.
+- Cases vides en blanc en mode nuit (classe Tailwind invalide `dark:bg-gray-700/50/30`).
+
+**Corrections (`CalendrierCulture.tsx`) :**
+- Actions regroupées par type dans les cases : icône + `×N` + trait de couleur de la catégorie sous l'icône (même couleur que la légende). Max 6 types par case, infobulle avec libellé et plantes.
+- Légende : ajout de la catégorie Photo.
+- Helper `computeHarvestRange()` : même chaîne de repli que le backend (plante → floraison culture → 12/12 culture), plantes récoltées/séchage/curing/prête/abandonnées exclues. Nouvelles props `dateDebutFloraison` et `datePassage1212` passées par `Culture.tsx`.
+- Fenêtre de récolte : une ligne ⏳ par variété avec `×N` plantes (max 3 par case). Les actions `recolte_prevue` stockées ne sont plus affichées en double les jours couverts par la fenêtre.
+- Encadré « Récoltes prévues » regroupé par variété et trié par date, message explicite tant qu'aucune floraison n'est saisie, mention des plantes sans durée de floraison connue (clone, variété non renseignée), variantes mode nuit.
+
+Aucune migration. Validé par Pik. Reste ouvert : l'action `passage_12_12` est gérée par le backend mais absente du catalogue d'actions (voir roadmap).
+
+### Files modified
+- `frontend/src/components/culture/CalendrierCulture.tsx`, `frontend/src/pages/Culture.tsx`
+- `CHANGELOG.md`, `wiki/frontend/pages.md`, `wiki/roadmap.md`
+
 ## [2026-10-30] Fix | PPFD / DLI tient compte de l'intensité du dimmer
 
 Signalé par Pik : lampe à 30 % mais PPFD calculé sur les 550 W bruts (955 µmol/m²/s au lieu d'environ 286). `StatsTab.tsx` utilise maintenant `puissance_w × dernier puissance_apres / 100` (action `intensite_lampe` la plus récente par date, bornée 0 à 100, 100 % par défaut). Formules inchangées : PPFD = W effectifs × 2,5 µmol/J ÷ surface ; DLI = PPFD × heures × 0,0036. Case Lampe : W effectifs + « X % de N W · surface ». Aucune migration. Validé par Pik.
