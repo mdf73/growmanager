@@ -6,6 +6,29 @@ Format: `## [YYYY-MM-DD] <operation> | <description>`
 
 ---
 
+## [2026-11-03] Feature | Calendrier global : compteurs par jour, libellés lampe, bloc capteurs jour / nuit
+
+Demandé par Pik : sur `/calendrier`, 20 « events » et 8 « arrosages » affichés pour 5 actions et 1 arrosage (une action par plante).
+
+**`CalendrierGlobal.tsx` :**
+- Helper `compterDistincts()` : clé `jour|id_culture|type_action` (événements) ou `jour|id_culture` (arrosages, traitements). Appliqué aux stats du mois et à l'en-tête de la DayModal. Deux cultures arrosées le même jour = 2 (choix par culture).
+- DayCell : suppression du `×N`, nombre de plantes en `title`. DayModal : « N plantes » par type.
+- `actionMeta()` : repli sur `ACTION_MAP` (actionTypes.ts) avant le code brut.
+
+**Bloc capteurs `components/SensorMonthChart.tsx` (nouveau), sous les stats :**
+- Logs du mois via `capteursAPI.getLogs` (moyennes horaires backend > 48 h), une série par capteur.
+- Nouveau `GET /api/calendrier/horaires-lampe?date_fin=` (backend `routers/calendrier.py` + miroir `local/handlers/transverses.ts`, `getHorairesLampe` dans `api/calendrier.ts`) : actions `horaires_lampe` (`heure_debut`/`heure_fin`) jusqu'à date_fin, dédoublonnées par (culture, jour), avec `id_espace` de la culture.
+- `buildSegments()` : segments jour [allumage, extinction[ et nuit jusqu'au prochain allumage, horaire en vigueur chaque jour (dernier ≤ date, espace du capteur), extinction après minuit gérée, segment > 12 h coupé en 2 (1/2, 2/2). Sans horaire : 0h-12h / 12h-24h.
+- Résumé par capteur moyenne jour / nuit ; courbes sur axe temps numérique, point plein = jour, creux = nuit, infobulle avec la période exacte.
+- Mode autonome : pas de capteurs → « Aucune donnée capteur ce mois-ci ».
+
+Aucune migration. Validé par Pik.
+
+### Files modified
+- `frontend/src/pages/CalendrierGlobal.tsx`, `frontend/src/components/SensorMonthChart.tsx` (nouveau), `frontend/src/api/calendrier.ts`
+- `backend/app/routers/calendrier.py`, `frontend/src/local/handlers/transverses.ts`
+- `CHANGELOG.md`, `wiki/log.md`, `wiki/frontend/pages.md`, `wiki/api/api-calendrier.md`
+
 ## [2026-11-03] Feature | Actions : cible multi-plantes, photos retirées de la modale, action 📷 automatique depuis la galerie
 
 Demandé par Pik : pouvoir cibler un groupe de plantes dans les actions, comme pour les arrosages.

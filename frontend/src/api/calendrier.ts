@@ -53,3 +53,16 @@ export const getCalendrierExport = (
   client.get<CalendrierEvent[]>('/calendrier/export', {
     params: { date_debut, date_fin, ...(id_culture !== undefined && { id_culture }) },
   }).then(r => r.data)
+
+export interface HoraireLampe {
+  id_culture:  number
+  id_espace:   number | null
+  date_action: string   // YYYY-MM-DD
+  heure_debut: string   // "HH:MM" (allumage)
+  heure_fin:   string   // "HH:MM" (extinction)
+}
+
+/** Historique des horaires de lampe (action « horaires_lampe ») jusqu'à date_fin */
+export const getHorairesLampe = (date_fin: string) =>
+  client.get<HoraireLampe[]>('/calendrier/horaires-lampe', { params: { date_fin } })
+    .then(r => r.data)

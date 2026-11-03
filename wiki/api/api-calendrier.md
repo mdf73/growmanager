@@ -15,6 +15,7 @@ Router: `calendrier.py` | Prefix: `/api/calendrier`
 | GET | `/calendrier/` | `year`, `month` | `list[CalendrierEvent]` — tous les events du mois |
 | GET | `/calendrier/cultures-actives` | — | `list[CultureRef]` — toutes les cultures (pour filtres/légende) |
 | GET | `/calendrier/export` | `date_debut`, `date_fin` | `list[CalendrierEvent]` — tous les events dans la plage |
+| GET | `/calendrier/horaires-lampe` | `date_fin` | `list[HoraireLampe]` `{id_culture, id_espace, date_action, heure_debut, heure_fin}` — historique des actions `horaires_lampe` jusqu'à date_fin, une par (culture, jour). Sert au bloc capteurs jour/nuit (2026-11-03) |
 
 ## Types
 

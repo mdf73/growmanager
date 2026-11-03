@@ -9,7 +9,9 @@ import { getCalendrierEvents, getCulturesRef, getCalendrierExport, getActionCout
 import { capteursAPI, TemperatureLog } from '../api/capteurs'
 import { photosAPI, photoUrl } from '../api/photos'
 import SensorDayChart from '../components/SensorDayChart'
+import SensorMonthChart from '../components/SensorMonthChart'
 import { generateCalendarPDF as _generateCalendarPDF } from '../utils/calendarPdfExport'
+import { ACTION_MAP } from '../components/culture/actionTypes'
 
 // ─── Palette couleurs par culture (cycle) ────────────────────────────────────
 const CULTURE_COLORS = [
@@ -57,7 +59,27 @@ const ACTION_META: Record<string, { emoji: string; label: string }> = {
 }
 
 function actionMeta(type: string) {
-  return ACTION_META[type] ?? { emoji: '📌', label: type }
+  if (ACTION_META[type]) return ACTION_META[type]
+  // Repli sur le catalogue des actions de culture (lampe, mesures…) avant le code brut
+  const def = ACTION_MAP[type]
+  return def ? { emoji: def.icon, label: def.label } : { emoji: '📌', label: type }
+}
+
+/** Jour (YYYY-MM-DD) d'un event, date_action pouvant être une date ou un datetime ISO */
+function jourEvent(e: CalendrierEvent): string {
+  return String(e.date_action).slice(0, 10)
+}
+
+/** Nombre d'événements distincts : une même action le même jour sur une culture = 1,
+ *  quel que soit le nombre de plantes concernées (8 arrosages le même jour = 1 arrosage). */
+function compterDistincts(events: CalendrierEvent[], filtre: (e: CalendrierEvent) => boolean = () => true,
+                          parType = true): number {
+  const cles = new Set<string>()
+  for (const e of events) {
+    if (!filtre(e)) continue
+    cles.add(`${jourEvent(e)}|${e.id_culture}|${parType ? e.type_action : ''}`)
+  }
+  return cles.size
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -451,7 +473,7 @@ function DayModal({
           <div>
             <h2 className="font-bold text-gray-900 dark:text-white capitalize">{dateLabel}</h2>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              {events.length} événement{events.length > 1 ? 's' : ''}
+              {(() => { const n = compterDistincts(events); return `${n} événement${n > 1 ? 's' : ''}` })()}
             </p>
           </div>
           <button
@@ -473,7 +495,10 @@ function DayModal({
                   <span className="text-base">{meta.emoji}</span>
                   <span className="text-sm font-semibold text-gray-700 dark:text-gray-200">{meta.label}</span>
                   <span className="text-xs text-gray-400 dark:text-gray-500 ml-auto">
-                    {evts.length} event{evts.length > 1 ? 's' : ''}
+                    {(() => {
+                      const nbPlantes = new Set(evts.filter(e => e.id_plant != null).map(e => e.id_plant)).size
+                      return nbPlantes > 1 ? `${nbPlantes} plantes` : ''
+                    })()}
                   </span>
                 </div>
 
@@ -591,11 +616,11 @@ function DayCell({
           <button
             key={type}
             onClick={ev => { ev.stopPropagation(); onDayClick() }}
+            title={`${meta.label} · ${evts.length} plante${evts.length > 1 ? 's' : ''}`}
             className="w-full text-left text-xs px-1.5 py-0.5 rounded truncate flex items-center gap-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
           >
             <span className="shrink-0">{meta.emoji}</span>
             <span className="truncate flex-1">{meta.label}</span>
-            <span className="shrink-0 font-semibold text-gray-500 dark:text-gray-400">×{evts.length}</span>
           </button>
         )
       })}
@@ -1017,10 +1042,10 @@ export default function CalendrierGlobal() {
       {/* ── Stats rapides du mois ── */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
-          { label: 'Events ce mois', value: events.length, emoji: '📅' },
+          { label: 'Events ce mois', value: compterDistincts(events), emoji: '📅' },
           { label: 'Cultures actives', value: culturesThisMonth.filter(c => c.statut === 'active').length, emoji: '🌿' },
-          { label: 'Arrosages', value: events.filter(e => e.type_action.startsWith('arrosage')).length, emoji: '💧' },
-          { label: 'Traitements', value: events.filter(e => e.type_action === 'traitement').length, emoji: '🔬' },
+          { label: 'Arrosages', value: compterDistincts(events, e => e.type_action.startsWith('arrosage'), false), emoji: '💧' },
+          { label: 'Traitements', value: compterDistincts(events, e => e.type_action === 'traitement', false), emoji: '🔬' },
         ].map(stat => (
           <div key={stat.label} className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 text-center">
             <div className="text-2xl mb-1">{stat.emoji}</div>
@@ -1029,6 +1054,9 @@ export default function CalendrierGlobal() {
           </div>
         ))}
       </div>
+
+      {/* ── Température / humidité / VPD du mois (sous la légende et les stats) ── */}
+      <SensorMonthChart year={year} month={month} />
 
       {/* ── Modal vue journée (masqué si EventDrawer est ouvert par-dessus) ── */}
       {selectedDay && !selectedEvent && (

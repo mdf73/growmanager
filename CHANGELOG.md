@@ -17,6 +17,17 @@ Versioning : [Semantic Versioning](https://semver.org/lang/fr/) — `MAJOR.MINOR
 
 ---
 
+## [3.16.0] - 2026-11-03
+
+### Ajouté
+- **Calendrier global, température / humidité / VPD du mois** : nouveau bloc sous les stats. Moyennes calées sur les horaires de la lampe (action « Horaires de la lampe », dernier horaire en vigueur chaque jour, par espace du capteur) : une période jour (lampe allumée) et une période nuit, coupées en deux au-delà de 12 h. Repli 0h-12h / 12h-24h sans horaire saisi. Résumé jour / nuit par capteur, courbes avec point plein (jour) ou creux (nuit).
+
+### Corrigé
+- **Calendrier global, compteurs** : une même action le même jour sur une culture compte pour un événement, quel que soit le nombre de plantes. « Arrosages » et « Traitements » comptent les jours (par culture). Fenêtre du jour : nombre d'événements recalculé, « N plantes » au lieu de « N events ». Cases : plus de « ×N » (nombre de plantes au survol).
+- **Calendrier global, libellés** : les actions de lampe (horaires, durée d'éclairage, intensité…) s'affichent avec leur nom et leur icône au lieu du code brut.
+
+---
+
 ## [3.15.0] - 2026-11-03
 
 ### Ajouté

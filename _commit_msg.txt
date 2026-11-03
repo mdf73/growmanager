@@ -1,9 +1,10 @@
-feat: actions multi-plantes et action photo automatique depuis la galerie
+feat: calendrier global - compteurs par jour et capteurs jour/nuit selon les horaires de la lampe
 
-- Actions : cible comme les arrosages (espace / toutes les plantes / selection plante par plante), une action par plante cochee
-- Type Photo retire de la modale des actions, les photos passent par la galerie
-- Galerie : l'upload cree automatiquement l'action photo du jour (une par plante ou culture et par jour, nb_photos), supprimee quand il n'y a plus de photo
-- Mode autonome (APK) : stats arrosages alignees sur la 3.14.3 (par jour, en litres) et action photo auto
+- Compteurs : une meme action le meme jour sur une culture = 1 evenement, arrosages et traitements comptes par jour
+- Cases et vue journee : plus de xN, nombre de plantes affiche
+- Libelles des actions lampe (horaires, duree d'eclairage, intensite) au lieu du code brut
+- Nouveau bloc temperature / humidite / VPD du mois : moyennes jour (lampe allumee) / nuit calees sur l'action Horaires de la lampe en vigueur, 12 h max par periode
+- Nouvel endpoint GET /api/calendrier/horaires-lampe (+ miroir mode autonome)
 
 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 Claude-Session: https://claude.ai/code/session_01DQFniTkkYtmBV5Q719mpNv

@@ -134,6 +134,46 @@ def get_calendrier_export(
     return result
 
 
+@router.get("/horaires-lampe")
+def get_horaires_lampe(
+    date_fin: str = Query(..., description="Date de fin ISO (YYYY-MM-DD) : historique jusqu'à cette date"),
+    db: Session = Depends(get_db),
+):
+    """
+    Historique des actions « horaires_lampe » (heure_debut / heure_fin) jusqu'à date_fin,
+    une entrée par (culture, jour) même si l'action a été saisie plante par plante.
+    Sert au calendrier global pour caler les moyennes capteurs sur jour (lampe allumée) / nuit.
+    """
+    fin = DateType.fromisoformat(date_fin)
+    actions = (
+        db.query(ActionCalendrier)
+        .filter(ActionCalendrier.type_action == "horaires_lampe", ActionCalendrier.date_action <= fin)
+        .order_by(ActionCalendrier.date_action, ActionCalendrier.id_action)
+        .all()
+    )
+    culture_ids = {a.id_culture for a in actions}
+    espaces = {}
+    if culture_ids:
+        for c in db.query(Culture).filter(Culture.id_culture.in_(culture_ids)).all():
+            espaces[c.id_culture] = c.id_espace
+
+    vus: dict = {}
+    for a in actions:
+        p = a.parametres or {}
+        debut, fin_h = p.get("heure_debut"), p.get("heure_fin")
+        if not debut or not fin_h:
+            continue
+        # la dernière saisie du jour l'emporte
+        vus[(a.id_culture, a.date_action)] = {
+            "id_culture":  a.id_culture,
+            "id_espace":   espaces.get(a.id_culture),
+            "date_action": a.date_action.isoformat(),
+            "heure_debut": str(debut),
+            "heure_fin":   str(fin_h),
+        }
+    return sorted(vus.values(), key=lambda h: h["date_action"])
+
+
 @router.get("/cultures-actives")
 def get_cultures_avec_events(db: Session = Depends(get_db)):
     """

@@ -61,6 +61,29 @@ route('GET', '/calendrier/cultures-actives', async () => {
   }
 })
 
+// Miroir de GET /api/calendrier/horaires-lampe (backend)
+route('GET', '/calendrier/horaires-lampe', async ({ query: q }) => {
+  const fin = q.get('date_fin')
+  if (!fin) throw new LocalHttpError(422, 'date_fin requis (YYYY-MM-DD)')
+  const actions = await query<Row>(
+    `SELECT a.id_culture, a.date_action, a.parametres, c.id_espace
+       FROM "ActionCalendrier" a LEFT JOIN "Culture" c ON c.id_culture = a.id_culture
+      WHERE a.type_action = 'horaires_lampe' AND a.date_action <= ?
+      ORDER BY a.date_action, a.id_action`, [fin])
+  const vus = new Map<string, Row>()
+  for (const a of actions) {
+    let p: Row = {}
+    try { p = typeof a.parametres === 'string' ? JSON.parse(a.parametres) : ((a.parametres as Row) ?? {}) } catch { p = {} }
+    if (!p.heure_debut || !p.heure_fin) continue
+    const d = asDate(a.date_action)
+    vus.set(`${a.id_culture}|${d}`, {
+      id_culture: a.id_culture, id_espace: a.id_espace ?? null, date_action: d,
+      heure_debut: String(p.heure_debut), heure_fin: String(p.heure_fin),
+    })
+  }
+  return { data: [...vus.values()].sort((x, y) => String(x.date_action).localeCompare(String(y.date_action))) }
+})
+
 route('GET', '/calendrier/export', async ({ query: q }) => {
   const debut = q.get('date_debut')
   const fin = q.get('date_fin')
