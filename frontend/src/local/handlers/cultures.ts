@@ -740,7 +740,13 @@ route('GET', '/cultures/:id/stats', async ({ params }) => {
   const plantsMap = new Map(plants.map(pl => [Number(pl.id_plant), String(pl.nom_affichage)]))
 
   const hauteurs: Record<string, Row[]> = {}
-  const arrosages: Row[] = []
+  // Un arrosage = une journée (miroir de get_stats backend) ; preparation_tco exclue
+  const ARROSAGE_TYPES: Record<string, 'volume_eau_l' | 'volume_engrais_l' | 'volume_tco_l'> = {
+    arrosage_eau: 'volume_eau_l', arrosage_engrais: 'volume_engrais_l', arrosage_tco: 'volume_tco_l',
+  }
+  type Jour = { date: string; volume_l: number; volume_eau_l: number; volume_engrais_l: number; volume_tco_l: number
+                nb_actions: number; plantes: Set<number>; global: boolean }
+  const parJour = new Map<string, Jour>()
   const intensites: Row[] = []
 
   for (const a of actions) {
@@ -751,9 +757,17 @@ route('GET', '/cultures/:id/stats', async ({ params }) => {
     if (type === 'hauteur_plante') {
       const nom = a.id_plant ? (plantsMap.get(Number(a.id_plant)) ?? 'Global') : 'Global'
       ;(hauteurs[nom] = hauteurs[nom] ?? []).push({ date: d, hauteur_cm: params2.hauteur_cm ?? null })
-    } else if (['arrosage_eau', 'arrosage_engrais', 'arrosage_tco', 'preparation_tco'].includes(type)) {
-      const volL = params2.volume_l
-      arrosages.push({ date: d, volume_ml: volL ? Math.round(Number(volL) * 1000) : null, type })
+    } else if (type in ARROSAGE_TYPES) {
+      let j = parJour.get(d)
+      if (!j) {
+        j = { date: d, volume_l: 0, volume_eau_l: 0, volume_engrais_l: 0, volume_tco_l: 0, nb_actions: 0, plantes: new Set(), global: false }
+        parJour.set(d, j)
+      }
+      const vol = Number(params2.volume_l) || 0
+      j.volume_l += vol
+      j[ARROSAGE_TYPES[type]] += vol
+      j.nb_actions += 1
+      if (a.id_plant) j.plantes.add(Number(a.id_plant)); else j.global = true
     } else if (type === 'intensite_lampe') {
       intensites.push({
         date: d,
@@ -762,10 +776,21 @@ route('GET', '/cultures/:id/stats', async ({ params }) => {
       })
     }
   }
+  const r2 = (v: number) => Math.round(v * 100) / 100
+  const arrosages = [...parJour.values()]
+    .sort((x, y) => x.date.localeCompare(y.date))
+    .map(j => ({
+      date: j.date,
+      volume_l: r2(j.volume_l), volume_eau_l: r2(j.volume_eau_l),
+      volume_engrais_l: r2(j.volume_engrais_l), volume_tco_l: r2(j.volume_tco_l),
+      nb_actions: j.nb_actions,
+      nb_plantes: j.global ? null : j.plantes.size,
+    }))
   return {
     data: {
       hauteurs,
       arrosages,
+      volume_arrosage_total_l: r2(arrosages.reduce((t, j) => t + j.volume_l, 0)),
       intensites_lampe: intensites,
       nb_actions_total: actions.length,
     },

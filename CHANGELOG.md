@@ -17,6 +17,20 @@ Versioning : [Semantic Versioning](https://semver.org/lang/fr/) — `MAJOR.MINOR
 
 ---
 
+## [3.15.0] - 2026-11-03
+
+### Ajouté
+- **Actions de culture, cible multi-plantes** : comme pour les arrosages, la cible se choisit avec des boutons « Espace uniquement », « Toutes les plantes » ou plante par plante (sélection multiple). Une action est créée pour chaque plante cochée. Les actions qui exigent un statut (ex. fin de séchage) n'apparaissent que si toutes les plantes cochées ont ce statut.
+- **Photos dans le calendrier** : une photo ajoutée depuis la galerie crée automatiquement l'action 📷 du jour (une seule par plante ou par culture et par jour, avec le nombre de photos). Elle disparaît quand toutes les photos du jour sont supprimées.
+
+### Modifié
+- **Ajouter une action** : le type Photo est retiré de la modale, les photos passent uniquement par la galerie.
+
+### Corrigé
+- **Mode autonome (APK), stats d'arrosage** : même logique que le serveur depuis la 3.14.3 (un arrosage = une journée, volumes en litres, préparation TCO exclue).
+
+---
+
 ## [3.14.3] - 2026-11-03
 
 ### Corrigé

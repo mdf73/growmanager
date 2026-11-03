@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, Upload
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models.all_models import Photo
+from app.models.all_models import Photo, Plant, ActionCalendrier
 from app.schemas.photos import PhotoRead
 
 # ── Pillow pour compression + thumbnails ──────────────────────────────────────
@@ -26,6 +26,57 @@ THUMBS_DIR  = "/app/uploads/photos/thumbs"
 MAX_SIZE_BYTES = 2 * 1024 * 1024   # 2 Mo
 THUMB_SIZE     = (300, 300)
 ALLOWED_TYPES  = {"image/jpeg", "image/png", "image/webp", "image/heic"}
+
+
+def _sync_photo_action(db: Session, id_culture: Optional[int], id_plant: Optional[int], jour) -> None:
+    """Tient à jour l'action calendrier 📷 « photo » d'un jour.
+
+    Une seule action par (culture, plante ou culture entière, jour), avec
+    parametres.nb_photos = nombre de photos de ce jour. Supprimée quand il n'en reste plus.
+    Les photos ajoutées depuis la galerie apparaissent ainsi dans le calendrier de culture.
+    """
+    if id_culture is None and id_plant is not None:
+        pl = db.query(Plant).filter(Plant.id_plant == id_plant).first()
+        id_culture = pl.id_culture if pl else None
+    if id_culture is None:
+        return  # photo hors culture : pas de calendrier concerné
+
+    debut = datetime(jour.year, jour.month, jour.day)
+    fin   = debut + timedelta(days=1)
+    q = db.query(Photo).filter(Photo.date_prise >= debut, Photo.date_prise < fin)
+    if id_plant is not None:
+        q = q.filter(Photo.id_plant == id_plant)
+    else:
+        q = q.filter(Photo.id_culture == id_culture, Photo.id_plant.is_(None))
+    nb = q.count()
+
+    qa = db.query(ActionCalendrier).filter(
+        ActionCalendrier.id_culture == id_culture,
+        ActionCalendrier.type_action == "photo",
+        ActionCalendrier.date_action == jour,
+    )
+    qa = qa.filter(ActionCalendrier.id_plant == id_plant) if id_plant is not None \
+        else qa.filter(ActionCalendrier.id_plant.is_(None))
+    actions = qa.order_by(ActionCalendrier.id_action).all()
+
+    if nb == 0:
+        for a in actions:
+            db.delete(a)
+        return
+    if actions:
+        principale, doublons = actions[0], actions[1:]
+        principale.parametres = {**(principale.parametres or {}), "nb_photos": nb}
+        for a in doublons:
+            db.delete(a)
+    else:
+        db.add(ActionCalendrier(
+            id_culture=id_culture,
+            id_plant=id_plant,
+            date_action=jour,
+            type_action="photo",
+            parametres={"nb_photos": nb, "auto": True},
+            global_culture=id_plant is None,
+        ))
 
 
 def _ensure_dirs():
@@ -214,6 +265,8 @@ async def upload_photo(
         hauteur_px     = meta.get("hauteur_px"),
     )
     db.add(photo)
+    db.flush()
+    _sync_photo_action(db, id_culture, id_plant, parsed_date.date())
     db.commit()
     db.refresh(photo)
     return photo
@@ -236,5 +289,9 @@ def delete_photo(photo_id: int, db: Session = Depends(get_db)):
                 except OSError:
                     pass
 
+    id_culture, id_plant, jour = photo.id_culture, photo.id_plant, photo.date_prise.date() if photo.date_prise else None
     db.delete(photo)
+    db.flush()
+    if jour:
+        _sync_photo_action(db, id_culture, id_plant, jour)
     db.commit()

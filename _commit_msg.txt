@@ -1,9 +1,9 @@
-fix: stats culture - arrosages regroupes par jour et affiches en litres
+feat: actions multi-plantes et action photo automatique depuis la galerie
 
-- Un arrosage = une journee : les actions du meme jour (une par plante ou globale) sont regroupees et les volumes additionnes
-- preparation_tco n'est plus comptee comme un arrosage
-- Case "Jours d'arrosage" avec volume total en litres
-- Graphique en litres, une barre par jour empilee eau/engrais/TCO, dates JJ/MM, moyenne et infobulle detaillee
+- Actions : cible comme les arrosages (espace / toutes les plantes / selection plante par plante), une action par plante cochee
+- Type Photo retire de la modale des actions, les photos passent par la galerie
+- Galerie : l'upload cree automatiquement l'action photo du jour (une par plante ou culture et par jour, nb_photos), supprimee quand il n'y a plus de photo
+- Mode autonome (APK) : stats arrosages alignees sur la 3.14.3 (par jour, en litres) et action photo auto
 
 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 Claude-Session: https://claude.ai/code/session_01DQFniTkkYtmBV5Q719mpNv

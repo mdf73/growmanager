@@ -6,6 +6,31 @@ Format: `## [YYYY-MM-DD] <operation> | <description>`
 
 ---
 
+## [2026-11-03] Feature | Actions : cible multi-plantes, photos retirées de la modale, action 📷 automatique depuis la galerie
+
+Demandé par Pik : pouvoir cibler un groupe de plantes dans les actions, comme pour les arrosages.
+
+**ActionModal.tsx :**
+- Cible en pills (même UX qu'ArrosageModal) : 🏠 Espace uniquement / 🌿 Toutes les plantes / plantes une par une. Tout décoché → retour à « Toutes les plantes ». `initialPlantId` → plante précochée.
+- Plusieurs plantes → une action par plante, envoyées séquentiellement (effets de statut appliqués plante par plante).
+- `requiredPlantStatut` : action visible seulement si toutes les plantes cochées ont le statut ; action désélectionnée si la sélection devient incompatible.
+- Catégorie `photo` retirée de la modale (zone upload supprimée). Le type `photo` reste dans `actionTypes.ts` pour l'affichage des actions existantes.
+
+**Action 📷 automatique :**
+- Backend `routers/photos.py` : helper `_sync_photo_action(db, id_culture, id_plant, jour)` appelé à l'upload et à la suppression. Une action `photo` par (culture, plante ou NULL, jour), `parametres.nb_photos` = nb de photos du jour, `auto: true` à la création. Supprimée à 0 photo. Culture déduite de la plante si `id_culture` absent ; photo hors culture ignorée.
+- Mode autonome : miroir `syncPhotoAction` dans `local/handlers/photos.ts`.
+- `PhotoGallery.tsx` : invalidation de `['calendrier']` après upload/suppression.
+- Les photos existantes n'ont pas d'action rétroactive (backfill non fait).
+
+**Mode autonome stats :** `local/handlers/cultures.ts` aligné sur la correction arrosages de la 3.14.3 (regroupement par jour, litres, `preparation_tco` exclue, `volume_arrosage_total_l`). Oubli de la 3.14.3 : seul le backend serveur avait été corrigé.
+
+Aucune migration. Validé par Pik.
+
+### Files modified
+- `frontend/src/components/culture/ActionModal.tsx`, `frontend/src/components/culture/PhotoGallery.tsx`
+- `backend/app/routers/photos.py`, `frontend/src/local/handlers/photos.ts`, `frontend/src/local/handlers/cultures.ts`
+- `CHANGELOG.md`, `wiki/log.md`, `wiki/frontend/pages.md`
+
 ## [2026-11-03] Fix | Stats culture : arrosages regroupés par jour et affichés en litres
 
 Signalé par Pik : 106 « arrosages » affichés alors qu'il arrose plusieurs plantes en une fois, et graphique illisible (une barre par action, en mL, dates répétées).

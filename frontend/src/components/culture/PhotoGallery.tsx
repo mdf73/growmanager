@@ -229,6 +229,7 @@ export default function PhotoGallery({ idCulture, idPlant, plants = [] }: PhotoG
     onSuccess: () => {
       qc.invalidateQueries({ queryKey })
       qc.invalidateQueries({ queryKey: ['photos-count', idCulture] })
+      qc.invalidateQueries({ queryKey: ['calendrier'] })  // action 📷 créée/mise à jour côté serveur
       setLightboxIdx(null)
     },
   })
@@ -262,6 +263,7 @@ export default function PhotoGallery({ idCulture, idPlant, plants = [] }: PhotoG
       setNoteInput('')
       qc.invalidateQueries({ queryKey })
       qc.invalidateQueries({ queryKey: ['photos-count', idCulture] })
+      qc.invalidateQueries({ queryKey: ['calendrier'] })  // action 📷 créée/mise à jour côté serveur
     } catch (err: unknown) {
       const e = err as { response?: { status?: number; data?: { detail?: unknown } }; message?: string }
       const detail = e.response?.data?.detail
@@ -272,6 +274,7 @@ export default function PhotoGallery({ idCulture, idPlant, plants = [] }: PhotoG
       setUploadError(`Échec de l'upload : ${msg}`)
       // Rafraîchit quand même : une partie des photos a pu passer
       qc.invalidateQueries({ queryKey })
+      qc.invalidateQueries({ queryKey: ['calendrier'] })
     } finally {
       setUploading(false)
     }

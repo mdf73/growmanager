@@ -35,6 +35,7 @@ Main grow cycle management. Shows active + completed cultures.
   - Cases : actions regroupées par type (icône + `×N`), trait de couleur de catégorie sous chaque icône (= légende)
   - Fenêtre de récolte prévue : ⏳ + variété (`×N` plantes) sur chaque jour entre début flo + `duree_flo_min` et + `duree_flo_max`. Base = `plant.date_debut_flo` → `culture.date_debut_floraison` → `culture.date_passage_12_12` (même règle que le backend). Encadré « Récoltes prévues » par variété sous la grille
 - StatsTab: yield, cost, grams/watt
+- ActionModal (2026-11-03) : cible en pills (espace / toutes les plantes / multi-sélection plante par plante, une action par plante), type Photo retiré (photos via la galerie, qui crée l'action 📷 du jour automatiquement)
 - StatsTab arrosages (2026-11-03) : 1 arrosage = 1 jour (actions du jour regroupées, `preparation_tco` exclue), graphique en litres empilé eau/engrais/TCO, infobulle avec nb de plantes
 - **Plantes mortes / terminées** (2026-10-01) : une plante morte = statut `abandonne` (action calendrier « Décès plante »). Le label d'onglet affiche `Plantes (actives/total)` quand ils diffèrent ; l'en-tête PlantesTab affiche « X actives · Y terminées ». Dans PhotoGallery, le sélecteur « Associer à » exclut les plantes `abandonne` et regroupe les récoltées (`sechage/recolte/curing/prete/wpff`) sous « Récoltées ».
 - **Barre d'info du détail culture** (7 tuiles) : Jours · Plantes actives · **En croissance** · En floraison · Fenêtre récolte · Dernier arrosage · Dernier TCO. Grille `grid-cols-2 sm:grid-cols-4 xl:grid-cols-7`.

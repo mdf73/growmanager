@@ -1,10 +1,9 @@
-import { useState, useEffect, useRef } from 'react'
-import { X, ChevronDown, Camera, Loader2 } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { X, ChevronDown, Loader2 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { Plant, ActionCreate } from '../../api/cultures'
 import { engraisAPI } from '../../api/engrais'
 import { espacesAPI, EspaceMateriel } from '../../api/espaces'
-import { photosAPI } from '../../api/photos'
 import {
   ACTIONS_BY_CATEGORY, ACTION_MAP,
   CATEGORY_COLORS, CATEGORY_LABELS, ActionCategory,
@@ -28,11 +27,14 @@ interface Props {
 // Catégories qui s'appliquent à l'espace (pas aux plantes individuelles) par défaut
 const SPACE_CATEGORIES: ActionCategory[] = ['lampe']
 
-export default function ActionModal({ cultureId, plants, idEspace, initialDate, initialPlantId, onClose, onSubmit }: Props) {
+export default function ActionModal({ plants, idEspace, initialDate, initialPlantId, onClose, onSubmit }: Props) {
   const [dateAction, setDateAction] = useState(initialDate)
-  // target: 'space' | 'global' | plant id (string)
-  const [target, setTarget] = useState<'space' | 'global' | string>(
-    initialPlantId !== undefined ? String(initialPlantId) : 'global'
+  // target: 'space' (espace seul) | 'global' (toutes les plantes) | 'plants' (sélection dans selectedPlantIds)
+  const [target, setTarget] = useState<'space' | 'global' | 'plants'>(
+    initialPlantId !== undefined ? 'plants' : 'global'
+  )
+  const [selectedPlantIds, setSelectedPlantIds] = useState<Set<number>>(
+    () => new Set(initialPlantId !== undefined ? [initialPlantId] : [])
   )
   const [selectedType, setSelectedType] = useState('')
   const [params, setParams] = useState<Record<string, unknown>>({})
@@ -40,10 +42,6 @@ export default function ActionModal({ cultureId, plants, idEspace, initialDate, 
   const [loading, setLoading] = useState(false)
   const [openCategory, setOpenCategory] = useState<ActionCategory | null>('germination')
   const [produits, setProduits] = useState<ProduitItem[]>([])
-  // ── État pour l'upload photo ────────────────────────────────────────────────
-  const [photoFiles, setPhotoFiles]   = useState<File[]>([])
-  const [photoDrag,  setPhotoDrag]    = useState(false)
-  const photoInputRef = useRef<HTMLInputElement>(null)
 
   const { data: produitsEngrais = [] } = useQuery({
     queryKey: ['produits-engrais'],
@@ -70,20 +68,34 @@ export default function ActionModal({ cultureId, plants, idEspace, initialDate, 
 
   const actionDef = selectedType ? ACTION_MAP[selectedType] : null
 
-  // Statut de la plante actuellement ciblée (null si global/space)
-  const selectedPlantStatut = (target !== 'global' && target !== 'space')
-    ? (plants.find(p => p.id_plant === Number(target))?.statut ?? null)
-    : null
+  const plantesActives = plants.filter(p => !['recolte', 'abandonne'].includes(p.statut || ''))
+  const plantesCiblees = target === 'plants' ? plants.filter(p => selectedPlantIds.has(p.id_plant)) : []
 
-  /** Filtre les actions selon les contraintes de la plante cible */
+  /** Sélection plante par plante (comme ArrosageModal) — tout décoché → retour à "Toutes les plantes" */
+  function togglePlant(id: number) {
+    const next = new Set(target === 'plants' ? selectedPlantIds : [])
+    if (next.has(id)) next.delete(id); else next.add(id)
+    setSelectedPlantIds(next)
+    setTarget(next.size === 0 ? 'global' : 'plants')
+  }
+
+  /** Filtre les actions selon les contraintes des plantes ciblées */
   function isActionVisible(action: (typeof ACTION_MAP)[string]): boolean {
     if (action.requiredPlantStatut) {
-      // L'action nécessite un statut précis → masquée si global/space ou statut différent
-      if (target === 'global' || target === 'space') return false
-      return selectedPlantStatut === action.requiredPlantStatut
+      // L'action nécessite un statut précis → toutes les plantes sélectionnées doivent l'avoir
+      if (target !== 'plants' || plantesCiblees.length === 0) return false
+      return plantesCiblees.every(p => p.statut === action.requiredPlantStatut)
     }
     return true
   }
+
+  // Si la sélection change et que l'action choisie n'est plus compatible → on la désélectionne
+  useEffect(() => {
+    if (selectedType && ACTION_MAP[selectedType] && !isActionVisible(ACTION_MAP[selectedType])) {
+      setSelectedType('')
+      setParams({})
+    }
+  }, [target, selectedPlantIds])
 
   function setParam(key: string, value: unknown) {
     setParams(prev => ({ ...prev, [key]: value }))
@@ -104,8 +116,6 @@ export default function ActionModal({ cultureId, plants, idEspace, initialDate, 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!selectedType) return
-    // Pour le type photo, au moins une photo est requise
-    if (selectedType === 'photo' && photoFiles.length === 0) return
     setLoading(true)
 
     const finalParams: Record<string, unknown> = { ...params }
@@ -115,41 +125,30 @@ export default function ActionModal({ cultureId, plants, idEspace, initialDate, 
 
     const isSpace  = target === 'space'
     const isGlobal = target === 'global'
-    const plantId  = (!isSpace && !isGlobal && target !== '') ? Number(target) : undefined
+    // undefined = une seule action (espace ou toutes les plantes) ; sinon une action par plante
+    const plantIds: (number | undefined)[] = target === 'plants' ? Array.from(selectedPlantIds) : [undefined]
 
     try {
-      // ── Si action photo : uploader les fichiers avec la date de l'action ────
-      if (selectedType === 'photo' && photoFiles.length > 0) {
-        for (const file of photoFiles) {
-          await photosAPI.upload({
-            file,
-            id_culture: cultureId,
-            ...(plantId !== undefined && { id_plant: plantId }),
-            notes:      note || undefined,
-            date_prise: dateAction,   // date de l'action = date de la photo
-          })
-        }
-        // Stocker le nombre de photos dans les paramètres de l'action
-        finalParams.nb_photos = photoFiles.length
+      // Enregistrement séquentiel : les effets d'action (changement de statut…) s'appliquent plante par plante
+      for (const plantId of plantIds) {
+        await onSubmit({
+          id_plant: plantId,
+          date_action: dateAction,
+          type_action: selectedType,
+          parametres: Object.keys(finalParams).length > 0 ? finalParams : undefined,
+          note: note || undefined,
+          global_culture: isGlobal,
+          space_only: isSpace,
+        })
       }
-
-      await onSubmit({
-        id_plant: plantId,
-        date_action: dateAction,
-        type_action: selectedType,
-        parametres: Object.keys(finalParams).length > 0 ? finalParams : undefined,
-        note: note || undefined,
-        global_culture: isGlobal,
-        space_only: isSpace,
-      })
       onClose()
     } finally {
       setLoading(false)
     }
   }
 
-  // Les actions d'arrosage sont gérées par ArrosageModal — on les exclut ici
-  const categories = (Object.keys(ACTIONS_BY_CATEGORY) as ActionCategory[]).filter(c => c !== 'arrosage')
+  // Arrosages → ArrosageModal ; photos → ajout dédié (galerie). On les exclut ici.
+  const categories = (Object.keys(ACTIONS_BY_CATEGORY) as ActionCategory[]).filter(c => c !== 'arrosage' && c !== 'photo')
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
@@ -162,30 +161,63 @@ export default function ActionModal({ cultureId, plants, idEspace, initialDate, 
 
         <form onSubmit={handleSubmit} className="p-5 space-y-4">
           {/* Date */}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Date</label>
-              <input type="date" value={dateAction} onChange={e => setDateAction(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-grow-500 focus:border-transparent" />
-            </div>
-            {/* Cible */}
-            <div>
-              <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Cible</label>
-              <select
-                value={target}
-                onChange={e => setTarget(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-grow-500 focus:border-transparent"
-              >
-                <option value="space">🏠 Espace uniquement</option>
-                <option value="global">🌿 Toutes les plantes</option>
-                {plants.filter(p => !['recolte', 'abandonne'].includes(p.statut || '')).map(p => (
-                  <option key={p.id_plant} value={p.id_plant}>{p.nom_affichage}</option>
-                ))}
-              </select>
-              {target === 'space' && (
-                <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Enregistré pour l'espace, sans impact sur les plantes</p>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Date</label>
+            <input type="date" value={dateAction} onChange={e => setDateAction(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-grow-500 focus:border-transparent" />
+          </div>
+
+          {/* Cible : même fonctionnement que les arrosages (pills multi-sélection) */}
+          <div>
+            <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1.5">
+              Cible
+              {target === 'plants' && selectedPlantIds.size > 0 && (
+                <span className="ml-1.5 text-grow-600 dark:text-grow-400 font-normal">
+                  ({selectedPlantIds.size} plante{selectedPlantIds.size > 1 ? 's' : ''} sélectionnée{selectedPlantIds.size > 1 ? 's' : ''})
+                </span>
               )}
+            </label>
+            <div className="flex flex-wrap gap-1.5">
+              <button
+                type="button"
+                onClick={() => setTarget('space')}
+                className={`flex items-center gap-1 px-3 py-1.5 rounded-full border text-xs font-medium transition-colors
+                  ${target === 'space'
+                    ? 'bg-amber-500 border-amber-500 text-white'
+                    : 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-700 text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/40'}`}
+              >
+                🏠 Espace uniquement
+              </button>
+              <button
+                type="button"
+                onClick={() => setTarget('global')}
+                className={`flex items-center gap-1 px-3 py-1.5 rounded-full border text-xs font-medium transition-colors
+                  ${target === 'global'
+                    ? 'bg-blue-600 border-blue-600 text-white'
+                    : 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-700 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/40'}`}
+              >
+                🌿 Toutes les plantes
+              </button>
+              {plantesActives.map(p => {
+                const selected = target === 'plants' && selectedPlantIds.has(p.id_plant)
+                return (
+                  <button
+                    key={p.id_plant}
+                    type="button"
+                    onClick={() => togglePlant(p.id_plant)}
+                    className={`flex items-center gap-1 px-3 py-1.5 rounded-full border text-xs font-medium transition-colors
+                      ${selected
+                        ? 'bg-grow-600 border-grow-600 text-white'
+                        : 'bg-gray-50 dark:bg-gray-700/50 border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
+                  >
+                    {selected ? '✓ ' : ''}{p.nom_affichage}
+                  </button>
+                )
+              })}
             </div>
+            {target === 'space' && (
+              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Enregistré pour l'espace, sans impact sur les plantes</p>
+            )}
           </div>
 
           {/* Sélection du type d'action */}
@@ -336,85 +368,17 @@ export default function ActionModal({ cultureId, plants, idEspace, initialDate, 
             </div>
           )}
 
-          {/* ── Zone upload photo (uniquement quand type=photo) ────────────────── */}
-          {selectedType === 'photo' && (
-            <div className="space-y-2">
-              <label className="block text-xs font-medium text-gray-600 dark:text-gray-300">
-                Photos <span className="text-red-500">*</span>
-                <span className="text-gray-400 font-normal ml-1">(JPG, PNG, WebP — la date est celle de l'action)</span>
-              </label>
-
-              {/* Drop zone — label wrapping input (approche native HTML, fonctionne dans les modales) */}
-              <label
-                className={`block cursor-pointer border-2 border-dashed rounded-xl p-5 flex flex-col items-center gap-2 transition-colors
-                  ${photoDrag
-                    ? 'border-grow-400 bg-grow-50 dark:bg-grow-900/20'
-                    : 'border-gray-200 dark:border-gray-700 hover:border-grow-300 dark:hover:border-grow-600'}`}
-                onDragOver={e => { e.preventDefault(); setPhotoDrag(true) }}
-                onDragLeave={() => setPhotoDrag(false)}
-                onDrop={e => {
-                  e.preventDefault()
-                  setPhotoDrag(false)
-                  const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'))
-                  if (files.length) setPhotoFiles(prev => [...prev, ...files])
-                }}
-              >
-                <input
-                  ref={photoInputRef}
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  className="sr-only"
-                  onChange={e => {
-                    if (e.target.files) {
-                      setPhotoFiles(prev => [...prev, ...Array.from(e.target.files!)])
-                    }
-                  }}
-                />
-                <Camera size={24} className="text-gray-400" />
-                <span className="text-sm text-gray-500 dark:text-gray-400">
-                  Cliquer ou glisser des photos ici
-                </span>
-              </label>
-
-              {/* Aperçu des fichiers sélectionnés */}
-              {photoFiles.length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-1">
-                  {photoFiles.map((f, i) => (
-                    <div key={i} className="relative group">
-                      <img
-                        src={URL.createObjectURL(f)}
-                        alt={f.name}
-                        className="w-16 h-16 object-cover rounded-lg border border-gray-200 dark:border-gray-600"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setPhotoFiles(prev => prev.filter((_, idx) => idx !== i))}
-                        className="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        ×
-                      </button>
-                      <span className="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-[9px] truncate px-1 rounded-b-lg">
-                        {f.name}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
           {/* Note */}
           <div>
             <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">
-              {selectedType === 'photo' ? 'Légende / note (optionnelle)' : 'Note (optionnelle)'}
+              Note (optionnelle)
             </label>
             <textarea
               value={note}
               onChange={e => setNote(e.target.value)}
               rows={2}
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm resize-none"
-              placeholder={selectedType === 'photo' ? 'Légende appliquée à toutes les photos…' : 'Observations, détails…'}
+              placeholder="Observations, détails…"
             />
           </div>
 
@@ -426,16 +390,11 @@ export default function ActionModal({ cultureId, plants, idEspace, initialDate, 
             </button>
             <button
               type="submit"
-              disabled={loading || !selectedType || (selectedType === 'photo' && photoFiles.length === 0)}
+              disabled={loading || !selectedType}
               className="flex-1 px-4 py-2 bg-grow-600 text-white rounded-lg hover:bg-grow-700 disabled:opacity-50 text-sm flex items-center justify-center gap-2"
             >
               {loading && <Loader2 size={14} className="animate-spin" />}
-              {loading
-                ? (selectedType === 'photo' ? 'Upload en cours…' : 'Enregistrement…')
-                : (selectedType === 'photo' && photoFiles.length > 0
-                    ? `Uploader ${photoFiles.length} photo${photoFiles.length > 1 ? 's' : ''}`
-                    : 'Enregistrer')
-              }
+              {loading ? 'Enregistrement…' : 'Enregistrer'}
             </button>
           </div>
         </form>
