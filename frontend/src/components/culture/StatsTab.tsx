@@ -50,6 +50,33 @@ function statusLabel(val: number, range: Range): string {
   return 'Optimal'
 }
 
+// ── Format litres / dates ─────────────────────────────────────────────────────
+function fmtL(v: number): string {
+  return `${v.toLocaleString('fr-FR', { maximumFractionDigits: 2 })} L`
+}
+function fmtJour(iso: string): string {
+  const [, m, d] = String(iso).split('-')
+  return d && m ? `${d}/${m}` : iso
+}
+
+function ArrosageTooltip({ active, payload }: { active?: boolean; payload?: { payload: Stats['arrosages'][number] }[] }) {
+  if (!active || !payload?.length) return null
+  const j = payload[0].payload
+  const [y, m, d] = String(j.date).split('-')
+  return (
+    <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-xs shadow">
+      <p className="font-semibold text-gray-700 dark:text-gray-200">{d}/{m}/{y}</p>
+      <p className="text-blue-600 dark:text-blue-400 font-bold">{fmtL(j.volume_l)}</p>
+      {j.volume_eau_l > 0 && <p className="text-gray-500 dark:text-gray-400">Eau : {fmtL(j.volume_eau_l)}</p>}
+      {j.volume_engrais_l > 0 && <p className="text-gray-500 dark:text-gray-400">Engrais : {fmtL(j.volume_engrais_l)}</p>}
+      {j.volume_tco_l > 0 && <p className="text-gray-500 dark:text-gray-400">TCO : {fmtL(j.volume_tco_l)}</p>}
+      <p className="text-gray-400 dark:text-gray-500 mt-0.5">
+        {j.nb_plantes == null ? 'Toute la culture' : `${j.nb_plantes} plante${j.nb_plantes > 1 ? 's' : ''}`}
+      </p>
+    </div>
+  )
+}
+
 export default function StatsTab({ cultureId, idEspace, phase }: Props) {
   const { data: stats, isLoading } = useQuery<Stats>({
     queryKey: ['stats', cultureId],
@@ -82,6 +109,11 @@ export default function StatsTab({ cultureId, idEspace, phase }: Props) {
   // Préparer données hauteur (merge toutes les plantes sur timeline commune)
   const hauteurPlantes = Object.entries(stats.hauteurs)
   const arrosageData = stats.arrosages
+  const volumeTotalL = stats.volume_arrosage_total_l ?? arrosageData.reduce((t, j) => t + (j.volume_l || 0), 0)
+  const volumeMoyenL = arrosageData.length ? volumeTotalL / arrosageData.length : 0
+  const hasEau     = arrosageData.some(j => j.volume_eau_l > 0)
+  const hasEngrais = arrosageData.some(j => j.volume_engrais_l > 0)
+  const hasTco     = arrosageData.some(j => j.volume_tco_l > 0)
   const intensiteData = stats.intensites_lampe
   const phEcData: PhEcPoint[] = stats.ph_ec ?? []
 
@@ -226,7 +258,10 @@ export default function StatsTab({ cultureId, idEspace, phase }: Props) {
         </div>
         <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 text-center">
           <p className="text-2xl font-bold text-blue-600">{stats.arrosages.length}</p>
-          <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 mt-1">Arrosages</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 mt-1">Jours d&apos;arrosage</p>
+          {volumeTotalL > 0 && (
+            <p className="text-xs text-blue-500 dark:text-blue-400 mt-0.5">{fmtL(Math.round(volumeTotalL * 10) / 10)} au total</p>
+          )}
         </div>
         <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 text-center">
           <p className="text-2xl font-bold text-yellow-600">{stats.intensites_lampe.length}</p>
@@ -266,16 +301,24 @@ export default function StatsTab({ cultureId, idEspace, phase }: Props) {
       {/* Arrosages */}
       {arrosageData.length > 0 && (
         <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-5">
-          <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-4 flex items-center gap-2">
-            <Droplets size={16} className="text-blue-500" /> Arrosages (mL)
-          </h3>
-          <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={arrosageData} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-              <XAxis dataKey="date" tick={{ fontSize: 10 }} />
-              <YAxis tick={{ fontSize: 10 }} unit="mL" />
-              <Tooltip formatter={(v: number) => `${v} mL`} />
-              <Bar dataKey="volume_ml" name="Volume" fill="#60a5fa" radius={[3, 3, 0, 0]} />
+          <div className="flex items-center justify-between mb-4 gap-2 flex-wrap">
+            <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-200 flex items-center gap-2">
+              <Droplets size={16} className="text-blue-500" /> Arrosages (L par jour)
+            </h3>
+            <p className="text-xs text-gray-400 dark:text-gray-500">
+              Moyenne {fmtL(Math.round(volumeMoyenL * 10) / 10)} / arrosage
+            </p>
+          </div>
+          <ResponsiveContainer width="100%" height={220}>
+            <BarChart data={arrosageData} margin={{ top: 5, right: 10, left: -10, bottom: 5 }} maxBarSize={28}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#374151" strokeOpacity={0.25} vertical={false} />
+              <XAxis dataKey="date" tick={{ fontSize: 10 }} tickFormatter={fmtJour} minTickGap={16} />
+              <YAxis tick={{ fontSize: 10 }} unit=" L" allowDecimals />
+              <Tooltip content={<ArrosageTooltip />} cursor={{ fill: 'rgba(96,165,250,0.08)' }} />
+              {(Number(hasEau) + Number(hasEngrais) + Number(hasTco)) > 1 && <Legend wrapperStyle={{ fontSize: 11 }} />}
+              {hasEau     && <Bar dataKey="volume_eau_l"     name="Eau"     stackId="v" fill="#60a5fa" />}
+              {hasEngrais && <Bar dataKey="volume_engrais_l" name="Engrais" stackId="v" fill="#34d399" />}
+              {hasTco     && <Bar dataKey="volume_tco_l"     name="TCO"     stackId="v" fill="#f59e0b" />}
             </BarChart>
           </ResponsiveContainer>
         </div>

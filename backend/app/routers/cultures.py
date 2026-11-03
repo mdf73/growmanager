@@ -2613,8 +2613,14 @@ def get_stats(culture_id: int, db: Session = Depends(get_db)):
     }
 
     hauteurs: dict = {}
-    arrosages: list = []
+    arrosages_par_jour: dict = {}
     intensites: list = []
+    # type d'action -> clé de volume (preparation_tco n'est pas un arrosage : exclue)
+    ARROSAGE_TYPES = {
+        "arrosage_eau":     "volume_eau_l",
+        "arrosage_engrais": "volume_engrais_l",
+        "arrosage_tco":     "volume_tco_l",
+    }
 
     for a in actions:
         params = a.parametres or {}
@@ -2624,10 +2630,26 @@ def get_stats(culture_id: int, db: Session = Depends(get_db)):
             nom = plants_map.get(a.id_plant, "Global") if a.id_plant else "Global"
             hauteurs.setdefault(nom, []).append({"date": d, "hauteur_cm": params.get("hauteur_cm")})
 
-        elif a.type_action in ("arrosage_eau", "arrosage_engrais", "arrosage_tco", "preparation_tco"):
-            vol_l = params.get("volume_l")
-            vol_ml = round(float(vol_l) * 1000) if vol_l else None
-            arrosages.append({"date": d, "volume_ml": vol_ml, "type": a.type_action})
+        elif a.type_action in ARROSAGE_TYPES:
+            # Un arrosage = une journée : on regroupe toutes les actions du même jour
+            # (une action par plante, ou une action globale). volume_l est le volume
+            # par plante pour une action individuelle, le total pour une action globale,
+            # donc la somme des volume_l donne bien le total versé dans la journée.
+            jour = arrosages_par_jour.setdefault(d, {
+                "date": d, "volume_l": 0.0, "volume_eau_l": 0.0, "volume_engrais_l": 0.0,
+                "volume_tco_l": 0.0, "nb_actions": 0, "_plantes": set(), "global": False,
+            })
+            try:
+                vol_l = float(params.get("volume_l") or 0)
+            except (TypeError, ValueError):
+                vol_l = 0.0
+            jour["volume_l"] += vol_l
+            jour[ARROSAGE_TYPES[a.type_action]] += vol_l
+            jour["nb_actions"] += 1
+            if a.id_plant:
+                jour["_plantes"].add(a.id_plant)
+            else:
+                jour["global"] = True
 
         elif a.type_action == "intensite_lampe":
             intensites.append({
@@ -2636,9 +2658,20 @@ def get_stats(culture_id: int, db: Session = Depends(get_db)):
                 "puissance_apres": params.get("puissance_apres"),
             })
 
+    arrosages: list = []
+    for d in sorted(arrosages_par_jour):
+        j = arrosages_par_jour[d]
+        plantes = j.pop("_plantes")
+        is_global = j.pop("global")
+        j["nb_plantes"] = len(plantes) if not is_global else None
+        for k in ("volume_l", "volume_eau_l", "volume_engrais_l", "volume_tco_l"):
+            j[k] = round(j[k], 2)
+        arrosages.append(j)
+
     return {
         "hauteurs": hauteurs,
         "arrosages": arrosages,
+        "volume_arrosage_total_l": round(sum(j["volume_l"] for j in arrosages), 2),
         "intensites_lampe": intensites,
         "nb_actions_total": len(actions),
     }

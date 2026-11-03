@@ -6,6 +6,22 @@ Format: `## [YYYY-MM-DD] <operation> | <description>`
 
 ---
 
+## [2026-11-03] Fix | Stats culture : arrosages regroupés par jour et affichés en litres
+
+Signalé par Pik : 106 « arrosages » affichés alors qu'il arrose plusieurs plantes en une fois, et graphique illisible (une barre par action, en mL, dates répétées).
+
+**Cause :** `ArrosageModal` crée une action par plante sélectionnée (`volume_l` = volume par plante) ; `GET /cultures/{id}/stats` renvoyait une entrée par action, `preparation_tco` incluse.
+
+**Corrections :**
+- Backend (`get_stats`, `routers/cultures.py`) : `arrosages` = une entrée par jour `{date, volume_l, volume_eau_l, volume_engrais_l, volume_tco_l, nb_actions, nb_plantes}` (`nb_plantes` null si action globale). Somme des `volume_l` du jour (par plante pour les actions individuelles, total pour une action globale). `preparation_tco` exclue. Nouveau champ `volume_arrosage_total_l`.
+- Frontend (`StatsTab.tsx`, type `Stats` dans `api/cultures.ts`) : case « Jours d'arrosage » + total en L ; graphique en L, barres empilées par type, axe JJ/MM, moyenne par arrosage, infobulle détaillée.
+
+Aucune migration. Validé par Pik.
+
+### Files modified
+- `backend/app/routers/cultures.py`, `frontend/src/api/cultures.ts`, `frontend/src/components/culture/StatsTab.tsx`
+- `CHANGELOG.md`, `wiki/log.md`, `wiki/frontend/pages.md`
+
 ## [2026-11-01] Fix | Calendrier de suivi de culture : légende, regroupement des icônes, récoltes prévues
 
 Signalé par Pik : la légende (pastilles de couleur) ne correspondait à rien dans les cases (emojis seuls), et l'icône « Récolte prévue » n'apparaissait jamais sur les dates de récolte attendues.

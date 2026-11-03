@@ -1,9 +1,9 @@
-fix: calendrier culture - legende coherente, icones regroupees, recoltes prevues
+fix: stats culture - arrosages regroupes par jour et affiches en litres
 
-- Trait de couleur de categorie sous chaque icone + regroupement par type (xN)
-- Fenetre de recolte prevue avec repli sur la floraison / 12-12 de la culture
-- Affichage par variete au lieu de par plante, encadre Recoltes prevues regroupe
-- Cases vides correctes en mode nuit
+- Un arrosage = une journee : les actions du meme jour (une par plante ou globale) sont regroupees et les volumes additionnes
+- preparation_tco n'est plus comptee comme un arrosage
+- Case "Jours d'arrosage" avec volume total en litres
+- Graphique en litres, une barre par jour empilee eau/engrais/TCO, dates JJ/MM, moyenne et infobulle detaillee
 
 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
-Claude-Session: https://claude.ai/code/session_01DQFniVNdLDRB3wRc66dRyz
+Claude-Session: https://claude.ai/code/session_01DQFniTkkYtmBV5Q719mpNv

@@ -17,6 +17,14 @@ Versioning : [Semantic Versioning](https://semver.org/lang/fr/) — `MAJOR.MINOR
 
 ---
 
+## [3.14.3] - 2026-11-03
+
+### Corrigé
+- **Statistiques de culture, arrosages** : un arrosage correspond maintenant à une journée. Les actions du même jour (une par plante ou une globale) sont regroupées et leurs volumes additionnés. La préparation de TCO n'est plus comptée comme un arrosage. La case affiche « Jours d'arrosage » et le volume total en litres.
+- **Graphique des arrosages** : volumes en litres, une barre par jour, dates au format JJ/MM, barres empilées par type (eau, engrais, TCO), moyenne par arrosage, infobulle avec le détail et le nombre de plantes arrosées.
+
+---
+
 ## [3.14.2] - 2026-11-01
 
 ### Corrigé

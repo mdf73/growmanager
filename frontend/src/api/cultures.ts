@@ -207,7 +207,17 @@ export interface PhEcPoint {
 
 export interface Stats {
   hauteurs: Record<string, { date: string; hauteur_cm: number }[]>
-  arrosages: { date: string; volume_ml: number; type: string }[]
+  /** Un élément par jour d'arrosage (toutes les plantes du jour regroupées) */
+  arrosages: {
+    date: string
+    volume_l: number
+    volume_eau_l: number
+    volume_engrais_l: number
+    volume_tco_l: number
+    nb_actions: number
+    nb_plantes: number | null   // null = action globale (toute la culture)
+  }[]
+  volume_arrosage_total_l?: number
   intensites_lampe: { date: string; puissance_avant: number; puissance_apres: number }[]
   ph_ec: PhEcPoint[]
   nb_actions_total: number
