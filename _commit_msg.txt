@@ -1,10 +1,9 @@
-feat: calendrier global - compteurs par jour et capteurs jour/nuit selon les horaires de la lampe
+fix: échelle Y automatique sur les courbes capteurs du jour
 
-- Compteurs : une meme action le meme jour sur une culture = 1 evenement, arrosages et traitements comptes par jour
-- Cases et vue journee : plus de xN, nombre de plantes affiche
-- Libelles des actions lampe (horaires, duree d'eclairage, intensite) au lieu du code brut
-- Nouveau bloc temperature / humidite / VPD du mois : moyennes jour (lampe allumee) / nuit calees sur l'action Horaires de la lampe en vigueur, 12 h max par periode
-- Nouvel endpoint GET /api/calendrier/horaires-lampe (+ miroir mode autonome)
+SensorDayChart (modale jour du calendrier global + panneau jour du
+calendrier de culture) : domaine Y calculé depuis les données affichées
+(marge 10 %, écart minimum 2 °C / 5 % / 0,2 kPa, bornes humidité 0-100
+et VPD >= 0) au lieu des domaines fixes qui donnaient des courbes plates.
 
 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
-Claude-Session: https://claude.ai/code/session_01DQFniTkkYtmBV5Q719mpNv
+Claude-Session: https://claude.ai/code/session_01DQFniXAHFQ361efmSTD1Aa

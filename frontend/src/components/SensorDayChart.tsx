@@ -21,11 +21,34 @@ interface Props {
 const DEVICE_COLORS = ['#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899']
 
 // ── Métriques à afficher ──────────────────────────────────────────────────────
+// Échelle Y auto : min/max des données affichées + marge 10 %, avec un écart minimum
+// (minSpan) pour ne pas exagérer les micro-variations, arrondi au pas (step) et borné (bounds).
+type Bounds = [number | null, number | null]
 const METRICS = [
-  { metricKey: 'temp', label: 'Température', unit: '°C',   domain: [10, 40] as [number, number] },
-  { metricKey: 'hum',  label: 'Humidité',    unit: '%',    domain: [0, 100] as [number, number] },
-  { metricKey: 'vpd',  label: 'VPD',         unit: ' kPa', domain: [0, 3]   as [number, number] },
+  { metricKey: 'temp', label: 'Température', unit: '°C',   minSpan: 2,   step: 1,   bounds: [null, null] as Bounds },
+  { metricKey: 'hum',  label: 'Humidité',    unit: '%',    minSpan: 5,   step: 5,   bounds: [0, 100]     as Bounds },
+  { metricKey: 'vpd',  label: 'VPD',         unit: ' kPa', minSpan: 0.2, step: 0.1, bounds: [0, null]    as Bounds },
 ]
+
+const round2 = (v: number) => Math.round(v * 100) / 100
+
+const computeDomain = (values: number[], minSpan: number, step: number, bounds: Bounds): [number, number] => {
+  let lo = Math.min(...values)
+  let hi = Math.max(...values)
+  const pad = (hi - lo) * 0.1
+  lo -= pad
+  hi += pad
+  if (hi - lo < minSpan) {
+    const mid = (lo + hi) / 2
+    lo = mid - minSpan / 2
+    hi = mid + minSpan / 2
+  }
+  lo = Math.floor(round2(lo / step)) * step
+  hi = Math.ceil(round2(hi / step)) * step
+  if (bounds[0] != null && lo < bounds[0]) lo = bounds[0]
+  if (bounds[1] != null && hi > bounds[1]) hi = bounds[1]
+  return [round2(lo), round2(hi)]
+}
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 type Bucket = { temps: number[]; hums: number[]; vpds: number[] }
@@ -174,12 +197,16 @@ export default function SensorDayChart({ date, idEspace }: Props) {
       </div>
 
       {/* ── Courbes : 1 graphique par métrique, 1 ligne par capteur ── */}
-      {METRICS.map(({ metricKey, label, unit, domain }) => {
+      {METRICS.map(({ metricKey, label, unit, minSpan, step, bounds }) => {
         // Clés dataKey pour ce metric (une par capteur)
         const lines = allDevices.map(d => ({ ...d, dataKey: `${metricKey}_${d.key}` }))
+        // Valeurs affichées (tous capteurs) pour calculer l'échelle
+        const values = chartData.flatMap(row =>
+          lines.map(l => row[l.dataKey]).filter((v): v is number => typeof v === 'number'),
+        )
         // Ne pas afficher si aucune donnée pour cette métrique
-        const hasData = chartData.some(row => lines.some(l => row[l.dataKey] != null))
-        if (!hasData) return null
+        if (values.length === 0) return null
+        const domain = computeDomain(values, minSpan, step, bounds)
 
         return (
           <div key={metricKey}>
@@ -200,7 +227,8 @@ export default function SensorDayChart({ date, idEspace }: Props) {
                   tickLine={false}
                   axisLine={false}
                   width={38}
-                  tickFormatter={v => `${v}${unit.trim()}`}
+                  tickFormatter={(v: number) => `${round2(v)}${unit.trim()}`}
+                  allowDataOverflow
                 />
                 <Tooltip
                   contentStyle={{ fontSize: 11, padding: '4px 8px', borderRadius: 8, border: '1px solid #e5e7eb' }}

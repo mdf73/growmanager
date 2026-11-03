@@ -6,6 +6,16 @@ Format: `## [YYYY-MM-DD] <operation> | <description>`
 
 ---
 
+## [2026-11-03] Fix | SensorDayChart : échelle Y automatique selon les données du jour
+
+Demandé par Pik : dans la modale jour du calendrier global et le panneau jour du calendrier de culture, les courbes température / humidité / VPD étaient plates (domaine fixe 10-40 °C, 0-100 %, 0-3 kPa).
+
+**`components/SensorDayChart.tsx` :** `METRICS` porte `minSpan`, `step`, `bounds` au lieu de `domain`. Nouveau helper `computeDomain()` : min/max des moyennes horaires affichées (tous capteurs) + marge 10 %, écart minimum (2 °C / 5 % / 0,2 kPa), arrondi au pas (1 °C / 5 % / 0,1 kPa), bornes humidité 0-100 et VPD ≥ 0. Ticks arrondis à 2 décimales. Un seul composant, donc les deux calendriers restent identiques. Voir [[features/sensor-integration]].
+
+Aucune migration. Validé par Pik.
+
+---
+
 ## [2026-11-03] Feature | Calendrier global : compteurs par jour, libellés lampe, bloc capteurs jour / nuit
 
 Demandé par Pik : sur `/calendrier`, 20 « events » et 8 « arrosages » affichés pour 5 actions et 1 arrosage (une action par plante).

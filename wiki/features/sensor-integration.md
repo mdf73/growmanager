@@ -74,7 +74,7 @@ Composant réutilisable `frontend/src/components/SensorDayChart.tsx` qui affiche
 
 **Rendu :**
 - Résumé min / moy / max en 3 tiles (Temp. / Hum. / VPD)
-- 3 LineCharts Recharts empilés (hauteur 72px chacun), axe X = HH:MM, axe Y adaptatif avec domaine fixe (temp 10-40°C, hum 0-100%, vpd 0-3 kPa)
+- 3 LineCharts Recharts empilés (hauteur 72px chacun), axe X = HH:MM, axe Y automatique (voir fix 2026-11-03 ci-dessous ; avant : domaine fixe temp 10-40°C, hum 0-100%, vpd 0-3 kPa)
 - État vide si aucune lecture : message discret
 
 **Utilisation :**
@@ -86,6 +86,9 @@ Composant réutilisable `frontend/src/components/SensorDayChart.tsx` qui affiche
 
 **Fix (2026-09-16) — axe Y invisible ("Constantes du jour" dans Suivi de culture) :**
 L'axe Y utilisait une marge gauche négative (`margin.left: -12`) combinée à une largeur d'axe trop étroite (`width={30}`). Les libellés de tick (ex. "23.5°C") débordaient dans la zone négative du SVG, qui rogne tout contenu hors de son viewport — seuls les caractères d'unité en fin de libellé restaient visibles ("°C", "%", "Pa" au lieu de "kPa"). Les données étaient correctes, seul l'affichage de l'axe était cassé. Corrigé en alignant sur les valeurs déjà utilisées dans `SuiviConstantes.tsx` : `margin.left: -12 → 0`, `width` de l'axe Y `30 → 38`.
+
+**Fix (2026-11-03) — échelle Y automatique (courbes plates) :**
+Avec le domaine fixe, une journée à 23-26 °C n'occupait que 10 % de la hauteur. `computeDomain()` calcule désormais le domaine de chaque graphique à partir des valeurs horaires affichées (tous capteurs confondus, pour garder une échelle commune) : min/max + marge 10 %, écart minimum `minSpan` (2 °C, 5 %, 0,2 kPa) centré sur la moyenne si les données varient moins, arrondi au pas `step` (1 °C, 5 %, 0,1 kPa), bornes `bounds` (humidité 0-100, VPD ≥ 0). Configuration dans `METRICS`. S'applique à la modale jour du calendrier global et au panneau jour du calendrier de culture (même composant). Les tiles min/moy/max ne changent pas.
 
 ## Gmail Import (Alternative)
 

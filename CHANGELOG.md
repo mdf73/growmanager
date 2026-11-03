@@ -17,6 +17,13 @@ Versioning : [Semantic Versioning](https://semver.org/lang/fr/) — `MAJOR.MINOR
 
 ---
 
+## [3.16.1] - 2026-11-03
+
+### Corrigé
+- **Courbes capteurs du jour (calendrier global et calendrier de culture)** : l'échelle verticale température / humidité / VPD s'adapte au min et au max de la journée affichée (marge 10 %, écart minimum 2 °C / 5 % / 0,2 kPa, humidité bornée 0-100 et VPD ≥ 0). Fini les courbes plates.
+
+---
+
 ## [3.16.0] - 2026-11-03
 
 ### Ajouté
