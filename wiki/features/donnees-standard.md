@@ -1,6 +1,6 @@
 ---
 type: feature
-status: chantier 1 livré (validé 2026-11-04), chantier 2 à faire
+status: chantier 1 livré (validé 2026-11-04), chantier 2 abandonné
 updated: 2026-11-04
 sources: [backend/app/routers/parametre.py, backend/app/db_init.py, frontend/src/local/seeds.ts, frontend/src/local/db.ts, frontend/src/pages/Parametrage.tsx, backend/app/models/all_models.py]
 ---
@@ -9,7 +9,7 @@ sources: [backend/app/routers/parametre.py, backend/app/db_init.py, frontend/src
 
 **Pourquoi** : un nouvel utilisateur (testeurs Play, futur public) arrive aujourd'hui sur des listes génériques ou vides (Marques vide, fournisseurs génériques, aucun breeder). Pik veut que ses propres valeurs, construites à l'usage, deviennent le **standard** livré à tout le monde, et qu'un catalogue de breeders soit fourni.
 
-**Statut** : chantier 1 (listes de Paramétrage + fournisseurs des packs) livré et validé par Pik le 2026-11-04, voir section 4bis. Chantier 2 (breeders) à faire. ADR associé : [[architecture/decisions#ADR-011 : Données standard pré-remplies (2026-10-30)|ADR-011]].
+**Statut** : chantier 1 (listes de Paramétrage + fournisseurs des packs) livré et validé par Pik le 2026-11-04, voir section 4bis. Chantier 2 (breeders) abandonné le 2026-11-04, voir section 5. ADR associé : [[architecture/decisions#ADR-011 : Données standard pré-remplies (2026-10-30)|ADR-011]].
 
 ---
 
@@ -90,6 +90,8 @@ Périmètre demandé par Pik : toutes les listes de la page Paramétrage reprenn
 **Attention pour une base existante** : une correction d'orthographe qui ne se réduit pas à la casse ou aux accents (`Pierre a bulle` / `Pierre à bulles`, `Li-On` / `Li-ion`, `3500 K` / `3500K`) crée un doublon au chargement : corriger la valeur avant d'appuyer.
 
 ## 5. Chantier 2 : breeders, puis variétés
+
+> **Abandonné le 2026-11-04 (décision Pik).** Un catalogue de 178 breeders avait été préparé avec un bouton dédié ; Pik l'a jugé bien trop grand : un grower amateur n'aura jamais tous ces breeders dans son catalogue. Code retiré, rien n'a été livré. Les utilisateurs saisissent leurs breeders (contrôle de doublon existant à la création). La section ci-dessous est conservée pour mémoire.
 
 ### 2a. Breeders (recommandé)
 

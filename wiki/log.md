@@ -2,7 +2,14 @@
 
 Append-only chronological record of all wiki operations.
 
-Format: `## [YYYY-MM-DD] <operation> | <description>`
+Format: `## [2026-11-04] Décision | Données standard : chantier 2 (breeders) abandonné
+
+Un catalogue de 178 breeders et un bouton « Charger les breeders standard » avaient été préparés (non livrés). Décision de Pik : liste bien trop grande, un grower amateur n'aura jamais tous ces breeders dans son catalogue. Code retiré, aucune modification applicative. Voir [[features/donnees-standard#5. Chantier 2 : breeders, puis variétés|la section 5]].
+
+### Files modified
+- `wiki/features/donnees-standard.md`, `wiki/roadmap.md`, `wiki/architecture/decisions.md`, `wiki/index.md`
+
+## [YYYY-MM-DD] <operation> | <description>`
 
 ---
 

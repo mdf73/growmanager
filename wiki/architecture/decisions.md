@@ -118,7 +118,7 @@ sources: [Documentation/claude.md, Documentation/PHASE1_SUMMARY.txt]
 
 ## ADR-011 : Données standard pré-remplies (2026-10-30)
 
-**Statut:** validé par Pik le 2026-10-30, révisé le 2026-11-01 (démarrage vide), implémenté pour les listes le 2026-11-04 (breeders à venir). Plan : [[features/donnees-standard]].
+**Statut:** validé par Pik le 2026-10-30, révisé le 2026-11-01 (démarrage vide), implémenté pour les listes le 2026-11-04 ; catalogue breeders abandonné le 2026-11-04. Plan : [[features/donnees-standard]].
 
 **Context:** Les valeurs par défaut des listes paramétrables sont dupliquées (backend `parametre.py` + `frontend/src/local/seeds.ts`) et ne sont insérées que dans les listes vides : une mise à jour n'apporte rien aux installations existantes. Pik veut livrer à tous ses valeurs comme standard, puis un catalogue de breeders.
 

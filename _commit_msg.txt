@@ -1,10 +1,7 @@
-feat: valeurs standard chargeables dans Paramétrage et fournisseurs de packs unifiés
+chore: abandon du catalogue breeders standard (wiki)
 
-Boutons Tout charger et Charger les valeurs standard par section (42 listes, standard unique serveur + autonome).
-Nouvelle installation : listes vides, seules les valeurs verrouillées sont créées.
-Types de stock Fleur, Trim, WPFF, Hash, Rosin verrouillés.
-Fournisseur des packs de graines choisi dans la liste paramétrable Fournisseurs (migration unique des fournisseurs existants).
-Doublons comparés sans casse ni accents, aussi en mode autonome.
+Chantier 2 des données standard abandonné sur décision de Pik : liste trop grande pour un grower amateur.
+Aucun changement applicatif.
 
 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 Claude-Session: https://claude.ai/code/session_01DQFniTMejwSNFxuMzoma91
