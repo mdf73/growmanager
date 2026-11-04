@@ -68,6 +68,10 @@ LISTE_DEFAULTS: dict[str, list[str]] = {
     "buts_culture": ["Récolte", "Hunt", "Reproduction"],
     # Préparation substrat — types de sol
     "types_sol_preparation": ["Sol vivant (LSO)", "Coco seul", "Terre seule", "Coco + Terre"],
+    # Suivi de culture — carences détectables
+    "carences": ["Azote (N)", "Phosphore (P)", "Potassium (K)", "Calcium (Ca)", "Magnésium (Mg)",
+                 "Soufre (S)", "Fer (Fe)", "Manganèse (Mn)", "Zinc (Zn)", "Cuivre (Cu)",
+                 "Bore (B)", "Molybdène (Mo)"],
 }
 
 # ── Valeurs verrouillées ──────────────────────────────────────────────────────

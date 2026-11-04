@@ -932,7 +932,7 @@ def _handle_action_effects(action: ActionCalendrier, culture: Culture, db: Sessi
             if volume_pot_l:
                 pl.volume_pot_l = volume_pot_l
 
-    elif t in ("pincage", "detection_maladie", "detection_parasite", "traitement"):
+    elif t in ("pincage", "detection_maladie", "detection_parasite", "detection_carence", "traitement"):
         # Actions informationnelles : enregistrées telles quelles, sans effet de bord
         pass
 

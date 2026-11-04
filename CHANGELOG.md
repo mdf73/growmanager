@@ -17,6 +17,13 @@ Versioning : [Semantic Versioning](https://semver.org/lang/fr/) — `MAJOR.MINOR
 
 ---
 
+## [3.17.0] - 2026-11-04
+
+### Ajouté
+- **Suivi de culture, action « Détection d'une carence »** (Mesures & Soins) : sélection d'une ou plusieurs carences et intensité (Légère / Normale / Forte / Intense). La liste des carences se gère dans Paramétrage, section « Suivi de culture » (par défaut : Azote, Phosphore, Potassium, Calcium, Magnésium, Soufre, Fer, Manganèse, Zinc, Cuivre, Bore, Molybdène).
+
+---
+
 ## [3.16.1] - 2026-11-03
 
 ### Corrigé

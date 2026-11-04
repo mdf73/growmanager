@@ -785,7 +785,7 @@ export async function handleActionEffects(action: Row, culture: Row): Promise<vo
       if (p.volume_pot_l) await run('UPDATE "Plant" SET volume_pot_l = ? WHERE id_plant = ?', [p.volume_pot_l, pid])
     }
   }
-  // pincage / detection_maladie / detection_parasite / traitement / ouverture_bocal :
+  // pincage / detection_maladie / detection_parasite / detection_carence / traitement / ouverture_bocal :
   // actions informationnelles, aucun effet de bord.
 }
 

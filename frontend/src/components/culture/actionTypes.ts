@@ -23,10 +23,12 @@ export interface ActionTypeDef {
 export interface FieldDef {
   key: string
   label: string
-  type: 'number' | 'text' | 'select' | 'produit_engrais'
+  type: 'number' | 'text' | 'select' | 'produit_engrais' | 'multi_liste'
   options?: { value: string; label: string }[]
   unit?: string
   placeholder?: string
+  /** Pour `multi_liste` : nom de la liste paramétrable (ParametreListeValeur) */
+  listeNom?: string
 }
 
 // ─── Échelle d'intensité commune (Training & Taille) ─────────────────────────
@@ -129,6 +131,11 @@ export const ACTION_TYPES: ActionTypeDef[] = [
     fields: [{ key: 'note', label: 'Description', type: 'text', placeholder: 'Type de maladie observée…' }] },
   { key: 'detection_parasite',    label: 'Détection de parasite',            category: 'mesure', icon: '🐛',
     fields: [{ key: 'note', label: 'Description', type: 'text', placeholder: 'Type de parasite observé…' }] },
+  { key: 'detection_carence',     label: 'Détection d\'une carence',         category: 'mesure', icon: '🍂',
+    fields: [
+      { key: 'carences', label: 'Carence(s)', type: 'multi_liste', listeNom: 'carences' },
+      INTENSITE_FIELD,
+    ] },
   { key: 'traitement',            label: 'Traitement IPM',                   category: 'mesure', icon: '💊',
     fields: [
       { key: 'produit',         label: 'Produit',               type: 'text',   placeholder: 'Ex: Pyrèthre, Savon noir, Neem…' },
@@ -227,11 +234,13 @@ export function formatActionParams(typeAction: string, parametres: Record<string
     .map(([k, v]) => {
       const field = def?.fields?.find(f => f.key === k)
       if (!field) return `${k}: ${v}`
-      let val = String(v)
+      if (Array.isArray(v) && !v.length) return null
+      let val = Array.isArray(v) ? v.join(', ') : String(v)
       if (k === 'intensite') val = INTENSITE_LABELS[val] ?? val
       else if (field.type === 'select') val = field.options?.find(o => o.value === val)?.label ?? val
       else if (field.unit) val = `${val} ${field.unit}`
       return `${field.label} : ${val}`
     })
+    .filter(Boolean)
     .join(' · ')
 }

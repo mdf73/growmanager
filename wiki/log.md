@@ -6,6 +6,22 @@ Format: `## [YYYY-MM-DD] <operation> | <description>`
 
 ---
 
+## [2026-11-04] Feature | Suivi de culture : action « Détection d'une carence »
+
+Demandé par Pik : troisième action de détection dans Mesures & Soins, avec choix de la carence dans une liste paramétrable.
+
+**Frontend :**
+- `actionTypes.ts` : nouvelle action `detection_carence` (🍂, après `detection_parasite`), champs `carences` (nouveau type `multi_liste` + `listeNom: 'carences'`) et `intensite`. `formatActionParams` gère les tableaux (jointure par virgule, tableau vide ignoré).
+- `ActionModal.tsx` : composant `MultiListeField` (pastilles cliquables, sélection multiple) branché sur `useParametreListe`.
+- `Parametrage.tsx` : nouvelle section « Suivi de culture » avec la liste `carences`.
+- `local/seeds.ts` : défaut `carences` pour le mode standalone.
+
+**Backend :** `routers/parametre.py` `LISTE_DEFAULTS["carences"]` (12 éléments, seedé au démarrage si la liste est vide) ; `routers/cultures.py` + `local/handlers/cultures-helpers.ts` : `detection_carence` ajouté aux actions informationnelles.
+
+Aucune migration. Voir [[database/database-culture]]. Validé par Pik.
+
+---
+
 ## [2026-11-03] Fix | SensorDayChart : échelle Y automatique selon les données du jour
 
 Demandé par Pik : dans la modale jour du calendrier global et le panneau jour du calendrier de culture, les courbes température / humidité / VPD étaient plates (domaine fixe 10-40 °C, 0-100 %, 0-3 kPa).

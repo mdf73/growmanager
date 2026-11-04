@@ -106,6 +106,12 @@ const SECTIONS = [
     ],
   },
   {
+    titre: 'Suivi de culture',
+    listes: [
+      { nom: 'carences', label: 'Carences possibles (action « Détection d\'une carence »)' },
+    ],
+  },
+  {
     titre: 'Préparer un substrat',
     listes: [
       { nom: 'types_sol_preparation', label: 'Types de sol (Sol vivant, Coco, Terre…)' },

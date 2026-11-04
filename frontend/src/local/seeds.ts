@@ -55,6 +55,8 @@ const LISTE_DEFAULTS: Record<string, string[]> = {
   types_fermentation: ['AACT', 'Compost tea', 'Lactofermentation', 'Bokashi', 'JADAM JLF', 'Autre'],
   types_espace: ['Tente', 'Box', 'Armoire', 'Chambre', 'Outdoor', 'Serre', 'Autre'],
   buts_culture: ['Récolte', 'Hunt', 'Reproduction'],
+  carences: ['Azote (N)', 'Phosphore (P)', 'Potassium (K)', 'Calcium (Ca)', 'Magnésium (Mg)',
+    'Soufre (S)', 'Fer (Fe)', 'Manganèse (Mn)', 'Zinc (Zn)', 'Cuivre (Cu)', 'Bore (B)', 'Molybdène (Mo)'],
   types_sol_preparation: ['Sol vivant (LSO)', 'Coco seul', 'Terre seule', 'Coco + Terre'],
 }
 

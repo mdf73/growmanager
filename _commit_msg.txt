@@ -1,9 +1,9 @@
-fix: échelle Y automatique sur les courbes capteurs du jour
+feat: action « Détection d'une carence » dans le suivi de culture
 
-SensorDayChart (modale jour du calendrier global + panneau jour du
-calendrier de culture) : domaine Y calculé depuis les données affichées
-(marge 10 %, écart minimum 2 °C / 5 % / 0,2 kPa, bornes humidité 0-100
-et VPD >= 0) au lieu des domaines fixes qui donnaient des courbes plates.
+- Nouvelle action detection_carence (Mesures & Soins) : carences en sélection multiple + intensité
+- Nouveau type de champ multi_liste branché sur les listes paramétrables
+- Liste « carences » paramétrable (section Suivi de culture), 12 éléments par défaut (backend + standalone)
+- Wiki (log, database-culture) et CHANGELOG mis à jour
 
 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
-Claude-Session: https://claude.ai/code/session_01DQFniXAHFQ361efmSTD1Aa
+Claude-Session: https://claude.ai/code/session_01DQFniTskV7cXtqXmVqW714

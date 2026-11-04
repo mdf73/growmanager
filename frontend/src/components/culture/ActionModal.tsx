@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Plant, ActionCreate } from '../../api/cultures'
 import { engraisAPI } from '../../api/engrais'
 import { espacesAPI, EspaceMateriel } from '../../api/espaces'
+import { useParametreListe } from '../../api/parametres'
 import {
   ACTIONS_BY_CATEGORY, ACTION_MAP,
   CATEGORY_COLORS, CATEGORY_LABELS, ActionCategory,
@@ -340,6 +341,12 @@ export default function ActionModal({ plants, idEspace, initialDate, initialPlan
                         + Ajouter un produit
                       </button>
                     </div>
+                  ) : field.type === 'multi_liste' ? (
+                    <MultiListeField
+                      listeNom={field.listeNom ?? ''}
+                      value={Array.isArray(params[field.key]) ? (params[field.key] as string[]) : []}
+                      onChange={v => setParam(field.key, v)}
+                    />
                   ) : field.type === 'select' ? (
                     <select
                       value={(params[field.key] as string) || ''}
@@ -399,6 +406,35 @@ export default function ActionModal({ plants, idEspace, initialDate, initialPlan
           </div>
         </form>
       </div>
+    </div>
+  )
+}
+
+// ── Sélection multiple dans une liste paramétrable (Paramétrage) ──────────────
+function MultiListeField({ listeNom, value, onChange }: {
+  listeNom: string
+  value: string[]
+  onChange: (v: string[]) => void
+}) {
+  const { values, isLoading } = useParametreListe(listeNom)
+  if (isLoading) return <Loader2 size={14} className="animate-spin text-gray-400" />
+  if (!values.length) {
+    return <p className="text-xs text-gray-400 dark:text-gray-500">Aucune valeur : ajoute-les dans Paramétrage.</p>
+  }
+  const toggle = (v: string) => onChange(value.includes(v) ? value.filter(x => x !== v) : [...value, v])
+  return (
+    <div className="flex flex-wrap gap-1.5">
+      {values.map(v => {
+        const on = value.includes(v)
+        return (
+          <button key={v} type="button" onClick={() => toggle(v)}
+            className={`px-2 py-1 rounded-full text-xs border transition-colors ${on
+              ? 'bg-orange-500 border-orange-500 text-white'
+              : 'border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:border-orange-400'}`}>
+            {v}
+          </button>
+        )
+      })}
     </div>
   )
 }
