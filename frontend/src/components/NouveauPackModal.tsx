@@ -3,6 +3,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { X, Plus, Loader2, CheckCircle, Save } from 'lucide-react'
 import { packCompletAPI, PackGraineCompletCreate, CatalogueItem } from '../api/graines'
 import { fournisseurAPI } from '../api/fournisseurs'
+import { useParametreListeWithAdd, normaliserValeur } from '../api/parametres'
+import SelectWithAdd from './SelectWithAdd'
 import client from '../api/client'
 
 interface Breeder { id_breeder: number; nom_breeder: string }
@@ -24,7 +26,9 @@ export default function NouveauPackModal({ onClose, editPack }: NouveauPackModal
   const [form, setForm] = useState({
     id_breeder:        editPack?.id_breeder   ?? ('' as number | ''),
     id_variete:        editPack?.id_variete   ?? ('' as number | ''),
-    id_fournisseur:    editPack?.id_fournisseur ?? ('' as number | ''),
+    // Nom choisi dans la liste paramétrable « fournisseurs » ; l'id de la table Fournisseur
+    // est retrouvé ou créé à l'enregistrement (ADR-011, option A)
+    fournisseur_nom:   '',
     nbr_graines:       editPack?.nbr_graines_total ?? 1,
     prix_achat:        editPack?.prix_par_graine
                          ? String((editPack.prix_par_graine * editPack.nbr_graines_total).toFixed(2))
@@ -39,10 +43,9 @@ export default function NouveauPackModal({ onClose, editPack }: NouveauPackModal
 
   const [newBreederName, setNewBreederName]       = useState('')
   const [newVarieteName, setNewVarieteName]       = useState('')
-  const [newFournisseurName, setNewFournisseurName] = useState('')
   const [showNewBreeder, setShowNewBreeder]       = useState(false)
   const [showNewVariete, setShowNewVariete]       = useState(false)
-  const [showNewFournisseur, setShowNewFournisseur] = useState(false)
+  const [fournisseurInit, setFournisseurInit] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
   // Unité de saisie de la floraison (stockage toujours en jours)
   const [uniteFlo, setUniteFlo] = useState<'jours' | 'semaines'>('jours')
@@ -71,7 +74,27 @@ export default function NouveauPackModal({ onClose, editPack }: NouveauPackModal
 
   const { data: breeders = [] }     = useQuery<Breeder[]>({ queryKey: ['breeders'],     queryFn: async () => (await client.get<Breeder[]>('/breeders/')).data })
   const { data: varietes = [] }     = useQuery<Variete[]>({ queryKey: ['varietes'],     queryFn: async () => (await client.get<Variete[]>('/varietes/')).data })
-  const { data: fournisseurs = [] } = useQuery({            queryKey: ['fournisseurs'],  queryFn: async () => (await fournisseurAPI.getAll()).data })
+  const { data: fournisseurs = [], isSuccess: fournisseursCharges } = useQuery({ queryKey: ['fournisseurs'], queryFn: async () => (await fournisseurAPI.getAll()).data })
+  const listeFournisseurs = useParametreListeWithAdd('fournisseurs')
+
+  // Édition : nom du fournisseur actuel du pack (affiché même s'il n'est plus dans la liste)
+  useEffect(() => {
+    if (fournisseurInit || !fournisseursCharges) return
+    const nom = fournisseurs.find(f => f.id_fournisseur === editPack?.id_fournisseur)?.nom_fournisseur ?? ''
+    setForm(f => ({ ...f, fournisseur_nom: nom }))
+    setFournisseurInit(true)
+  }, [fournisseurInit, fournisseursCharges, fournisseurs, editPack?.id_fournisseur])
+
+  /** Nom → id de la table Fournisseur (retrouvé sans tenir compte de la casse ni des accents, sinon créé). */
+  const resoudreFournisseur = async (nom: string): Promise<number | undefined> => {
+    const n = nom.trim()
+    if (!n) return undefined
+    const existant = fournisseurs.find(f => normaliserValeur(f.nom_fournisseur) === normaliserValeur(n))
+    if (existant) return existant.id_fournisseur
+    const res = await fournisseurAPI.create({ nom_fournisseur: n })
+    queryClient.invalidateQueries({ queryKey: ['fournisseurs'] })
+    return res.data.id_fournisseur
+  }
 
   // Auto-remplir le croisement quand une variété est sélectionnée
   useEffect(() => {
@@ -100,15 +123,6 @@ export default function NouveauPackModal({ onClose, editPack }: NouveauPackModal
       setNewVarieteName(''); setShowNewVariete(false)
     },
   })
-  const addFournisseur = useMutation({
-    mutationFn: (nom: string) => fournisseurAPI.create({ nom_fournisseur: nom }),
-    onSuccess: (res) => {
-      queryClient.setQueryData<{ id_fournisseur: number; nom_fournisseur: string }[]>(['fournisseurs'], (old = []) => [...old, res.data])
-      setForm(f => ({ ...f, id_fournisseur: res.data.id_fournisseur }))
-      setNewFournisseurName(''); setShowNewFournisseur(false)
-    },
-  })
-
   const createPack = useMutation({
     mutationFn: (data: PackGraineCompletCreate) => packCompletAPI.create(data),
     onSuccess: (res) => {
@@ -149,10 +163,10 @@ export default function NouveauPackModal({ onClose, editPack }: NouveauPackModal
     return Object.keys(e).length === 0
   }
 
-  const buildPayload = () => ({
+  const buildPayload = (id_fournisseur: number | undefined) => ({
     id_breeder:         Number(form.id_breeder),
     id_variete:         Number(form.id_variete),
-    id_fournisseur:     form.id_fournisseur ? Number(form.id_fournisseur) : undefined,
+    id_fournisseur,
     nbr_graines:        form.nbr_graines,
     prix_achat:         form.prix_achat ? Number(form.prix_achat) : undefined,
     date_achat:         form.date_achat || undefined,
@@ -163,11 +177,18 @@ export default function NouveauPackModal({ onClose, editPack }: NouveauPackModal
     edition_limite:     form.edition_limite,
   })
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!validate()) return
+    let id_fournisseur: number | undefined
+    try {
+      id_fournisseur = await resoudreFournisseur(form.fournisseur_nom)
+    } catch {
+      setErrors(e => ({ ...e, fournisseur: 'Impossible d\'enregistrer le fournisseur' }))
+      return
+    }
     isEdit
-      ? updatePack.mutate(buildPayload())
-      : createPack.mutate({ ...buildPayload(), nbr_graines: form.nbr_graines })
+      ? updatePack.mutate(buildPayload(id_fournisseur))
+      : createPack.mutate({ ...buildPayload(id_fournisseur), nbr_graines: form.nbr_graines })
   }
 
   const ic = (field?: string) =>
@@ -360,23 +381,16 @@ export default function NouveauPackModal({ onClose, editPack }: NouveauPackModal
             </div>
             <div className="space-y-1">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Fournisseur</label>
-              {!showNewFournisseur ? (
-                <div className="flex gap-2">
-                  <select value={form.id_fournisseur} onChange={e => setForm(f => ({ ...f, id_fournisseur: e.target.value ? Number(e.target.value) : '' }))} className={ic()}>
-                    <option value="">— Optionnel —</option>
-                    {[...fournisseurs].sort((a, b) => a.nom_fournisseur.localeCompare(b.nom_fournisseur, 'fr', { sensitivity: 'base' })).map(f => <option key={f.id_fournisseur} value={f.id_fournisseur}>{f.nom_fournisseur}</option>)}
-                  </select>
-                  <button onClick={() => setShowNewFournisseur(true)} className="shrink-0 px-2 py-2 border border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-400 dark:text-gray-500 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/40"><Plus size={14} /></button>
-                </div>
-              ) : (
-                <div className="flex gap-2">
-                  <input autoFocus type="text" placeholder="Nom du fournisseur" value={newFournisseurName} onChange={e => setNewFournisseurName(e.target.value)} onKeyDown={e => e.key === 'Enter' && newFournisseurName && addFournisseur.mutate(newFournisseurName)} className={ic()} />
-                  <button onClick={() => newFournisseurName && addFournisseur.mutate(newFournisseurName)} disabled={addFournisseur.isPending} className="shrink-0 px-2 py-2 bg-grow-600 text-white rounded-lg hover:bg-grow-700 text-sm">
-                    {addFournisseur.isPending ? <Loader2 size={14} className="animate-spin" /> : 'OK'}
-                  </button>
-                  <button onClick={() => setShowNewFournisseur(false)} className="shrink-0 px-2 py-2 border border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-400 dark:text-gray-500 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/40 text-sm">✕</button>
-                </div>
-              )}
+              <SelectWithAdd
+                values={listeFournisseurs.values}
+                isAdding={listeFournisseurs.isAdding}
+                onAddValue={listeFournisseurs.addValue}
+                value={form.fournisseur_nom}
+                onChange={v => setForm(f => ({ ...f, fournisseur_nom: v }))}
+                placeholder="— Optionnel —"
+                className={ic('fournisseur')}
+              />
+              {errors.fournisseur && <p className="text-xs text-red-500">{errors.fournisseur}</p>}
             </div>
           </div>
 

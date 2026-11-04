@@ -1,9 +1,10 @@
-feat: action « Détection d'une carence » dans le suivi de culture
+feat: valeurs standard chargeables dans Paramétrage et fournisseurs de packs unifiés
 
-- Nouvelle action detection_carence (Mesures & Soins) : carences en sélection multiple + intensité
-- Nouveau type de champ multi_liste branché sur les listes paramétrables
-- Liste « carences » paramétrable (section Suivi de culture), 12 éléments par défaut (backend + standalone)
-- Wiki (log, database-culture) et CHANGELOG mis à jour
+Boutons Tout charger et Charger les valeurs standard par section (42 listes, standard unique serveur + autonome).
+Nouvelle installation : listes vides, seules les valeurs verrouillées sont créées.
+Types de stock Fleur, Trim, WPFF, Hash, Rosin verrouillés.
+Fournisseur des packs de graines choisi dans la liste paramétrable Fournisseurs (migration unique des fournisseurs existants).
+Doublons comparés sans casse ni accents, aussi en mode autonome.
 
 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
-Claude-Session: https://claude.ai/code/session_01DQFniTskV7cXtqXmVqW714
+Claude-Session: https://claude.ai/code/session_01DQFniTMejwSNFxuMzoma91

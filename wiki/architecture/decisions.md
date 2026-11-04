@@ -100,7 +100,7 @@ sources: [Documentation/claude.md, Documentation/PHASE1_SUMMARY.txt]
 
 **Decision:** Les listes restent dans `ParametreListeValeur`, mais un dictionnaire `LISTES_VERROUILLEES` (miroir backend `routers/parametre.py` + frontend `api/parametres.ts`, utilisé aussi par le mode local) liste les valeurs protégées : renommage et suppression refusés (403), ré-insertion au seed si absentes, cadenas dans Paramétrage. L'ajout de valeurs libres reste possible (catégorie libre = champs communs seulement).
 
-**Consequence:** Toute nouvelle valeur sur laquelle le code fait un test d'égalité doit être ajoutée à `LISTES_VERROUILLEES` des deux côtés. Les écrans gardent affichable une valeur enregistrée qui aurait été retirée de sa liste (`SelectWithAdd`, filtres Matériel).
+**Consequence:** Toute nouvelle valeur sur laquelle le code fait un test d'égalité doit être ajoutée à `LISTES_VERROUILLEES` des deux côtés (depuis le 2026-11-04, ADR-011 : `materiel_categories` et `types_stock` Fleur, Trim, WPFF, Hash, Rosin). Les écrans gardent affichable une valeur enregistrée qui aurait été retirée de sa liste (`SelectWithAdd`, filtres Matériel).
 
 ---
 
@@ -118,7 +118,7 @@ sources: [Documentation/claude.md, Documentation/PHASE1_SUMMARY.txt]
 
 ## ADR-011 : Données standard pré-remplies (2026-10-30)
 
-**Statut:** validé par Pik le 2026-10-30, révisé le 2026-11-01 (démarrage vide). Plan : [[features/donnees-standard]].
+**Statut:** validé par Pik le 2026-10-30, révisé le 2026-11-01 (démarrage vide), implémenté pour les listes le 2026-11-04 (breeders à venir). Plan : [[features/donnees-standard]].
 
 **Context:** Les valeurs par défaut des listes paramétrables sont dupliquées (backend `parametre.py` + `frontend/src/local/seeds.ts`) et ne sont insérées que dans les listes vides : une mise à jour n'apporte rien aux installations existantes. Pik veut livrer à tous ses valeurs comme standard, puis un catalogue de breeders.
 

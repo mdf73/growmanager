@@ -1,0 +1,351 @@
+{
+  "_comment": "Standard des listes paramétrables (ADR-011). Source unique pour les modes serveur et autonome. Chargé uniquement via les boutons de Paramétrage. Ne jamais y mettre de liste technique (govee_config...).",
+  "version": 1,
+  "listes": {
+    "marques": [
+      "Crescience",
+      "MarsHydro",
+      "SpiderFarmer",
+      "Starlite",
+      "Demetearth",
+      "Terralba",
+      "Aptus",
+      "BlackBoxSilver",
+      "HoneyWell",
+      "Monkey",
+      "Miron VioletGlass",
+      "Hailea",
+      "Storz&Bickel",
+      "Dr.Dabber",
+      "BullFan",
+      "Bloomstar",
+      "Can-Filters",
+      "Urban",
+      "Garland"
+    ],
+    "fournisseurs": [
+      "Amazon",
+      "AliExpress",
+      "Lacentralevapeur.fr",
+      "CultureIndoor.fr",
+      "silentseed.com",
+      "sensiseeds.com",
+      "alchimia.fr",
+      "aristodeseedco.fr",
+      "saltonverde.com",
+      "Crescience.com",
+      "MarsHydro.eu",
+      "SpiderFarmer.eu",
+      "Terralba.fr",
+      "verre-et-plastique.fr",
+      "Growled.fr",
+      "Storz-bickel.com",
+      "Drdabber.com",
+      "Growland.fr",
+      "higarden.com",
+      "Leboncoin.fr"
+    ],
+    "materiel_categories": [
+      "Bocaux",
+      "Lampes",
+      "Pots",
+      "Coupelles et bacs",
+      "Arrosage",
+      "Tentes",
+      "Pompes et Bulleurs",
+      "Ventilation",
+      "Filets",
+      "Séchage",
+      "Outils"
+    ],
+    "etats_materiel": [
+      "Neuf",
+      "Bon état",
+      "Usagé",
+      "Hors service"
+    ],
+    "vapo_types_chauffe": [
+      "Conduction",
+      "Convection",
+      "Induction",
+      "Mixte",
+      "Briquet"
+    ],
+    "vapo_types_batterie": [
+      "Intégrée",
+      "Amovible 18650",
+      "Li-ion"
+    ],
+    "vapo_types_charge": [
+      "USB-C",
+      "Propriétaire",
+      "Micro-USB",
+      "Autre"
+    ],
+    "vapo_compatibilites": [
+      "Fleurs séchées",
+      "Résines",
+      "Concentrés (Rosin)"
+    ],
+    "vapo_conso_types": [
+      "Bol céramique",
+      "Bol saphir",
+      "Bol SiC",
+      "Bol quartz",
+      "Bol ALN",
+      "Terps ball",
+      "Screen",
+      "Joint",
+      "Embout",
+      "Bubbler",
+      "Autre"
+    ],
+    "vapo_conso_matieres": [
+      "Céramique",
+      "Saphir",
+      "SiC",
+      "Quartz",
+      "ALN",
+      "Titane",
+      "Acier inox",
+      "Verre",
+      "Autre"
+    ],
+    "lampes_types": [
+      "LED",
+      "HPS",
+      "MH",
+      "CMH",
+      "Néons"
+    ],
+    "spectres": [
+      "Full Spectrum",
+      "Cspec Enhanced",
+      "2700K",
+      "3000K",
+      "3500K",
+      "4000K",
+      "5000K",
+      "6500K",
+      "254nm",
+      "350nm",
+      "430nm",
+      "450nm",
+      "660nm",
+      "730nm",
+      "760nm"
+    ],
+    "pot_matieres": [
+      "Plastique",
+      "Tissu",
+      "Céramique",
+      "RootPouch",
+      "Autre"
+    ],
+    "bocal_fermetures": [
+      "Couvercle à vis",
+      "Bail clasp (Le Parfait)",
+      "Mason Jar",
+      "Flip-top",
+      "Autre"
+    ],
+    "bocal_couleurs": [
+      "Clair",
+      "Ambré",
+      "Teinté",
+      "Violet"
+    ],
+    "bocal_usages": [
+      "Curing",
+      "Stockage longue durée",
+      "Fermentation",
+      "Infusion",
+      "Autre"
+    ],
+    "arrosage_types": [
+      "Goutte-à-goutte",
+      "Arrosoir",
+      "Réservoir souple",
+      "Réservoir rigide",
+      "Blumat"
+    ],
+    "pompe_types": [
+      "Pompe à eau",
+      "Bulleur",
+      "Pompe à air",
+      "Pierre à bulles"
+    ],
+    "ventilation_types": [
+      "Extracteur",
+      "Intracteur",
+      "Ventilateur",
+      "Ventilateur oscillant",
+      "Filtre à charbon"
+    ],
+    "filet_types": [
+      "LST",
+      "SCROG"
+    ],
+    "sechage_types": [
+      "Filet",
+      "Penderie",
+      "Rack"
+    ],
+    "outil_types": [
+      "Cisailles",
+      "Loupe",
+      "pH-mètre",
+      "EC-mètre",
+      "pH-mètre + EC-mètre",
+      "Hygromètre",
+      "Thermomètre",
+      "Luxmètre",
+      "Balance",
+      "Autre"
+    ],
+    "types_stock": [
+      "Fleur",
+      "Trim",
+      "WPFF",
+      "Hash",
+      "Rosin",
+      "Autre"
+    ],
+    "sous_types_stock": [
+      "Indoor",
+      "Outdoor"
+    ],
+    "types_hash": [
+      "Ice-O-Lator Dry",
+      "Ice-o-Lator WPFF",
+      "Dry",
+      "FingerHash",
+      "Pollinator",
+      "Static"
+    ],
+    "types_rosin": [
+      "Flower Rosin",
+      "Hash Rosin"
+    ],
+    "maillages_polinator": [
+      "120µ"
+    ],
+    "maillages_iceolator": [
+      "15µ",
+      "25µ",
+      "45µ",
+      "73µ",
+      "90µ",
+      "160µ",
+      "190µ",
+      "220µ"
+    ],
+    "maillages_rosin": [
+      "25µ",
+      "36µ",
+      "45µ",
+      "72µ",
+      "90µ",
+      "120µ",
+      "160µ",
+      "220µ"
+    ],
+    "types_espace": [
+      "Tente",
+      "Box",
+      "Armoire",
+      "Chambre",
+      "Outdoor",
+      "Serre",
+      "Autre"
+    ],
+    "types_culture": [
+      "Indoor",
+      "Outdoor"
+    ],
+    "buts_culture": [
+      "Récolte",
+      "Hunt",
+      "Reproduction"
+    ],
+    "types_sol_preparation": [
+      "Sol vivant (LSO)",
+      "Coco seul",
+      "Terre seule",
+      "Coco + Terre"
+    ],
+    "carences": [
+      "Azote (N)",
+      "Phosphore (P)",
+      "Potassium (K)",
+      "Calcium (Ca)",
+      "Magnésium (Mg)",
+      "Soufre (S)",
+      "Fer (Fe)",
+      "Manganèse (Mn)",
+      "Zinc (Zn)",
+      "Cuivre (Cu)",
+      "Bore (B)",
+      "Molybdène (Mo)"
+    ],
+    "tentes": [
+      "60x60x100",
+      "60x120x150",
+      "100x100x200",
+      "120x120x200",
+      "Exterieur"
+    ],
+    "lampes_hc": [
+      "LED",
+      "MH",
+      "HPS",
+      "Néons"
+    ],
+    "puissances_hc": [
+      "100",
+      "150",
+      "250",
+      "400",
+      "600",
+      "1000"
+    ],
+    "engrais": [
+      "Living Soil (LSO)",
+      "Aptus",
+      "Aucun",
+      "Autre"
+    ],
+    "substrats": [
+      "LSO",
+      "Terre",
+      "Terre+Coco",
+      "Coco",
+      "NFT",
+      "Billes d'argile",
+      "Pleine terre"
+    ],
+    "periodes_recette": [
+      "Veg",
+      "Early Flo",
+      "Flo",
+      "Late Flo",
+      "Maturation",
+      "Flush"
+    ],
+    "types_lso": [
+      "Substrat de base",
+      "Super soil",
+      "Mix transplantation",
+      "Top dress",
+      "Correctif"
+    ],
+    "types_fermentation": [
+      "AACT",
+      "Compost tea",
+      "Lactofermentation",
+      "Bokashi",
+      "JADAM JLF",
+      "Autre"
+    ]
+  }
+}

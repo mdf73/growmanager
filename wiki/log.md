@@ -6,6 +6,19 @@ Format: `## [YYYY-MM-DD] <operation> | <description>`
 
 ---
 
+## [2026-11-04] Feature | Données standard : chantier 1 (listes de Paramétrage)
+
+Boutons « Tout charger » et « Charger les valeurs standard » par section dans Paramétrage, standard unique `frontend/src/data/standard-parametres.json` (42 listes, 261 valeurs, construit depuis la base de prod de Pik avec ses arbitrages). Démarrage vide : `LISTE_DEFAULTS` supprimé des deux côtés, seules les valeurs verrouillées sont seedées ; types de stock Fleur, Trim, WPFF, Hash, Rosin verrouillés. Fournisseurs des packs de graines sur la liste paramétrable (migration unique table vers liste). Doublons comparés sans casse ni accents, y compris à l'ajout en mode autonome (corrigé). `govee_config` exclue. Validé par Pik. Voir [[features/donnees-standard#4bis. Chantier 1 : réalisation (validé 2026-11-04)|la réalisation]].
+
+### Files modified
+- `backend/app/routers/parametre.py`, `backend/app/db_init.py`
+- `frontend/src/data/standard-parametres.json` (nouveau), `frontend/src/api/parametres.ts`, `frontend/src/pages/Parametrage.tsx`, `frontend/src/components/NouveauPackModal.tsx`, `frontend/src/local/seeds.ts`, `frontend/src/local/handlers/parametres.ts`
+- `wiki/features/donnees-standard.md`, `wiki/roadmap.md`, `wiki/architecture/decisions.md`, `wiki/api/api-infrastructure.md`, `wiki/index.md`, `CHANGELOG.md`
+
+## [2026-11-01] Décision | Données standard : démarrage vide + boutons
+
+Révision par Pik : rien n'est rempli à l'installation, le standard se charge uniquement par les boutons de Paramétrage (global + par section). Les types de stock testés par égalité dans le code passent sous cadenas (ADR-009). ADR-011 révisé. Voir [[features/donnees-standard]].
+
 ## [2026-11-04] Feature | Suivi de culture : action « Détection d'une carence »
 
 Demandé par Pik : troisième action de détection dans Mesures & Soins, avec choix de la carence dans une liste paramétrable.

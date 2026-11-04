@@ -2,7 +2,9 @@
 // Miroir de backend/app/routers/{app_settings,parametre}.py (seeds → local/seeds.ts)
 import { route, LocalHttpError } from '../router'
 import { query, one, oneOr404, insert, run } from '../helpers'
-import { isValeurVerrouillee } from '../../api/parametres'
+import { isValeurVerrouillee, normaliserValeur } from '../../api/parametres'
+import { chargerValeurs } from '../seeds'
+import { getDb } from '../db'
 
 type ParamRow = { liste_nom: string; valeur: string }
 function checkNonVerrouille(row: ParamRow) {
@@ -37,6 +39,14 @@ route('PUT', '/app-settings/:cle', async ({ params, body }) => {
 // ── ParametreListeValeur ──────────────────────────────────────────────────────
 // NB : GET/POST prennent :liste_nom, PATCH/DELETE prennent :id — mêmes chemins, méthodes différentes.
 
+// Bouton « Charger les valeurs standard » (miroir backend charger_standard). Déclaré avant
+// les routes génériques par prudence ; 2 segments, ne peut pas matcher :liste_nom.
+route('POST', '/parametres/_standard/charger', async ({ body }) => {
+  const listes = ((body as { listes?: Record<string, string[]> }).listes) ?? {}
+  const par_liste = await chargerValeurs(await getDb(), listes)
+  return { data: { ajoutees: Object.values(par_liste).reduce((a, b) => a + b, 0), par_liste } }
+})
+
 route('GET', '/parametres/:liste_nom', async ({ params }) => ({
   data: await query(
     'SELECT * FROM "ParametreListeValeur" WHERE liste_nom = ? ORDER BY ordre, valeur',
@@ -45,9 +55,10 @@ route('GET', '/parametres/:liste_nom', async ({ params }) => ({
 
 route('POST', '/parametres/:liste_nom', async ({ params, body }) => {
   const valeur = String((body as { valeur: unknown }).valeur)
-  const exists = await one(
-    'SELECT id_parametre FROM "ParametreListeValeur" WHERE liste_nom = ? AND valeur = ?',
-    [params.liste_nom, valeur])
+  // Doublon insensible à la casse et aux accents, comme l'index unique MySQL du mode serveur
+  const existantes = await query<{ valeur: string }>(
+    'SELECT valeur FROM "ParametreListeValeur" WHERE liste_nom = ?', [params.liste_nom])
+  const exists = existantes.some(r => normaliserValeur(r.valeur) === normaliserValeur(valeur))
   if (exists) throw new LocalHttpError(409, 'Cette valeur existe déjà dans la liste')
   const maxOrdre = await one<{ m: number | null }>(
     'SELECT MAX(ordre) AS m FROM "ParametreListeValeur" WHERE liste_nom = ?', [params.liste_nom])

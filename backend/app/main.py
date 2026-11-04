@@ -11,7 +11,7 @@ from app.db_init import init_database
 app = FastAPI(
     title="GrowManager API",
     description="API pour la gestion de cultures de cannabis",
-    version="3.17.0",
+    version="3.18.0",
 )
 
 # Configuration CORS pour le développement
@@ -82,7 +82,7 @@ def read_root():
     """Endpoint racine"""
     return {
         "message": "Bienvenue sur l'API GrowManager",
-        "version": "3.17.0",
+        "version": "3.18.0",
         "docs": "/docs",
     }
 

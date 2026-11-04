@@ -5,7 +5,7 @@ import { Plus, Trash2, Pencil, Check, X, Lock, Settings, ChevronDown, ChevronUp,
          CheckCircle2, Loader2, Database, Download, Upload, UploadCloud, Euro,
          Smartphone, Server } from 'lucide-react'
 import apiClient, { getServerUrl, setServerUrl, testServerConnection, getAppMode, setAppMode, isNativeApp, type AppMode } from '../api/client'
-import { parametresAPI, isValeurVerrouillee } from '../api/parametres'
+import { parametresAPI, isValeurVerrouillee, STANDARD_LISTES } from '../api/parametres'
 import type { ParametreValeur } from '../api/parametres'
 import { useAppSetting } from '../api/appSettings'
 import { breederAPI } from '../api/breeders'
@@ -140,6 +140,39 @@ const SECTIONS = [
     ],
   },
 ]
+
+// ── Bouton « Charger les valeurs standard » (ADR-011) ─────────────────────────
+// Ajoute les valeurs standard absentes (src/data/standard-parametres.json). N'écrase et ne
+// supprime rien ; une valeur supprimée par l'utilisateur revient. Idempotent.
+function ChargerStandardButton({ listes, libelle = 'Charger les valeurs standard' }: {
+  listes?: string[]
+  libelle?: string
+}) {
+  const qc = useQueryClient()
+  const [message, setMessage] = useState('')
+  const cibles = (listes ?? Object.keys(STANDARD_LISTES)).filter(n => STANDARD_LISTES[n])
+  const mut = useMutation({
+    mutationFn: () => parametresAPI.chargerStandard(cibles),
+    onSuccess: res => {
+      qc.invalidateQueries({ queryKey: ['parametres'] })
+      const n = res.data.ajoutees
+      setMessage(n === 0 ? 'Rien à ajouter : tout est déjà là'
+        : `${n} valeur${n > 1 ? 's' : ''} ajoutée${n > 1 ? 's' : ''}`)
+    },
+    onError: (e: any) => setMessage(e?.response?.data?.detail ?? 'Erreur lors du chargement'),
+  })
+  if (cibles.length === 0) return null
+  return (
+    <div className="flex items-center gap-2 flex-wrap justify-end">
+      {message && <span className="text-xs text-gray-500 dark:text-gray-400">{message}</span>}
+      <button type="button" onClick={() => { setMessage(''); mut.mutate() }} disabled={mut.isPending}
+        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-grow-600 text-grow-700 dark:text-grow-400 dark:border-grow-500 hover:bg-grow-50 dark:hover:bg-grow-900/20 disabled:opacity-50">
+        {mut.isPending ? <Loader2 size={12} className="animate-spin" /> : <Download size={12} />}
+        {libelle}
+      </button>
+    </div>
+  )
+}
 
 // ── Composant d'une liste simple ──────────────────────────────────────────────
 function ListeEditor({ listeNom, label }: { listeNom: string; label: string }) {
@@ -2798,11 +2831,24 @@ export default function ParametragePage() {
           {/* Économique — prix kWh, devise */}
           <AppSettingsSection />
 
+          {/* Valeurs standard : chargement global */}
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 px-6 py-4 flex flex-col sm:flex-row sm:items-center gap-3 sm:justify-between">
+            <div>
+              <h2 className="text-base font-semibold text-gray-800 dark:text-gray-100">Valeurs standard</h2>
+              <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+                Remplit toutes les listes ci-dessous avec les valeurs proposées par GrowManager.
+                Vos valeurs ne sont jamais modifiées ni supprimées ; les valeurs déjà présentes ne sont pas dupliquées.
+              </p>
+            </div>
+            <ChargerStandardButton libelle="Tout charger" />
+          </div>
+
           {/* Listes déroulantes */}
           {SECTIONS.map(section => (
             <div key={section.titre} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
-              <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50">
+              <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50 flex flex-col sm:flex-row sm:items-center gap-2 sm:justify-between">
                 <h2 className="text-base font-semibold text-gray-800 dark:text-gray-100">{section.titre}</h2>
+                <ChargerStandardButton listes={section.listes.map(l => l.nom)} />
               </div>
               <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
                 {section.listes.map(l => (

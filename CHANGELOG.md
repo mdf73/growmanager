@@ -17,6 +17,21 @@ Versioning : [Semantic Versioning](https://semver.org/lang/fr/) — `MAJOR.MINOR
 
 ---
 
+## [3.18.0] - 2026-11-04
+
+### Ajouté
+- **Paramétrage, valeurs standard** : bouton « Tout charger » et un bouton « Charger les valeurs standard » par section. Ils ajoutent les valeurs proposées par GrowManager (42 listes) sans jamais modifier ni supprimer les vôtres ; une valeur déjà présente (même avec une casse ou des accents différents) n'est pas dupliquée, une valeur supprimée revient. Standard unique pour le mode serveur et le mode autonome (`frontend/src/data/standard-parametres.json`).
+
+### Modifié
+- **Nouvelle installation : listes vides.** Les listes paramétrables ne sont plus remplies automatiquement au démarrage ; seules les valeurs verrouillées sont créées. Les installations existantes gardent leurs valeurs.
+- **Types de stock Fleur, Trim, WPFF, Hash, Rosin verrouillés** (cadenas) : utilisés par le code, ils sont toujours présents et ne peuvent être ni renommés ni supprimés.
+- **Fournisseur d'un pack de graines** : choisi dans la liste paramétrable « Fournisseurs », la même que pour le matériel et les engrais. Les fournisseurs déjà utilisés par les packs y sont recopiés une fois au démarrage.
+
+### Corrigé
+- **Mode autonome** : l'ajout d'une valeur dans une liste détecte maintenant les doublons sans tenir compte de la casse ni des accents, comme le mode serveur.
+
+---
+
 ## [3.17.0] - 2026-11-04
 
 ### Ajouté

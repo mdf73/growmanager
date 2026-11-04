@@ -343,6 +343,7 @@ def seed_parametres():
     db = _SessionLocal()
     try:
         parametre.seed_defaults(db)
+        parametre.migrer_fournisseurs_vers_liste(db)
         app_settings.seed_defaults(db)
         stock_alert_seuils.seed_defaults(db)
     finally:

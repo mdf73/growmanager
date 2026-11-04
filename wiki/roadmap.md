@@ -101,7 +101,7 @@ Motivation : recrutement des testeurs du test fermé Play bloqué par une app 10
 
 ---
 
-## Données standard pré-remplies (plan validé 2026-11-01, lancé)
+## Données standard pré-remplies (chantier 1 validé 2026-11-04, chantier 2 à faire)
 
 Demande de Pik : les valeurs qu'il a saisies dans Paramétrage deviennent le standard livré à tout le monde, puis un catalogue de breeders. Plan complet et décisions : [[features/donnees-standard]]. ADR : ADR-011 dans [[architecture/decisions]].
 
@@ -109,7 +109,7 @@ Demande de Pik : les valeurs qu'il a saisies dans Paramétrage deviennent le sta
 
 | Sprint | Contenu | État |
 |--------|---------|------|
-| S1 | Chantier 1 : extraction des listes de la base de Pik, revue (retrait du perso), JSON unique partagé serveur + APK, démarrage vide, verrouillage des 5 types de stock, boutons « Charger les valeurs standard » (global + par section), normalisation commune des noms, fournisseurs des packs sur la liste paramétrable | ⏳ à faire |
+| S1 | Chantier 1 : extraction des listes de la base de Pik, revue (retrait du perso), JSON unique partagé serveur + APK, démarrage vide, verrouillage des 5 types de stock, boutons « Charger les valeurs standard » (global + par section), normalisation commune des noms, fournisseurs des packs sur la liste paramétrable | ✅ validé 2026-11-04 |
 | S2 | Chantier 2 : catalogue breeders (NL, ES, US, FR, DE, IT et autres grands noms, actifs et disparus), revue Pik, insertion par le même mécanisme | ⏳ à faire |
 
 À faire de préférence avant le sprint I2 du multilingue (seeds par langue).

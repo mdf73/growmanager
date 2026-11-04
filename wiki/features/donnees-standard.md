@@ -1,7 +1,7 @@
 ---
 type: feature
-status: planifié (plan validé 2026-10-30, non lancé)
-updated: 2026-11-01
+status: chantier 1 livré (validé 2026-11-04), chantier 2 à faire
+updated: 2026-11-04
 sources: [backend/app/routers/parametre.py, backend/app/db_init.py, frontend/src/local/seeds.ts, frontend/src/local/db.ts, frontend/src/pages/Parametrage.tsx, backend/app/models/all_models.py]
 ---
 
@@ -9,7 +9,7 @@ sources: [backend/app/routers/parametre.py, backend/app/db_init.py, frontend/src
 
 **Pourquoi** : un nouvel utilisateur (testeurs Play, futur public) arrive aujourd'hui sur des listes génériques ou vides (Marques vide, fournisseurs génériques, aucun breeder). Pik veut que ses propres valeurs, construites à l'usage, deviennent le **standard** livré à tout le monde, et qu'un catalogue de breeders soit fourni.
 
-**Statut** : plan validé par Pik le 2026-10-30 (toutes les décisions sont prises, section 1), rien n'est lancé. ADR associé : [[architecture/decisions#ADR-011 : Données standard pré-remplies (2026-10-30)|ADR-011]].
+**Statut** : chantier 1 (listes de Paramétrage + fournisseurs des packs) livré et validé par Pik le 2026-11-04, voir section 4bis. Chantier 2 (breeders) à faire. ADR associé : [[architecture/decisions#ADR-011 : Données standard pré-remplies (2026-10-30)|ADR-011]].
 
 ---
 
@@ -75,6 +75,19 @@ Périmètre demandé par Pik : toutes les listes de la page Paramétrage reprenn
 | C1.5 | Boutons « Charger les valeurs standard » dans Paramétrage (global + par section) avec compteur de valeurs ajoutées. |
 | C1.5b | Fournisseurs des packs (option A) : `NouveauPackModal` lit la liste `fournisseurs`, find-or-create dans la table `Fournisseur` (serveur + autonome) ; reprise unique des noms existants de la table `Fournisseur` vers la liste. |
 | C1.6 | Livraison : nouvelle version APK + image Docker. Test par Pik sur une installation existante (rien d'écrasé, bouton qui ajoute les nouveautés) et sur une installation neuve. |
+
+## 4bis. Chantier 1 : réalisation (validé 2026-11-04)
+
+**Standard** : `frontend/src/data/standard-parametres.json` (version 1, 42 listes, 261 valeurs), seule source pour les deux modes. Le serveur ne le lit pas : le frontend envoie les valeurs au clic. Construit depuis la base de prod de Pik (export du 2026-11-01) avec ses arbitrages : fournisseurs sans adresse mail perso ni magasin local ni SuperU, fusion des fournisseurs de packs (`aristodeseedco.fr`, `saltonverde.com` ; `alchimia.com` écarté au profit de `alchimia.fr` ; `cannaweed` laissé hors standard faute de réponse), engrais `Living Soil (LSO)` générique + `Autre`, puissances génériques 100 à 1000 W, `lampes_stock` exclue, orthographe corrigée (Li-ion, Pierre à bulles, Filtre à charbon, Cspec Enhanced, 3500K...), valeurs du code supprimées par Pik non reprises. Liste `carences` ajoutée avec ses valeurs du code.
+
+**Code** :
+- Backend `routers/parametre.py` : `LISTE_DEFAULTS` supprimé, `LISTES_VERROUILLEES` étendu à `types_stock`, `normaliser()`, `charger_valeurs()`, `migrer_fournisseurs_vers_liste()` (une fois, drapeau `AppSettings.migr_fournisseurs_liste`, appelée dans `db_init.seed_parametres`), endpoint `POST /api/parametres/_standard/charger`. `LISTES_TECHNIQUES = {"govee_config"}` jamais touchée.
+- Mode autonome `local/seeds.ts` : mêmes fonctions (`chargerValeurs(conn, listes)`, migration fournisseurs), route locale dans `local/handlers/parametres.ts`, contrôle de doublon normalisé sur l'ajout.
+- Frontend : `api/parametres.ts` (`STANDARD_LISTES`, `normaliserValeur`, `parametresAPI.chargerStandard`), `Parametrage.tsx` (`ChargerStandardButton` global + par section), `NouveauPackModal.tsx` (fournisseur via `SelectWithAdd` sur la liste `fournisseurs`, id de la table `Fournisseur` retrouvé ou créé à l'enregistrement).
+
+**Vérifié** : tsc OK ; scripts de test ad hoc serveur (SQLite) et autonome (sql.js) : démarrage vide, valeurs verrouillées, pas de doublon casse/accents, idempotence, valeur supprimée qui revient, `govee_config` intouchée, migration fournisseurs unique.
+
+**Attention pour une base existante** : une correction d'orthographe qui ne se réduit pas à la casse ou aux accents (`Pierre a bulle` / `Pierre à bulles`, `Li-On` / `Li-ion`, `3500 K` / `3500K`) crée un doublon au chargement : corriger la valeur avant d'appuyer.
 
 ## 5. Chantier 2 : breeders, puis variétés
 

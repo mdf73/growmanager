@@ -124,6 +124,9 @@ Router: `parametre.py` | Prefix: `/api/parametres`
 | POST | `/{liste_nom}` | `ParametreCreate` | `ParametreRead` |
 | PATCH | `/{id}` | `ParametreUpdate` | `ParametreRead` |
 | DELETE | `/{id}` | — | 204 |
+| POST | `/_standard/charger` | `{listes: {liste_nom: [valeurs]}}` | `{ajoutees, par_liste}` |
+
+`POST /_standard/charger` (ADR-011) : bouton « Charger les valeurs standard » de Paramétrage. Le frontend envoie les valeurs de `frontend/src/data/standard-parametres.json` ; le backend insère seulement les valeurs absentes (comparaison `normaliser()` : minuscules, sans accents, espaces réduits), jamais d'UPDATE ni de DELETE, ignore `govee_config`. Miroir local : `local/handlers/parametres.ts` + `chargerValeurs()` dans `local/seeds.ts`.
 
 `liste_nom` examples: `types_lampe`, `materiaux_pot`, `types_bocal`, `categories_materiel`, `types_extraction`, etc.
 

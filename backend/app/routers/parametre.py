@@ -1,4 +1,5 @@
 """Router ParametreListeValeur — CRUD des listes déroulantes paramétrables"""
+import unicodedata
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import insert
@@ -6,81 +7,38 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models.all_models import ParametreListeValeur
+from pydantic import BaseModel
+
+from app.models.all_models import AppSettings, Fournisseur, ParametreListeValeur
 from app.schemas.parametre import ParametreCreate, ParametreUpdate, ParametreRead
 
 router = APIRouter(prefix="/api/parametres", tags=["parametres"])
 
-# ── Valeurs par défaut pour chaque liste ──────────────────────────────────────
-LISTE_DEFAULTS: dict[str, list[str]] = {
-    # Général
-    "marques":      [],
-    "fournisseurs": ["Amazon", "Azaneo", "Opengrow", "Growshop", "Cultura", "eBay", "AliExpress"],
-    # Historique Culture
-    "tentes":         ["60x60x100", "60x120x150", "100x100x200", "120x120x200", "Exterieur"],
-    "lampes_hc":      ["LED Crescience", "LED Marshydro", "MH", "HPS"],
-    "puissances_hc":  ["110", "135", "150", "550", "600"],
-    "types_culture":  ["Indoor", "Outdoor"],
-    "engrais":        ["Living Soil (LSO)", "Aptus", "Hesi", "Aucun", "Autre"],
-    "substrats":      ["LSO", "Terre", "Terre+Coco", "Coco", "NFT", "Billes d'argile", "Pleine terre"],
-    # Matériel — général
-    "materiel_categories": ["Bocaux", "Lampes", "Pots", "Coupelles et bacs", "Arrosage", "Tentes",
-                          "Pompes et Bulleurs", "Ventilation", "Filets", "Séchage", "Outils"],
-    "etats_materiel":    ["Neuf", "Bon état", "Usagé", "Hors service"],
-    # Matériel — vaporisateurs
-    "vapo_types_chauffe":  ["Conduction", "Convection", "Mixte", "Induction"],
-    "vapo_types_batterie": ["Intégrée", "Amovible 18650"],
-    "vapo_types_charge":   ["USB-C", "Propriétaire", "Micro-USB", "Autre"],
-    "vapo_compatibilites": ["Fleurs séchées", "Résines", "Concentrés (Rosin)"],
-    "vapo_conso_types":    ["Bol céramique", "Bol saphir", "Bol SiC", "Bol quartz",
-                            "Terps ball", "Screen", "Joint", "Embout", "Autre"],
-    "vapo_conso_matieres": ["Céramique", "Saphir", "SiC", "Quartz", "Titane", "Acier inox", "Verre", "Autre"],
-    # Matériel
-    "lampes_types":      ["LED", "HPS", "MH", "CMH"],
-    "spectres":          ["Full Spectrum", "Veg", "Bloom", "2700K", "3000K", "4000K", "5000K",
-                          "6500K", "254nm", "350nm", "450nm", "660nm", "730nm", "760nm"],
-    "pot_matieres":      ["Plastique", "Tissu", "Céramique", "Autre"],
-    "arrosage_types":    ["Goutte-à-goutte", "Arrosoir"],
-    "pompe_types":       ["Pompe à eau", "Bulleur", "Pompe à air"],
-    "ventilation_types": ["Extracteur", "Intracteur", "Ventilateur", "Ventilateur oscillant"],
-    "filet_types":       ["LST", "SCROG"],
-    "sechage_types":     ["Filet", "Penderie", "Rack"],
-    "outil_types":       ["Cisailles", "Loupe", "pH-mètre", "EC-mètre",
-                          "Hygromètre", "Thermomètre", "Balance", "Autre"],
-    # Matériel — Bocaux
-    "bocal_fermetures":  ["Couvercle à vis", "Bail clasp (Le Parfait)", "Mason Jar", "Flip-top", "Autre"],
-    "bocal_couleurs":    ["Clair", "Ambré", "Teinté"],
-    "bocal_usages":      ["Curing", "Stockage longue durée", "Fermentation", "Infusion", "Autre"],
-    # Stock — types & maillages
-    "types_hash":       ["Ice-O-Lator Dry", "Ice-o-Lator WPFF", "Dry", "FingerHash", "Pollinator", "Static"],
-    "types_stock":      ["Fleur", "Trim", "WPFF", "Hash", "Rosin", "Autre"],
-    "sous_types_stock": ["Indoor", "Outdoor"],
-    "types_rosin":      ["Flower Rosin", "Hash Rosin"],
-    "lampes_stock":     ["LED Crescience 500W", "LED Crescience 110W", "LED MarsHydro 135W", "Soleil"],
-    "maillages_iceolator": ["15µ", "25µ", "45µ", "73µ", "90µ", "160µ", "190µ", "220µ"],
-    "maillages_rosin":     ["25µ", "36µ", "45µ", "72µ", "90µ", "120µ", "160µ", "220µ"],
-    # Recettes
-    "periodes_recette": ["Veg", "Early Flo", "Flo", "Late Flo", "Maturation", "Flush"],
-    "types_lso": ["Substrat de base", "Super soil", "Mix transplantation", "Top dress", "Correctif"],
-    "types_fermentation": ["AACT", "Compost tea", "Lactofermentation", "Bokashi", "JADAM JLF", "Autre"],
-    "types_espace": ["Tente", "Box", "Armoire", "Chambre", "Outdoor", "Serre", "Autre"],
-    # Culture — but de culture
-    "buts_culture": ["Récolte", "Hunt", "Reproduction"],
-    # Préparation substrat — types de sol
-    "types_sol_preparation": ["Sol vivant (LSO)", "Coco seul", "Terre seule", "Coco + Terre"],
-    # Suivi de culture — carences détectables
-    "carences": ["Azote (N)", "Phosphore (P)", "Potassium (K)", "Calcium (Ca)", "Magnésium (Mg)",
-                 "Soufre (S)", "Fer (Fe)", "Manganèse (Mn)", "Zinc (Zn)", "Cuivre (Cu)",
-                 "Bore (B)", "Molybdène (Mo)"],
-}
+# ── Standard des listes (ADR-011) ─────────────────────────────────────────────
+# Aucune liste n'est remplie au démarrage : le standard (frontend/src/data/standard-parametres.json,
+# source unique serveur + autonome) est envoyé par le frontend via POST /_standard/charger quand
+# l'utilisateur presse un bouton de Paramétrage. Seules les valeurs verrouillées sont seedées.
+
+# Listes techniques stockées dans la même table : jamais touchées par le chargement du standard.
+LISTES_TECHNIQUES = {"govee_config"}
 
 # ── Valeurs verrouillées ──────────────────────────────────────────────────────
 # Le code s'appuie sur ces valeurs (champs spécifiques par catégorie, « Bocaux » pour
-# le stock et le curing) : ni renommables ni supprimables.
-# Miroir : frontend/src/api/parametres.ts (LISTES_VERROUILLEES).
+# le stock et le curing, types de stock testés par égalité) : ni renommables ni supprimables,
+# toujours présentes. Miroir : frontend/src/api/parametres.ts (LISTES_VERROUILLEES).
 LISTES_VERROUILLEES: dict[str, list[str]] = {
-    "materiel_categories": LISTE_DEFAULTS["materiel_categories"],
+    "materiel_categories": ["Bocaux", "Lampes", "Pots", "Coupelles et bacs", "Arrosage", "Tentes",
+                            "Pompes et Bulleurs", "Ventilation", "Filets", "Séchage", "Outils"],
+    "types_stock": ["Fleur", "Trim", "WPFF", "Hash", "Rosin"],
 }
+
+
+def normaliser(valeur: str) -> str:
+    """Clé de comparaison : minuscules, sans accents, espaces rognés et réduits.
+    Miroir : frontend/src/api/parametres.ts (normaliserValeur)."""
+    sans_accents = "".join(c for c in unicodedata.normalize("NFD", valeur)
+                           if unicodedata.category(c) != "Mn")
+    return " ".join(sans_accents.lower().split())
 
 
 def _check_non_verrouille(row: ParametreListeValeur):
@@ -109,25 +67,64 @@ def _commit_or_409(db: Session):
 
 
 def seed_defaults(db: Session):
-    """Insère les valeurs par défaut pour les listes vides au démarrage."""
-    for liste_nom, valeurs in LISTE_DEFAULTS.items():
-        count = db.query(ParametreListeValeur).filter(
-            ParametreListeValeur.liste_nom == liste_nom
-        ).count()
-        if count == 0:
-            for i, v in enumerate(valeurs):
-                _insert_ignore(db, liste_nom, v, i)
-    # Les valeurs verrouillées doivent toujours exister
+    """Au démarrage : seules les valeurs verrouillées doivent toujours exister."""
     for liste_nom, valeurs in LISTES_VERROUILLEES.items():
-        existantes = {r.valeur for r in db.query(ParametreListeValeur).filter(
+        existantes = {normaliser(r.valeur) for r in db.query(ParametreListeValeur).filter(
             ParametreListeValeur.liste_nom == liste_nom).all()}
         for i, v in enumerate(valeurs):
-            if v not in existantes:
+            if normaliser(v) not in existantes:
                 _insert_ignore(db, liste_nom, v, i)
     db.commit()
 
 
+def charger_valeurs(db: Session, listes: dict[str, list[str]]) -> dict[str, int]:
+    """Insère les valeurs absentes (comparaison normalisée). Jamais d'UPDATE ni de DELETE.
+    Retourne le nombre de valeurs ajoutées par liste."""
+    ajouts: dict[str, int] = {}
+    for liste_nom, valeurs in listes.items():
+        if liste_nom in LISTES_TECHNIQUES:
+            continue
+        rows = db.query(ParametreListeValeur).filter(ParametreListeValeur.liste_nom == liste_nom).all()
+        existantes = {normaliser(r.valeur) for r in rows}
+        ordre = max((r.ordre or 0 for r in rows), default=-1) + 1
+        n = 0
+        for v in valeurs:
+            v = (v or "").strip()
+            if not v or normaliser(v) in existantes:
+                continue
+            _insert_ignore(db, liste_nom, v, ordre)
+            existantes.add(normaliser(v))
+            ordre += 1
+            n += 1
+        ajouts[liste_nom] = n
+    db.commit()
+    return ajouts
+
+
+def migrer_fournisseurs_vers_liste(db: Session):
+    """Migration unique : les fournisseurs de la table Fournisseur (packs de graines) rejoignent
+    la liste paramétrable « fournisseurs », désormais seule source de la liste déroulante."""
+    cle = "migr_fournisseurs_liste"
+    if db.query(AppSettings).filter(AppSettings.cle == cle).first():
+        return
+    noms = [f.nom_fournisseur for f in db.query(Fournisseur).all() if f.nom_fournisseur]
+    charger_valeurs(db, {"fournisseurs": noms})
+    db.execute(insert(AppSettings).prefix_with("IGNORE").values(cle=cle, valeur="1", label=None))
+    db.commit()
+
+
+class StandardPayload(BaseModel):
+    listes: dict[str, list[str]]
+
+
 # ── Endpoints ─────────────────────────────────────────────────────────────────
+
+@router.post("/_standard/charger")
+def charger_standard(payload: StandardPayload, db: Session = Depends(get_db)):
+    """Bouton « Charger les valeurs standard » : ajoute les valeurs absentes, n'écrase rien."""
+    ajouts = charger_valeurs(db, payload.listes)
+    return {"ajoutees": sum(ajouts.values()), "par_liste": ajouts}
+
 
 @router.get("/{liste_nom}", response_model=List[ParametreRead])
 def get_list(liste_nom: str, db: Session = Depends(get_db)):
