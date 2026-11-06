@@ -17,6 +17,13 @@ Versioning : [Semantic Versioning](https://semver.org/lang/fr/) — `MAJOR.MINOR
 
 ---
 
+## [3.18.2] - 2026-11-06
+
+### Corrigé
+- **Capteurs hors ligne** : un capteur sans lecture depuis plus de 15 min n'affiche plus ses dernières valeurs comme si elles étaient actuelles. Température, humidité et VPD passent à « -- », la carte est grisée et un libellé « Hors ligne depuis X » s'affiche (minutes sous 1 h, heures jusqu'à 48 h, jours jusqu'à 30 j, puis simplement « Hors ligne »). Appliqué à Suivi des constantes (cartes et tuiles), Dashboard et Paramétrage. Les graphiques restent intacts. Logique centralisée dans `frontend/src/utils/sensorStatus.ts`.
+
+---
+
 ## [3.18.1] - 2026-11-04
 
 *(prochaines modifications en cours)*

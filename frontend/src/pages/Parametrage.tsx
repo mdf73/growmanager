@@ -14,6 +14,7 @@ import { varieteAPI } from '../api/varietes'
 import type { Variete } from '../api/varietes'
 import { capteursAPI, GoveeDevice, GoveeDeviceCreate, GoveeConfig, GmailImportResult, PollResult, GoveeCloudDevice, TapoConfig, TapoDiscoveryDevice } from '../api/capteurs'
 import { stockAlertSeuilsAPI, StockAlertSeuil, SeuilUpsert } from '../api/stockAlertSeuils'
+import { isSensorOnline, offlineLabel } from '../utils/sensorStatus'
 
 // ── Définition de toutes les listes et leur groupement ────────────────────────
 const SECTIONS = [
@@ -1160,7 +1161,9 @@ function TapoSectionContent() {
               {device.nom_espace && <p className="text-xs text-purple-600">{device.nom_espace}</p>}
             </div>
             <div className="text-xs text-gray-600 dark:text-gray-300 text-right">
-              {device.derniere_temperature != null ? `${device.derniere_temperature.toFixed(1)}°C · ${device.derniere_humidite?.toFixed(0)}%` : 'Aucune donnée'}
+              {!isSensorOnline(device.derniere_lecture)
+                ? <div className="text-gray-400">-- · --<div>{offlineLabel(device.derniere_lecture)}</div></div>
+                : device.derniere_temperature != null ? `${device.derniere_temperature.toFixed(1)}°C · ${device.derniere_humidite?.toFixed(0)}%` : 'Aucune donnée'}
               {device.derniere_lecture && <div className="text-gray-400">{new Date(device.derniere_lecture).toLocaleString('fr-FR')}</div>}
             </div>
             <button onClick={() => toggleDevice(device)} className={`p-1.5 rounded-lg ${device.actif ? 'bg-green-100 text-green-600' : 'bg-gray-200 text-gray-400'}`} title={device.actif ? 'Désactiver' : 'Activer'}><Wifi size={14} /></button>
@@ -1365,7 +1368,12 @@ function ESPHomeSectionContent() {
                         {d.notes ? ` · ${d.notes}` : ''}
                       </p>
                     </div>
-                    {d.derniere_temperature != null ? (
+                    {d.derniere_temperature != null && !isSensorOnline(d.derniere_lecture) ? (
+                      <div className="text-xs text-gray-400 dark:text-gray-500 shrink-0 text-right">
+                        <div>-- · --</div>
+                        <div>{offlineLabel(d.derniere_lecture)}</div>
+                      </div>
+                    ) : d.derniere_temperature != null ? (
                       <div className="text-xs text-gray-600 dark:text-gray-300 shrink-0 text-right">
                         <div>{d.derniere_temperature.toFixed(1)}°C · {d.derniere_humidite?.toFixed(0)}%</div>
                         {d.derniere_vpd != null && (
@@ -1766,9 +1774,16 @@ function GoveeSectionContent() {
                       </p>
                     </div>
                     {d.derniere_temperature != null && (
-                      <div className="text-xs text-gray-600 dark:text-gray-300 shrink-0">
-                        {d.derniere_temperature.toFixed(1)}°C · {d.derniere_humidite?.toFixed(0)}%
-                      </div>
+                      isSensorOnline(d.derniere_lecture) ? (
+                        <div className="text-xs text-gray-600 dark:text-gray-300 shrink-0">
+                          {d.derniere_temperature.toFixed(1)}°C · {d.derniere_humidite?.toFixed(0)}%
+                        </div>
+                      ) : (
+                        <div className="text-xs text-gray-400 dark:text-gray-500 shrink-0 text-right">
+                          <div>-- · --</div>
+                          <div>{offlineLabel(d.derniere_lecture)}</div>
+                        </div>
+                      )
                     )}
                     <button onClick={() => handleToggleActif(d)}
                       className={`shrink-0 p-1.5 rounded-lg transition-colors ${

@@ -7,6 +7,7 @@ import {
 import { dashboardAPI, DashboardFullStats, BoxArrosageStats, IpmWarning } from '../api/dashboard'
 import { isStandalone } from '../api/client'
 import { capteursAPI, GoveeDevice } from '../api/capteurs'
+import { isSensorOnline, offlineLabel } from '../utils/sensorStatus'
 import { stockAlertSeuilsAPI, StockAlertResult } from '../api/stockAlertSeuils'
 import LoadingSpinner from '../components/LoadingSpinner'
 
@@ -413,15 +414,13 @@ function SensorMiniCard({
   device: GoveeDevice
   onClick: () => void
 }) {
-  const isRecent = device.derniere_lecture
-    ? (Date.now() - new Date(device.derniere_lecture).getTime()) < 15 * 60 * 1000
-    : false
+  const isRecent = isSensorOnline(device.derniere_lecture)
 
   return (
     <button
       onClick={onClick}
-      className="w-full text-left p-3 rounded-lg border border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50
-                 hover:bg-teal-50 hover:border-teal-200 transition-colors"
+      className={`w-full text-left p-3 rounded-lg border border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50
+                 hover:bg-teal-50 hover:border-teal-200 transition-colors ${!isRecent ? 'opacity-60' : ''}`}
     >
       <div className="flex items-center justify-between mb-1">
         <span className="text-xs font-semibold text-gray-700 dark:text-gray-200 truncate">{device.nom}</span>
@@ -435,7 +434,12 @@ function SensorMiniCard({
             : <WifiOff size={11} className="text-gray-300" />}
         </span>
       </div>
-      {device.derniere_temperature != null ? (
+      {!isRecent ? (
+        <div className="text-xs text-gray-400 dark:text-gray-500">
+          <span className="font-bold">-- · -- · --</span>
+          <span className="ml-2">{offlineLabel(device.derniere_lecture)}</span>
+        </div>
+      ) : device.derniere_temperature != null ? (
         <div className="flex gap-2 text-xs">
           <span className="text-orange-600 font-bold">
             {device.derniere_temperature.toFixed(1)}°C

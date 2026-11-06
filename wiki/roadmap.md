@@ -203,6 +203,9 @@ Bouton "Export PDF" dans le header de `/calendrier` · modal date début + date 
 
 ## Completed (Post-Sprint 4)
 
+### Capteurs hors ligne : valeurs masquées ✅ DONE — validé 2026-11-06
+`utils/sensorStatus.ts` · `--` + carte grisée + « Hors ligne depuis X » (min / h jusqu'à 48 h / j jusqu'à 30 j / « Hors ligne ») · Suivi des constantes, Dashboard, Paramétrage · graphiques intacts. Voir [[features/sensor-integration]].
+
 ### Courbes capteurs dans les calendriers ✅ DONE — validé 2026-05-15
 `SensorDayChart.tsx` · moyennes horaires (1 pt/heure) · 1 ligne par capteur · tiles min/moy/max · intégré dans `DayModal` CalendrierGlobal + panneau jour CalendrierCulture (filtré sur `id_espace`).
 

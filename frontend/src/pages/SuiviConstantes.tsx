@@ -10,6 +10,7 @@ import {
 } from 'recharts'
 import { Thermometer, Droplets, Wind, RefreshCw, Wifi, WifiOff, Upload, CheckCircle, AlertCircle, X } from 'lucide-react'
 import { capteursAPI, GoveeDevice, TemperatureLog, CsvImportResult } from '../api/capteurs'
+import { isSensorOnline, offlineLabel } from '../utils/sensorStatus'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -69,15 +70,14 @@ function SensorCard({
   selected: boolean
   onClick: () => void
 }) {
-  const isRecent = device.derniere_lecture
-    ? (Date.now() - new Date(device.derniere_lecture).getTime()) < 15 * 60 * 1000
-    : false
+  const isRecent = isSensorOnline(device.derniere_lecture)
 
   return (
     <button
       onClick={onClick}
       className={`
         w-full text-left p-4 rounded-xl border-2 transition-all
+        ${!isRecent ? 'opacity-60' : ''}
         ${selected
           ? 'border-teal-500 bg-teal-50 dark:bg-teal-900/20 shadow-md'
           : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-teal-300 hover:shadow'}
@@ -100,7 +100,21 @@ function SensorCard({
         <p className="text-xs text-gray-400 dark:text-gray-500 mb-2">{device.nom_espace}</p>
       )}
 
-      {device.derniere_temperature != null ? (
+      {!isRecent ? (
+        <>
+          <div className="grid grid-cols-3 gap-1">
+            {['Temp', 'Hum', 'VPD'].map(l => (
+              <div key={l} className="text-center">
+                <p className="text-lg font-bold text-gray-400 dark:text-gray-500">--</p>
+                <p className="text-xs text-gray-400 dark:text-gray-500">{l}</p>
+              </div>
+            ))}
+          </div>
+          <p className="text-xs text-gray-400 dark:text-gray-500 text-center mt-2">
+            {offlineLabel(device.derniere_lecture)}
+          </p>
+        </>
+      ) : device.derniere_temperature != null ? (
         <div className="grid grid-cols-3 gap-1">
           <div className="text-center">
             <p className="text-lg font-bold text-orange-600 dark:text-orange-400">
@@ -408,6 +422,29 @@ function SensorChart({
 // ── Stats live du capteur sélectionné ─────────────────────────────────────────
 
 function LiveStats({ device }: { device: GoveeDevice }) {
+  if (!isSensorOnline(device.derniere_lecture)) {
+    const tiles = [
+      { Icon: Thermometer, label: 'Température' },
+      { Icon: Droplets,    label: 'Humidité' },
+      { Icon: Wind,        label: 'VPD kPa' },
+    ]
+    return (
+      <div className="mb-6">
+        <div className="grid grid-cols-3 gap-3 opacity-60">
+          {tiles.map(({ Icon, label }) => (
+            <div key={label} className="bg-gray-100 dark:bg-gray-700/50 rounded-xl p-3 text-center">
+              <Icon size={18} className="mx-auto text-gray-400 mb-1" />
+              <p className="text-2xl font-bold text-gray-400 dark:text-gray-500">--</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">{label}</p>
+            </div>
+          ))}
+        </div>
+        <p className="flex items-center justify-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 mt-2">
+          <WifiOff size={12} /> {offlineLabel(device.derniere_lecture)}
+        </p>
+      </div>
+    )
+  }
   return (
     <div className="grid grid-cols-3 gap-3 mb-6">
       <div className="bg-orange-50 dark:bg-orange-900/20 rounded-xl p-3 text-center">

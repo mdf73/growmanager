@@ -244,6 +244,18 @@ Appelle `PUT /cultures/{id}` (endpoint existant). Recalcule la date de récolte 
 
 ---
 
+## Statut hors ligne (2026-11-06)
+
+Un capteur est **hors ligne** si `derniere_lecture` date de plus de 15 min (ou n'existe pas). Source unique : `frontend/src/utils/sensorStatus.ts` (`isSensorOnline`, `offlineLabel`, `SENSOR_OFFLINE_THRESHOLD_MS`). Ne plus recoder le test `15 * 60 * 1000` dans les pages.
+
+Affichage quand hors ligne (Suivi des constantes, Dashboard, Paramétrage) :
+- valeurs remplacées par `--` (jamais 0 : 0 °C / 0 % sont des vraies valeurs et le VPD 0 tomberait dans une zone colorée)
+- carte et tuiles grisées
+- libellé « Hors ligne depuis X » : minutes sous 1 h, heures de 1 h à 48 h, jours de 48 h à 30 j, puis « Hors ligne » sans durée
+- graphiques historiques inchangés
+
+Limite : le libellé est recalculé au refetch de la liste des capteurs, pas en temps réel.
+
 ## See Also
 
 - [[database/database-sensors]] — GoveeDevice, TemperatureLog models

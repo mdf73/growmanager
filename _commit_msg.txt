@@ -1,7 +1,11 @@
-chore: abandon du catalogue breeders standard (wiki)
+fix: capteurs hors ligne, valeurs masquées et libellé « Hors ligne depuis X »
 
-Chantier 2 des données standard abandonné sur décision de Pik : liste trop grande pour un grower amateur.
-Aucun changement applicatif.
+- Nouveau utils/sensorStatus.ts (seuil 15 min, isSensorOnline, offlineLabel)
+- Suivi des constantes : cartes et tuiles grisées avec -- quand hors ligne
+- Dashboard et Paramétrage : même comportement
+- Durée : min < 1 h, h jusqu'à 48 h, j jusqu'à 30 j, puis « Hors ligne »
+- Graphiques inchangés
+- Wiki (log, roadmap, sensor-integration) et CHANGELOG mis à jour
 
 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
-Claude-Session: https://claude.ai/code/session_01DQFniTMejwSNFxuMzoma91
+Claude-Session: https://claude.ai/code/session_01DQFniSviZEv8kN1yCkPeT3

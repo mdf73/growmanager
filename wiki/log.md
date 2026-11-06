@@ -13,6 +13,14 @@ Un catalogue de 178 breeders et un bouton « Charger les breeders standard » av
 
 ---
 
+## [2026-11-06] Fix | Capteurs hors ligne : valeurs masquées
+
+Un capteur déconnecté (icône Wi-Fi barrée) affichait encore ses dernières valeurs en couleur. Désormais, au-delà de 15 min sans lecture : `--` partout, carte grisée, libellé « Hors ligne depuis X » (min < 1 h, h jusqu'à 48 h, j jusqu'à 30 j, puis « Hors ligne »). Choix de `--` plutôt que 0 (0 est une vraie valeur et colorerait le VPD). Graphiques inchangés. Validé par Pik. Voir [[features/sensor-integration#Statut hors ligne (2026-11-06)|la section]].
+
+### Files modified
+- `frontend/src/utils/sensorStatus.ts` (nouveau), `frontend/src/pages/SuiviConstantes.tsx`, `frontend/src/pages/Dashboard.tsx`, `frontend/src/pages/Parametrage.tsx`
+- `wiki/features/sensor-integration.md`, `wiki/roadmap.md`, `CHANGELOG.md`
+
 ## [2026-11-04] Feature | Données standard : chantier 1 (listes de Paramétrage)
 
 Boutons « Tout charger » et « Charger les valeurs standard » par section dans Paramétrage, standard unique `frontend/src/data/standard-parametres.json` (42 listes, 261 valeurs, construit depuis la base de prod de Pik avec ses arbitrages). Démarrage vide : `LISTE_DEFAULTS` supprimé des deux côtés, seules les valeurs verrouillées sont seedées ; types de stock Fleur, Trim, WPFF, Hash, Rosin verrouillés. Fournisseurs des packs de graines sur la liste paramétrable (migration unique table vers liste). Doublons comparés sans casse ni accents, y compris à l'ajout en mode autonome (corrigé). `govee_config` exclue. Validé par Pik. Voir [[features/donnees-standard#4bis. Chantier 1 : réalisation (validé 2026-11-04)|la réalisation]].

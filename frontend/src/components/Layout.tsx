@@ -350,7 +350,10 @@ export default function Layout({ children }: LayoutProps) {
         <aside className="fixed inset-0 z-40 flex lg:hidden">
           <div className="flex flex-col w-64 bg-grow-600 text-white">
             <div className="p-6 flex items-center justify-between border-b border-grow-700">
-              <img src="/logo.png" alt="GrowManager" className="h-12 w-auto" />
+              <div className="flex flex-col">
+                <img src="/logo.png" alt="GrowManager" className="h-12 w-auto" />
+                <p className="text-xs text-grow-200 mt-1">v{__APP_VERSION__}</p>
+              </div>
               <button
                 onClick={() => setSidebarOpen(false)}
                 className="text-white hover:bg-grow-700 p-2 rounded-lg"
