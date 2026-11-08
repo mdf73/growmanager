@@ -18,6 +18,7 @@ const WINDOWS = [
   { label: '6h',   heures: 6   },
   { label: '24h',  heures: 24  },
   { label: '48h',  heures: 48  },
+  { label: '72h',  heures: 72  },
   { label: '7j',   heures: 168 },
   { label: '30j',  heures: 720 },
 ]
@@ -182,20 +183,44 @@ function SensorChart({
 
   const hasPrevData = prevLogs.length > 0
 
-  // Fusion des deux séries par position relative dans la fenêtre
+  // Fusion des deux séries par horodatage (et non par index) :
+  // en données brutes (≤ 48h) les relevés N-1 (souvent issus d'un import CSV)
+  // n'ont pas le même pas que les relevés actuels, un appariement par index
+  // décalait / tronquait la courbe N-1.
   const chartData = useMemo(() => {
     const prevYear = new Date(prevDateFin).getFullYear()
-    return logs.map((l, i) => ({
-      ts:          l.date_heure,
-      label:       formatDate(l.date_heure, heures),
-      temperature: l.temperature != null ? Number(l.temperature.toFixed(1)) : null,
-      humidite:    l.humidite    != null ? Number(l.humidite.toFixed(1))    : null,
-      vpd:         l.vpd         != null ? Number(l.vpd.toFixed(3))         : null,
-      temperature_prev: prevLogs[i]?.temperature != null ? Number(prevLogs[i].temperature!.toFixed(1)) : null,
-      humidite_prev:    prevLogs[i]?.humidite    != null ? Number(prevLogs[i].humidite!.toFixed(1))    : null,
-      vpd_prev:         prevLogs[i]?.vpd         != null ? Number(prevLogs[i].vpd!.toFixed(3))         : null,
-      _prevYear: prevYear,
-    }))
+    // Décalage entre la fenêtre N-1 et la fenêtre courante
+    const offsetMs = Date.now() - new Date(prevDateFin).getTime()
+    const prevSorted = prevLogs
+      .map(p => ({ t: new Date(p.date_heure).getTime() + offsetMs, p }))
+      .sort((a, b) => a.t - b.t)
+    // Tolérance : 15 min en brut, 90 min en moyennes horaires
+    const tolMs = (heures <= 48 ? 15 : 90) * 60 * 1000
+    const findPrev = (t: number): TemperatureLog | undefined => {
+      if (prevSorted.length === 0) return undefined
+      let lo = 0, hi = prevSorted.length - 1
+      while (lo < hi) {
+        const mid = (lo + hi) >> 1
+        if (prevSorted[mid].t < t) lo = mid + 1; else hi = mid
+      }
+      let best = prevSorted[lo]
+      if (lo > 0 && Math.abs(prevSorted[lo - 1].t - t) < Math.abs(best.t - t)) best = prevSorted[lo - 1]
+      return Math.abs(best.t - t) <= tolMs ? best.p : undefined
+    }
+    return logs.map(l => {
+      const p = findPrev(new Date(l.date_heure).getTime())
+      return {
+        ts:          l.date_heure,
+        label:       formatDate(l.date_heure, heures),
+        temperature: l.temperature != null ? Number(l.temperature.toFixed(1)) : null,
+        humidite:    l.humidite    != null ? Number(l.humidite.toFixed(1))    : null,
+        vpd:         l.vpd         != null ? Number(l.vpd.toFixed(3))         : null,
+        temperature_prev: p?.temperature != null ? Number(p.temperature.toFixed(1)) : null,
+        humidite_prev:    p?.humidite    != null ? Number(p.humidite.toFixed(1))    : null,
+        vpd_prev:         p?.vpd         != null ? Number(p.vpd.toFixed(3))         : null,
+        _prevYear: prevYear,
+      }
+    })
   }, [logs, prevLogs, heures, prevDateFin])
 
   if (isLoading) return (

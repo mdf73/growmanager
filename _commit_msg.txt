@@ -1,11 +1,9 @@
-fix: capteurs hors ligne, valeurs masquées et libellé « Hors ligne depuis X »
+fix: suivi des constantes, fenêtre 72h et comparaison N-1 par horodatage
 
-- Nouveau utils/sensorStatus.ts (seuil 15 min, isSensorOnline, offlineLabel)
-- Suivi des constantes : cartes et tuiles grisées avec -- quand hors ligne
-- Dashboard et Paramétrage : même comportement
-- Durée : min < 1 h, h jusqu'à 48 h, j jusqu'à 30 j, puis « Hors ligne »
-- Graphiques inchangés
-- Wiki (log, roadmap, sensor-integration) et CHANGELOG mis à jour
+- Ajout de la fenêtre 72h entre 48h et 7j
+- Courbe année précédente appariée par horodatage au lieu de l'index
+  (corrige l'affichage N-1 en 6h/24h/48h)
+- Wiki et CHANGELOG mis à jour
 
 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
-Claude-Session: https://claude.ai/code/session_01DQFniSviZEv8kN1yCkPeT3
+Claude-Session: https://claude.ai/code/session_01DQFniV8XGqmQomyQzTQjpb

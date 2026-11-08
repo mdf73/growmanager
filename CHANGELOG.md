@@ -17,6 +17,16 @@ Versioning : [Semantic Versioning](https://semver.org/lang/fr/) — `MAJOR.MINOR
 
 ---
 
+## [3.18.3] - 2026-11-08
+
+### Ajouté
+- **Suivi des constantes** : nouvelle fenêtre **72h** entre 48h et 7j (moyennes horaires, comme 7j et 30j).
+
+### Corrigé
+- **Suivi des constantes, comparaison année précédente** : en 6h, 24h et 48h (données brutes), la courbe N-1 était appariée à la courbe courante par index ; les relevés N-1 (souvent issus d'un import CSV Govee) n'ayant pas le même pas, la courbe était décalée ou tronquée. Appariement désormais par horodatage (point N-1 le plus proche à la même heure, tolérance 15 min en brut, 90 min en moyennes horaires).
+
+---
+
 ## [3.18.2] - 2026-11-06
 
 ### Corrigé

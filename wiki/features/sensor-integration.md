@@ -56,7 +56,7 @@ VPD formula: `SVP × (1 - RH/100)` where `SVP = 0.6108 × exp(17.27 × T / (T + 
 Route: `/suivi-constantes`
 
 - Charts for temperature, humidity, VPD over time
-- Time window selector: 6h / 24h / 48h / 7j / 30j
+- Time window selector: 6h / 24h / 48h / 72h / 7j / 30j (72h ajouté 2026-11-08 ; > 48h = moyennes horaires côté backend)
 - Per-device view or aggregate across spaces
 
 Data fetched via `GET /api/temperature-logs` with optional `id_device` filter and time window.
@@ -255,6 +255,12 @@ Affichage quand hors ligne (Suivi des constantes, Dashboard, Paramétrage) :
 - graphiques historiques inchangés
 
 Limite : le libellé est recalculé au refetch de la liste des capteurs, pas en temps réel.
+
+## Comparaison année précédente (N-1) — fix 2026-11-08
+
+Le bouton « Afficher N-1 » de `SensorChart` (`SuiviConstantes.tsx`) charge la même fenêtre décalée d'un an (`date_debut`/`date_fin`). La série N-1 est fusionnée **par horodatage** : chaque point N-1 est décalé de l'écart entre maintenant et la fin de fenêtre N-1, puis associé au point courant le plus proche (recherche dichotomique), tolérance 15 min si fenêtre ≤ 48h (brut), 90 min sinon (horaire). Hors tolérance → `null`.
+
+Ne jamais apparier par index : en données brutes, les relevés N-1 (import CSV Govee) et les relevés live n'ont pas le même pas, ce qui décalait/tronquait la courbe en 6h/24h/48h (seuls 7j/30j marchaient, car agrégés à l'heure des deux côtés).
 
 ## See Also
 

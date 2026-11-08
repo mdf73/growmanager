@@ -140,7 +140,8 @@ Growing spaces management.
 ### SuiviConstantes (`/suivi-constantes`)
 Sensor monitoring dashboard.
 - Temperature, humidity, VPD charts
-- Time window: 6h / 24h / 48h / 7j / 30j
+- Time window: 6h / 24h / 48h / 72h / 7j / 30j
+- Comparaison année N-1 (courbe pointillée), appariée par horodatage
 - Per-device or aggregate view
 
 ### SuiviSolsVivants (`/suivi-sols-vivants`)

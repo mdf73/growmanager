@@ -13,6 +13,14 @@ Un catalogue de 178 breeders et un bouton « Charger les breeders standard » av
 
 ---
 
+## [2026-11-08] Fix | Suivi des constantes : fenêtre 72h + comparaison N-1
+
+Ajout d'une fenêtre 72h entre 48h et 7j (agrégée à l'heure côté backend car > 48h). Correction de la courbe année précédente en 6h/24h/48h : la fusion se faisait par index alors que les relevés N-1 (import CSV) n'ont pas le même pas que les relevés live en données brutes. Appariement par horodatage avec tolérance (15 min brut, 90 min horaire). Validé par Pik. Voir [[features/sensor-integration#Comparaison année précédente (N-1) — fix 2026-11-08|la section]].
+
+### Files modified
+- `frontend/src/pages/SuiviConstantes.tsx`
+- `wiki/features/sensor-integration.md`, `wiki/frontend/pages.md`, `wiki/roadmap.md`, `CHANGELOG.md`
+
 ## [2026-11-06] Fix | Capteurs hors ligne : valeurs masquées
 
 Un capteur déconnecté (icône Wi-Fi barrée) affichait encore ses dernières valeurs en couleur. Désormais, au-delà de 15 min sans lecture : `--` partout, carte grisée, libellé « Hors ligne depuis X » (min < 1 h, h jusqu'à 48 h, j jusqu'à 30 j, puis « Hors ligne »). Choix de `--` plutôt que 0 (0 est une vraie valeur et colorerait le VPD). Graphiques inchangés. Validé par Pik. Voir [[features/sensor-integration#Statut hors ligne (2026-11-06)|la section]].

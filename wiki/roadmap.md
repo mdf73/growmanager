@@ -203,6 +203,9 @@ Bouton "Export PDF" dans le header de `/calendrier` · modal date début + date 
 
 ## Completed (Post-Sprint 4)
 
+### Suivi des constantes : fenêtre 72h + fix comparaison N-1 ✅ DONE — validé 2026-11-08
+Bouton 72h entre 48h et 7j · courbe année précédente appariée par horodatage (plus par index), corrige l'affichage N-1 en 6h/24h/48h. Voir [[features/sensor-integration#Comparaison année précédente (N-1) — fix 2026-11-08|la section]].
+
 ### Capteurs hors ligne : valeurs masquées ✅ DONE — validé 2026-11-06
 `utils/sensorStatus.ts` · `--` + carte grisée + « Hors ligne depuis X » (min / h jusqu'à 48 h / j jusqu'à 30 j / « Hors ligne ») · Suivi des constantes, Dashboard, Paramétrage · graphiques intacts. Voir [[features/sensor-integration]].
 
