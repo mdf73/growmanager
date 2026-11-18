@@ -24,6 +24,9 @@ App Android = le frontend React empaqueté dans un APK via **Capacitor**, qui pa
 | webDir | `dist` | build Vite |
 | server.androidScheme | `http` | évite le mixed-content vers les serveurs `http://` locaux |
 | server.cleartext | `true` | autorise le trafic non-HTTPS (réseau local / Tailscale) |
+| android.adjustMarginsForEdgeToEdge | `force` | targetSdk 36 impose le bord à bord : la WebView est placée entre les barres système |
+
+**Clavier (depuis 2026-11-18)** : en bord à bord, Android ne redimensionne plus la fenêtre à l'ouverture du clavier et Capacitor ne compense que les barres système. `frontend/native/android/MainActivity.java` (commitée, copiée dans `android/` par la CI après `cap add android`) remplace le listener d'insets de Capacitor et ajoute la hauteur du clavier à la marge basse. Côté web, `src/utils/keyboardScroll.ts` (appelé dans `main.tsx`) recentre le champ actif. Voir [[bugs/clavier-masque-champs-mobile]]. ⚠ Toute personnalisation native doit passer par `frontend/native/` + une étape CI, jamais dans `frontend/android/` (régénéré).
 
 Dépendances : `@capacitor/core`, `@capacitor/cli`, `@capacitor/android` en devDependencies (^7).
 Le dossier `frontend/android/` n'est **pas commité** (`.gitignore`) — généré par la CI.
@@ -32,7 +35,7 @@ Le dossier `frontend/android/` n'est **pas commité** (`.gitignore`) — génér
 
 Workflow `.github/workflows/android-apk.yml` :
 - Déclencheurs : manuel (workflow_dispatch) ou tag `vX.Y.Z` (comme docker-publish).
-- Étapes : `npm ci` → `npm run build` → `npx cap add android` → `npx @capacitor/assets generate --android` (icônes/splash depuis `frontend/assets/icon.png` + `splash.png`, générées depuis `IconSeul.png`) → `npx cap sync android` → **versionCode/versionName** injectés depuis `package.json` (3.6.0 → `versionName "3.6.0"`, `versionCode 30600` = major×10000 + minor×100 + patch) → si keystore configuré : signature + `gradlew assembleRelease bundleRelease`, sinon repli `gradlew assembleDebug` (avertissement CI).
+- Étapes : `npm ci` → `npm run build` → `npx cap add android` → copie de `native/android/MainActivity.java` → `npx @capacitor/assets generate --android` (icônes/splash depuis `frontend/assets/icon.png` + `splash.png`, générées depuis `IconSeul.png`) → `npx cap sync android` → **versionCode/versionName** injectés depuis `package.json` (3.6.0 → `versionName "3.6.0"`, `versionCode 30600` = major×10000 + minor×100 + patch) → si keystore configuré : signature + `gradlew assembleRelease bundleRelease`, sinon repli `gradlew assembleDebug` (avertissement CI).
 - Sortie : artifact `growmanager-apk` (30 j) + APK attaché à la release GitHub si tag.
 - **APK signé (depuis v3.6.0, si secrets keystore présents)** : signé avec l'upload key fixe → chaque nouvel APK s'installe **par-dessus** le précédent, données conservées. Le versionCode croissant est obligatoire pour qu'Android accepte la mise à jour.
 - **APK debug (repli sans secrets)** : clé debug aléatoire générée à chaque run CI → signature différente à chaque build → désinstallation obligatoire entre deux versions (perte des données standalone). C'était le comportement jusqu'à v3.5.x, cause des réinstallations systématiques.

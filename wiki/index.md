@@ -84,6 +84,7 @@ Content catalog for the GrowManager development wiki. Read this first when start
 
 ## Bugs
 
+- [[bugs/clavier-masque-champs-mobile]] — clavier Android qui recouvre les champs en bord à bord (corrigé 2026-11-18)
 - [[bugs/drawer-decale-space-y]] — drawers Origine stock / bocal décalés de 24 px par la marge space-y du parent (corrigé 2026-10-23)
 - [[bugs/tapoconfig-migration-race]] — race `create_all()` entre les 2 workers uvicorn (corrigé 2026-10-23)
 - [[bugs/version-bump-lockfile-deps]] — bump de version et lockfile

@@ -61,6 +61,15 @@ jobs:
           grep -q 'targetSdkVersion = 36' android/variables.gradle
           printf '\nandroid.suppressUnsupportedCompileSdk=36\n' >> android/gradle.properties
 
+      # Bord à bord (targetSdk 36) : le clavier recouvrait les champs.
+      # MainActivity personnalisée qui réduit la WebView quand le clavier s'ouvre.
+      - name: Install custom MainActivity (clavier)
+        run: |
+          DEST=android/app/src/main/java/com/growmanager/app/MainActivity.java
+          test -f "$DEST"
+          cp native/android/MainActivity.java "$DEST"
+          grep -q 'WindowInsetsCompat.Type.ime()' "$DEST"
+
       - name: Generate icons & splash screens
         run: npx @capacitor/assets generate --android
 

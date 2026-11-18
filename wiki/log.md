@@ -13,6 +13,16 @@ Un catalogue de 178 breeders et un bouton « Charger les breeders standard » av
 
 ---
 
+## [2026-11-18] Fix | App mobile : le clavier ne masque plus les champs
+
+Signalé par Pik : sur l'APK, le clavier passait par-dessus les champs en cours de saisie. Cause : bord à bord imposé par targetSdk 36, `adjustResize` ignoré, et le listener d'insets de Capacitor 7 (`adjustMarginsForEdgeToEdge: force`) ne tient compte que des barres système. Correctif : `MainActivity` personnalisée (marge basse = max(barres système, clavier)) copiée par la CI, et recentrage JS du champ actif (`focusin` + `resize`, écran tactile uniquement). `tsc` OK, Java compilé par la CI uniquement. Validé par Pik. Voir [[bugs/clavier-masque-champs-mobile]].
+
+### Files modified
+- `frontend/native/android/MainActivity.java` (nouveau), `frontend/src/utils/keyboardScroll.ts` (nouveau), `frontend/src/main.tsx`, `.github/workflows/android-apk.yml`
+- `wiki/bugs/clavier-masque-champs-mobile.md` (nouveau), `wiki/features/mobile-app.md`, `wiki/roadmap.md`, `wiki/index.md`, `CHANGELOG.md`
+
+---
+
 ## [2026-11-18] Fix | Capteurs Govee : vraie cause d'erreur + nouvel essai automatique
 
 Après le déploiement de la v3.19.0, les deux H5179 sont passés hors ligne. Diagnostic avec Pik : logs `502 Bad Gateway` / `read operation timed out`, test serveur → Google OK, Govee `504` en IPv4 (pas d'IPv6 chez Govee). Panne côté Govee, aucune régression. Le message « Aucune donnée — vérifier device_id et SKU », affiché pour toute erreur, induisait en erreur. Correctif : lecture V2 qui renvoie la cause, nouvel essai sur erreur passagère, délais 20 s (fond) / 12 s (manuel), lecture manuelle en parallèle. Testé avec des réponses Govee simulées (504 puis OK, délais dépassés, 502, 401, 429, code 400, ConnectError, capacités vides) et sur la route `/api/govee/poll`. Validé par Pik. Voir [[features/sensor-integration#Résilience aux pannes de l'API Govee (2026-11-18)|la section]].

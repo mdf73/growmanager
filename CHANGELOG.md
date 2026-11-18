@@ -17,6 +17,13 @@ Versioning : [Semantic Versioning](https://semver.org/lang/fr/) — `MAJOR.MINOR
 
 ---
 
+## [3.19.2] - 2026-11-18
+
+### Corrigé
+- **App mobile, clavier qui masque les champs** : sur Android 15+ (affichage bord à bord), le clavier recouvrait les champs en cours de saisie, notamment dans les modales. La page se réduit maintenant à l'ouverture du clavier et le champ touché remonte automatiquement au-dessus.
+
+---
+
 ## [3.19.1] - 2026-11-18
 
 ### Corrigé

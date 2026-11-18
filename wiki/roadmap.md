@@ -203,6 +203,9 @@ Bouton "Export PDF" dans le header de `/calendrier` · modal date début + date 
 
 ## Completed (Post-Sprint 4)
 
+### App mobile : le clavier ne masque plus les champs ✅ DONE — validé 2026-11-18
+`MainActivity` personnalisée (`frontend/native/android/`, copiée par la CI) qui ajoute l'inset clavier (IME) à la marge basse de la WebView · `utils/keyboardScroll.ts` recentre le champ actif (écran tactile uniquement). Voir [[bugs/clavier-masque-champs-mobile]].
+
 ### Capteurs Govee : vraie cause d'erreur + nouvel essai automatique ✅ DONE — validé 2026-11-18
 `cloud_v2_read` → (lecture, cause) · 2 essais sur délai dépassé / connexion / 5xx · 20 s en fond, 12 s en manuel · « Lire maintenant » en parallèle · fin du message trompeur « vérifier device_id et SKU » pour toute erreur. Déclencheur : panne Govee (502/504) du 18/11. Voir [[features/sensor-integration#Résilience aux pannes de l'API Govee (2026-11-18)]].
 

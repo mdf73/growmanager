@@ -1,12 +1,8 @@
-fix: capteurs Govee, vraie cause d'erreur et nouvel essai automatique
+fix: app mobile, le clavier ne masque plus les champs
 
-- cloud_v2_read renvoie (lecture, cause) : 5xx, délai dépassé, clé refusée,
-  429, capteur inconnu, Govee injoignable, capacités vides
-- 2 essais sur erreur passagère (délai, connexion, 5xx), pause 1,5 s
-- délais 20 s (polling de fond) / 12 s (Lire maintenant)
-- Lire maintenant interroge les capteurs en parallèle
-- fin du message « vérifier device_id et SKU » affiché pour toute erreur
-- wiki (sensor-integration, roadmap, log) et CHANGELOG
-
-Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
-Claude-Session: https://claude.ai/code/session_01DQFniVZKHDM4JRx9K9bVeL
+- MainActivity personnalisée (frontend/native/android) : la marge basse de
+  la WebView inclut l'inset clavier (IME), en bord à bord targetSdk 36
+- CI android-apk : copie de la MainActivity après cap add android
+- keyboardScroll.ts : recentre le champ actif au-dessus du clavier
+  (écran tactile uniquement)
+- wiki (bug clavier, mobile-app, roadmap, log, index) et CHANGELOG
