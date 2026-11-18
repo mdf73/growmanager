@@ -10,12 +10,13 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models import Culture, CultureEmplacement, Plant, ActionCalendrier, EspaceCulture, Graine, ProduitEngrais, Stock, Box
-from app.models.all_models import RecetteEngrais, RecetteTCO, HistoriqueCulture, HistoriquePlant, RecetteLSO, CultureLampe, Lampe, AppSettings, EspaceMateriel, Materiel
+from app.models.all_models import RecetteEngrais, RecetteTCO, HistoriqueCulture, HistoriquePlant, RecetteLSO, CultureLampe, Lampe, AppSettings, EspaceMateriel, Materiel, Pollen
 from app.schemas.culture import (
     CultureCreate, CultureUpdate, CultureRead, CultureWithDetails,
     PlantCreate, PlantUpdate, PlantRead,
     ActionCreate, ActionRead,
     PlantTransferPayload, CultureDeplacerPayload, CultureEmplacementDatePayload,
+    EcarterMalesPayload,
 )
 from app.routers.culture_helpers import (
     ensure_initial_emplacement, list_emplacements, deplacer_culture, espace_id_at,
@@ -98,10 +99,18 @@ def _enrich_plant(plant: Plant, db: Session) -> dict:
         "date_enracinement": plant.date_enracinement,
         "statut_clone": plant.statut_clone,
         "nb_clones": 0,
+        # Sexe & reproduction
+        "types_graines": None,
+        "sexe": plant.sexe,
+        "date_sexage": plant.date_sexage,
+        "conserve_repro": bool(plant.conserve_repro),
+        "reverse_sts": bool(plant.reverse_sts),
+        "nb_lots_pollen": 0,
     }
     if plant.id_graine:
         graine = db.query(Graine).filter(Graine.id_graine == plant.id_graine).first()
         if graine:
+            data["types_graines"] = graine.types_graines
             data["duree_flo_min"] = graine.duree_flo_min
             data["duree_flo_max"] = graine.duree_flo_max
             if graine.variete:
@@ -122,6 +131,7 @@ def _enrich_plant(plant: Plant, db: Session) -> dict:
         if mere:
             data["nom_plant_mere"] = mere.nom_affichage
     data["nb_clones"] = db.query(Plant).filter(Plant.id_plant_mere == plant.id_plant).count()
+    data["nb_lots_pollen"] = db.query(Pollen).filter(Pollen.id_plant_source == plant.id_plant).count()
     return data
 
 
@@ -268,6 +278,27 @@ def _enrich_culture(culture: Culture, db: Session) -> dict:
 def _is_bouture(graine: Optional[Graine]) -> bool:
     """Un lot de boutures externes est un pack dont le type est « Bouture »."""
     return bool(graine and (graine.types_graines or "").strip().lower() == "bouture")
+
+
+SEXES_VALIDES = {"femelle", "male", "hermaphrodite"}
+
+
+def _is_reguliere(graine: Optional[Graine]) -> bool:
+    """Graine régulière (« Regular », « Régulière »…) : le sexe n'est pas connu à la germination."""
+    return bool(graine and "gul" in (graine.types_graines or "").lower())
+
+
+def _sexe_defaut(graine: Optional[Graine]) -> Optional[str]:
+    """Sexe d'une plante à sa création : inconnu (None) pour une régulière, femelle sinon
+    (féminisée, auto féminisée, bouture)."""
+    if graine is None:
+        return None
+    return None if _is_reguliere(graine) else "femelle"
+
+
+def _check_sexe(sexe: Optional[str]) -> None:
+    if sexe is not None and sexe not in SEXES_VALIDES:
+        raise HTTPException(status_code=400, detail=f"Sexe invalide : {sexe} (femelle | male | hermaphrodite)")
 
 
 def _origine_fields(graine: Optional[Graine]) -> dict:
@@ -1890,6 +1921,7 @@ def create_culture(payload: CultureCreate, db: Session = Depends(get_db)):
                     nom_affichage=nom_plant,
                     numero_plant=plant_counter,
                     **_origine_fields(graine),
+                    sexe=_sexe_defaut(graine),
                     substrat=payload.substrat_defaut,
                     id_recette_sol=payload.id_recette_sol_defaut,
                     id_pot=sel.id_pot if sel.id_pot is not None else payload.id_pot_defaut,
@@ -1921,6 +1953,7 @@ def create_culture(payload: CultureCreate, db: Session = Depends(get_db)):
                 date_fin_sechage=pe.date_fin_sechage if pe.statut == "curing" else None,
                 poids_recolte_g=pe.poids_g,
                 notes=notes_plant,
+                sexe="femelle",            # fleurs récoltées : forcément femelle
             )
             db.add(plant)
             plant_counter += 1
@@ -2097,9 +2130,11 @@ def add_plant(culture_id: int, payload: PlantCreate, db: Session = Depends(get_d
                 f = _origine_fields(graine)
                 origine, statut, statut_clone = f["origine"], f["statut"], f["statut_clone"]
 
+    _check_sexe(payload.sexe)
     plant = Plant(
         id_culture=culture_id,
         id_graine=payload.id_graine,
+        sexe=payload.sexe if payload.sexe else _sexe_defaut(graine),
         nom_affichage=nom_affichage,
         numero_plant=payload.numero_plant,
         origine=origine,
@@ -2153,9 +2188,62 @@ def update_plant(culture_id: int, plant_id: int, payload: PlantUpdate, db: Sessi
         v = getattr(payload, f)
         if v is not None:
             setattr(plant, f, v)
+
+    # ── Sexe & reproduction : null explicite autorisé (sexe → inconnu) ─────────
+    sent = payload.model_fields_set
+    if "sexe" in sent:
+        _check_sexe(payload.sexe)
+        if payload.sexe != plant.sexe:
+            plant.sexe = payload.sexe
+            # Date de sexage : celle fournie, sinon aujourd'hui (effacée si sexe inconnu)
+            if payload.sexe is None:
+                plant.date_sexage = None
+            elif "date_sexage" not in sent or payload.date_sexage is None:
+                plant.date_sexage = date.today()
+    if "date_sexage" in sent and payload.date_sexage is not None:
+        plant.date_sexage = payload.date_sexage
+    if "conserve_repro" in sent and payload.conserve_repro is not None:
+        plant.conserve_repro = payload.conserve_repro
+    if "reverse_sts" in sent and payload.reverse_sts is not None:
+        plant.reverse_sts = payload.reverse_sts
     db.commit()
     db.refresh(plant)
     return _enrich_plant(plant, db)
+
+
+# Statuts où une plante est encore « sur pied » (écartable)
+_STATUTS_SUR_PIED = ("germination", "veg", "floraison")
+
+
+@router.post("/{culture_id}/ecarter-males")
+def ecarter_males(culture_id: int, payload: EcarterMalesPayload = EcarterMalesPayload(),
+                  db: Session = Depends(get_db)):
+    """Passe en « abandonne » les mâles (et en option les hermaphrodites) encore sur pied,
+    SAUF ceux cochés « conservé pour la repro ». Le motif est ajouté aux notes."""
+    culture = db.query(Culture).filter(Culture.id_culture == culture_id).first()
+    if not culture:
+        raise HTTPException(status_code=404, detail="Culture non trouvée")
+    sexes = ["male", "hermaphrodite"] if payload.inclure_hermaphrodites else ["male"]
+    plants = (
+        db.query(Plant)
+        .filter(
+            Plant.id_culture == culture_id,
+            Plant.sexe.in_(sexes),
+            Plant.statut.in_(_STATUTS_SUR_PIED),
+            or_(Plant.conserve_repro.is_(None), Plant.conserve_repro == False),  # noqa: E712
+        )
+        .all()
+    )
+    today_fr = date.today().strftime("%d/%m/%Y")
+    noms = []
+    for p in plants:
+        motif = "mâle" if p.sexe == "male" else "hermaphrodite"
+        note = f"Écartée ({motif}) le {today_fr}"
+        p.notes = f"{p.notes}\n{note}" if p.notes else note
+        p.statut = "abandonne"
+        noms.append(p.nom_affichage)
+    db.commit()
+    return {"nb_ecartes": len(noms), "plantes": noms}
 
 
 @router.post("/{culture_id}/plants/{plant_id}/transfer", response_model=PlantRead)
@@ -2227,6 +2315,12 @@ def delete_plant(culture_id: int, plant_id: int, db: Session = Depends(get_db)):
     plant = db.query(Plant).filter(Plant.id_plant == plant_id, Plant.id_culture == culture_id).first()
     if not plant:
         raise HTTPException(status_code=404, detail="Plant non trouvé")
+    # Le pollen et les croisements gardent leur historique (variété / pheno), seul le lien saute
+    from app.models.all_models import Croisement
+    db.query(Pollen).filter(Pollen.id_plant_source == plant_id).update(
+        {Pollen.id_plant_source: None}, synchronize_session=False)
+    db.query(Croisement).filter(Croisement.id_plant_mere == plant_id).update(
+        {Croisement.id_plant_mere: None}, synchronize_session=False)
     db.delete(plant)
     db.commit()
 
@@ -2323,6 +2417,7 @@ def clone_plant(
             numero_plant=max_num + i + 1,
             origine="clone",
             statut="germination",
+            sexe=mere.sexe,                       # un clone a le sexe de sa mère
             substrat=mere.substrat,
             id_recette_sol=mere.id_recette_sol,
             notes=payload.get("notes"),

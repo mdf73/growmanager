@@ -8,7 +8,7 @@ import {
 import {
   croisementAPI,
   Croisement, CroisementCreate, CroisementUpdate, RecolteGrainesInput,
-  Pollen, PollenCreate,
+  Pollen, PollenCreate, PlanteRepro,
   TypeCroisement, StatutCroisement, MethodePollinisation,
   QualiteGraines, StockagePollen,
 } from '../api/croisement'
@@ -45,6 +45,40 @@ const STATUT_META: Record<StatutCroisement, { label: string; color: string; icon
   maturation: { label: 'Maturation',   color: 'bg-amber-100 text-amber-700',     icon: Clock },
   recolte:    { label: 'Récolté',      color: 'bg-green-100 text-green-700',     icon: CheckCircle2 },
   echec:      { label: 'Échec',        color: 'bg-red-100 text-red-700',         icon: AlertTriangle },
+}
+
+// ── Sélecteur de plante reproductrice ────────────────────────────────────────
+
+const SEXE_SYMBOLE: Record<string, string> = { femelle: '♀', male: '♂', hermaphrodite: '⚥' }
+
+/** Liste les plantes réelles utilisables comme parent.
+ *  role=pere : mâles + femelles reversées · role=mere : femelles + hermaphrodites. */
+function PlanteReproSelect({ role, value, onPick, placeholder }: {
+  role: 'pere' | 'mere'
+  value?: number | null
+  onPick: (plante: PlanteRepro | undefined) => void
+  placeholder: string
+}) {
+  const { data: plantes = [], isLoading } = useQuery<PlanteRepro[]>({
+    queryKey: ['plantes-repro', role],
+    queryFn: async () => (await croisementAPI.plantesRepro(role)).data,
+  })
+  return (
+    <select
+      value={value || ''}
+      onChange={e => onPick(plantes.find(p => p.id_plant === Number(e.target.value)))}
+      className="w-full rounded border-gray-300 dark:border-gray-600 px-3 py-2 text-sm"
+    >
+      <option value="">{isLoading ? 'Chargement…' : plantes.length ? placeholder : `${placeholder} (aucune plante sexée)`}</option>
+      {plantes.map(p => (
+        <option key={p.id_plant} value={p.id_plant}>
+          {p.reverse_sts ? '♀→♂ ' : `${SEXE_SYMBOLE[p.sexe || ''] || ''} `}{p.nom_affichage}
+          {p.nom_variete && !p.nom_affichage.includes(p.nom_variete) ? ` (${p.nom_variete})` : ''}
+          {p.nom_culture ? ` · ${p.nom_culture}` : ''}{p.conserve_repro ? ' · 🧬' : ''}
+        </option>
+      ))}
+    </select>
+  )
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -149,6 +183,16 @@ function NouveauCroisementModal({ varietes, pollenStock, onClose }: NouveauCrois
                   <Leaf size={16} className="text-pink-500" /> Parent mère (porteuse de graines)
                 </h3>
                 <div className="space-y-2">
+                  <PlanteReproSelect
+                    role="mere"
+                    value={form.id_plant_mere}
+                    placeholder="— Plante de tes cultures (optionnel) —"
+                    onPick={pl => setForm({
+                      ...form,
+                      id_plant_mere: pl?.id_plant,
+                      ...(pl ? { id_variete_mere: pl.id_variete ?? form.id_variete_mere, pheno_mere: pl.nom_affichage } : {}),
+                    })}
+                  />
                   <select
                     value={form.id_variete_mere || ''}
                     onChange={e => setForm({ ...form, id_variete_mere: Number(e.target.value) || undefined })}
@@ -654,6 +698,7 @@ function NouveauPollenModal({ varietes, onClose }: { varietes: Variete[]; onClos
     mutationFn: () => croisementAPI.createPollen(data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['pollen'] })
+      qc.invalidateQueries({ queryKey: ['plantes-repro'] })
       onClose()
     },
   })
@@ -668,6 +713,24 @@ function NouveauPollenModal({ varietes, onClose }: { varietes: Variete[]; onClos
           <button onClick={onClose}><X size={20} /></button>
         </div>
         <div className="p-6 space-y-3">
+          <div>
+            <label className="block text-sm font-medium mb-1">Plante donneuse</label>
+            <PlanteReproSelect
+              role="pere"
+              value={data.id_plant_source}
+              placeholder="— Aucune (pollen acheté / externe) —"
+              onPick={pl => setData(prev => ({
+                ...prev,
+                id_plant_source: pl?.id_plant,
+                ...(pl ? {
+                  id_variete_source: pl.id_variete ?? prev.id_variete_source,
+                  pheno_source: pl.nom_affichage,
+                  reverse: pl.reverse_sts || pl.sexe === 'femelle',
+                  nom_pollen: prev.nom_pollen || `${pl.nom_affichage} - ${new Date().toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}`,
+                } : {}),
+              }))}
+            />
+          </div>
           <div>
             <label className="block text-sm font-medium mb-1">Nom du lot</label>
             <input
@@ -783,6 +846,7 @@ function EditCroisementModal({ croisement, varietes, pollenStock, onClose }: Edi
     nom_croisement: croisement.nom_croisement,
     type_croisement: croisement.type_croisement,
     id_variete_mere: croisement.id_variete_mere,
+    id_plant_mere: croisement.id_plant_mere ?? undefined,
     pheno_mere: croisement.pheno_mere ?? '',
     id_variete_pere: croisement.id_variete_pere,
     id_pollen: croisement.id_pollen,
@@ -858,6 +922,16 @@ function EditCroisementModal({ croisement, varietes, pollenStock, onClose }: Edi
           {/* Parents */}
           <div className="border rounded-lg p-4 space-y-3 bg-gray-50 dark:bg-gray-700/30">
             <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-200 flex items-center gap-1"><Leaf size={14} className="text-pink-500" /> Parent mère</h3>
+            <PlanteReproSelect
+              role="mere"
+              value={form.id_plant_mere}
+              placeholder="— Plante de tes cultures (optionnel) —"
+              onPick={pl => setForm(prev => ({
+                ...prev,
+                id_plant_mere: pl?.id_plant,
+                ...(pl ? { id_variete_mere: pl.id_variete ?? prev.id_variete_mere, pheno_mere: pl.nom_affichage } : {}),
+              }))}
+            />
             <div className="grid grid-cols-2 gap-3">
               <select
                 value={form.id_variete_mere || ''}
@@ -1684,7 +1758,7 @@ export default function CroisementPage() {
                     </div>
 
                     <div className="text-sm text-gray-600 dark:text-gray-300 space-y-1 mt-2">
-                      <div>♀ <span className="font-medium">{c.nom_variete_mere || '—'}</span>{c.pheno_mere && <span className="text-gray-400 dark:text-gray-500"> · {c.pheno_mere}</span>}</div>
+                      <div>♀ <span className="font-medium">{c.nom_variete_mere || '—'}</span>{c.pheno_mere && <span className="text-gray-400 dark:text-gray-500"> · {c.pheno_mere}</span>}{c.nom_plant_mere && <span className="ml-1 px-1 py-0.5 bg-indigo-50 text-indigo-600 rounded text-[9px] font-semibold" title="Plante mère réelle">🌱 {c.nom_plant_mere}</span>}</div>
                       <div>♂ <span className="font-medium">{c.nom_variete_pere || c.nom_pollen || '—'}</span>{c.pheno_pere && <span className="text-gray-400 dark:text-gray-500"> · {c.pheno_pere}</span>}{c.pere_reverse && <span className="ml-1 px-1 py-0.5 bg-pink-50 text-pink-600 rounded text-[9px] font-semibold">FEM</span>}</div>
                     </div>
 
@@ -1791,6 +1865,7 @@ export default function CroisementPage() {
                         <td className="px-3 py-2 text-gray-600 dark:text-gray-300">
                           {p.nom_variete_source || '—'}
                           {p.pheno_source && <div className="text-xs text-gray-400 dark:text-gray-500">{p.pheno_source}</div>}
+                          {p.nom_plant_source && <div className="text-[10px] text-indigo-600 dark:text-indigo-400">🌱 plante {p.nom_plant_source}</div>}
                         </td>
                         <td className="px-3 py-2 text-gray-600 dark:text-gray-300">{fmtDate(p.date_collecte)}</td>
                         <td className="px-3 py-2 text-gray-600 dark:text-gray-300">{p.stockage || '—'}</td>

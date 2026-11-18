@@ -203,6 +203,9 @@ Bouton "Export PDF" dans le header de `/calendrier` · modal date début + date 
 
 ## Completed (Post-Sprint 4)
 
+### Sexe des plantes & reproduction (graines régulières) ✅ DONE — validé 2026-11-18
+`Plant.sexe` / `date_sexage` / `conserve_repro` / `reverse_sts` · sexage rapide sur la carte · « Écarter les mâles » (épargne les plantes conservées) · collecte de pollen depuis une plante (`Pollen.id_plant_source`) · plante mère réelle dans les croisements (`Croisement.id_plant_mere`) · `GET /croisements/plantes-repro` · mode autonome (SQLite v6). Piste ouverte : relier les pères Open Field à de vraies plantes. Voir [[features/plant-lifecycle#Sexe & reproduction (2026-11-18)]].
+
 ### Suivi des constantes : fenêtre 72h + fix comparaison N-1 ✅ DONE — validé 2026-11-08
 Bouton 72h entre 48h et 7j · courbe année précédente appariée par horodatage (plus par index), corrige l'affichage N-1 en 6h/24h/48h. Voir [[features/sensor-integration#Comparaison année précédente (N-1) — fix 2026-11-08|la section]].
 

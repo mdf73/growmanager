@@ -19,7 +19,7 @@ L'app Android peut fonctionner **sans serveur** : toutes les données vivent dan
 | Fichier | Rôle |
 |---|---|
 | `schema.ts` | DDL des 78 tables, **généré** depuis `backend/app/models/all_models.py` (SQLAlchemy → dialecte SQLite). Régénérer si le schéma backend change. |
-| `db.ts` | Connexion `@capacitor-community/sqlite`, migrations via `PRAGMA user_version`, seeds au démarrage. |
+| `db.ts` | Connexion `@capacitor-community/sqlite`, migrations via `PRAGMA user_version`, seeds au démarrage. Schéma v6 depuis le 2026-11-18 (sexe des plantes, liens plante ↔ pollen / croisement). |
 | `seeds.ts` | AppSettings (prix_kwh, devise, vpd_leaf_offset) + ~35 listes paramétrables + seuil alerte stock Fleur — miroir des seeds backend. |
 | `router.ts` | Registre de routes REST locales. Les params `:id*` ne matchent que des chiffres (comme FastAPI). `LocalHttpError` = HTTPException. |
 | `adapter.ts` | Adapter Axios branché sur le client **et** `axios.defaults` en standalone. URLs absolues (http…) → vrai réseau. Route non enregistrée → **501** avec message explicite. |

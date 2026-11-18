@@ -13,6 +13,18 @@ Un catalogue de 178 breeders et un bouton « Charger les breeders standard » av
 
 ---
 
+## [2026-11-18] Feature | Sexe des plantes & reproduction (graines régulières)
+
+Préparation des runs en graines régulières et de la création de graines. Option B retenue par Pik (sexe + traçabilité reproduction), avec une simple case « conservée pour la repro » au lieu d'un statut dédié. Sexe sur la plante (inconnu par défaut pour une régulière, femelle sinon, hérité par les clones), sexage rapide, « Écarter les mâles » qui épargne les plantes conservées, collecte de pollen depuis une plante, plante mère réelle dans les croisements, liste des plantes candidates. Migration avec backfill unique (tout en femelle sauf les régulières). Correctif au passage : `PlantRead` filtrait les champs clonage (`nom_plant_mere`, `statut_clone`, `nb_clones`…) en mode serveur, ils sont maintenant renvoyés. Testé sur SQLite (routes FastAPI réelles + migration locale v5 → v6), `tsc` OK. Validé par Pik. Voir [[features/plant-lifecycle#Sexe & reproduction (2026-11-18)|la section]].
+
+### Files modified
+- `backend/app/models/all_models.py`, `backend/app/db_init.py`, `backend/app/schemas/culture.py`, `backend/app/schemas/croisement.py`, `backend/app/routers/cultures.py`, `backend/app/routers/croisement.py`
+- `frontend/src/api/cultures.ts`, `frontend/src/api/croisement.ts`, `frontend/src/components/culture/PlantesTab.tsx`, `frontend/src/components/culture/CollectePollenModal.tsx` (nouveau), `frontend/src/pages/Croisement.tsx`
+- `frontend/src/local/schema.ts`, `frontend/src/local/db.ts`, `frontend/src/local/handlers/cultures.ts`, `frontend/src/local/handlers/cultures-helpers.ts`, `frontend/src/local/handlers/croisement.ts`
+- `wiki/features/plant-lifecycle.md`, `wiki/database/database-culture.md`, `wiki/database/database-overview.md`, `wiki/frontend/pages.md`, `wiki/features/mobile-standalone.md`, `wiki/roadmap.md`, `CHANGELOG.md`
+
+---
+
 ## [2026-11-08] Fix | Suivi des constantes : fenêtre 72h + comparaison N-1
 
 Ajout d'une fenêtre 72h entre 48h et 7j (agrégée à l'heure côté backend car > 48h). Correction de la courbe année précédente en 6h/24h/48h : la fusion se faisait par index alors que les relevés N-1 (import CSV) n'ont pas le même pas que les relevés live en données brutes. Appariement par horodatage avec tolérance (15 min brut, 90 min horaire). Validé par Pik. Voir [[features/sensor-integration#Comparaison année précédente (N-1) — fix 2026-11-08|la section]].

@@ -487,6 +487,11 @@ class Plant(Base):
     date_prelevement = Column(Date, nullable=True)                      # date de prise de bouture
     date_enracinement = Column(Date, nullable=True)                     # date d'enracinement constatée
     statut_clone = Column(String(20), nullable=True)                    # en_attente | enracine | rate
+    # Sexe & reproduction (graines régulières, création de graines)
+    sexe = Column(String(20), nullable=True)                            # femelle | male | hermaphrodite | NULL = inconnu
+    date_sexage = Column(Date, nullable=True)                           # date à laquelle le sexe a été constaté
+    conserve_repro = Column(Boolean, default=False)                     # gardée pour la reproduction (père / mère)
+    reverse_sts = Column(Boolean, default=False)                        # femelle reversée (STS / argent colloïdal)
 
     # Relations
     culture = relationship("Culture", back_populates="plants")
@@ -1409,6 +1414,7 @@ class Pollen(Base):
     id_pollen           = Column(Integer, primary_key=True, autoincrement=True)
     nom_pollen          = Column(String(255), nullable=False)            # ex: "Gelato#3 - avril 2026"
     id_variete_source   = Column(Integer, ForeignKey("Variete.id_variete"), nullable=True)
+    id_plant_source     = Column(Integer, ForeignKey("Plant.id_plant", ondelete="SET NULL"), nullable=True)  # plante donneuse
     pheno_source        = Column(String(100), nullable=True)             # ex: "pheno #3"
     reverse             = Column(Boolean, default=False)                 # true = femelle reversée au STS
     date_collecte       = Column(Date, nullable=True)
@@ -1421,6 +1427,7 @@ class Pollen(Base):
     created_at          = Column(DateTime, nullable=True, default=datetime.utcnow)
 
     variete_source = relationship("Variete", foreign_keys=[id_variete_source])
+    plant_source   = relationship("Plant", foreign_keys=[id_plant_source])
     croisements    = relationship("Croisement", back_populates="pollen")
 
 
@@ -1434,6 +1441,7 @@ class Croisement(Base):
 
     # ─── Mère ─────────────────────────────────────────────────────────────────
     id_variete_mere     = Column(Integer, ForeignKey("Variete.id_variete"), nullable=True)
+    id_plant_mere       = Column(Integer, ForeignKey("Plant.id_plant", ondelete="SET NULL"), nullable=True)  # plante mère réelle
     pheno_mere          = Column(String(100), nullable=True)
     notes_mere          = Column(Text, nullable=True)
 
@@ -1467,6 +1475,7 @@ class Croisement(Base):
 
     # Relations
     variete_mere     = relationship("Variete", foreign_keys=[id_variete_mere])
+    plant_mere       = relationship("Plant", foreign_keys=[id_plant_mere])
     variete_pere     = relationship("Variete", foreign_keys=[id_variete_pere])
     variete_resultat = relationship("Variete", foreign_keys=[id_variete_resultat])
     pollen           = relationship("Pollen", back_populates="croisements")

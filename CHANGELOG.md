@@ -17,6 +17,21 @@ Versioning : [Semantic Versioning](https://semver.org/lang/fr/) — `MAJOR.MINOR
 
 ---
 
+## [3.19.0] - 2026-11-18
+
+### Ajouté
+- **Sexe des plantes** : chaque plante a un sexe (femelle, mâle, hermaphrodite ou inconnu) et une date de sexage. Une plante issue d'une graine régulière démarre en « Sexe ? », une féminisée ou une bouture en femelle, un clone hérite du sexe de sa mère. Sexage en un clic sur le badge de la carte. Les plantes existantes passent en femelle, sauf celles issues de graines régulières.
+- **Conservée pour la repro** et **Reversée STS** : deux cases sur la plante, sans changer les statuts du cycle de vie.
+- **Écarter les mâles** : bandeau « Sexage » dans l'onglet Plantes (bilan ♀/♂/⚥/?) et bouton qui passe en Abandonnée les mâles encore sur pied, en option les hermaphrodites, sauf ceux conservés pour la repro. Le motif est ajouté aux notes.
+- **Collecter du pollen depuis une plante** : bouton sur un mâle ou une femelle reversée. Le lot est relié à la plante, variété et phéno préremplis, plante marquée conservée repro.
+- **Croisements reliés aux vraies plantes** : choix de la plante donneuse dans le formulaire pollen et de la plante mère dans les croisements, affichées sur les cartes et dans le tableau pollen.
+- Mode autonome (Android) : même fonctionnalité, base locale migrée en v6.
+
+### Corrigé
+- **Clones en mode serveur** : les infos de bouture (« Bouture de X », suivi d'enracinement, nombre de clones) étaient filtrées par l'API et n'apparaissaient pas. Elles sont maintenant renvoyées.
+
+---
+
 ## [3.18.3] - 2026-11-08
 
 ### Ajouté

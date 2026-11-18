@@ -6,10 +6,10 @@ import { Row, todayISO, addDays } from './cultures-helpers'
 
 const num = (v: unknown): number | null => (v === null || v === undefined ? null : Number(v))
 
-const POLLEN_FIELDS = ['nom_pollen', 'id_variete_source', 'pheno_source', 'reverse', 'date_collecte',
+const POLLEN_FIELDS = ['nom_pollen', 'id_variete_source', 'id_plant_source', 'pheno_source', 'reverse', 'date_collecte',
   'quantite_initiale_g', 'quantite_restante_g', 'stockage', 'date_peremption', 'actif', 'notes']
 
-const CROISEMENT_FIELDS = ['nom_croisement', 'type_croisement', 'id_variete_mere', 'pheno_mere', 'notes_mere',
+const CROISEMENT_FIELDS = ['nom_croisement', 'type_croisement', 'id_variete_mere', 'id_plant_mere', 'pheno_mere', 'notes_mere',
   'id_pollen', 'id_variete_pere', 'pheno_pere', 'pere_reverse', 'notes_pere', 'date_pollinisation',
   'methode', 'zone_pollinisee', 'quantite_pollen_utilisee_g', 'date_recolte_graines', 'nb_graines',
   'qualite_graines', 'poids_graines_g', 'id_variete_resultat', 'id_packgraine_resultat', 'statut', 'notes']
@@ -23,6 +23,20 @@ function peremptionAuto(dateCollecte: unknown, stockage: unknown): string | null
   return null
 }
 
+/** Plante + variété (via sa graine) — pour préremplir pollen / croisement. */
+async function loadPlantRepro(id: unknown): Promise<Row> {
+  return oneOr404<Row>(
+    `SELECT pl.*, g.id_variete AS id_variete_graine
+     FROM "Plant" pl LEFT JOIN "Graine" g ON g.id_graine = pl.id_graine
+     WHERE pl.id_plant = ?`, [id], 'Plante non trouvée')
+}
+
+async function plantLink(id: unknown): Promise<{ nom: unknown; idCulture: unknown }> {
+  if (!id) return { nom: null, idCulture: null }
+  const pl = await one<Row>('SELECT nom_affichage, id_culture FROM "Plant" WHERE id_plant = ?', [id])
+  return { nom: pl?.nom_affichage ?? null, idCulture: pl?.id_culture ?? null }
+}
+
 async function enrichPollen(p: Row): Promise<Row> {
   const today = todayISO()
   const perime = !!(p.date_peremption && String(p.date_peremption).slice(0, 10) < today)
@@ -32,11 +46,15 @@ async function enrichPollen(p: Row): Promise<Row> {
     const v = await one<Row>('SELECT nom_variete FROM "Variete" WHERE id_variete = ?', [p.id_variete_source])
     nomVariete = v?.nom_variete ?? null
   }
+  const src = await plantLink(p.id_plant_source)
   return {
     id_pollen: p.id_pollen,
     nom_pollen: p.nom_pollen,
     id_variete_source: p.id_variete_source,
     nom_variete_source: nomVariete,
+    id_plant_source: p.id_plant_source ?? null,
+    nom_plant_source: src.nom,
+    id_culture_source: src.idCulture,
     pheno_source: p.pheno_source,
     reverse: !!Number(p.reverse ?? 0),
     date_collecte: p.date_collecte,
@@ -63,8 +81,12 @@ async function enrichCroisement(c: Row): Promise<Row> {
     const p = await one<Row>('SELECT nom_pollen FROM "Pollen" WHERE id_pollen = ?', [c.id_pollen])
     nomPollen = p?.nom_pollen ?? null
   }
+  const mere = await plantLink(c.id_plant_mere)
   return {
     ...c,
+    id_plant_mere: c.id_plant_mere ?? null,
+    nom_plant_mere: mere.nom,
+    id_culture_mere: mere.idCulture,
     nom_variete_mere: await nomFor(c.id_variete_mere),
     nom_pollen: nomPollen,
     nom_variete_pere: await nomFor(c.id_variete_pere),
@@ -74,6 +96,42 @@ async function enrichCroisement(c: Row): Promise<Row> {
     statut: c.statut ?? 'planifie',
   }
 }
+
+// ═══ Plantes reproductrices (miroir de GET /plantes-repro) ══════════════════════
+
+route('GET', '/croisements/plantes-repro', async ({ query: q }) => {
+  const role = q.get('role') ?? 'pere'
+  if (role !== 'pere' && role !== 'mere') throw new LocalHttpError(400, "role doit valoir 'pere' ou 'mere'")
+  const filtreSexe = role === 'pere'
+    ? "(pl.sexe = 'male' OR pl.reverse_sts = 1)"
+    : "pl.sexe IN ('femelle', 'hermaphrodite')"
+  const rows = await query<Row>(
+    `SELECT pl.id_plant, pl.id_culture, pl.nom_affichage, pl.sexe, pl.reverse_sts, pl.conserve_repro, pl.statut,
+            c.nom AS nom_culture, c.statut AS statut_culture, v.id_variete, v.nom_variete
+     FROM "Plant" pl
+     JOIN "Culture" c ON c.id_culture = pl.id_culture
+     LEFT JOIN "Graine" g ON g.id_graine = pl.id_graine
+     LEFT JOIN "Variete" v ON v.id_variete = g.id_variete
+     WHERE ${filtreSexe}
+       AND (pl.conserve_repro = 1 OR (c.statut != 'terminee' AND pl.statut IN ('germination', 'veg', 'floraison')))`)
+  const out = rows.map(r => ({
+    id_plant: r.id_plant,
+    id_culture: r.id_culture,
+    nom_culture: r.nom_culture ?? null,
+    culture_terminee: r.statut_culture === 'terminee',
+    nom_affichage: r.nom_affichage,
+    id_variete: r.id_variete ?? null,
+    nom_variete: r.nom_variete ?? null,
+    sexe: r.sexe ?? null,
+    reverse_sts: !!Number(r.reverse_sts ?? 0),
+    conserve_repro: !!Number(r.conserve_repro ?? 0),
+    statut: r.statut ?? null,
+  }))
+  out.sort((a, b) => (Number(b.conserve_repro) - Number(a.conserve_repro))
+    || String(a.nom_culture ?? '').localeCompare(String(b.nom_culture ?? ''), 'fr', { sensitivity: 'base' })
+    || String(a.nom_affichage).localeCompare(String(b.nom_affichage), 'fr', { sensitivity: 'base' }))
+  return { data: out }
+})
 
 // ═══ Pollen (routes statiques avant /:id) ═══════════════════════════════════════
 
@@ -92,6 +150,14 @@ route('POST', '/croisements/pollen', async ({ body }) => {
   const p = body as Row
   const obj: Row = { created_at: new Date().toISOString() }
   for (const f of POLLEN_FIELDS) obj[f] = p[f] ?? null
+  // Pollen collecté sur une plante : variété / pheno / reverse déduits, plante marquée « conservée repro »
+  if (p.id_plant_source) {
+    const pl = await loadPlantRepro(p.id_plant_source)
+    if (!obj.id_variete_source) obj.id_variete_source = pl.id_variete_graine ?? null
+    if (!obj.pheno_source) obj.pheno_source = pl.nom_affichage
+    if (!('reverse' in p)) obj.reverse = !!Number(pl.reverse_sts ?? 0) || pl.sexe === 'femelle'
+    await run('UPDATE "Plant" SET conserve_repro = 1 WHERE id_plant = ?', [p.id_plant_source])
+  }
   if (!obj.date_peremption) obj.date_peremption = peremptionAuto(p.date_collecte, p.stockage)
   if ((obj.quantite_restante_g === null || obj.quantite_restante_g === undefined)
       && obj.quantite_initiale_g !== null && obj.quantite_initiale_g !== undefined) {
@@ -140,6 +206,13 @@ route('POST', '/croisements', async ({ body }) => {
   const p = body as Row
   const obj: Row = { created_at: new Date().toISOString() }
   for (const f of CROISEMENT_FIELDS) obj[f] = p[f] ?? null
+  // Mère = plante réelle : variété / pheno déduits, plante marquée « conservée repro »
+  if (p.id_plant_mere) {
+    const mere = await loadPlantRepro(p.id_plant_mere)
+    if (!obj.id_variete_mere) obj.id_variete_mere = mere.id_variete_graine ?? null
+    if (!obj.pheno_mere) obj.pheno_mere = mere.nom_affichage
+    await run('UPDATE "Plant" SET conserve_repro = 1 WHERE id_plant = ?', [p.id_plant_mere])
+  }
   const id = await insert('Croisement', obj)
 
   // Décrémenter le stock de pollen si utilisé
@@ -155,10 +228,16 @@ route('POST', '/croisements', async ({ body }) => {
 })
 
 route('PUT', '/croisements/:id', async ({ params, body }) => {
-  await oneOr404('SELECT * FROM "Croisement" WHERE id_croisement = ?', [params.id], 'Croisement non trouvé')
+  const cur = await oneOr404<Row>('SELECT * FROM "Croisement" WHERE id_croisement = ?', [params.id], 'Croisement non trouvé')
   const p = body as Row
   const upd: Row = {}
   for (const f of CROISEMENT_FIELDS) if (f in p) upd[f] = p[f]
+  if (p.id_plant_mere) {
+    const mere = await loadPlantRepro(p.id_plant_mere)
+    if (!(upd.id_variete_mere ?? cur.id_variete_mere)) upd.id_variete_mere = mere.id_variete_graine ?? null
+    if (!(upd.pheno_mere ?? cur.pheno_mere)) upd.pheno_mere = mere.nom_affichage
+    await run('UPDATE "Plant" SET conserve_repro = 1 WHERE id_plant = ?', [p.id_plant_mere])
+  }
   await updateById('Croisement', 'id_croisement', params.id, upd)
   return { data: await enrichCroisement((await one<Row>('SELECT * FROM "Croisement" WHERE id_croisement = ?', [params.id]))!) }
 })

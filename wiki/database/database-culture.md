@@ -66,6 +66,10 @@ Individual plant within a culture.
 | `date_prelevement` | Date (nullable) | Date de prise de bouture |
 | `date_enracinement` | Date (nullable) | Date d'enracinement constatée |
 | `statut_clone` | String (nullable) | `en_attente` \| `enracine` \| `rate` |
+| `sexe` | String (nullable) | `femelle` \| `male` \| `hermaphrodite` \| NULL = inconnu (2026-11-18, voir [[features/plant-lifecycle#Sexe & reproduction (2026-11-18)]]) |
+| `date_sexage` | Date (nullable) | Date à laquelle le sexe a été constaté |
+| `conserve_repro` | Bool | Conservée pour la reproduction |
+| `reverse_sts` | Bool | Femelle reversée (STS) |
 
 Status flow: `germination → veg → floraison → sechage → curing → prete | recolte | abandonne`
 

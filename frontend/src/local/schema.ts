@@ -1,7 +1,7 @@
 // ─── GÉNÉRÉ depuis backend/app/models/all_models.py (SQLAlchemy → dialecte SQLite) ───
 // Ne pas éditer à la main : régénérer si le schéma backend change (voir wiki features/mobile-standalone).
 
-export const SCHEMA_VERSION = 5
+export const SCHEMA_VERSION = 6
 
 export const SCHEMA_STATEMENTS: string[] = [
 `CREATE TABLE "AppSettings" (
@@ -311,6 +311,7 @@ export const SCHEMA_STATEMENTS: string[] = [
 	id_pollen INTEGER NOT NULL, 
 	nom_pollen VARCHAR(255) NOT NULL, 
 	id_variete_source INTEGER, 
+	id_plant_source INTEGER, 
 	pheno_source VARCHAR(100), 
 	reverse BOOLEAN, 
 	date_collecte DATE, 
@@ -322,7 +323,8 @@ export const SCHEMA_STATEMENTS: string[] = [
 	notes TEXT, 
 	created_at DATETIME, 
 	PRIMARY KEY (id_pollen), 
-	FOREIGN KEY(id_variete_source) REFERENCES "Variete" (id_variete)
+	FOREIGN KEY(id_variete_source) REFERENCES "Variete" (id_variete), 
+	FOREIGN KEY(id_plant_source) REFERENCES "Plant" (id_plant) ON DELETE SET NULL
 )`,
 `CREATE TABLE "Pot" (
 	id_pot INTEGER NOT NULL, 
@@ -496,6 +498,7 @@ export const SCHEMA_STATEMENTS: string[] = [
 	nom_croisement VARCHAR(255) NOT NULL, 
 	type_croisement VARCHAR(20), 
 	id_variete_mere INTEGER, 
+	id_plant_mere INTEGER, 
 	pheno_mere VARCHAR(100), 
 	notes_mere TEXT, 
 	id_pollen INTEGER, 
@@ -521,7 +524,8 @@ export const SCHEMA_STATEMENTS: string[] = [
 	FOREIGN KEY(id_pollen) REFERENCES "Pollen" (id_pollen), 
 	FOREIGN KEY(id_variete_pere) REFERENCES "Variete" (id_variete), 
 	FOREIGN KEY(id_variete_resultat) REFERENCES "Variete" (id_variete), 
-	FOREIGN KEY(id_packgraine_resultat) REFERENCES "PackGraine" (id_packgraine)
+	FOREIGN KEY(id_packgraine_resultat) REFERENCES "PackGraine" (id_packgraine), 
+	FOREIGN KEY(id_plant_mere) REFERENCES "Plant" (id_plant) ON DELETE SET NULL
 )`,
 `CREATE TABLE "Culture" (
 	id_culture INTEGER NOT NULL, 
@@ -817,6 +821,10 @@ export const SCHEMA_STATEMENTS: string[] = [
 	date_prelevement DATE, 
 	date_enracinement DATE, 
 	statut_clone VARCHAR(20), 
+	sexe VARCHAR(20), 
+	date_sexage DATE, 
+	conserve_repro BOOLEAN, 
+	reverse_sts BOOLEAN, 
 	PRIMARY KEY (id_plant), 
 	FOREIGN KEY(id_culture) REFERENCES "Culture" (id_culture) ON DELETE CASCADE, 
 	FOREIGN KEY(id_graine) REFERENCES "Graine" (id_graine), 

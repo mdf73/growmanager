@@ -1,10 +1,27 @@
 import { useState } from 'react'
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
-import { Leaf, Edit2, Check, X, Plus, Trash2, AlertTriangle, ArrowRightLeft, Sprout, Search, ChevronDown, ChevronRight, Scissors, CheckCircle2, XCircle } from 'lucide-react'
-import { Plant, plantAPI, PlantUpdate, cultureUtilsAPI, PotItem, RecetteSolItem } from '../../api/cultures'
+import { Leaf, Edit2, Check, X, Plus, Trash2, AlertTriangle, ArrowRightLeft, Sprout, Search, ChevronDown, ChevronRight, Scissors, CheckCircle2, XCircle, FlaskConical } from 'lucide-react'
+import { Plant, plantAPI, PlantUpdate, cultureUtilsAPI, PotItem, RecetteSolItem, SexePlant } from '../../api/cultures'
 import { catalogueAPI, packCompletAPI, CatalogueItem } from '../../api/graines'
 import TransfertPlantModal from './TransfertPlantModal'
 import ClonageModal from './ClonageModal'
+import CollectePollenModal from './CollectePollenModal'
+
+// ── Sexe & reproduction ──────────────────────────────────────────────────────
+type SexeKey = SexePlant | 'inconnu'
+const SEXE_META: Record<SexeKey, { label: string; short: string; color: string }> = {
+  femelle:       { label: 'Femelle',       short: '♀',  color: 'bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-300' },
+  male:          { label: 'Mâle',          short: '♂',  color: 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-300' },
+  hermaphrodite: { label: 'Hermaphrodite', short: '⚥',  color: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300' },
+  inconnu:       { label: 'Sexe ?',        short: '?',  color: 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300' },
+}
+const SEXE_CHOIX: SexeKey[] = ['femelle', 'male', 'hermaphrodite', 'inconnu']
+const sexeKey = (p: Plant): SexeKey => (p.sexe ?? 'inconnu') as SexeKey
+const STATUTS_SUR_PIED = ['germination', 'veg', 'floraison']
+/** Graine régulière : le sexe n'est pas connu d'avance */
+const isReguliere = (p: Plant) => (p.types_graines || '').toLowerCase().includes('gul')
+/** Le sexe mérite d'être affiché (pas pour une féminisée femelle « normale ») */
+const showSexe = (p: Plant) => p.sexe !== 'femelle' || isReguliere(p) || !!p.conserve_repro || !!p.reverse_sts
 
 const STATUT_COLORS: Record<string, string> = {
   germination: 'bg-green-100 text-green-700',
@@ -110,6 +127,20 @@ export default function PlantesTab({ cultureId, plants }: Props) {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['culture', cultureId] }),
   })
 
+  // ── Écarter les mâles (hors plantes conservées pour la repro) ──────────────
+  const [confirmEcarter, setConfirmEcarter] = useState(false)
+  const [inclureHermas, setInclureHermas] = useState(false)
+  const [ecarterMsg, setEcarterMsg] = useState<string | null>(null)
+  const ecarterMales = useMutation({
+    mutationFn: () => plantAPI.ecarterMales(cultureId, inclureHermas),
+    onSuccess: (res) => {
+      qc.invalidateQueries({ queryKey: ['culture', cultureId] })
+      setConfirmEcarter(false)
+      const n = res.data.nb_ecartes
+      setEcarterMsg(n ? `${n} plante${n > 1 ? 's' : ''} écartée${n > 1 ? 's' : ''} : ${res.data.plantes.join(', ')}` : 'Aucune plante à écarter')
+    },
+  })
+
   function startEdit(plant: Plant) {
     setEditingId(plant.id_plant)
     setEditValues({
@@ -120,6 +151,10 @@ export default function PlantesTab({ cultureId, plants }: Props) {
       id_pot: plant.id_pot,
       volume_pot_l: plant.volume_pot_l,
       notes: plant.notes,
+      sexe: plant.sexe ?? null,
+      date_sexage: plant.date_sexage ?? undefined,
+      conserve_repro: !!plant.conserve_repro,
+      reverse_sts: !!plant.reverse_sts,
     })
   }
 
@@ -147,6 +182,14 @@ export default function PlantesTab({ cultureId, plants }: Props) {
   }
   varietyGroups.sort((a, b) => a.label.localeCompare(b.label, 'fr', { sensitivity: 'base' }))
   const isGrouped = varietyGroups.length > 1
+
+  // Bilan sexe des plantes actives (affiché seulement s'il y a du sexage en jeu)
+  const sexageEnJeu = actives.some(p => p.sexe !== 'femelle' || isReguliere(p))
+  const bilanSexe = SEXE_CHOIX.map(k => ({ k, n: actives.filter(p => sexeKey(p) === k).length })).filter(x => x.n > 0)
+  const surPied = actives.filter(p => STATUTS_SUR_PIED.includes(p.statut || 'germination') && !p.conserve_repro)
+  const nbMalesEcartables = surPied.filter(p => p.sexe === 'male').length
+  const nbHermasEcartables = surPied.filter(p => p.sexe === 'hermaphrodite').length
+  const nbEcartables = nbMalesEcartables + (inclureHermas ? nbHermasEcartables : 0)
 
   return (
     <div className="space-y-4">
@@ -217,6 +260,47 @@ export default function PlantesTab({ cultureId, plants }: Props) {
             isPending={addFromPack.isPending}
             onAdd={pack => addFromPack.mutate(pack)}
           />
+        </div>
+      )}
+
+      {/* Bilan sexage + écarter les mâles */}
+      {sexageEnJeu && (
+        <div className="flex flex-wrap items-center gap-2 px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/60">
+          <span className="text-xs text-gray-500 dark:text-gray-400">Sexage :</span>
+          {bilanSexe.map(({ k, n }) => (
+            <span key={k} className={`text-xs px-2 py-0.5 rounded-full font-medium ${SEXE_META[k].color}`}>
+              {SEXE_META[k].short} {n}
+            </span>
+          ))}
+          <div className="flex-1" />
+          {(nbMalesEcartables + nbHermasEcartables) > 0 && (
+            confirmEcarter ? (
+              <div className="flex flex-wrap items-center gap-2 text-xs">
+                {nbHermasEcartables > 0 && (
+                  <label className="flex items-center gap-1 text-gray-600 dark:text-gray-300">
+                    <input type="checkbox" checked={inclureHermas} onChange={e => setInclureHermas(e.target.checked)} />
+                    inclure les hermaphrodites ({nbHermasEcartables})
+                  </label>
+                )}
+                <span className="text-red-700 dark:text-red-300">Écarter {nbEcartables} plante{nbEcartables > 1 ? 's' : ''} ?</span>
+                <button onClick={() => ecarterMales.mutate()} disabled={ecarterMales.isPending || nbEcartables === 0}
+                  className="px-2 py-0.5 rounded bg-red-600 text-white hover:bg-red-700 disabled:opacity-50">
+                  {ecarterMales.isPending ? '…' : 'Oui'}
+                </button>
+                <button onClick={() => setConfirmEcarter(false)}
+                  className="px-2 py-0.5 rounded border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300">
+                  Non
+                </button>
+              </div>
+            ) : (
+              <button onClick={() => { setConfirmEcarter(true); setEcarterMsg(null) }}
+                title="Passe en « Abandonnée » les mâles sur pied, sauf ceux conservés pour la repro"
+                className="text-xs px-2.5 py-1 rounded-lg border border-red-300 text-red-600 hover:bg-red-50 dark:border-red-700 dark:text-red-400 dark:hover:bg-red-900/20">
+                Écarter les mâles ({nbMalesEcartables})
+              </button>
+            )
+          )}
+          {ecarterMsg && <span className="w-full text-xs text-gray-500 dark:text-gray-400">{ecarterMsg}</span>}
         </div>
       )}
 
@@ -484,7 +568,21 @@ function PlantCard({
   const [showEnraciner, setShowEnraciner] = useState(false)
   const [confirmRate, setConfirmRate] = useState(false)
   const [dateEnr, setDateEnr] = useState(new Date().toISOString().slice(0, 10))
+  const [showSexePicker, setShowSexePicker] = useState(false)
+  const [showPollen, setShowPollen] = useState(false)
   const qc = useQueryClient()
+
+  // Sexage / repro rapide, sans passer par le formulaire d'édition
+  const quickUpdate = useMutation({
+    mutationFn: (data: PlantUpdate) => plantAPI.update(plant.id_culture, plant.id_plant, data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['culture', plant.id_culture] })
+      qc.invalidateQueries({ queryKey: ['plantes-repro'] })
+      setShowSexePicker(false)
+    },
+  })
+  const sk = sexeKey(plant)
+  const peutDonnerPollen = plant.sexe === 'male' || !!plant.reverse_sts
 
   const enracinerMutation = useMutation({
     mutationFn: () => plantAPI.enraciner(plant.id_culture, plant.id_plant, dateEnr),
@@ -590,6 +688,41 @@ function PlantCard({
             </div>
           )}
 
+          {/* Sexe & reproduction */}
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Sexe</label>
+              <select value={editValues.sexe ?? ''}
+                onChange={e => onEditChange({ ...editValues, sexe: (e.target.value || null) as SexePlant | null })}
+                className="w-full px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg text-sm">
+                <option value="">? Inconnu</option>
+                <option value="femelle">♀ Femelle</option>
+                <option value="male">♂ Mâle</option>
+                <option value="hermaphrodite">⚥ Hermaphrodite</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Date de sexage</label>
+              <input type="date" value={editValues.date_sexage || ''} disabled={!editValues.sexe}
+                onChange={e => onEditChange({ ...editValues, date_sexage: e.target.value || undefined })}
+                className="w-full px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg text-sm disabled:opacity-50" />
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-4 text-sm text-gray-700 dark:text-gray-200">
+            <label className="flex items-center gap-1.5">
+              <input type="checkbox" checked={!!editValues.conserve_repro}
+                onChange={e => onEditChange({ ...editValues, conserve_repro: e.target.checked })} />
+              🧬 Conservée pour la repro
+            </label>
+            {editValues.sexe !== 'male' && (
+              <label className="flex items-center gap-1.5">
+                <input type="checkbox" checked={!!editValues.reverse_sts}
+                  onChange={e => onEditChange({ ...editValues, reverse_sts: e.target.checked })} />
+                Reversée (STS)
+              </label>
+            )}
+          </div>
+
           {/* Notes */}
           <textarea value={editValues.notes || ''}
             onChange={e => onEditChange({ ...editValues, notes: e.target.value })}
@@ -645,6 +778,49 @@ function PlantCard({
                 <span className="font-semibold text-green-700">⚖️ {plant.poids_recolte_g}g</span>
               )}
             </div>
+            {/* Sexe & reproduction */}
+            {showSexe(plant) && (
+              <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
+                {showSexePicker ? (
+                  <span className="inline-flex flex-wrap items-center gap-1">
+                    {SEXE_CHOIX.map(k => (
+                      <button key={k} disabled={quickUpdate.isPending}
+                        onClick={() => quickUpdate.mutate({ sexe: k === 'inconnu' ? null : k })}
+                        className={`text-xs px-2 py-0.5 rounded-full font-medium border ${k === sk ? 'border-gray-500' : 'border-transparent'} ${SEXE_META[k].color} disabled:opacity-50`}>
+                        {SEXE_META[k].short} {k === 'inconnu' ? 'Inconnu' : SEXE_META[k].label}
+                      </button>
+                    ))}
+                    <button onClick={() => setShowSexePicker(false)} className="p-0.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"><X size={12} /></button>
+                  </span>
+                ) : (
+                  <button onClick={() => setShowSexePicker(true)} title="Changer le sexe"
+                    className={`text-xs px-2 py-0.5 rounded-full font-medium ${SEXE_META[sk].color} hover:ring-1 hover:ring-gray-400`}>
+                    {SEXE_META[sk].short} {SEXE_META[sk].label}
+                    {plant.date_sexage && sk !== 'inconnu' && (
+                      <span className="font-normal opacity-70"> · {new Date(plant.date_sexage + 'T12:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}</span>
+                    )}
+                  </button>
+                )}
+                <button disabled={quickUpdate.isPending}
+                  onClick={() => quickUpdate.mutate({ conserve_repro: !plant.conserve_repro })}
+                  title={plant.conserve_repro ? 'Ne plus conserver pour la repro' : 'Conserver pour la repro (épargnée par « Écarter les mâles »)'}
+                  className={`text-xs px-2 py-0.5 rounded-full border ${plant.conserve_repro
+                    ? 'bg-indigo-100 text-indigo-700 border-indigo-200 dark:bg-indigo-900/30 dark:text-indigo-300 dark:border-indigo-800'
+                    : 'border-dashed border-gray-300 text-gray-400 hover:text-indigo-600 hover:border-indigo-300 dark:border-gray-600'}`}>
+                  🧬 {plant.conserve_repro ? 'Conservée repro' : 'Conserver repro'}
+                </button>
+                {plant.reverse_sts && (
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-fuchsia-100 text-fuchsia-700 dark:bg-fuchsia-900/30 dark:text-fuchsia-300 font-semibold">
+                    Reversée STS
+                  </span>
+                )}
+                {(plant.nb_lots_pollen ?? 0) > 0 && (
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">
+                    🌼 {plant.nb_lots_pollen} lot{(plant.nb_lots_pollen ?? 0) > 1 ? 's' : ''} de pollen
+                  </span>
+                )}
+              </div>
+            )}
             {/* Badge clone / bouture externe : origine + enracinement */}
             {(plant.origine === 'clone' || plant.origine === 'bouture') && (
               <div className="flex flex-wrap gap-1.5 mt-1.5">
@@ -744,6 +920,11 @@ function PlantCard({
                 <button onClick={onClone} className="p-1 text-gray-400 dark:text-gray-500 hover:text-violet-600" title="Prendre une bouture">
                   <Scissors size={14} />
                 </button>
+                {peutDonnerPollen && (
+                  <button onClick={() => setShowPollen(true)} className="p-1 text-gray-400 dark:text-gray-500 hover:text-amber-600" title="Collecter du pollen">
+                    <FlaskConical size={14} />
+                  </button>
+                )}
                 
                 <button onClick={onTransfer} className="p-1 text-gray-400 dark:text-gray-500 hover:text-grow-600" title="Déplacer vers une autre culture">
                   <ArrowRightLeft size={14} />
@@ -755,6 +936,9 @@ function PlantCard({
             )}
           </div>
         </div>
+      )}
+      {showPollen && (
+        <CollectePollenModal plant={plant} cultureId={plant.id_culture} onClose={() => setShowPollen(false)} />
       )}
       {/* Panel inline enracinement */}
         {showEnraciner && enAttenteEnracinement && (

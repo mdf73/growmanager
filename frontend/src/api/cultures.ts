@@ -85,7 +85,17 @@ export interface Plant {
   date_enracinement?: string
   statut_clone?: 'en_attente' | 'enracine' | 'rate'
   nb_clones?: number
+  // Sexe & reproduction
+  types_graines?: string | null
+  sexe?: SexePlant | null
+  date_sexage?: string | null
+  conserve_repro?: boolean
+  reverse_sts?: boolean
+  nb_lots_pollen?: number
 }
+
+/** null = sexe inconnu (graine régulière pas encore sexée) */
+export type SexePlant = 'femelle' | 'male' | 'hermaphrodite'
 
 export interface Action {
   id_action: number
@@ -195,6 +205,16 @@ export interface PlantUpdate {
   id_pot?: number
   volume_pot_l?: number
   notes?: string
+  // Sexe & reproduction — sexe: null remet à « inconnu »
+  sexe?: SexePlant | null
+  date_sexage?: string
+  conserve_repro?: boolean
+  reverse_sts?: boolean
+}
+
+export interface EcarterMalesResult {
+  nb_ecartes: number
+  plantes: string[]
 }
 
 export interface PhEcPoint {
@@ -369,6 +389,8 @@ export const plantAPI = {
     client.patch<Plant>(`/cultures/${cultureId}/plants/${plantId}/enraciner`, { date_enracinement }),
   cloneRate: (cultureId: number, plantId: number) =>
     client.patch<Plant>(`/cultures/${cultureId}/plants/${plantId}/clone-rate`),
+  ecarterMales: (cultureId: number, inclureHermaphrodites = false) =>
+    client.post<EcarterMalesResult>(`/cultures/${cultureId}/ecarter-males`, { inclure_hermaphrodites: inclureHermaphrodites }),
 }
 
 export interface DernierTCO {

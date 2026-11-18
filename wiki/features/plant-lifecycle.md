@@ -68,6 +68,39 @@ External plants (bouture/clone) don't require a seed — used for secondary cult
 
 **Enracinement (UI, 2026-10-11)** : tant qu'une bouture (clone maison ou externe) est en attente, sa carte affiche l'étiquette « Enracinement ✂️ » et un bouton « Valider l'enracinement » à côté du badge jaune. Valider l'enracinement passe la plante en `veg`. Un bouton rouge « Enracinement échoué » (2026-10-18), à côté, déclare la bouture morte après confirmation (`clone-rate` : `statut_clone = 'rate'`, `statut = 'abandonne'`) ; elle reste listée dans « Terminées » avec le badge « N'a pas pris », pour les stats d'enracinement. En base, le statut reste `germination` pendant l'enracinement.
 
+## Sexe & reproduction (2026-11-18)
+
+Pour les **graines régulières** et la **création de graines**. Le sexe se déclare sur la plante, les statuts du cycle de vie ne changent pas : garder une plante pour la repro est une simple case.
+
+### Champs DB (Plant)
+
+| Champ | Type | Notes |
+|---|---|---|
+| `sexe` | String (nullable) | `femelle` \| `male` \| `hermaphrodite` \| `NULL` = inconnu |
+| `date_sexage` | Date (nullable) | Remplie à aujourd'hui quand le sexe change (sauf date fournie), effacée si retour à inconnu |
+| `conserve_repro` | Bool | Plante gardée pour la reproduction (père ou mère) |
+| `reverse_sts` | Bool | Femelle reversée (STS) : donneuse de pollen féminisé |
+
+Liens ajoutés : `Pollen.id_plant_source` (plante donneuse) et `Croisement.id_plant_mere` (plante mère réelle), tous deux FK → Plant, mis à NULL si la plante est supprimée (le pollen et le croisement gardent variété et phéno).
+
+### Règles
+
+- **Sexe à la création** : `NULL` si la graine est régulière (`types_graines` contient « gul » : Regular, Régulière), `femelle` sinon (féminisée, auto, bouture). Plante externe (séchage/curing importé) : `femelle`. Un **clone hérite du sexe** de sa mère.
+- **Migration** (une seule fois, à la création de la colonne) : toutes les plantes existantes passent en `femelle`, sauf celles issues d'une graine régulière (restent à `NULL`). Ensuite, un `NULL` est un choix de l'utilisateur et n'est jamais réécrit.
+- **Écarter les mâles** : `POST /cultures/{id}/ecarter-males` (`{ inclure_hermaphrodites }`) passe en `abandonne` les mâles (et en option les hermaphrodites) encore sur pied (`germination` / `veg` / `floraison`), **sauf** ceux `conserve_repro`, et ajoute « Écartée (mâle) le JJ/MM/AAAA » aux notes.
+- **Collecter du pollen depuis une plante** : `POST /croisements/pollen` avec `id_plant_source` → variété (via la graine) et phéno (nom de la plante) déduits s'ils sont vides, `reverse` déduit (femelle ou `reverse_sts`) s'il n'est pas envoyé, plante marquée `conserve_repro`.
+- **Croisement avec plante mère** : `id_plant_mere` → variété et phéno déduits s'ils sont vides, plante marquée `conserve_repro` (création et modification).
+- **Plantes candidates** : `GET /croisements/plantes-repro?role=pere|mere`. Père = mâles + femelles reversées ; mère = femelles + hermaphrodites. Plantes sur pied d'une culture non terminée, plus toutes les `conserve_repro` où qu'elles soient. Tri : conservées d'abord, puis culture, puis nom.
+
+### Frontend
+
+- **`PlantCard`** : badge sexe cliquable (sexage rapide ♀ / ♂ / ⚥ / ?, avec date), badge « 🧬 Conserver repro » (bascule), badge « Reversée STS », badge « 🌼 N lots de pollen ». Affichés seulement si utile (pas sur une féminisée femelle ordinaire). Icône fiole « Collecter du pollen » sur un mâle ou une femelle reversée → `CollectePollenModal.tsx`. Formulaire d'édition : sexe, date de sexage, cases repro et STS.
+- **`PlantesTab`** : bandeau « Sexage » (bilan ♀/♂/⚥/? des plantes actives) + bouton « Écarter les mâles (N) » avec confirmation et option hermaphrodites. Visible dès qu'une plante active est régulière ou non femelle.
+- **`Croisement.tsx`** : composant `PlanteReproSelect` (« Plante donneuse » dans le formulaire pollen, « Plante mère » dans les formulaires de croisement, préremplissage variété/phéno/reverse). Affichage « 🌱 nom de la plante » sur les cartes croisement et dans le tableau pollen.
+- Portage mode autonome : schéma SQLite v6 (`db.ts`, même backfill), handlers `cultures.ts` / `cultures-helpers.ts` / `croisement.ts`.
+
+**Pas fait** : relier les pères de l'Open Field (`PlantePereOpenField`) à de vraies plantes.
+
 ## Clonage — suivi bouture
 
 Un clone suit un mini-cycle avant de rejoindre le cycle normal :

@@ -43,6 +43,28 @@ def _backfill_historique_id_culture(conn):
             ), {"c": cands[0][0], "h": id_h})
 
 
+def _migrate_sexe_plantes(conn):
+    """Ajoute Plant.sexe et le remplit UNE seule fois (au moment où la colonne est créée) :
+    jusqu'ici toutes les plantes étaient des féminisées, des boutures/clones ou des fleurs externes
+    → 'femelle'. Seules les plantes issues de graines régulières restent à NULL (sexe inconnu).
+    Après coup, un NULL est un choix de l'utilisateur : on ne le réécrit jamais."""
+    exists = conn.execute(text(
+        "SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS "
+        "WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'Plant' AND COLUMN_NAME = 'sexe'"
+    )).scalar()
+    if exists:
+        return
+    conn.execute(text("ALTER TABLE Plant ADD COLUMN sexe VARCHAR(20) NULL"))
+    conn.execute(text(
+        "UPDATE Plant p LEFT JOIN Graine g ON g.id_graine = p.id_graine "
+        "SET p.sexe = 'femelle' "
+        "WHERE p.sexe IS NULL AND ("
+        "  g.id_graine IS NULL "
+        "  OR LOWER(COALESCE(g.types_graines, '')) NOT LIKE '%gul%'"
+        ")"
+    ))
+
+
 def run_migrations():
     migrations = [
         ("Variete",          "lien_web",                 "ALTER TABLE Variete ADD COLUMN lien_web VARCHAR(500)"),
@@ -141,6 +163,12 @@ def run_migrations():
         ("NotationVariete", "note_odeur",      "ALTER TABLE NotationVariete ADD COLUMN note_odeur FLOAT NULL"),
         ("NotationVariete", "note_texture",    "ALTER TABLE NotationVariete ADD COLUMN note_texture FLOAT NULL"),
         ("NotationVariete", "note_extraction", "ALTER TABLE NotationVariete ADD COLUMN note_extraction FLOAT NULL"),
+        # Sexe & reproduction — Plant.sexe est traité à part (backfill unique, voir _migrate_sexe_plantes)
+        ("Plant",      "date_sexage",     "ALTER TABLE Plant ADD COLUMN date_sexage DATE NULL"),
+        ("Plant",      "conserve_repro",  "ALTER TABLE Plant ADD COLUMN conserve_repro TINYINT(1) NOT NULL DEFAULT 0"),
+        ("Plant",      "reverse_sts",     "ALTER TABLE Plant ADD COLUMN reverse_sts TINYINT(1) NOT NULL DEFAULT 0"),
+        ("Pollen",     "id_plant_source", "ALTER TABLE Pollen ADD COLUMN id_plant_source INT NULL"),
+        ("Croisement", "id_plant_mere",   "ALTER TABLE Croisement ADD COLUMN id_plant_mere INT NULL"),
     ]
     # Créer les tables manquantes (ProduitEngrais, TemperatureLog, etc.)
     Base.metadata.create_all(bind=engine)
@@ -282,6 +310,12 @@ def run_migrations():
                 _backfill_historique_id_culture(conn)
         except Exception:
             pass
+
+        # Sexe des plantes (graines régulières) : colonne + backfill unique
+        try:
+            _migrate_sexe_plantes(conn)
+        except Exception as e:
+            print(f"[db_init] migration Plant.sexe : {e}", flush=True)
 
         # Migration V4-G : ajout quantite_initiale sur Stock
         try:

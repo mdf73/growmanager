@@ -5,7 +5,7 @@
 import { route, LocalHttpError } from '../router'
 import { query, one, oneOr404, insert, updateById, run, jsonify } from '../helpers'
 import {
-  isBouture, origineFields,
+  isBouture, origineFields, sexeDefaut, SEXES_VALIDES,
   Row, enrichCulture, enrichPlant, enrichAction, buildPlantName,
   maybeArchiveCulture, computeCultureCost, computeHarvestDate, handleActionEffects,
   todayISO, toSmallUnit, prixParPetiteUnite,
@@ -245,6 +245,7 @@ route('POST', '/cultures', async ({ body }) => {
         nom_affichage: nomPlant,
         numero_plant: plantCounter,
         ...origineFields(graine),
+        sexe: sexeDefaut(graine),
         substrat: payload.substrat_defaut ?? null,
         id_recette_sol: payload.id_recette_sol_defaut ?? null,
         id_pot: sel.id_pot ?? payload.id_pot_defaut ?? null,
@@ -270,6 +271,7 @@ route('POST', '/cultures', async ({ body }) => {
       date_fin_sechage: pe.statut === 'curing' ? (pe.date_fin_sechage ?? null) : null,
       poids_recolte_g: pe.poids_g ?? null,
       notes: notesParts.join('\n') || null,
+      sexe: 'femelle', // fleurs récoltées : forcément femelle
     })
     plantCounter++
   }
@@ -395,9 +397,11 @@ route('POST', '/cultures/:id/plants', async ({ params, body }) => {
       origine = f.origine; statut = f.statut; statutClone = f.statut_clone
     }
   }
+  checkSexe(p.sexe)
   const idPlant = await insert('Plant', {
     id_culture: Number(params.id),
     id_graine: p.id_graine ?? null,
+    sexe: p.sexe ? p.sexe : sexeDefaut(graine),
     nom_affichage: nomAffichage,
     numero_plant: p.numero_plant ?? null,
     origine,
@@ -415,6 +419,12 @@ route('POST', '/cultures/:id/plants', async ({ params, body }) => {
   const plant = await one<Row>('SELECT * FROM "Plant" WHERE id_plant = ?', [idPlant])
   return { status: 201, data: await enrichPlant(plant!) }
 })
+
+function checkSexe(sexe: unknown): void {
+  if (sexe !== null && sexe !== undefined && !SEXES_VALIDES.includes(String(sexe))) {
+    throw new LocalHttpError(400, `Sexe invalide : ${sexe} (femelle | male | hermaphrodite)`)
+  }
+}
 
 async function loadPlant(cultureId: unknown, plantId: unknown): Promise<Row> {
   return oneOr404('SELECT * FROM "Plant" WHERE id_plant = ? AND id_culture = ?',
@@ -441,6 +451,19 @@ route('PUT', '/cultures/:culture_id/plants/:plant_id', async ({ params, body }) 
                    'substrat', 'id_recette_sol', 'id_pot', 'volume_pot_l', 'notes']) {
     if (p[f] !== null && p[f] !== undefined) upd[f] = p[f]
   }
+  // Sexe & reproduction : null explicite autorisé (sexe → inconnu)
+  if ('sexe' in p) {
+    checkSexe(p.sexe)
+    const nouveau = p.sexe ?? null
+    if (nouveau !== (plant.sexe ?? null)) {
+      upd.sexe = nouveau
+      if (nouveau === null) upd.date_sexage = null
+      else if (!p.date_sexage) upd.date_sexage = todayISO()
+    }
+  }
+  if (p.date_sexage) upd.date_sexage = p.date_sexage
+  if (p.conserve_repro !== null && p.conserve_repro !== undefined) upd.conserve_repro = !!p.conserve_repro
+  if (p.reverse_sts !== null && p.reverse_sts !== undefined) upd.reverse_sts = !!p.reverse_sts
   await updateById('Plant', 'id_plant', params.plant_id, upd)
   const updated = await one<Row>('SELECT * FROM "Plant" WHERE id_plant = ?', [params.plant_id])
   return { data: await enrichPlant(updated!) }
@@ -488,8 +511,36 @@ route('DELETE', '/cultures/:culture_id/plants/:plant_id', async ({ params }) => 
   await loadPlant(params.culture_id, params.plant_id)
   await run('DELETE FROM "ActionCalendrier" WHERE id_plant = ?', [params.plant_id])
   await run('UPDATE "Plant" SET id_plant_mere = NULL WHERE id_plant_mere = ?', [params.plant_id])
+  await run('UPDATE "Pollen" SET id_plant_source = NULL WHERE id_plant_source = ?', [params.plant_id])
+  await run('UPDATE "Croisement" SET id_plant_mere = NULL WHERE id_plant_mere = ?', [params.plant_id])
   await run('DELETE FROM "Plant" WHERE id_plant = ?', [params.plant_id])
   return { status: 204 }
+})
+
+// ═══ Écarter les mâles ═══════════════════════════════════════════════════════════
+// Miroir de POST /{culture_id}/ecarter-males : mâles (et en option hermaphrodites) sur pied,
+// sauf ceux « conservés pour la repro », passés en abandonne avec le motif en note.
+
+route('POST', '/cultures/:id/ecarter-males', async ({ params, body }) => {
+  await loadCulture(params.id)
+  const p = (body ?? {}) as Row
+  const sexes = p.inclure_hermaphrodites ? ['male', 'hermaphrodite'] : ['male']
+  const plants = await query<Row>(
+    `SELECT * FROM "Plant" WHERE id_culture = ?
+       AND sexe IN (${sexes.map(() => '?').join(', ')})
+       AND statut IN ('germination', 'veg', 'floraison')
+       AND (conserve_repro IS NULL OR conserve_repro = 0)`, [params.id, ...sexes])
+  const todayFr = frDate(todayISO())
+  const noms: unknown[] = []
+  for (const pl of plants) {
+    const note = `Écartée (${pl.sexe === 'male' ? 'mâle' : 'hermaphrodite'}) le ${todayFr}`
+    await updateById('Plant', 'id_plant', Number(pl.id_plant), {
+      statut: 'abandonne',
+      notes: pl.notes ? `${pl.notes}\n${note}` : note,
+    })
+    noms.push(pl.nom_affichage)
+  }
+  return { data: { nb_ecartes: noms.length, plantes: noms } }
 })
 
 // ═══ Clonage ═══════════════════════════════════════════════════════════════════
@@ -564,6 +615,7 @@ route('POST', '/cultures/:culture_id/plants/:plant_id/clone', async ({ params, b
       numero_plant: maxNum + i + 1,
       origine: 'clone',
       statut: 'germination',
+      sexe: mere.sexe ?? null, // un clone a le sexe de sa mère
       substrat: mere.substrat ?? null,
       id_recette_sol: mere.id_recette_sol ?? null,
       notes: p.notes ?? null,

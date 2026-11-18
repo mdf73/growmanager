@@ -15,6 +15,9 @@ export interface Pollen {
   nom_pollen: string
   id_variete_source?: number
   nom_variete_source?: string
+  id_plant_source?: number | null
+  nom_plant_source?: string | null
+  id_culture_source?: number | null
   pheno_source?: string
   reverse: boolean
   date_collecte?: string
@@ -32,6 +35,7 @@ export interface Pollen {
 export interface PollenCreate {
   nom_pollen: string
   id_variete_source?: number
+  id_plant_source?: number    // plante donneuse : variété/pheno/reverse déduits si absents
   pheno_source?: string
   reverse?: boolean
   date_collecte?: string
@@ -55,6 +59,9 @@ export interface Croisement {
 
   id_variete_mere?: number
   nom_variete_mere?: string
+  id_plant_mere?: number | null
+  nom_plant_mere?: string | null
+  id_culture_mere?: number | null
   pheno_mere?: string
   notes_mere?: string
 
@@ -88,6 +95,7 @@ export interface CroisementCreate {
   nom_croisement: string
   type_croisement?: TypeCroisement
   id_variete_mere?: number
+  id_plant_mere?: number      // plante mère réelle : variété/pheno déduits si absents
   pheno_mere?: string
   notes_mere?: string
   id_pollen?: number
@@ -122,6 +130,22 @@ export interface RecolteGrainesInput {
   types_graines?: string
 }
 
+// --- Plantes reproductrices ---
+
+export interface PlanteRepro {
+  id_plant: number
+  id_culture: number
+  nom_culture?: string | null
+  culture_terminee: boolean
+  nom_affichage: string
+  id_variete?: number | null
+  nom_variete?: string | null
+  sexe?: 'femelle' | 'male' | 'hermaphrodite' | null
+  reverse_sts: boolean
+  conserve_repro: boolean
+  statut?: string | null
+}
+
 // --- API calls ---
 
 export const croisementAPI = {
@@ -143,4 +167,8 @@ export const croisementAPI = {
   updatePollen: (id: number, data: PollenUpdate) =>
     client.put<Pollen>(`/croisements/pollen/${id}`, data),
   deletePollen: (id: number) => client.delete(`/croisements/pollen/${id}`),
+
+  // Plantes reproductrices (père = mâles + femelles reversées, mère = femelles)
+  plantesRepro: (role: 'pere' | 'mere') =>
+    client.get<PlanteRepro[]>('/croisements/plantes-repro', { params: { role } }),
 }

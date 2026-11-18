@@ -20,6 +20,7 @@ class PlantCreate(BaseModel):
     date_fin_sechage: Optional[date] = None
     poids_recolte_g: Optional[float] = None
     notes: Optional[str] = None
+    sexe: Optional[str] = None       # femelle | male | hermaphrodite — si absent : déduit de la graine
 
 
 class PlantUpdate(BaseModel):
@@ -35,6 +36,15 @@ class PlantUpdate(BaseModel):
     id_pot: Optional[int] = None
     volume_pot_l: Optional[float] = None
     notes: Optional[str] = None
+    # Sexe & reproduction — envoyer sexe=null remet à « inconnu »
+    sexe: Optional[str] = None               # femelle | male | hermaphrodite | null
+    date_sexage: Optional[date] = None
+    conserve_repro: Optional[bool] = None
+    reverse_sts: Optional[bool] = None
+
+
+class EcarterMalesPayload(BaseModel):
+    inclure_hermaphrodites: bool = False
 
 
 class PlantRead(BaseModel):
@@ -62,6 +72,20 @@ class PlantRead(BaseModel):
     nom_breeder: Optional[str] = None
     duree_flo_min: Optional[int] = None
     duree_flo_max: Optional[int] = None
+    types_graines: Optional[str] = None      # enrichi depuis la graine (Féminisée, Régulière…)
+    # Clonage (renvoyés par _enrich_plant, jusqu'ici filtrés par le schéma)
+    id_plant_mere: Optional[int] = None
+    nom_plant_mere: Optional[str] = None
+    date_prelevement: Optional[date] = None
+    date_enracinement: Optional[date] = None
+    statut_clone: Optional[str] = None
+    nb_clones: int = 0
+    # Sexe & reproduction
+    sexe: Optional[str] = None
+    date_sexage: Optional[date] = None
+    conserve_repro: bool = False
+    reverse_sts: bool = False
+    nb_lots_pollen: int = 0
 
     model_config = ConfigDict(from_attributes=True)
 

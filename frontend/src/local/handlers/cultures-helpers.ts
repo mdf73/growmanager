@@ -87,15 +87,23 @@ export async function enrichPlant(plant: Row): Promise<Row> {
     date_enracinement: plant.date_enracinement,
     statut_clone: plant.statut_clone,
     nb_clones: 0,
+    // Sexe & reproduction
+    types_graines: null,
+    sexe: plant.sexe ?? null,
+    date_sexage: plant.date_sexage ?? null,
+    conserve_repro: !!Number(plant.conserve_repro ?? 0),
+    reverse_sts: !!Number(plant.reverse_sts ?? 0),
+    nb_lots_pollen: 0,
   }
   if (plant.id_graine) {
     const g = await one<Row>(
-      `SELECT g.duree_flo_min, g.duree_flo_max, v.nom_variete, b.nom_breeder
+      `SELECT g.duree_flo_min, g.duree_flo_max, g.types_graines, v.nom_variete, b.nom_breeder
        FROM "Graine" g
        LEFT JOIN "Variete" v ON v.id_variete = g.id_variete
        LEFT JOIN "Breeder" b ON b.id_breeder = g.id_breeder
        WHERE g.id_graine = ?`, [plant.id_graine])
     if (g) {
+      data.types_graines = g.types_graines ?? null
       data.duree_flo_min = g.duree_flo_min
       data.duree_flo_max = g.duree_flo_max
       data.nom_variete = g.nom_variete
@@ -118,6 +126,7 @@ export async function enrichPlant(plant: Row): Promise<Row> {
     if (mere) data.nom_plant_mere = mere.nom_affichage
   }
   data.nb_clones = await count('SELECT COUNT(*) AS n FROM "Plant" WHERE id_plant_mere = ?', [plant.id_plant])
+  data.nb_lots_pollen = await count('SELECT COUNT(*) AS n FROM "Pollen" WHERE id_plant_source = ?', [plant.id_plant])
   return data
 }
 
@@ -232,6 +241,19 @@ export function isBouture(graine: Row | null | undefined): boolean {
 
 /** Champs d'origine d'une plante créée depuis le catalogue (miroir de _origine_fields côté backend).
  *  Bouture externe → origine 'bouture', en attente d'enracinement (comme un clone maison). */
+export const SEXES_VALIDES = ['femelle', 'male', 'hermaphrodite']
+
+/** Graine régulière (« Regular », « Régulière »…) : sexe inconnu à la germination. */
+export function isReguliere(graine: Row | null | undefined): boolean {
+  return String(graine?.types_graines ?? '').toLowerCase().includes('gul')
+}
+
+/** Sexe à la création (miroir de _sexe_defaut) : inconnu pour une régulière, femelle sinon. */
+export function sexeDefaut(graine: Row | null | undefined): string | null {
+  if (!graine) return null
+  return isReguliere(graine) ? null : 'femelle'
+}
+
 export function origineFields(graine: Row | null | undefined): { origine: string; statut: string; statut_clone: string | null } {
   return isBouture(graine)
     ? { origine: 'bouture', statut: 'germination', statut_clone: 'en_attente' }

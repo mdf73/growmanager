@@ -9,6 +9,7 @@ from datetime import date, datetime
 class PollenCreate(BaseModel):
     nom_pollen: str
     id_variete_source: Optional[int] = None
+    id_plant_source: Optional[int] = None     # plante donneuse : préremplit variété/pheno, la marque « conservée repro »
     pheno_source: Optional[str] = None
     reverse: bool = False
     date_collecte: Optional[date] = None
@@ -22,6 +23,7 @@ class PollenCreate(BaseModel):
 class PollenUpdate(BaseModel):
     nom_pollen: Optional[str] = None
     id_variete_source: Optional[int] = None
+    id_plant_source: Optional[int] = None
     pheno_source: Optional[str] = None
     reverse: Optional[bool] = None
     date_collecte: Optional[date] = None
@@ -38,6 +40,9 @@ class PollenRead(BaseModel):
     nom_pollen: str
     id_variete_source: Optional[int] = None
     nom_variete_source: Optional[str] = None
+    id_plant_source: Optional[int] = None
+    nom_plant_source: Optional[str] = None
+    id_culture_source: Optional[int] = None
     pheno_source: Optional[str] = None
     reverse: bool = False
     date_collecte: Optional[date] = None
@@ -55,6 +60,21 @@ class PollenRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class PlanteReproRead(BaseModel):
+    """Plante utilisable comme parent : mâle / femelle reversée (père) ou femelle (mère)."""
+    id_plant: int
+    id_culture: int
+    nom_culture: Optional[str] = None
+    culture_terminee: bool = False
+    nom_affichage: str
+    id_variete: Optional[int] = None
+    nom_variete: Optional[str] = None
+    sexe: Optional[str] = None
+    reverse_sts: bool = False
+    conserve_repro: bool = False
+    statut: Optional[str] = None
+
+
 # ─── Croisement ──────────────────────────────────────────────────────────────
 
 class CroisementCreate(BaseModel):
@@ -63,6 +83,7 @@ class CroisementCreate(BaseModel):
 
     # Mère
     id_variete_mere: Optional[int] = None
+    id_plant_mere: Optional[int] = None                # plante réelle : préremplit variété/pheno
     pheno_mere: Optional[str] = None
     notes_mere: Optional[str] = None
 
@@ -87,6 +108,7 @@ class CroisementUpdate(BaseModel):
     nom_croisement: Optional[str] = None
     type_croisement: Optional[str] = None
     id_variete_mere: Optional[int] = None
+    id_plant_mere: Optional[int] = None
     pheno_mere: Optional[str] = None
     notes_mere: Optional[str] = None
     id_pollen: Optional[int] = None
@@ -127,6 +149,9 @@ class CroisementRead(BaseModel):
     # Mère
     id_variete_mere: Optional[int] = None
     nom_variete_mere: Optional[str] = None
+    id_plant_mere: Optional[int] = None
+    nom_plant_mere: Optional[str] = None
+    id_culture_mere: Optional[int] = None
     pheno_mere: Optional[str] = None
     notes_mere: Optional[str] = None
 

@@ -37,6 +37,7 @@ Main grow cycle management. Shows active + completed cultures.
 - StatsTab: yield, cost, grams/watt
 - ActionModal (2026-11-03) : cible en pills (espace / toutes les plantes / multi-sélection plante par plante, une action par plante), type Photo retiré (photos via la galerie, qui crée l'action 📷 du jour automatiquement)
 - StatsTab arrosages (2026-11-03) : 1 arrosage = 1 jour (actions du jour regroupées, `preparation_tco` exclue), graphique en litres empilé eau/engrais/TCO, infobulle avec nb de plantes
+- **Sexe & reproduction** (2026-11-18) : badge sexe cliquable sur chaque plante (sexage rapide), badges repro / STS / lots de pollen, bouton « Collecter du pollen », bandeau « Sexage » avec « Écarter les mâles ». Voir [[features/plant-lifecycle#Sexe & reproduction (2026-11-18)]].
 - **Plantes mortes / terminées** (2026-10-01) : une plante morte = statut `abandonne` (action calendrier « Décès plante »). Le label d'onglet affiche `Plantes (actives/total)` quand ils diffèrent ; l'en-tête PlantesTab affiche « X actives · Y terminées ». Dans PhotoGallery, le sélecteur « Associer à » exclut les plantes `abandonne` et regroupe les récoltées (`sechage/recolte/curing/prete/wpff`) sous « Récoltées ».
 - **Barre d'info du détail culture** (7 tuiles) : Jours · Plantes actives · **En croissance** · En floraison · Fenêtre récolte · Dernier arrosage · Dernier TCO. Grille `grid-cols-2 sm:grid-cols-4 xl:grid-cols-7`.
 - **Tuile « En croissance »** (2026-10-18) : jours depuis `Culture.date_debut_croissance` (posée par l'action « Début croissance »). Compteur qui avance tant que la culture n'est pas en floraison, puis figé à la date de floraison (`date_debut_floraison` sinon `date_passage_12_12`, même base que la tuile « En floraison »). « — » si pas de date de début de croissance. `date_debut_croissance` est désormais renvoyé par le détail culture (schéma `CultureRead` + `_enrich_culture` backend, `enrichCulture` local), avec repli sur la 1re action `debut_croissance` du calendrier si le champ culture est vide.
@@ -208,6 +209,7 @@ Genetics/breeding management — fully implemented.
 - **Pollen** : stock (quantité, stockage frigo/congel/ambiant), péremption auto-calculée, statut épuisé/périmé
 - **Croisement** : mère (Variete + phéno) × père (pollen stock ou variété saisie), type F1/F2/BX/S1/IBL
 - Récolte de graines via `RecolteGrainesInput` → crée un `PackGraine` et des `Graine`
+- **Plantes réelles** (2026-11-18) : `PlanteReproSelect` propose la plante donneuse (mâles + femelles reversées) dans le formulaire pollen et la plante mère (femelles) dans les croisements, avec préremplissage variété / phéno / reverse. Voir [[features/plant-lifecycle#Sexe & reproduction (2026-11-18)]].
 
 ### CalendrierGlobal (`/calendrier`)
 Vue mensuelle globale de tous les events de toutes les cultures.

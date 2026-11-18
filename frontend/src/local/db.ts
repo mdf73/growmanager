@@ -100,6 +100,24 @@ async function migrate(conn: SQLiteDBConnection): Promise<void> {
                    = (SELECT COUNT(*) FROM "HistoriquePlant" hp WHERE hp.id_historique_culture = "HistoriqueCulture".id_historique_culture)
               ) = 1;`, false)
     }
+    if (current < 6 && current > 0) {
+      // Sexe & reproduction (graines régulières, création de graines)
+      for (const ddl of [
+        'ALTER TABLE "Plant" ADD COLUMN sexe VARCHAR(20);',
+        'ALTER TABLE "Plant" ADD COLUMN date_sexage DATE;',
+        'ALTER TABLE "Plant" ADD COLUMN conserve_repro BOOLEAN;',
+        'ALTER TABLE "Plant" ADD COLUMN reverse_sts BOOLEAN;',
+        'ALTER TABLE "Pollen" ADD COLUMN id_plant_source INTEGER REFERENCES "Plant" (id_plant) ON DELETE SET NULL;',
+        'ALTER TABLE "Croisement" ADD COLUMN id_plant_mere INTEGER REFERENCES "Plant" (id_plant) ON DELETE SET NULL;',
+      ]) await conn.execute(ddl, false)
+      // Backfill unique (miroir de _migrate_sexe_plantes) : tout est femelle sauf les graines régulières
+      await conn.execute(`UPDATE "Plant" SET sexe = 'femelle'
+        WHERE sexe IS NULL AND (
+          id_graine IS NULL
+          OR NOT EXISTS (SELECT 1 FROM "Graine" g WHERE g.id_graine = "Plant".id_graine
+                         AND LOWER(COALESCE(g.types_graines, '')) LIKE '%gul%')
+        );`, false)
+    }
     await conn.execute(`PRAGMA user_version = ${SCHEMA_VERSION};`, false)
   }
   // Seeds (AppSettings + listes paramétrables) — idempotent, comme au démarrage du backend

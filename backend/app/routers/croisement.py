@@ -6,9 +6,11 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models.all_models import Pollen, Croisement, Variete, PackGraine, Breeder, Graine
+from sqlalchemy import or_
+
+from app.models.all_models import Pollen, Croisement, Variete, PackGraine, Breeder, Graine, Plant, Culture
 from app.schemas.croisement import (
-    PollenCreate, PollenUpdate, PollenRead,
+    PollenCreate, PollenUpdate, PollenRead, PlanteReproRead,
     CroisementCreate, CroisementUpdate, CroisementRead,
     RecolteGrainesInput,
 )
@@ -40,6 +42,9 @@ def _enrich_pollen(p: Pollen) -> dict:
         "nom_pollen": p.nom_pollen,
         "id_variete_source": p.id_variete_source,
         "nom_variete_source": p.variete_source.nom_variete if p.variete_source else None,
+        "id_plant_source": p.id_plant_source,
+        "nom_plant_source": p.plant_source.nom_affichage if p.plant_source else None,
+        "id_culture_source": p.plant_source.id_culture if p.plant_source else None,
         "pheno_source": p.pheno_source,
         "reverse": bool(p.reverse),
         "date_collecte": p.date_collecte,
@@ -62,6 +67,9 @@ def _enrich_croisement(c: Croisement) -> dict:
         "type_croisement": c.type_croisement,
         "id_variete_mere": c.id_variete_mere,
         "nom_variete_mere": c.variete_mere.nom_variete if c.variete_mere else None,
+        "id_plant_mere": c.id_plant_mere,
+        "nom_plant_mere": c.plant_mere.nom_affichage if c.plant_mere else None,
+        "id_culture_mere": c.plant_mere.id_culture if c.plant_mere else None,
         "pheno_mere": c.pheno_mere,
         "notes_mere": c.notes_mere,
         "id_pollen": c.id_pollen,
@@ -85,6 +93,58 @@ def _enrich_croisement(c: Croisement) -> dict:
         "notes": c.notes,
         "created_at": c.created_at,
     }
+
+
+def _load_plant(db: Session, id_plant: int) -> Plant:
+    plant = db.query(Plant).filter(Plant.id_plant == id_plant).first()
+    if not plant:
+        raise HTTPException(404, "Plante non trouvée")
+    return plant
+
+
+def _variete_of(plant: Plant) -> Optional[int]:
+    return plant.graine.id_variete if plant.graine else None
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  PLANTES REPRODUCTRICES  (route statique AVANT /{id})
+# ═══════════════════════════════════════════════════════════════════════════
+
+@router.get("/plantes-repro", response_model=list[PlanteReproRead])
+def list_plantes_repro(role: str = "pere", db: Session = Depends(get_db)):
+    """Plantes utilisables comme parent.
+    role=pere → mâles + femelles reversées (STS) ; role=mere → femelles + hermaphrodites.
+    Plantes encore sur pied (germination / veg / floraison, culture non terminée), plus toutes
+    celles cochées « conservée pour la repro », où qu'elles soient."""
+    if role not in ("pere", "mere"):
+        raise HTTPException(400, "role doit valoir 'pere' ou 'mere'")
+    q = db.query(Plant, Culture).join(Culture, Plant.id_culture == Culture.id_culture)
+    if role == "pere":
+        q = q.filter(or_(Plant.sexe == "male", Plant.reverse_sts == True))  # noqa: E712
+    else:
+        q = q.filter(Plant.sexe.in_(["femelle", "hermaphrodite"]))
+    q = q.filter(or_(
+        Plant.conserve_repro == True,  # noqa: E712
+        (Culture.statut != "terminee") & Plant.statut.in_(["germination", "veg", "floraison"]),
+    ))
+    out = []
+    for plant, culture in q.all():
+        v = plant.graine.variete if plant.graine else None
+        out.append({
+            "id_plant": plant.id_plant,
+            "id_culture": plant.id_culture,
+            "nom_culture": culture.nom,
+            "culture_terminee": culture.statut == "terminee",
+            "nom_affichage": plant.nom_affichage,
+            "id_variete": v.id_variete if v else None,
+            "nom_variete": v.nom_variete if v else None,
+            "sexe": plant.sexe,
+            "reverse_sts": bool(plant.reverse_sts),
+            "conserve_repro": bool(plant.conserve_repro),
+            "statut": plant.statut,
+        })
+    out.sort(key=lambda r: (not r["conserve_repro"], (r["nom_culture"] or "").lower(), r["nom_affichage"].lower()))
+    return out
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -112,6 +172,16 @@ def get_pollen(pollen_id: int, db: Session = Depends(get_db)):
 @router.post("/pollen", response_model=PollenRead)
 def create_pollen(data: PollenCreate, db: Session = Depends(get_db)):
     payload = data.model_dump()
+    # Pollen collecté sur une plante : variété / pheno / reverse déduits, plante marquée « conservée repro »
+    if payload.get("id_plant_source"):
+        plant = _load_plant(db, payload["id_plant_source"])
+        if not payload.get("id_variete_source"):
+            payload["id_variete_source"] = _variete_of(plant)
+        if not payload.get("pheno_source"):
+            payload["pheno_source"] = plant.nom_affichage
+        if "reverse" not in data.model_fields_set:
+            payload["reverse"] = bool(plant.reverse_sts) or plant.sexe == "femelle"
+        plant.conserve_repro = True
     # Auto-calcul péremption si non fournie
     if not payload.get("date_peremption"):
         payload["date_peremption"] = _peremption_auto(payload.get("date_collecte"), payload.get("stockage"))
@@ -175,6 +245,14 @@ def get_croisement(croisement_id: int, db: Session = Depends(get_db)):
 @router.post("/", response_model=CroisementRead)
 def create_croisement(data: CroisementCreate, db: Session = Depends(get_db)):
     payload = data.model_dump()
+    # Mère = plante réelle : variété / pheno déduits, plante marquée « conservée repro »
+    if payload.get("id_plant_mere"):
+        mere = _load_plant(db, payload["id_plant_mere"])
+        if not payload.get("id_variete_mere"):
+            payload["id_variete_mere"] = _variete_of(mere)
+        if not payload.get("pheno_mere"):
+            payload["pheno_mere"] = mere.nom_affichage
+        mere.conserve_repro = True
     c = Croisement(**payload)
     db.add(c)
 
@@ -197,8 +275,16 @@ def update_croisement(croisement_id: int, data: CroisementUpdate, db: Session = 
     c = db.query(Croisement).filter(Croisement.id_croisement == croisement_id).first()
     if not c:
         raise HTTPException(404, "Croisement non trouvé")
-    for field, value in data.model_dump(exclude_unset=True).items():
+    changes = data.model_dump(exclude_unset=True)
+    for field, value in changes.items():
         setattr(c, field, value)
+    if changes.get("id_plant_mere"):
+        mere = _load_plant(db, changes["id_plant_mere"])
+        if not c.id_variete_mere:
+            c.id_variete_mere = _variete_of(mere)
+        if not c.pheno_mere:
+            c.pheno_mere = mere.nom_affichage
+        mere.conserve_repro = True
     db.commit()
     db.refresh(c)
     return _enrich_croisement(c)

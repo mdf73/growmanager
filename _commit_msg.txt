@@ -1,9 +1,15 @@
-fix: suivi des constantes, fenêtre 72h et comparaison N-1 par horodatage
+feat: sexe des plantes et traçabilité reproduction (graines régulières)
 
-- Ajout de la fenêtre 72h entre 48h et 7j
-- Courbe année précédente appariée par horodatage au lieu de l'index
-  (corrige l'affichage N-1 en 6h/24h/48h)
+- Plant : sexe (femelle | male | hermaphrodite | inconnu), date_sexage,
+  conserve_repro, reverse_sts ; sexe par défaut selon la graine, hérité par les clones
+- Migration avec backfill unique (tout en femelle sauf graines régulières)
+- POST /cultures/{id}/ecarter-males : écarte les mâles sur pied sauf conservés repro
+- Pollen.id_plant_source et Croisement.id_plant_mere + GET /croisements/plantes-repro
+- UI : sexage rapide, badges repro/STS/pollen, collecte de pollen depuis une plante,
+  choix plante donneuse / plante mère dans la page Croisement
+- Mode autonome : schéma SQLite v6 + handlers locaux
+- fix: PlantRead renvoie enfin les champs clonage en mode serveur
 - Wiki et CHANGELOG mis à jour
 
 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
-Claude-Session: https://claude.ai/code/session_01DQFniV8XGqmQomyQzTQjpb
+Claude-Session: https://claude.ai/code/session_01DQFniVZKHDM4JRx9K9bVeL

@@ -17,8 +17,8 @@ All models defined in `backend/app/models/all_models.py`.
 | `Variete` | Cannabis variety |
 | `PackGraine` | Purchased seed pack |
 | `Graine` | Individual seed (has breeder, variete, pack) |
-| `Pollen` | Pollen stock (mâle ou femelle reversée STS) — quantité, stockage, date péremption auto |
-| `Croisement` | Crossing record (mère × père) — type F1/F2/BX/S1/IBL, récolte de graines |
+| `Pollen` | Pollen stock (mâle ou femelle reversée STS) — quantité, stockage, date péremption auto, `id_plant_source` → plante donneuse (2026-11-18) |
+| `Croisement` | Crossing record (mère × père) — type F1/F2/BX/S1/IBL, récolte de graines, `id_plant_mere` → plante mère réelle (2026-11-18) |
 
 → [[database/database-graines]]
 
