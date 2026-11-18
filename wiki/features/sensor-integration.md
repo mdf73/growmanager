@@ -262,6 +262,27 @@ Le bouton « Afficher N-1 » de `SensorChart` (`SuiviConstantes.tsx`) charge la 
 
 Ne jamais apparier par index : en données brutes, les relevés N-1 (import CSV Govee) et les relevés live n'ont pas le même pas, ce qui décalait/tronquait la courbe en 6h/24h/48h (seuls 7j/30j marchaient, car agrégés à l'heure des deux côtés).
 
+## Résilience aux pannes de l'API Govee (2026-11-18)
+
+**Contexte** : le 18/11/2026, les deux H5179 sont passés « hors ligne » juste après le déploiement de la v3.19.0, ce qui faisait croire à une régression. Logs du backend : `502 Bad Gateway` et `The read operation timed out` sur `/device/state`. Test depuis le serveur : Google OK en 0,4 s, Govee en IPv4 → `504` après 10 s (panne côté Govee). Le `000` en IPv6 est normal : Govee n'a pas d'adresse IPv6. L'app Govee continuait de marcher car elle lit les capteurs en Bluetooth, sans passer par le cloud. **Conclusion : panne Govee, pas de régression.**
+
+Le message « Aucune donnée — vérifier device_id et SKU » s'affichait pour **toute** erreur cloud, ce qui orientait le diagnostic vers une mauvaise piste.
+
+**Changements** (`services/govee_poller.py`, `routers/capteurs.py`) :
+- `cloud_v2_read(api_key, device_id, sku, timeout, attempts)` → `(reading, cause)`. `_cloud_v2_get_device_status` reste comme enveloppe de compatibilité.
+- **Nouvel essai** (2 essais, pause 1,5 s) uniquement sur erreur passagère : délai dépassé, erreur de connexion, HTTP 5xx. Pas de nouvel essai sur 401/403, 429, 400/404 ni sur une réponse Govee `code != 200`.
+- **Délais** : 20 s par essai pour le polling de fond (toutes les 5 min), 12 s pour « Lire maintenant ». Le pire cas manuel (UDP 3 s + 2 × 12 s + pause) reste sous le `proxy_read_timeout` de 60 s de nginx.
+- **« Lire maintenant »** lit les capteurs **en parallèle** (`ThreadPoolExecutor`), les écritures en base restent séquentielles.
+- **Causes affichées** (`PollResult.erreur`) : « API Govee indisponible (5xx) », « pas de réponse en N s », « Clé API Govee refusée (401/403) », « Limite d'appels Govee atteinte (429) », « Capteur inconnu de Govee (400/404) : vérifier device_id et SKU », « Govee a refusé la lecture : <message> », « Govee injoignable (connexion Internet du serveur ?) », « pas de température / humidité (capteur hors ligne côté cloud ?) », « Aucun device_id renseigné », « Clé API Govee non configurée ».
+- **Logs** : `V2 state <id> (<sku>) essai n/2 : <cause>` et, pour le polling de fond, `Device '<nom>': aucune donnée (<cause>)`.
+
+**Diagnostic rapide** d'une prochaine coupure :
+```
+docker logs growmanager-backend --since 3h 2>&1 | grep -iE 'V2 state|govee' | tail -20
+curl -4 -s -o /dev/null -w "%{http_code} en %{time_total}s\n" -m 30 https://openapi.api.govee.com/router/api/v1/user/devices
+```
+`401` rapide = serveur et réseau OK, Govee répond (la commande n'envoie pas de clé) · `5xx` ou délai = panne Govee · `000` partout, Google compris = connexion du serveur.
+
 ## See Also
 
 - [[database/database-sensors]] — GoveeDevice, TemperatureLog models

@@ -13,6 +13,16 @@ Un catalogue de 178 breeders et un bouton « Charger les breeders standard » av
 
 ---
 
+## [2026-11-18] Fix | Capteurs Govee : vraie cause d'erreur + nouvel essai automatique
+
+Après le déploiement de la v3.19.0, les deux H5179 sont passés hors ligne. Diagnostic avec Pik : logs `502 Bad Gateway` / `read operation timed out`, test serveur → Google OK, Govee `504` en IPv4 (pas d'IPv6 chez Govee). Panne côté Govee, aucune régression. Le message « Aucune donnée — vérifier device_id et SKU », affiché pour toute erreur, induisait en erreur. Correctif : lecture V2 qui renvoie la cause, nouvel essai sur erreur passagère, délais 20 s (fond) / 12 s (manuel), lecture manuelle en parallèle. Testé avec des réponses Govee simulées (504 puis OK, délais dépassés, 502, 401, 429, code 400, ConnectError, capacités vides) et sur la route `/api/govee/poll`. Validé par Pik. Voir [[features/sensor-integration#Résilience aux pannes de l'API Govee (2026-11-18)|la section]].
+
+### Files modified
+- `backend/app/services/govee_poller.py`, `backend/app/routers/capteurs.py`
+- `wiki/features/sensor-integration.md`, `wiki/roadmap.md`, `CHANGELOG.md`
+
+---
+
 ## [2026-11-18] Feature | Sexe des plantes & reproduction (graines régulières)
 
 Préparation des runs en graines régulières et de la création de graines. Option B retenue par Pik (sexe + traçabilité reproduction), avec une simple case « conservée pour la repro » au lieu d'un statut dédié. Sexe sur la plante (inconnu par défaut pour une régulière, femelle sinon, hérité par les clones), sexage rapide, « Écarter les mâles » qui épargne les plantes conservées, collecte de pollen depuis une plante, plante mère réelle dans les croisements, liste des plantes candidates. Migration avec backfill unique (tout en femelle sauf les régulières). Correctif au passage : `PlantRead` filtrait les champs clonage (`nom_plant_mere`, `statut_clone`, `nb_clones`…) en mode serveur, ils sont maintenant renvoyés. Testé sur SQLite (routes FastAPI réelles + migration locale v5 → v6), `tsc` OK. Validé par Pik. Voir [[features/plant-lifecycle#Sexe & reproduction (2026-11-18)|la section]].

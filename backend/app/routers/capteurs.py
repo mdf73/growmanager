@@ -25,7 +25,7 @@ from app.schemas.capteur import (
 )
 from app.services.govee_poller import (
     compute_vpd, cloud_v2_list_devices,
-    _udp_get_device_status, _cloud_v2_get_device_status,
+    _udp_get_device_status, _cloud_v2_get_device_status, cloud_v2_read,
     _get_cloud_api_key, _get_active_culture_id,
 )
 
@@ -397,21 +397,29 @@ def manual_poll(db: Session = Depends(get_db)):
     leaf_offset = _get_leaf_offset(db)
     results: List[PollResult] = []
 
-    for device in devices:
-        reading = None
-
-        # 1. LAN UDP si IP configurée
+    def _read(device) -> tuple:
+        """LAN UDP si IP configurée, sinon cloud V2. Retourne (reading, cause d'échec)."""
         if device.ip_lan:
             reading = _udp_get_device_status(device.ip_lan)
+            if reading is not None:
+                return reading, None
+        if not device.device_id:
+            return None, "Aucun device_id renseigné pour ce capteur"
+        if not api_key:
+            return None, "Clé API Govee non configurée (Paramétrage → Capteurs)"
+        # Requête HTTP de l'utilisateur : délai plus court que le polling de fond (2 × 12 s max)
+        return cloud_v2_read(api_key, device.device_id, device.modele or "H5179", timeout=12.0, attempts=2)
 
-        # 2. Cloud V2
-        if reading is None and api_key and device.device_id:
-            reading = _cloud_v2_get_device_status(api_key, device.device_id, device.modele or "H5179")
+    # Lectures en parallèle (l'API Govee peut mettre plusieurs secondes par capteur)
+    from concurrent.futures import ThreadPoolExecutor
+    with ThreadPoolExecutor(max_workers=max(1, min(8, len(devices)))) as pool:
+        lectures = list(pool.map(_read, devices))
 
+    for device, (reading, cause) in zip(devices, lectures):
         if reading is None:
             results.append(PollResult(
                 device_id=device.id_device, nom=device.nom,
-                success=False, erreur="Aucune donnée — vérifier device_id et SKU (modèle)",
+                success=False, erreur=cause or "Aucune donnée reçue",
             ))
             continue
 

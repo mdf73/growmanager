@@ -17,6 +17,14 @@ Versioning : [Semantic Versioning](https://semver.org/lang/fr/) — `MAJOR.MINOR
 
 ---
 
+## [3.19.1] - 2026-11-18
+
+### Corrigé
+- **Capteurs Govee, message d'erreur trompeur** : « Lire maintenant » affichait « Aucune donnée — vérifier device_id et SKU » pour toute erreur, même quand l'API Govee était en panne. La vraie cause s'affiche désormais : API Govee indisponible (502/504), pas de réponse, clé refusée, limite d'appels atteinte, capteur inconnu, Govee injoignable…
+- **Capteurs Govee, pannes passagères** : un nouvel essai automatique est fait quand Govee ne répond pas, renvoie une erreur serveur ou que la connexion échoue. Délai d'attente porté à 20 s pour le relevé automatique (12 s pour le bouton manuel), et les capteurs sont lus en parallèle avec « Lire maintenant ».
+
+---
+
 ## [3.19.0] - 2026-11-18
 
 ### Ajouté

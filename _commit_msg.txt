@@ -1,15 +1,12 @@
-feat: sexe des plantes et traçabilité reproduction (graines régulières)
+fix: capteurs Govee, vraie cause d'erreur et nouvel essai automatique
 
-- Plant : sexe (femelle | male | hermaphrodite | inconnu), date_sexage,
-  conserve_repro, reverse_sts ; sexe par défaut selon la graine, hérité par les clones
-- Migration avec backfill unique (tout en femelle sauf graines régulières)
-- POST /cultures/{id}/ecarter-males : écarte les mâles sur pied sauf conservés repro
-- Pollen.id_plant_source et Croisement.id_plant_mere + GET /croisements/plantes-repro
-- UI : sexage rapide, badges repro/STS/pollen, collecte de pollen depuis une plante,
-  choix plante donneuse / plante mère dans la page Croisement
-- Mode autonome : schéma SQLite v6 + handlers locaux
-- fix: PlantRead renvoie enfin les champs clonage en mode serveur
-- Wiki et CHANGELOG mis à jour
+- cloud_v2_read renvoie (lecture, cause) : 5xx, délai dépassé, clé refusée,
+  429, capteur inconnu, Govee injoignable, capacités vides
+- 2 essais sur erreur passagère (délai, connexion, 5xx), pause 1,5 s
+- délais 20 s (polling de fond) / 12 s (Lire maintenant)
+- Lire maintenant interroge les capteurs en parallèle
+- fin du message « vérifier device_id et SKU » affiché pour toute erreur
+- wiki (sensor-integration, roadmap, log) et CHANGELOG
 
 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 Claude-Session: https://claude.ai/code/session_01DQFniVZKHDM4JRx9K9bVeL

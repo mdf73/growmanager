@@ -203,6 +203,9 @@ Bouton "Export PDF" dans le header de `/calendrier` · modal date début + date 
 
 ## Completed (Post-Sprint 4)
 
+### Capteurs Govee : vraie cause d'erreur + nouvel essai automatique ✅ DONE — validé 2026-11-18
+`cloud_v2_read` → (lecture, cause) · 2 essais sur délai dépassé / connexion / 5xx · 20 s en fond, 12 s en manuel · « Lire maintenant » en parallèle · fin du message trompeur « vérifier device_id et SKU » pour toute erreur. Déclencheur : panne Govee (502/504) du 18/11. Voir [[features/sensor-integration#Résilience aux pannes de l'API Govee (2026-11-18)]].
+
 ### Sexe des plantes & reproduction (graines régulières) ✅ DONE — validé 2026-11-18
 `Plant.sexe` / `date_sexage` / `conserve_repro` / `reverse_sts` · sexage rapide sur la carte · « Écarter les mâles » (épargne les plantes conservées) · collecte de pollen depuis une plante (`Pollen.id_plant_source`) · plante mère réelle dans les croisements (`Croisement.id_plant_mere`) · `GET /croisements/plantes-repro` · mode autonome (SQLite v6). Piste ouverte : relier les pères Open Field à de vraies plantes. Voir [[features/plant-lifecycle#Sexe & reproduction (2026-11-18)]].
 

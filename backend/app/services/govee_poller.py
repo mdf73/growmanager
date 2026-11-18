@@ -11,6 +11,7 @@ from __future__ import annotations
 import json
 import math
 import socket
+import time
 import uuid
 import logging
 from datetime import datetime
@@ -97,71 +98,115 @@ def cloud_v2_list_devices(api_key: str) -> List[dict]:
 
 # ── API V2 — État d'un appareil ───────────────────────────────────────────────
 
+# Délai et nombre d'essais par défaut pour la lecture d'état V2.
+# L'API Govee renvoie régulièrement des 502/504 ou ne répond pas : un 2e essai rattrape
+# les erreurs passagères. Le polling de fond peut attendre longtemps ; le polling manuel
+# (requête HTTP de l'utilisateur) passe un délai plus court.
+GOVEE_V2_TIMEOUT  = 20.0
+GOVEE_V2_ATTEMPTS = 2
+GOVEE_V2_RETRY_PAUSE = 1.5
+
+
+def _parse_v2_state(body: dict, device_id: str) -> tuple[Optional[dict], Optional[str]]:
+    """Extrait température / humidité d'une réponse /device/state."""
+    if body.get("code") != 200:
+        return None, f"Govee a refusé la lecture : {body.get('message') or 'sans message'} (code {body.get('code')})"
+
+    capabilities = body.get("payload", {}).get("capabilities", [])
+    temp = None
+    hum  = None
+    temp_unit = None  # 1 = Fahrenheit, 2 = Celsius
+
+    for cap in capabilities:
+        instance = cap.get("instance", "")
+        value    = cap.get("state", {}).get("value")
+
+        if instance == "sensorTemperature" and value is not None:
+            v = float(value)
+            # Certains modèles renvoient la valeur × 100 (ex: 2150 → 21.5°C)
+            temp = round(v / 100.0, 1) if v > 100 else round(v, 1)
+
+        elif instance == "sensorHumidity" and value is not None:
+            v = float(value)
+            hum = round(v / 100.0, 1) if v > 100 else round(v, 1)
+
+        elif instance in ("temperatureUnit", "tempUnit") and value is not None:
+            try:
+                temp_unit = int(value)
+            except (ValueError, TypeError):
+                pass
+
+    if temp is not None and hum is not None:
+        # Conversion Fahrenheit → Celsius si unité = 1 (°F)
+        # ou heuristique : temp > 45 est irréaliste en °C pour une box, probablement en °F
+        if temp_unit == 1 or (temp_unit is None and temp > 45.0):
+            temp = round((temp - 32.0) * 5.0 / 9.0, 1)
+            logger.debug(f"Conversion F→C appliquée → {temp}°C")
+        return {"temperature": temp, "humidity": hum}, None
+
+    return None, "Govee n'a pas renvoyé de température / humidité (capteur hors ligne côté cloud ?)"
+
+
+def _http_error_message(code: int) -> str:
+    if code in (401, 403):
+        return f"Clé API Govee refusée ({code}) : vérifier la clé dans Paramétrage"
+    if code == 429:
+        return "Limite d'appels Govee atteinte (429) : réessayer plus tard"
+    if code in (400, 404):
+        return f"Capteur inconnu de Govee ({code}) : vérifier device_id et SKU (modèle)"
+    if code >= 500:
+        return f"API Govee indisponible ({code}) : panne côté Govee, réessayer plus tard"
+    return f"Erreur API Govee ({code})"
+
+
+def cloud_v2_read(
+    api_key: str, device_id: str, sku: str,
+    timeout: float = GOVEE_V2_TIMEOUT, attempts: int = GOVEE_V2_ATTEMPTS,
+) -> tuple[Optional[dict], Optional[str]]:
+    """
+    Lit température et humidité via l'API Govee V2.
+    Retourne (reading, None) en cas de succès, (None, cause lisible) sinon.
+    Réessaie sur les erreurs passagères (délai dépassé, connexion, 5xx).
+    """
+    erreur: Optional[str] = None
+    for essai in range(1, max(1, attempts) + 1):
+        retryable = False
+        try:
+            resp = httpx.post(
+                GOVEE_V2_STATE,
+                json={"requestId": str(uuid.uuid4()), "payload": {"sku": sku, "device": device_id}},
+                headers={"Govee-API-Key": api_key, "Content-Type": "application/json"},
+                timeout=timeout,
+            )
+            if resp.status_code >= 400:
+                erreur = _http_error_message(resp.status_code)
+                retryable = resp.status_code >= 500
+            else:
+                reading, erreur = _parse_v2_state(resp.json(), device_id)
+                if reading is not None:
+                    if essai > 1:
+                        logger.info(f"V2 state {device_id}: OK au {essai}e essai")
+                    return reading, None
+        except httpx.TimeoutException:
+            erreur = f"API Govee : pas de réponse en {int(timeout)} s (panne ou lenteur côté Govee)"
+            retryable = True
+        except httpx.TransportError as e:
+            erreur = f"Govee injoignable : {e.__class__.__name__} (connexion Internet du serveur ?)"
+            retryable = True
+        except Exception as e:
+            erreur = f"Erreur inattendue lors de la lecture Govee : {e}"
+
+        logger.warning(f"V2 state {device_id} ({sku}) essai {essai}/{attempts} : {erreur}")
+        if not retryable or essai >= attempts:
+            break
+        time.sleep(GOVEE_V2_RETRY_PAUSE)
+    return None, erreur
+
+
 def _cloud_v2_get_device_status(api_key: str, device_id: str, sku: str) -> Optional[dict]:
-    """
-    Récupère température et humidité via API Govee V2.
-    Retourne {"temperature": float, "humidity": float} ou None.
-    """
-    payload = {
-        "requestId": str(uuid.uuid4()),
-        "payload": {
-            "sku":    sku,
-            "device": device_id,
-        },
-    }
-    try:
-        resp = httpx.post(
-            GOVEE_V2_STATE,
-            json=payload,
-            headers={
-                "Govee-API-Key":  api_key,
-                "Content-Type":   "application/json",
-            },
-            timeout=10,
-        )
-        resp.raise_for_status()
-        body = resp.json()
-
-        if body.get("code") != 200:
-            logger.warning(f"V2 state {device_id}: code={body.get('code')} msg={body.get('message')}")
-            return None
-
-        capabilities = body.get("payload", {}).get("capabilities", [])
-        temp = None
-        hum  = None
-        temp_unit = None  # 1 = Fahrenheit, 2 = Celsius
-
-        for cap in capabilities:
-            instance = cap.get("instance", "")
-            value    = cap.get("state", {}).get("value")
-
-            if instance == "sensorTemperature" and value is not None:
-                v = float(value)
-                # Certains modèles renvoient la valeur × 100 (ex: 2150 → 21.5°C)
-                temp = round(v / 100.0, 1) if v > 100 else round(v, 1)
-
-            elif instance == "sensorHumidity" and value is not None:
-                v = float(value)
-                hum = round(v / 100.0, 1) if v > 100 else round(v, 1)
-
-            elif instance in ("temperatureUnit", "tempUnit") and value is not None:
-                try:
-                    temp_unit = int(value)
-                except (ValueError, TypeError):
-                    pass
-
-        if temp is not None and hum is not None:
-            # Conversion Fahrenheit → Celsius si unité = 1 (°F)
-            # ou heuristique : temp > 45 est irréaliste en °C pour une box, probablement en °F
-            if temp_unit == 1 or (temp_unit is None and temp > 45.0):
-                temp = round((temp - 32.0) * 5.0 / 9.0, 1)
-                logger.debug(f"Conversion F→C appliquée → {temp}°C")
-            return {"temperature": temp, "humidity": hum}
-
-        logger.warning(f"V2 state {device_id}: données incomplètes T={temp} H={hum}")
-    except Exception as e:
-        logger.warning(f"V2 state {device_id} ({sku}) error: {e}")
-    return None
+    """Compatibilité : lecture V2 sans la cause d'erreur. Retourne {"temperature", "humidity"} ou None."""
+    reading, _ = cloud_v2_read(api_key, device_id, sku)
+    return reading
 
 
 # ── UDP LAN ───────────────────────────────────────────────────────────────────
@@ -242,13 +287,14 @@ def poll_all_devices():
             if device.ip_lan:
                 reading = _udp_get_device_status(device.ip_lan)
 
-            # 2. Cloud V2
+            # 2. Cloud V2 (avec nouvel essai sur erreur passagère)
+            erreur = None
             if reading is None and api_key and device.device_id:
                 sku = device.modele or "H5179"
-                reading = _cloud_v2_get_device_status(api_key, device.device_id, sku)
+                reading, erreur = cloud_v2_read(api_key, device.device_id, sku)
 
             if reading is None:
-                logger.warning(f"Device '{device.nom}': aucune donnée.")
+                logger.warning(f"Device '{device.nom}': aucune donnée ({erreur or 'pas de clé API ni d IP LAN'}).")
                 continue
 
             temp = reading["temperature"]
